@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
-// Cliente público (anon key) — para operaciones del lado del cliente
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Cliente browser — guarda sesión en cookies (legible por server components)
+export const createSupabaseBrowser = () =>
+  createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
 // Cliente servidor (service role) — para server components y route handlers
 export const createServerClient = () =>
