@@ -303,6 +303,8 @@ export function MenuPage({ tenant, categories, products }: {
       {showCart && (
         <CartDrawer
           tenantId={tenant.id}
+          tenantName={tenant.name}
+          slug={tenant.slug}
           whatsappNumber={tenant.whatsapp_number}
           onClose={() => setShowCart(false)}
           onCheckout={() => { setShowCart(false); setShowCheckout(true) }}
