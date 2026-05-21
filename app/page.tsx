@@ -92,8 +92,18 @@ function ItemCard({ item, cantidad, onAgregar, onQuitar }: {
       )}
 
       {/* Image zone */}
-      <div className="bg-[#111] flex items-center justify-center py-5 text-[3.5rem] select-none">
-        {CATEGORY_EMOJI[item.categoria]}
+      <div className="bg-[#111] flex items-center justify-center overflow-hidden h-32 relative">
+        {item.imagen ? (
+          <Image
+            src={item.imagen}
+            alt={item.nombre}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 50vw, 33vw"
+          />
+        ) : (
+          <span className="text-[3.5rem] select-none">{CATEGORY_EMOJI[item.categoria]}</span>
+        )}
       </div>
 
       {/* Content */}
