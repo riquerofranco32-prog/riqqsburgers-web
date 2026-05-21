@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import type { Tenant } from '@/types/supabase'
-import type { CartItem } from '@/components/MenuPage'
+import type { Tenant, OrderItem } from '@/types/supabase'
+import type { Product } from '@/types/supabase'
 import { supabase } from '@/lib/supabase'
-import type { OrderItem } from '@/types/supabase'
+
+type CartItem = { product: Product; cantidad: number }
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 

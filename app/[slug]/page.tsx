@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { MenuPage } from '@/components/MenuPage'
+import { CartProvider } from '@/context/CartContext'
 import type { Metadata } from 'next'
 import type { Tenant, Category, Product } from '@/types/supabase'
 
@@ -51,10 +52,12 @@ export default async function Page(
   const products = (rawProds ?? []) as Product[]
 
   return (
-    <MenuPage
-      tenant={tenant}
-      categories={categories}
-      products={products}
-    />
+    <CartProvider tenantId={tenant.id}>
+      <MenuPage
+        tenant={tenant}
+        categories={categories}
+        products={products}
+      />
+    </CartProvider>
   )
 }

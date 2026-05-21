@@ -82,3 +82,12 @@ html { scroll-behavior: smooth; }
 .toast-enter {
   animation: toastEnter 0.2s ease-out both;
 }
+
+/* ── Cart drawer slide-in ────────────────────────────────────────────────── */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out both;
+}
