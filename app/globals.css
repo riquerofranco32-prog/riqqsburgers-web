@@ -63,3 +63,13 @@ html { scroll-behavior: smooth; }
   100% { transform: scale(1); }
 }
 .animate-pop { animation: pop 0.15s ease-out; }
+
+/* ── Hide scrollbar (category nav) ──────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ── Safe area bottom ────────────────────────────────────────────────────── */
+.h-safe-bottom { height: env(safe-area-inset-bottom, 0px); }

@@ -11,8 +11,6 @@ interface FormState {
   telefono: string
   tipoServicio: 'domicilio' | 'retiro'
   direccion: string
-  lat: number | null
-  lng: number | null
   metodoPago: 'mercadopago' | 'efectivo'
 }
 
@@ -46,14 +44,9 @@ function buildMessage(form: FormState, cart: CartItem[]): string {
     .map(c => `X${c.cantidad} ${c.item.nombre}  ${fmtARS(c.item.precio * c.cantidad)}`)
     .join('\n')
 
-  const mapsUrl =
-    form.lat && form.lng
-      ? `https://www.google.com/maps/search/?api=1&query=${form.lat},${form.lng}`
-      : null
-
   const ubicacion =
     form.tipoServicio === 'domicilio'
-      ? `Dirección: ${form.direccion}${mapsUrl ? ` - Ubicación exacta: Ver mapa (${mapsUrl})` : ''}`
+      ? `Dirección: ${form.direccion}`
       : ''
 
   const mpLine =
@@ -191,10 +184,9 @@ export function CheckoutModal({ cart, onClose }: {
 }) {
   const [form, setForm] = useState<FormState>({
     nombre: '', telefono: '', tipoServicio: 'domicilio',
-    direccion: '', lat: null, lng: null, metodoPago: 'mercadopago',
+    direccion: '', metodoPago: 'mercadopago',
   })
   const [errors, setErrors] = useState<FormErrors>({})
-  const [loadingGeo, setLoadingGeo] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
   const subtotal = cart.reduce((acc, c) => acc + c.item.precio * c.cantidad, 0)
@@ -204,23 +196,6 @@ export function CheckoutModal({ cart, onClose }: {
   function set<K extends keyof FormState>(key: K, val: FormState[K]) {
     setForm(f => ({ ...f, [key]: val }))
     if (key in errors) setErrors(e => ({ ...e, [key]: undefined }))
-  }
-
-  async function handleGeolocate() {
-    if (!navigator.geolocation) return
-    setLoadingGeo(true)
-    try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
-      )
-      const { latitude: lat, longitude: lng } = pos.coords
-      // Solo guardamos coordenadas — sin API de Google, sin costo
-      setForm(f => ({ ...f, lat, lng }))
-    } catch {
-      // usuario denegó o timeout
-    } finally {
-      setLoadingGeo(false)
-    }
   }
 
   function validate(): boolean {
@@ -337,39 +312,12 @@ export function CheckoutModal({ cart, onClose }: {
               {form.tipoServicio === 'domicilio' && (
                 <div>
                   <Label>Dirección</Label>
-                  <div className="flex flex-col gap-2">
-                    <Input
-                      value={form.direccion}
-                      onChange={v => set('direccion', v)}
-                      placeholder="Calle, número, barrio"
-                      error={errors.direccion}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleGeolocate}
-                      disabled={loadingGeo}
-                      className="flex items-center justify-center gap-2 border border-[#f5c518]/40 text-[#f5c518] text-sm font-semibold py-2.5 rounded-xl hover:bg-[#f5c518]/10 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
-                    >
-                      {loadingGeo ? (
-                        <>
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                          </svg>
-                          Obteniendo ubicación...
-                        </>
-                      ) : form.lat ? (
-                        <>✅ Ubicación exacta guardada</>
-                      ) : (
-                        <>📍 Adjuntar ubicación exacta (opcional)</>
-                      )}
-                    </button>
-                    {form.lat && form.lng && (
-                      <p className="text-[#555] text-xs ml-1">
-                        Se incluirá un link de Google Maps en el pedido
-                      </p>
-                    )}
-                  </div>
+                  <Input
+                    value={form.direccion}
+                    onChange={v => set('direccion', v)}
+                    placeholder="Ej: Av. San Martín 456, Piso 2"
+                    error={errors.direccion}
+                  />
                 </div>
               )}
 

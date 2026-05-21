@@ -15,7 +15,7 @@ function fmt(n: number) {
 
 function AnimatedLogo() {
   return (
-    <div className="relative w-24 h-24 flex-shrink-0">
+    <div className="relative w-20 h-20 flex-shrink-0">
       {/* Spinning gradient ring */}
       <div
         className="absolute inset-[-3px] rounded-full animate-spin-slow"
@@ -28,8 +28,8 @@ function AnimatedLogo() {
         <Image
           src="/logo.png"
           alt={RESTAURANT_NAME}
-          width={88}
-          height={88}
+          width={72}
+          height={72}
           className="object-cover w-full h-full"
           priority
         />
@@ -71,34 +71,17 @@ function ItemCard({ item, cantidad, onAgregar, onQuitar }: {
   onQuitar: () => void
 }) {
   return (
-    <div className="card-hover relative bg-[#1a1a1a] rounded-2xl border border-[#2a2a2a] flex flex-col overflow-hidden">
+    <div className="card-hover bg-[#1a1a1a] rounded-2xl border border-[#2a2a2a] flex flex-row overflow-hidden min-h-[104px]">
 
-      {/* Badge */}
-      {item.tag && (
-        <span className="absolute top-2 right-2 z-10 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F5A623] text-black leading-tight">
-          {item.tag.replace(/^[^ ]+ /, '')}
-        </span>
-      )}
-
-      {/* Image zone */}
-      <div className="bg-[#111] flex items-center justify-center overflow-hidden h-32 relative">
-        {item.imagen ? (
-          <Image
-            src={item.imagen}
-            alt={item.nombre}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 50vw, 33vw"
-          />
-        ) : (
-          <span className="text-[3.5rem] select-none">{CATEGORY_EMOJI[item.categoria]}</span>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-col gap-2 p-3 flex-1">
-        <div className="flex-1">
-          <h3 className="font-bold text-white text-sm leading-snug font-[family-name:var(--font-syne)]">
+      {/* LEFT: Info */}
+      <div className="flex-1 flex flex-col justify-between p-3 pr-2 min-w-0">
+        <div className="min-w-0">
+          {item.tag && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#F5A623] text-black leading-tight inline-block mb-1">
+              {item.tag.replace(/^[^ ]+ /, '')}
+            </span>
+          )}
+          <h3 className="font-bold text-white text-sm leading-snug font-[family-name:var(--font-syne)] line-clamp-2">
             {item.nombre}
           </h3>
           {item.descripcion && (
@@ -108,34 +91,43 @@ function ItemCard({ item, cantidad, onAgregar, onQuitar }: {
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-1">
-          <span className="font-bold text-[#F5A623] text-[1.05rem]">{fmt(item.precio)}</span>
-
-          {cantidad === 0 ? (
-            <button
-              onClick={onAgregar}
-              className="bg-[#F5A623] text-black text-xs font-bold px-3 py-1.5 rounded-full hover:bg-amber-400 active:scale-95 transition-all min-h-[36px]"
-            >
-              + Agregar
-            </button>
-          ) : (
-            <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2 mt-2">
+          <span className="font-bold text-[#F5A623] text-base">{fmt(item.precio)}</span>
+          {cantidad > 0 && (
+            <div className="flex items-center gap-1 ml-1">
               <button
                 onClick={onQuitar}
-                className="w-8 h-8 rounded-full border border-[#F5A623]/50 text-[#F5A623] font-bold flex items-center justify-center hover:bg-[#F5A623]/10 active:scale-90 transition-all text-base leading-none"
+                className="w-7 h-7 rounded-full border border-[#F5A623]/50 text-[#F5A623] font-bold flex items-center justify-center hover:bg-[#F5A623]/10 active:scale-90 transition-all text-base leading-none"
               >
                 −
               </button>
-              <span className="font-bold text-white w-4 text-center text-sm">{cantidad}</span>
-              <button
-                onClick={onAgregar}
-                className="w-8 h-8 rounded-full bg-[#F5A623] text-black font-bold flex items-center justify-center hover:bg-amber-400 active:scale-90 transition-all text-base leading-none"
-              >
-                +
-              </button>
+              <span className="font-bold text-white w-5 text-center text-sm">{cantidad}</span>
             </div>
           )}
         </div>
+      </div>
+
+      {/* RIGHT: Image 100×100 with "+" overlaid */}
+      <div className="relative w-[100px] h-[100px] flex-shrink-0 self-center m-2 rounded-xl overflow-hidden">
+        {item.imagen ? (
+          <Image
+            src={item.imagen}
+            alt={item.nombre}
+            fill
+            className="object-cover"
+            sizes="100px"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-[#111] flex items-center justify-center">
+            <span className="text-[2.5rem]">{CATEGORY_EMOJI[item.categoria]}</span>
+          </div>
+        )}
+        <button
+          onClick={onAgregar}
+          className="absolute bottom-1.5 right-1.5 w-8 h-8 bg-[#F5A623] text-black font-black text-xl rounded-full flex items-center justify-center shadow-lg hover:bg-amber-400 active:scale-90 transition-all leading-none z-10"
+        >
+          +
+        </button>
       </div>
     </div>
   )
@@ -258,10 +250,10 @@ export default function Home() {
         <AnimatedLogo />
 
         <div className="flex flex-col items-center gap-1">
-          <h1 className="text-3xl font-extrabold tracking-tight font-[family-name:var(--font-syne)]">
+          <h1 className="text-2xl font-extrabold tracking-tight font-[family-name:var(--font-syne)]">
             {RESTAURANT_NAME}
           </h1>
-          <p className="text-[#888] text-sm">{SLOGAN} 🍔</p>
+          <p className="text-[#888] text-[14px]">{SLOGAN} 🍔</p>
         </div>
 
         <a
@@ -289,8 +281,8 @@ export default function Home() {
                 onClick={() => cambiarCategoria(cat)}
                 className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 border min-h-[40px] ${
                   isActive
-                    ? 'bg-[#F5A623] text-black border-[#F5A623] shadow-brand-sm'
-                    : 'tab-inactive bg-transparent text-[#888] border-[#2a2a2a] hover:text-white'
+                    ? 'bg-[#f5c518] text-[#0f0d0b] border-[#f5c518]'
+                    : 'tab-inactive bg-[#2a2520] text-[#999] border-[#2a2520] hover:text-white'
                 }`}
               >
                 <span className="text-base leading-none">{CATEGORY_EMOJI[cat]}</span>
@@ -301,11 +293,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Menu Grid ───────────────────────────────────────────────────────── */}
+      {/* ── Menu List ───────────────────────────────────────────────────────── */}
       <main className="max-w-lg mx-auto px-4 pt-5">
         <div
           key={gridKey}
-          className="grid grid-cols-2 md:grid-cols-3 gap-3 menu-grid-enter"
+          className="flex flex-col gap-3 menu-grid-enter"
         >
           {itemsFiltrados.map(item => (
             <ItemCard
