@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ShoppingCart, DollarSign, TrendingUp, Star } from 'lucide-react'
 import { KPICard } from '@/components/admin/dashboard/KPICard'
 import { SalesAreaChart } from '@/components/admin/dashboard/SalesAreaChart'
@@ -51,14 +52,23 @@ export default function AdminDashboard({
   const dateLabel = getDateLabel()
 
   return (
-    <div className="p-5 md:p-8 flex flex-col gap-6 max-w-6xl">
+    <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
 
       {/* Greeting */}
-      <div>
-        <h1 className="text-xl font-bold font-[family-name:var(--font-syne)] text-zinc-100">
-          {greeting}, {tenantName} 👋
-        </h1>
-        <p className="text-sm text-zinc-500 mt-1">{dateLabel}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold font-[family-name:var(--font-syne)] text-zinc-100">
+            {greeting}, {tenantName} 👋
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">{dateLabel}</p>
+        </div>
+        <Link
+          href={`/${slug}`}
+          target="_blank"
+          className="flex-shrink-0 text-xs text-zinc-500 hover:text-[#F5A623] transition-colors duration-150 mt-1"
+        >
+          Ver catálogo →
+        </Link>
       </div>
 
       {/* KPIs */}
@@ -93,7 +103,7 @@ export default function AdminDashboard({
       </div>
 
       {/* Charts */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
         <SalesAreaChart data={salesData} />
         <CategoryDonut data={categoryData} />
       </div>

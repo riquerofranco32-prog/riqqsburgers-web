@@ -22,15 +22,15 @@ type StatusOption = {
 }
 
 const STATUS_OPTIONS: StatusOption[] = [
-  { value: 'nuevo',      label: 'Nuevo',      badge: 'bg-blue-400/10 text-blue-400' },
-  { value: 'preparando', label: 'Preparando', badge: 'bg-orange-400/10 text-orange-400' },
-  { value: 'listo',      label: 'Listo',      badge: 'bg-green-400/10 text-green-400' },
-  { value: 'entregado',  label: 'Entregado',  badge: 'bg-zinc-800 text-zinc-500' },
-  { value: 'cancelled',  label: 'Cancelado',  badge: 'bg-red-400/10 text-red-400' },
+  { value: 'nuevo',      label: 'Nuevo',      badge: 'bg-yellow-500/20 text-yellow-400' },
+  { value: 'preparando', label: 'Preparando', badge: 'bg-blue-500/20 text-blue-400' },
+  { value: 'listo',      label: 'Listo',      badge: 'bg-green-500/20 text-green-400' },
+  { value: 'entregado',  label: 'Entregado',  badge: 'bg-green-500/20 text-green-400' },
+  { value: 'cancelled',  label: 'Cancelado',  badge: 'bg-red-500/20 text-red-400' },
   // legacy compat
-  { value: 'pending',    label: 'Pendiente',  badge: 'bg-blue-400/10 text-blue-400' },
-  { value: 'confirmed',  label: 'Confirmado', badge: 'bg-orange-400/10 text-orange-400' },
-  { value: 'delivered',  label: 'Entregado',  badge: 'bg-zinc-800 text-zinc-500' },
+  { value: 'pending',    label: 'Pendiente',  badge: 'bg-yellow-500/20 text-yellow-400' },
+  { value: 'confirmed',  label: 'Confirmado', badge: 'bg-blue-500/20 text-blue-400' },
+  { value: 'delivered',  label: 'Entregado',  badge: 'bg-green-500/20 text-green-400' },
 ]
 
 function getStatusMeta(status: string): StatusOption {
