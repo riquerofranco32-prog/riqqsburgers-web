@@ -16,38 +16,65 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
 
-    const supabase = createSupabaseBrowser()
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const supabase = createSupabaseBrowser()
 
-    if (authError) {
-      setError('Email o contraseña incorrectos.')
-      setLoading(false)
-      return
-    }
+      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-    // Buscar el tenant del usuario (dos queries para evitar join tipado)
-    const { data: tenantUser } = await supabase
-      .from('tenant_users')
-      .select('tenant_id')
-      .eq('user_id', data.user.id)
-      .single()
+      if (authError) {
+        setError(`Auth error: ${authError.message}`)
+        setLoading(false)
+        return
+      }
 
-    const tenantId = (tenantUser as { tenant_id: string } | null)?.tenant_id
-    let slug: string | undefined
+      if (!data.user) {
+        setError('No se obtuvo usuario del servidor.')
+        setLoading(false)
+        return
+      }
 
-    if (tenantId) {
-      const { data: tenantData } = await supabase
+      const { data: tenantUser, error: tuError } = await supabase
+        .from('tenant_users')
+        .select('tenant_id')
+        .eq('user_id', data.user.id)
+        .single()
+
+      if (tuError) {
+        setError(`tenant_users error: ${tuError.message}`)
+        setLoading(false)
+        return
+      }
+
+      const tenantId = (tenantUser as { tenant_id: string } | null)?.tenant_id
+
+      if (!tenantId) {
+        setError('No tenés acceso a ningún negocio.')
+        setLoading(false)
+        return
+      }
+
+      const { data: tenantData, error: tError } = await supabase
         .from('tenants')
         .select('slug')
         .eq('id', tenantId)
         .single()
-      slug = (tenantData as { slug: string } | null)?.slug
-    }
 
-    if (slug) {
-      router.push(`/${slug}/admin`)
-    } else {
-      setError('No tenés acceso a ningún negocio.')
+      if (tError) {
+        setError(`tenants error: ${tError.message}`)
+        setLoading(false)
+        return
+      }
+
+      const slug = (tenantData as { slug: string } | null)?.slug
+
+      if (slug) {
+        router.push(`/${slug}/admin`)
+      } else {
+        setError('No se encontró el negocio.')
+        setLoading(false)
+      }
+    } catch (err) {
+      setError(`Error inesperado: ${err instanceof Error ? err.message : String(err)}`)
       setLoading(false)
     }
   }
