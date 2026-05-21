@@ -107,6 +107,7 @@ async function saveOrder(
     subtotal,
     delivery_cost: deliveryCost,
     total,
+    status: 'nuevo',
   })
 
   if (error) console.error('Error guardando orden:', error)
