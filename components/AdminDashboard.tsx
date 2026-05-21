@@ -21,9 +21,11 @@ function getGreeting(): string {
 }
 
 function getDateLabel(): string {
-  return new Intl.DateTimeFormat('es-AR', {
+  const raw = new Intl.DateTimeFormat('es-AR', {
     weekday: 'long', day: 'numeric', month: 'long',
   }).format(new Date())
+  // Capitalize only the first letter (weekday), leave rest as-is
+  return raw.charAt(0).toUpperCase() + raw.slice(1)
 }
 
 interface AdminDashboardProps {
@@ -56,7 +58,7 @@ export default function AdminDashboard({
         <h1 className="text-xl font-bold font-[family-name:var(--font-syne)] text-zinc-100">
           {greeting}, {tenantName} 👋
         </h1>
-        <p className="text-sm text-zinc-500 mt-1 capitalize">{dateLabel}</p>
+        <p className="text-sm text-zinc-500 mt-1">{dateLabel}</p>
       </div>
 
       {/* KPIs */}
@@ -85,8 +87,7 @@ export default function AdminDashboard({
         <KPICard
           label="Top producto hoy"
           value={kpis.topProductToday?.name ?? '—'}
-          change={null}
-          changeLabel={kpis.topProductToday ? `${kpis.topProductToday.qty} uds` : undefined}
+          sub={kpis.topProductToday ? `${kpis.topProductToday.qty} unidades hoy` : 'Sin pedidos aún'}
           icon={Star}
         />
       </div>
