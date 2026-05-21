@@ -13,6 +13,8 @@ export interface MenuItem {
   tag?: string
 }
 
+export type CartItem = { item: MenuItem; cantidad: number }
+
 export const CATEGORIAS = ['Burgers', 'Promos', 'Bebidas'] as const
 
 export const MENU: MenuItem[] = [

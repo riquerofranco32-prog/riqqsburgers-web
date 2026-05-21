@@ -2,24 +2,13 @@
 
 import { useState, useCallback } from 'react'
 import Image from 'next/image'
-import { MENU, CATEGORIAS, WHATSAPP_NUMBER, RESTAURANT_NAME, SLOGAN, INSTAGRAM, type MenuItem } from '@/data/menu'
-
-type CartItem = { item: MenuItem; cantidad: number }
+import { MENU, CATEGORIAS, RESTAURANT_NAME, SLOGAN, INSTAGRAM, type MenuItem, type CartItem } from '@/data/menu'
+import { CheckoutModal } from '@/components/CheckoutModal'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')
-}
-
-function generarLinkWA(cart: CartItem[]): string {
-  const lineas = cart
-    .map(c => `• ${c.cantidad}x ${c.item.nombre} — ${fmt(c.item.precio * c.cantidad)}`)
-    .join('\n')
-  const total = cart.reduce((acc, c) => acc + c.item.precio * c.cantidad, 0)
-  const msg =
-    `🍔 *Pedido - ${RESTAURANT_NAME}*\n\n${lineas}\n\n💰 *Total: ${fmt(total)}*\n\n📍 ¿Me podés dar tu dirección?\n💳 ¿Cómo preferís pagar?`
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`
 }
 
 // ── Logo animado ──────────────────────────────────────────────────────────────
@@ -224,6 +213,7 @@ export default function Home() {
   const [categoriaActiva, setCategoriaActiva] = useState<string>('Burgers')
   const [gridKey, setGridKey] = useState(0)
   const [showCart, setShowCart] = useState(false)
+  const [showCheckout, setShowCheckout] = useState(false)
 
   const itemsFiltrados = MENU.filter(i => i.categoria === categoriaActiva)
   const totalItems = cart.reduce((acc, c) => acc + c.cantidad, 0)
@@ -252,9 +242,9 @@ export default function Home() {
     setGridKey(k => k + 1)
   }
 
-  function pedir() {
-    window.open(generarLinkWA(cart), '_blank')
+  function abrirCheckout() {
     setShowCart(false)
+    setShowCheckout(true)
   }
 
   return (
@@ -353,13 +343,12 @@ export default function Home() {
             <span className="font-bold text-white flex-shrink-0 ml-auto">{fmt(totalPrecio)}</span>
           </button>
 
-          {/* WA Button */}
+          {/* Checkout Button */}
           <button
-            onClick={pedir}
-            className="flex-shrink-0 bg-[#25D366] text-white font-bold py-2.5 px-4 rounded-xl flex items-center gap-1.5 hover:bg-[#20c15e] active:scale-95 transition-all text-sm min-h-[44px]"
+            onClick={abrirCheckout}
+            className="flex-shrink-0 bg-[#f5c518] text-black font-bold py-2.5 px-4 rounded-xl flex items-center gap-1.5 hover:bg-amber-400 active:scale-95 transition-all text-sm min-h-[44px]"
           >
-            <WAIcon className="w-4 h-4" />
-            Pedir
+            Confirmar
           </button>
         </div>
 
@@ -374,7 +363,14 @@ export default function Home() {
           onQuitar={quitar}
           onAgregar={agregar}
           onClose={() => setShowCart(false)}
-          onPedir={pedir}
+          onPedir={abrirCheckout}
+        />
+      )}
+
+      {showCheckout && (
+        <CheckoutModal
+          cart={cart}
+          onClose={() => setShowCheckout(false)}
         />
       )}
     </div>
