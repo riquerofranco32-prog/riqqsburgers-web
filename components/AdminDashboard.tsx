@@ -1,67 +1,107 @@
 'use client'
 
-import { KPICard } from '@/components/admin/KPICard'
-import { SalesChart } from '@/components/admin/SalesChart'
-import { CategoryChart } from '@/components/admin/CategoryChart'
-import { OrdersTable } from '@/components/admin/OrdersTable'
-import type { Tenant, Order } from '@/types/supabase'
+import { ShoppingCart, DollarSign, TrendingUp, Star } from 'lucide-react'
+import { KPICard } from '@/components/admin/dashboard/KPICard'
+import { SalesAreaChart } from '@/components/admin/dashboard/SalesAreaChart'
+import { CategoryDonut } from '@/components/admin/dashboard/CategoryDonut'
+import { RecentOrdersTable } from '@/components/admin/dashboard/RecentOrdersTable'
+import { TopProductsList } from '@/components/admin/dashboard/TopProductsList'
+import type { Order } from '@/types/supabase'
+import type { DashboardKPIs, DailyRevenue, CategoryRevenue, TopProduct } from '@/types/dashboard'
 
 function fmtARS(n: number) {
-  return '$ ' + n.toLocaleString('es-AR')
+  return '$' + n.toLocaleString('es-AR')
 }
 
-function isToday(iso: string) {
-  return new Date(iso).toDateString() === new Date().toDateString()
+function getGreeting(): string {
+  const h = new Date().getHours()
+  if (h >= 5 && h < 12) return 'Buen día'
+  if (h >= 12 && h < 20) return 'Buenas tardes'
+  return 'Buenas noches'
 }
 
-export default function AdminDashboard({ tenant, orders }: {
-  tenant: Tenant
-  orders: Order[]
-}) {
-  const todayOrders = orders.filter(o => isToday(o.created_at))
-  const totalHoy = todayOrders.reduce((s, o) => s + o.total, 0)
-  const ticketPromedio = todayOrders.length > 0 ? Math.round(totalHoy / todayOrders.length) : 0
+function getDateLabel(): string {
+  return new Intl.DateTimeFormat('es-AR', {
+    weekday: 'long', day: 'numeric', month: 'long',
+  }).format(new Date())
+}
 
-  const itemCounts: Record<string, { name: string; qty: number }> = {}
-  for (const order of orders) {
-    if (!Array.isArray(order.items)) continue
-    for (const item of order.items as { name: string; quantity: number }[]) {
-      if (!itemCounts[item.name]) itemCounts[item.name] = { name: item.name, qty: 0 }
-      itemCounts[item.name].qty += item.quantity
-    }
-  }
-  const topProduct = Object.values(itemCounts).sort((a, b) => b.qty - a.qty)[0]
+interface AdminDashboardProps {
+  tenantName: string
+  slug: string
+  kpis: DashboardKPIs
+  salesData: DailyRevenue[]
+  categoryData: CategoryRevenue[]
+  recentOrders: Order[]
+  topProducts: TopProduct[]
+}
 
-  void tenant
+export default function AdminDashboard({
+  tenantName,
+  slug,
+  kpis,
+  salesData,
+  categoryData,
+  recentOrders,
+  topProducts,
+}: AdminDashboardProps) {
+  const greeting = getGreeting()
+  const dateLabel = getDateLabel()
 
   return (
-    <div className="p-5 md:p-8 flex flex-col gap-6 max-w-5xl">
+    <div className="p-5 md:p-8 flex flex-col gap-6 max-w-6xl">
 
+      {/* Greeting */}
       <div>
-        <h1 className="text-xl font-bold font-[family-name:var(--font-syne)]">Dashboard</h1>
-        <p className="text-xs text-zinc-500 mt-0.5">Resumen de actividad</p>
+        <h1 className="text-xl font-bold font-[family-name:var(--font-syne)] text-zinc-100">
+          {greeting}, {tenantName} 👋
+        </h1>
+        <p className="text-sm text-zinc-500 mt-1 capitalize">{dateLabel}</p>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KPICard title="Pedidos hoy" value={String(todayOrders.length)} delta="+2" deltaType="up" />
-        <KPICard title="Ventas hoy" value={fmtARS(totalHoy)} delta="+12%" deltaType="up" accent />
-        <KPICard title="Ticket promedio" value={fmtARS(ticketPromedio)} deltaType="neutral" />
         <KPICard
-          title="Top producto"
-          value={topProduct?.name ?? '—'}
-          sub={topProduct ? `${topProduct.qty} unidades` : undefined}
+          label="Pedidos hoy"
+          value={String(kpis.ordersToday)}
+          change={kpis.ordersTodayChange}
+          changeLabel="vs ayer"
+          icon={ShoppingCart}
+        />
+        <KPICard
+          label="Ventas hoy"
+          value={fmtARS(kpis.revenueToday)}
+          change={kpis.revenueTodayChange}
+          changeLabel="vs ayer"
+          icon={DollarSign}
+        />
+        <KPICard
+          label="Ticket promedio"
+          value={kpis.avgTicketToday > 0 ? fmtARS(kpis.avgTicketToday) : '—'}
+          change={kpis.avgTicketChange}
+          changeLabel="vs ayer"
+          icon={TrendingUp}
+        />
+        <KPICard
+          label="Top producto hoy"
+          value={kpis.topProductToday?.name ?? '—'}
+          change={null}
+          changeLabel={kpis.topProductToday ? `${kpis.topProductToday.qty} uds` : undefined}
+          icon={Star}
         />
       </div>
 
       {/* Charts */}
       <div className="grid md:grid-cols-2 gap-4">
-        <SalesChart />
-        <CategoryChart />
+        <SalesAreaChart data={salesData} />
+        <CategoryDonut data={categoryData} />
       </div>
 
-      {/* Orders */}
-      <OrdersTable initialOrders={orders} />
+      {/* Tables */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <RecentOrdersTable orders={recentOrders} slug={slug} />
+        <TopProductsList products={topProducts} />
+      </div>
 
     </div>
   )

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Package, ShoppingBag, ExternalLink, LogOut, Menu, X } from 'lucide-react'
+import { Toaster } from 'sonner'
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -86,6 +87,12 @@ export default function AdminShell({
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex">
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: { background: '#18181b', border: '1px solid #3f3f46', color: '#f4f4f5' },
+        }}
+      />
 
       {/* Sidebar — desktop */}
       <aside className="hidden md:flex flex-col w-56 flex-shrink-0 border-r border-zinc-800 bg-zinc-950 fixed h-full z-30">
