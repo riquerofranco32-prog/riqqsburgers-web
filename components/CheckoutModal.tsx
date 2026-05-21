@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { WHATSAPP_NUMBER, RESTAURANT_NAME, type CartItem } from '@/data/menu'
-import { COSTO_ENVIO, MP_LINK, GOOGLE_MAPS_KEY } from '@/data/config'
+import { COSTO_ENVIO, MP_LINK } from '@/data/config'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -214,20 +214,10 @@ export function CheckoutModal({ cart, onClose }: {
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
       )
       const { latitude: lat, longitude: lng } = pos.coords
+      // Solo guardamos coordenadas — sin API de Google, sin costo
       setForm(f => ({ ...f, lat, lng }))
-
-      if (GOOGLE_MAPS_KEY) {
-        const res = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_KEY}&language=es`
-        )
-        const data = await res.json()
-        if (data.results?.[0]) {
-          setForm(f => ({ ...f, direccion: data.results[0].formatted_address, lat, lng }))
-          setErrors(e => ({ ...e, direccion: undefined }))
-        }
-      }
     } catch {
-      // user denied or timeout — do nothing
+      // usuario denegó o timeout
     } finally {
       setLoadingGeo(false)
     }
@@ -368,13 +358,15 @@ export function CheckoutModal({ cart, onClose }: {
                           </svg>
                           Obteniendo ubicación...
                         </>
+                      ) : form.lat ? (
+                        <>✅ Ubicación exacta guardada</>
                       ) : (
-                        <>📍 Usar mi ubicación</>
+                        <>📍 Adjuntar ubicación exacta (opcional)</>
                       )}
                     </button>
                     {form.lat && form.lng && (
-                      <p className="text-[#555] text-xs flex items-center gap-1">
-                        ✓ Ubicación GPS guardada
+                      <p className="text-[#555] text-xs ml-1">
+                        Se incluirá un link de Google Maps en el pedido
                       </p>
                     )}
                   </div>
