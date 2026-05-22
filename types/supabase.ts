@@ -70,7 +70,7 @@ export interface TenantUser {
   id: string
   user_id: string
   tenant_id: string
-  role: string
+  role: 'admin' | 'superadmin'
 }
 
 export type Database = {

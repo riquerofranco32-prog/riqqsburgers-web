@@ -14,6 +14,14 @@ const config: Config = {
         card: '#1a1a1a',
         border: '#2a2a2a',
         muted: '#888888',
+        // Design system — map to CSS vars defined in globals.css
+        'dash-bg':       'var(--dash-bg)',
+        'dash-surface':  'var(--dash-surface)',
+        'dash-surface-2':'var(--dash-surface-2)',
+        'dash-border':   'var(--dash-border)',
+        'dash-text':     'var(--dash-text)',
+        'dash-muted':    'var(--dash-muted)',
+        'accent':        'var(--accent)',
       },
       animation: {
         'spin-slow': 'spin 5s linear infinite',

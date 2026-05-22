@@ -35,7 +35,7 @@ const STATUS_OPTIONS: StatusOption[] = [
 
 function getStatusMeta(status: string): StatusOption {
   return STATUS_OPTIONS.find(s => s.value === status) ?? {
-    value: status, label: status, badge: 'bg-zinc-800 text-zinc-500',
+    value: status, label: status, badge: 'bg-dash-surface-2 text-dash-muted',
   }
 }
 
@@ -78,12 +78,12 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: string; currentSt
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-8 z-20 bg-zinc-800 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden min-w-[140px]">
+          <div className="absolute right-0 top-8 z-20 bg-dash-surface-2 border border-dash-border rounded-xl shadow-2xl overflow-hidden min-w-[140px]">
             {flowOptions.map(opt => (
               <button
                 key={opt.value}
                 onClick={() => handleChange(opt.value)}
-                className={`w-full text-left px-3 py-2.5 text-xs font-medium transition-colors duration-150 hover:bg-zinc-700 ${opt.value === status ? 'text-yellow-400' : 'text-zinc-300'}`}
+                className={`w-full text-left px-3 py-2.5 text-xs font-medium transition-colors duration-150 hover:bg-dash-surface ${opt.value === status ? 'text-accent' : 'text-dash-text'}`}
               >
                 {opt.label}
               </button>
@@ -104,18 +104,18 @@ interface RecentOrdersTableProps {
 export function RecentOrdersTable({ orders, slug, loading = false }: RecentOrdersTableProps) {
   if (loading) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-          <div className="h-3 w-36 bg-zinc-800 rounded animate-pulse" />
-          <div className="h-3 w-16 bg-zinc-800 rounded animate-pulse" />
+      <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-dash-border flex items-center justify-between">
+          <div className="h-3 w-36 bg-dash-surface-2 rounded animate-pulse" />
+          <div className="h-3 w-16 bg-dash-surface-2 rounded animate-pulse" />
         </div>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="px-5 py-3.5 border-b border-zinc-800/40 flex items-center gap-4">
-            <div className="h-2.5 w-14 bg-zinc-800 rounded animate-pulse" />
-            <div className="h-2.5 w-12 bg-zinc-800 rounded animate-pulse" />
-            <div className="h-2.5 flex-1 bg-zinc-800 rounded animate-pulse" />
-            <div className="h-2.5 w-18 bg-zinc-800 rounded animate-pulse" />
-            <div className="h-6 w-20 bg-zinc-800 rounded-full animate-pulse" />
+          <div key={i} className="px-5 py-3.5 border-b border-dash-border/40 flex items-center gap-4">
+            <div className="h-2.5 w-14 bg-dash-surface-2 rounded animate-pulse" />
+            <div className="h-2.5 w-12 bg-dash-surface-2 rounded animate-pulse" />
+            <div className="h-2.5 flex-1 bg-dash-surface-2 rounded animate-pulse" />
+            <div className="h-2.5 w-18 bg-dash-surface-2 rounded animate-pulse" />
+            <div className="h-6 w-20 bg-dash-surface-2 rounded-full animate-pulse" />
           </div>
         ))}
       </div>
@@ -124,11 +124,11 @@ export function RecentOrdersTable({ orders, slug, loading = false }: RecentOrder
 
   if (orders.length === 0) {
     return (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-zinc-800">
-          <h2 className="text-sm font-semibold text-zinc-200">Pedidos recientes</h2>
+      <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-dash-border">
+          <h2 className="text-sm font-semibold text-dash-text">Pedidos recientes</h2>
         </div>
-        <div className="py-16 flex flex-col items-center gap-3 text-zinc-600">
+        <div className="py-16 flex flex-col items-center gap-3 text-dash-muted">
           <span className="text-5xl">📋</span>
           <p className="text-sm">Aún no hay pedidos hoy</p>
         </div>
@@ -137,12 +137,12 @@ export function RecentOrdersTable({ orders, slug, loading = false }: RecentOrder
   }
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-zinc-200">Pedidos recientes</h2>
+    <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-dash-border flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-dash-text">Pedidos recientes</h2>
         <Link
           href={`/${slug}/admin/pedidos`}
-          className="flex items-center gap-1 text-xs text-zinc-500 hover:text-yellow-400 transition-colors duration-150"
+          className="flex items-center gap-1 text-xs text-dash-muted hover:text-accent transition-colors duration-150"
         >
           Ver todos <ArrowRight className="w-3 h-3" />
         </Link>
@@ -151,19 +151,19 @@ export function RecentOrdersTable({ orders, slug, loading = false }: RecentOrder
       <div className="overflow-x-auto">
         <table className="w-full min-w-[560px]">
           <thead>
-            <tr className="border-b border-zinc-800/50">
+            <tr className="border-b border-dash-border/50">
               {['#', 'Hora', 'Items', 'Total', 'Estado'].map((h, i) => (
                 <th
                   key={h}
-                  className={`py-2.5 text-[11px] uppercase tracking-wider text-zinc-500 font-medium ${i === 0 ? 'pl-5 pr-3 text-left' : i === 4 ? 'pl-3 pr-5 text-right' : 'px-3 text-left'} ${i === 3 ? 'text-right' : ''}`}
+                  className={`py-2.5 text-[11px] uppercase tracking-wider text-dash-muted font-medium ${i === 0 ? 'pl-5 pr-3 text-left' : i === 4 ? 'pl-3 pr-5 text-right' : 'px-3 text-left'} ${i === 3 ? 'text-right' : ''}`}
                 >
                   {h}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800/40">
-            {orders.slice(0, 10).map(order => {
+          <tbody>
+            {orders.slice(0, 10).map((order, idx) => {
               const items = order.items as { name: string; quantity: number }[]
               const summary = items
                 .slice(0, 2)
@@ -173,18 +173,19 @@ export function RecentOrdersTable({ orders, slug, loading = false }: RecentOrder
               return (
                 <tr
                   key={order.id}
-                  className="hover:bg-zinc-800/30 transition-colors duration-150"
+                  className="hover:bg-dash-surface-2/50 transition-colors duration-150"
+                  style={{ borderBottom: idx < orders.slice(0, 10).length - 1 ? '1px solid var(--dash-border)' : undefined }}
                 >
-                  <td className="pl-5 pr-3 py-3 text-xs font-mono text-zinc-400">
+                  <td className="pl-5 pr-3 py-3 text-xs font-mono text-dash-muted">
                     {order.order_ref ?? order.id.slice(0, 8)}
                   </td>
-                  <td className="px-3 py-3 text-xs text-zinc-500 tabular-nums">
+                  <td className="px-3 py-3 text-xs text-dash-muted tabular-nums">
                     {fmtHora(order.created_at)}
                   </td>
-                  <td className="px-3 py-3 text-xs text-zinc-300 max-w-[200px] truncate">
+                  <td className="px-3 py-3 text-xs text-dash-text max-w-[200px] truncate">
                     {summary}
                   </td>
-                  <td className="px-3 py-3 text-xs font-mono text-right text-zinc-200">
+                  <td className="px-3 py-3 text-xs font-mono text-right text-dash-text">
                     {fmtARS(order.total)}
                   </td>
                   <td className="pl-3 pr-5 py-3 text-right">

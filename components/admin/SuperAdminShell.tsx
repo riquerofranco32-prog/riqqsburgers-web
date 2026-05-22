@@ -6,19 +6,16 @@ import Link from 'next/link'
 import { createSupabaseBrowser } from '@/lib/supabase'
 import TakefyyLogo from '@/components/TakefyyLogo'
 
-interface AdminShellProps {
+interface SuperAdminShellProps {
   children: React.ReactNode
-  tenantName: string
-  slug: string
 }
 
 const NAV_ITEMS = [
-  { href: '', label: 'Dashboard', icon: '◈' },
-  { href: '/pedidos', label: 'Pedidos', icon: '◫' },
-  { href: '/productos', label: 'Productos', icon: '▦' },
+  { href: '/admin', label: 'Dashboard', icon: '◈', exact: true },
+  { href: '/admin/restaurants', label: 'Restaurantes', icon: '▦', exact: false },
 ]
 
-export default function AdminShell({ children, tenantName, slug }: AdminShellProps) {
+export default function SuperAdminShell({ children }: SuperAdminShellProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
@@ -63,7 +60,11 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
           borderBottom: '1px solid var(--dash-border)',
           minHeight: 64,
         }}>
-          {!collapsed && <TakefyyLogo size="sm" />}
+          {!collapsed && (
+            <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <TakefyyLogo size="sm" />
+            </Link>
+          )}
           <button
             onClick={() => setCollapsed(!collapsed)}
             style={{
@@ -81,17 +82,17 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
           </button>
         </div>
 
-        {/* Tenant name */}
+        {/* Superadmin label */}
         {!collapsed && (
           <div style={{
             padding: '12px 16px',
             borderBottom: '1px solid var(--dash-border)',
           }}>
             <p style={{ color: 'var(--dash-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>
-              Restaurante
+              Cuenta
             </p>
-            <p style={{ color: 'var(--dash-text)', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {tenantName}
+            <p style={{ color: 'var(--accent)', fontSize: 13, fontWeight: 600 }}>
+              Super Admin
             </p>
           </div>
         )}
@@ -99,15 +100,14 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
         {/* Nav */}
         <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
           {NAV_ITEMS.map(item => {
-            const href = `/${slug}/admin${item.href}`
-            const isActive = item.href === ''
-              ? pathname === `/${slug}/admin`
-              : pathname.startsWith(href)
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname.startsWith(item.href)
 
             return (
               <Link
                 key={item.href}
-                href={href}
+                href={item.href}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -132,7 +132,7 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
           })}
         </nav>
 
-        {/* Footer: ver menú + logout */}
+        {/* Footer: logout */}
         <div style={{
           padding: '12px 8px',
           borderTop: '1px solid var(--dash-border)',
@@ -140,26 +140,6 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
           flexDirection: 'column',
           gap: 4,
         }}>
-          <Link
-            href={`/${slug}`}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: collapsed ? '10px 0' : '10px 12px',
-              justifyContent: collapsed ? 'center' : 'flex-start',
-              borderRadius: 8,
-              fontSize: 13,
-              color: 'var(--dash-muted)',
-              textDecoration: 'none',
-              transition: 'color 0.15s',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <span>↗</span>
-            {!collapsed && 'Ver menú'}
-          </Link>
-
           <button
             onClick={handleLogout}
             style={{
@@ -194,6 +174,8 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
         transition: 'margin-left 0.2s ease',
         minHeight: '100vh',
         background: 'var(--dash-bg)',
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         {children}
       </main>

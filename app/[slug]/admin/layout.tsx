@@ -55,7 +55,7 @@ export default async function AdminLayout({
   if (tenantUser.role !== 'superadmin' && tenantUser.tenant_id !== tenant.id) redirect('/login')
 
   return (
-    <AdminShell slug={slug} tenantName={tenant.name} userEmail={user.email ?? ''}>
+    <AdminShell slug={slug} tenantName={tenant.name}>
       {children}
     </AdminShell>
   )

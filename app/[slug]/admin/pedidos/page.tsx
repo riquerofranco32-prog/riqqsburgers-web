@@ -17,7 +17,7 @@ export default async function PedidosPage(
     .from('tenants')
     .select('id')
     .eq('slug', slug)
-    .single()
+    .maybeSingle()
 
   const tenant = rawTenant as Pick<Tenant, 'id'> | null
   if (!tenant) return null

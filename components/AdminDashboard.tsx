@@ -25,7 +25,6 @@ function getDateLabel(): string {
   const raw = new Intl.DateTimeFormat('es-AR', {
     weekday: 'long', day: 'numeric', month: 'long',
   }).format(new Date())
-  // Capitalize only the first letter (weekday), leave rest as-is
   return raw.charAt(0).toUpperCase() + raw.slice(1)
 }
 
@@ -57,15 +56,15 @@ export default function AdminDashboard({
       {/* Greeting */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold font-[family-name:var(--font-syne)] text-zinc-100">
+          <h1 className="text-xl font-bold text-dash-text">
             {greeting}, {tenantName} 👋
           </h1>
-          <p className="text-sm text-zinc-500 mt-1">{dateLabel}</p>
+          <p className="text-sm text-dash-muted mt-1">{dateLabel}</p>
         </div>
         <Link
           href={`/${slug}`}
           target="_blank"
-          className="flex-shrink-0 text-xs text-zinc-500 hover:text-[#F5A623] transition-colors duration-150 mt-1"
+          className="flex-shrink-0 text-xs text-dash-muted hover:text-accent transition-colors duration-150 mt-1"
         >
           Ver catálogo →
         </Link>

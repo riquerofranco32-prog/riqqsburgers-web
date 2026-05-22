@@ -17,7 +17,7 @@ export default async function ProductsPage(
     .from('tenants')
     .select('*')
     .eq('slug', slug)
-    .single()
+    .maybeSingle()
 
   const tenant = rawTenant as Tenant | null
   if (!tenant) return null
