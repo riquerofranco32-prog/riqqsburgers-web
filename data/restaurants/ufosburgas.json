@@ -1,0 +1,16 @@
+{
+  "slug": "ufosburgas",
+  "name": "UFOs Burgas",
+  "tagline": "Burgers de otro mundo 🛸",
+  "phone": "5492994015733",
+  "instagram": "ufosburgas",
+  "logo": "",
+  "accent_color": "#FF6B35",
+  "address": "México 488, Catriel",
+  "schedule": "Mié, Vie y Dom 21:00 - 00:00",
+  "is_open": true,
+  "brand": null,
+  "menu": {
+    "categories": []
+  }
+}
