@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import TakefyyLogo from '@/components/TakefyyLogo'
 
 interface TenantRow {
   id: string
@@ -121,12 +122,7 @@ export default function AdminDashboard() {
         className="sticky top-0 z-10 px-6 h-14 flex items-center justify-between"
         style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
       >
-        <span
-          className="font-black text-lg"
-          style={{ color: 'var(--accent)', fontFamily: "'Plus Jakarta Sans', system-ui" }}
-        >
-          Takefyy Admin
-        </span>
+        <TakefyyLogo size="sm" />
         <div className="flex items-center gap-3">
           <button
             onClick={() => { setShowForm(v => !v); setNewSlug(null); setFormError('') }}

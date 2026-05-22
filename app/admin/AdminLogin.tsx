@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import TakefyyLogo from '@/components/TakefyyLogo'
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('')
@@ -35,15 +36,9 @@ export default function AdminLogin() {
         className="w-full max-w-sm rounded-3xl p-8 shadow-sm"
         style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
       >
-        <div className="text-center mb-8">
-          <p className="text-3xl mb-2">🍔</p>
-          <h1
-            className="text-2xl font-black"
-            style={{ color: 'var(--accent)', fontFamily: "'Plus Jakarta Sans', system-ui" }}
-          >
-            Takefyy Admin
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+        <div className="flex flex-col items-center mb-8 gap-3">
+          <TakefyyLogo size="lg" />
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Panel de gestión de restaurantes
           </p>
         </div>

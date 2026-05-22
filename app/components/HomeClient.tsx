@@ -6,6 +6,7 @@ import { ArrowDown } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Restaurant } from '@/lib/getRestaurant'
+import TakefyyLogo from '@/components/TakefyyLogo'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -43,14 +44,8 @@ export default function HomeClient({ restaurants }: { restaurants: Restaurant[] 
       >
         <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <span style={{ fontSize: 28 }}>🍔</span>
-            <span
-              className="font-black text-xl"
-              style={{ color: 'var(--accent)', fontFamily: "'Inter', sans-serif" }}
-            >
-              Takefyy
-            </span>
+          <Link href="/" className="text-white">
+            <TakefyyLogo size="md" />
           </Link>
 
           {/* Nav links — desktop only */}
@@ -113,8 +108,13 @@ export default function HomeClient({ restaurants }: { restaurants: Restaurant[] 
         >
           <div style={{ maxWidth: 600 }}>
 
-            {/* Eyebrow */}
+            {/* Hero logo */}
             <motion.div {...fadeUp(0)} className="mb-6">
+              <TakefyyLogo size="lg" className="text-white" />
+            </motion.div>
+
+            {/* Eyebrow */}
+            <motion.div {...fadeUp(0.05)} className="mb-6">
               <span
                 className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium"
                 style={{

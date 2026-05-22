@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Syne, Inter, Anton } from 'next/font/google'
+import { Syne, Inter, Anton, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 
 const syne = Syne({
@@ -22,6 +22,13 @@ const anton = Anton({
   display: 'swap',
 })
 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -40,7 +47,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${syne.variable} ${inter.variable} ${anton.variable}`}>
+    <html lang="es" className={`${syne.variable} ${inter.variable} ${anton.variable} ${spaceGrotesk.variable}`}>
       <body className="bg-[#0d0d0d] text-white min-h-screen antialiased font-[family-name:var(--font-inter)]">
         {children}
       </body>
