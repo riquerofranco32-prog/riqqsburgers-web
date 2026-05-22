@@ -1,5 +1,6 @@
 import { getAllTenants } from '@/lib/tenants'
 import Link from 'next/link'
+import TenantRow from '@/components/admin/TenantRow'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Restaurantes — Takefyy Admin' }
@@ -111,93 +112,11 @@ export default async function SuperAdminPage() {
           </div>
         ) : (
           tenants.map((tenant, i) => (
-            <div
+            <TenantRow
               key={tenant.id}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 140px 100px 180px',
-                padding: '16px 24px',
-                alignItems: 'center',
-                borderBottom: i < tenants.length - 1 ? '1px solid var(--dash-border)' : 'none',
-              }}
-            >
-              {/* Nombre */}
-              <div>
-                <p style={{ color: 'var(--dash-text)', fontWeight: 600, fontSize: 15, marginBottom: 2 }}>
-                  {tenant.name}
-                </p>
-                {tenant.tagline && (
-                  <p style={{ color: 'var(--dash-muted)', fontSize: 12 }}>{tenant.tagline}</p>
-                )}
-              </div>
-
-              {/* Slug */}
-              <span style={{
-                color: 'var(--dash-muted)',
-                fontSize: 13,
-                fontFamily: 'var(--font-mono, monospace)',
-                background: 'var(--dash-surface-2)',
-                padding: '3px 8px',
-                borderRadius: 6,
-                border: '1px solid var(--dash-border)',
-              }}>
-                /{tenant.slug}
-              </span>
-
-              {/* Badge estado */}
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '4px 10px',
-                borderRadius: 20,
-                fontSize: 12,
-                fontWeight: 600,
-                background: tenant.active ? 'rgba(34,197,94,0.12)' : 'var(--dash-surface-2)',
-                color: tenant.active ? '#22c55e' : 'var(--dash-muted)',
-                border: `1px solid ${tenant.active ? 'rgba(34,197,94,0.25)' : 'var(--dash-border)'}`,
-              }}>
-                <span style={{
-                  width: 6, height: 6,
-                  borderRadius: '50%',
-                  background: tenant.active ? '#22c55e' : 'var(--dash-muted)',
-                  display: 'inline-block',
-                }} />
-                {tenant.active ? 'Activo' : 'Inactivo'}
-              </span>
-
-              {/* Acciones */}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Link
-                  href={`/${tenant.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--dash-muted)',
-                    textDecoration: 'none',
-                    padding: '5px 10px',
-                    borderRadius: 7,
-                    border: '1px solid var(--dash-border)',
-                  }}
-                >
-                  Ver ↗
-                </Link>
-                <Link
-                  href={`/${tenant.slug}/admin`}
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--accent)',
-                    textDecoration: 'none',
-                    padding: '5px 10px',
-                    borderRadius: 7,
-                    border: '1px solid rgba(255,107,53,0.3)',
-                  }}
-                >
-                  Admin →
-                </Link>
-              </div>
-            </div>
+              tenant={tenant}
+              isLast={i === tenants.length - 1}
+            />
           ))
         )}
       </div>
