@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import TakefyyLogo from '@/components/TakefyyLogo'
+import BackButton from '@/components/BackButton'
 
 interface TenantRow {
   id: string
@@ -122,7 +123,10 @@ export default function AdminDashboard() {
         className="sticky top-0 z-10 px-6 h-14 flex items-center justify-between"
         style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
       >
-        <TakefyyLogo size="sm" />
+        <div className="flex items-center gap-4">
+          <BackButton href="/" label="Inicio" />
+          <TakefyyLogo size="sm" />
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => { setShowForm(v => !v); setNewSlug(null); setFormError('') }}

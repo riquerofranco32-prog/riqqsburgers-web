@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
+import { getAllTenants } from '@/lib/tenants'
 
 function isAuthed(req: NextRequest) {
   const token = req.cookies.get('admin_token')?.value
@@ -8,15 +9,8 @@ function isAuthed(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   if (!isAuthed(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
-
-  const supabase = createServerClient()
-  const { data, error } = await supabase
-    .from('tenants')
-    .select('id, slug, name, tagline, logo_url, whatsapp_number, instagram_handle, primary_color, address, schedule, is_open, active, created_at')
-    .order('created_at', { ascending: false })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+  const tenants = await getAllTenants()
+  return NextResponse.json(tenants)
 }
 
 export async function POST(req: NextRequest) {

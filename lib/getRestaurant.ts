@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { createServerClient } from '@/lib/supabase'
+import { getTenant, getAllTenants, getTenantProducts, getTenantCategories } from './tenants'
 import type { Tenant, Category, Product } from '@/types/supabase'
 
 export interface RestaurantBrand {
@@ -86,30 +86,19 @@ function mapToRestaurant(
 }
 
 export async function getRestaurant(slug: string): Promise<Restaurant | null> {
-  // 1. Supabase (fuente principal en producción)
+  // 1. Supabase (fuente principal)
   try {
-    const supabase = createServerClient()
-    const { data: tenant } = await supabase
-      .from('tenants')
-      .select('*')
-      .eq('slug', slug)
-      .eq('active', true)
-      .single()
-
+    const tenant = await getTenant(slug)
     if (tenant) {
-      const [{ data: categories }, { data: products }] = await Promise.all([
-        supabase.from('categories').select('*').eq('tenant_id', tenant.id).eq('active', true).order('sort_order'),
-        supabase.from('products').select('*').eq('tenant_id', tenant.id).eq('available', true).order('sort_order'),
+      const [categories, products] = await Promise.all([
+        getTenantCategories(tenant.id),
+        getTenantProducts(tenant.id),
       ])
-      return mapToRestaurant(
-        tenant as Tenant,
-        (categories ?? []) as Category[],
-        (products ?? []) as Product[],
-      )
+      return mapToRestaurant(tenant, categories, products)
     }
   } catch {}
 
-  // 2. JSON local (fallback para dev / restaurantes migrados)
+  // 2. JSON local (fallback para dev)
   try {
     const filePath = path.join(process.cwd(), 'data', 'restaurants', `${slug}.json`)
     const content = await fs.readFile(filePath, 'utf-8')
@@ -122,15 +111,9 @@ export async function getRestaurant(slug: string): Promise<Restaurant | null> {
 export async function getAllRestaurants(): Promise<Restaurant[]> {
   // 1. Supabase
   try {
-    const supabase = createServerClient()
-    const { data: tenants } = await supabase
-      .from('tenants')
-      .select('*')
-      .eq('active', true)
-      .order('created_at', { ascending: false })
-
-    if (tenants && tenants.length > 0) {
-      return (tenants as Tenant[]).map(t => mapToRestaurant(t, [], []))
+    const tenants = await getAllTenants()
+    if (tenants.length > 0) {
+      return tenants.map(t => mapToRestaurant(t, [], []))
     }
   } catch {}
 

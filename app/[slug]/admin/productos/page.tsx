@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase'
 import type { Metadata } from 'next'
 import type { Tenant, Category, Product } from '@/types/supabase'
 import ProductsAdmin from '@/components/ProductsAdmin'
+import BackButton from '@/components/BackButton'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Administrar productos' }
@@ -30,10 +31,15 @@ export default async function ProductsPage(
   const products = (rawProds ?? []) as Product[]
 
   return (
-    <ProductsAdmin
-      tenant={tenant}
-      categories={categories}
-      initialProducts={products}
-    />
+    <>
+      <div className="px-5 pt-5 md:px-8">
+        <BackButton href={`/${slug}/admin`} label="Dashboard" />
+      </div>
+      <ProductsAdmin
+        tenant={tenant}
+        categories={categories}
+        initialProducts={products}
+      />
+    </>
   )
 }

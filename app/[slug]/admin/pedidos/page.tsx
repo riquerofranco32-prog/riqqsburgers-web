@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase'
 import type { Metadata } from 'next'
 import type { Tenant, Order } from '@/types/supabase'
 import { OrdersTable } from '@/components/admin/OrdersTable'
+import BackButton from '@/components/BackButton'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Pedidos' }
@@ -32,6 +33,7 @@ export default async function PedidosPage(
 
   return (
     <div className="p-5 md:p-8 flex flex-col gap-6 max-w-5xl">
+      <BackButton href={`/${slug}/admin`} label="Dashboard" />
       <div>
         <h1 className="text-xl font-bold font-[family-name:var(--font-syne)]">Pedidos</h1>
         <p className="text-xs text-zinc-500 mt-0.5">Todos los pedidos recientes</p>
