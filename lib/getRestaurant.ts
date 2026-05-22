@@ -3,6 +3,17 @@ import path from 'path'
 import { createServerClient } from '@/lib/supabase'
 import type { Tenant, Category, Product } from '@/types/supabase'
 
+export interface RestaurantBrand {
+  bg: string
+  surface: string
+  surface2: string
+  accent: string
+  text_primary: string
+  text_secondary: string
+  border: string
+  display_font: string
+}
+
 export interface MenuItem {
   id: string
   name: string
@@ -30,6 +41,7 @@ export interface Restaurant {
   address: string
   schedule: string
   is_open: boolean
+  brand: RestaurantBrand | null
   menu: {
     categories: MenuCategory[]
   }
@@ -51,6 +63,7 @@ function mapToRestaurant(
     address: tenant.address ?? '',
     schedule: tenant.schedule ?? '',
     is_open: tenant.is_open ?? true,
+    brand: null,
     menu: {
       categories: categories.map(cat => ({
         id: cat.id,

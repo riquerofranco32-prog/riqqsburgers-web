@@ -6,7 +6,7 @@ import {
   MapPin, Clock, Phone, ShoppingBag, ChevronRight,
   X, Minus, Plus, Trash2,
 } from 'lucide-react'
-import type { Restaurant, MenuItem } from '@/lib/getRestaurant'
+import type { Restaurant, MenuItem, RestaurantBrand } from '@/lib/getRestaurant'
 
 type CartItem = MenuItem & { quantity: number }
 
@@ -77,6 +77,28 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     return () => window.removeEventListener('keydown', handler)
   }, [cartOpen])
 
+  useEffect(() => {
+    const b = restaurant.brand
+    if (!b) return
+    const root = document.documentElement
+    root.style.setProperty('--bg', b.bg)
+    root.style.setProperty('--surface', b.surface)
+    root.style.setProperty('--surface-2', b.surface2)
+    root.style.setProperty('--accent', b.accent)
+    root.style.setProperty('--text-primary', b.text_primary)
+    root.style.setProperty('--text-secondary', b.text_secondary)
+    root.style.setProperty('--border', b.border)
+    return () => {
+      root.style.removeProperty('--bg')
+      root.style.removeProperty('--surface')
+      root.style.removeProperty('--surface-2')
+      root.style.removeProperty('--accent')
+      root.style.removeProperty('--text-primary')
+      root.style.removeProperty('--text-secondary')
+      root.style.removeProperty('--border')
+    }
+  }, [restaurant.brand])
+
   function handleWhatsApp() {
     const lines = cart.map(i => `• ${i.quantity}x ${i.name} — ${fmt(i.price * i.quantity)}`)
     const text = [
@@ -97,6 +119,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
   const initials = restaurant.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const logoSrc = restaurant.logo || (restaurant.slug === 'riqqsburgers' ? '/logo.png' : '')
   const hasInfoBar = !!(restaurant.address || restaurant.schedule || restaurant.phone)
+  const b: RestaurantBrand | null = restaurant.brand ?? null
 
   return (
     <div
@@ -104,9 +127,12 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
       style={{
         backgroundColor: 'var(--bg)',
         color: 'var(--text-primary)',
-        '--accent': restaurant.accent_color,
+        '--accent': b?.accent ?? restaurant.accent_color,
       } as React.CSSProperties}
     >
+      {/* ── Brand accent bar ───────────────────────────────────────────── */}
+      {b && <div style={{ height: 3, backgroundColor: b.accent, width: '100%' }} />}
+
       {/* ── Banner ─────────────────────────────────────────────────────── */}
       <div
         className="h-32 relative overflow-hidden"
@@ -144,7 +170,15 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         </div>
 
         <div className="text-center">
-          <h1 className="text-2xl font-black tracking-tight" style={{ color: 'var(--text-primary)', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
+          <h1
+            className="text-2xl font-black tracking-tight"
+            style={{
+              color: 'var(--text-primary)',
+              fontFamily: b?.display_font ?? "'Plus Jakarta Sans', system-ui, sans-serif",
+              textTransform: b ? 'uppercase' : 'none',
+              letterSpacing: b ? '0.04em' : undefined,
+            }}
+          >
             {restaurant.name}
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{restaurant.tagline}</p>
@@ -168,18 +202,18 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
       {hasInfoBar && (
         <div
           className="overflow-x-auto scrollbar-hide border-b"
-          style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)' }}
+          style={{ backgroundColor: b ? '#111111' : 'var(--surface-2)', borderColor: 'var(--border)' }}
         >
           <div className="px-4 py-2.5 flex items-center gap-4 text-sm whitespace-nowrap w-max min-w-full">
             {restaurant.address && (
               <span className="flex items-center gap-1.5 flex-shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                <MapPin size={14} className="flex-shrink-0" />
+                <MapPin size={14} className="flex-shrink-0" style={{ color: b ? 'var(--accent)' : 'inherit' }} />
                 {restaurant.address}
               </span>
             )}
             {restaurant.schedule && (
               <span className="flex items-center gap-1.5 flex-shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                <Clock size={14} className="flex-shrink-0" />
+                <Clock size={14} className="flex-shrink-0" style={{ color: b ? 'var(--accent)' : 'inherit' }} />
                 {restaurant.schedule}
               </span>
             )}
@@ -189,7 +223,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                 className="flex items-center gap-1.5 flex-shrink-0 transition-opacity hover:opacity-70"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                <Phone size={14} className="flex-shrink-0" />
+                <Phone size={14} className="flex-shrink-0" style={{ color: b ? 'var(--accent)' : 'inherit' }} />
                 {restaurant.phone}
               </a>
             )}
@@ -252,7 +286,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               onClick={() => setActiveCategory(cat.id)}
               className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
               style={active
-                ? { backgroundColor: 'var(--accent)', color: '#fff', fontWeight: 700 }
+                ? { backgroundColor: 'var(--accent)', color: b ? '#1A1A1A' : '#fff', fontWeight: 700 }
                 : { backgroundColor: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             >
               <span>{cat.emoji}</span>
@@ -277,7 +311,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               return (
                 <div
                   key={item.id}
-                  className={`group rounded-2xl overflow-hidden flex flex-col shadow-sm transition-all duration-200 hover:shadow-md${soldOut ? ' opacity-50' : ''}`}
+                  className={`group rounded-2xl overflow-hidden flex flex-col shadow-sm transition-all duration-200 hover:shadow-md${soldOut ? ' opacity-50' : ''}${b ? ' brand-card' : ''}`}
                   style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">
@@ -306,7 +340,14 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
 
                   <div className="p-3 flex flex-col flex-1 gap-2">
                     <div className="flex-1">
-                      <p className="font-bold text-sm leading-tight" style={{ color: 'var(--text-primary)' }}>
+                      <p
+                        className="font-bold text-sm leading-tight"
+                        style={{
+                          color: 'var(--text-primary)',
+                          fontFamily: b?.display_font,
+                          textTransform: b ? 'uppercase' : 'none',
+                        }}
+                      >
                         {item.name}
                       </p>
                       <p className="text-xs mt-1 line-clamp-3 leading-snug" style={{ color: 'var(--text-muted)' }}>
@@ -315,7 +356,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                     </div>
 
                     <div className="flex items-center justify-between mt-auto pt-1">
-                      <span className="font-bold text-sm" style={{ color: 'var(--accent)' }}>
+                      <span className={b ? 'font-bold text-xl' : 'font-bold text-sm'} style={{ color: 'var(--accent)' }}>
                         {fmt(item.price)}
                       </span>
 
@@ -323,8 +364,8 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                         <button
                           onClick={() => addItem(item)}
                           disabled={soldOut}
-                          className="w-8 h-8 rounded-full font-bold text-xl leading-none flex items-center justify-center transition-all active:scale-90 hover:opacity-90 text-white disabled:cursor-not-allowed"
-                          style={{ backgroundColor: 'var(--accent)' }}
+                          className="w-8 h-8 rounded-full font-bold text-xl leading-none flex items-center justify-center transition-all active:scale-90 hover:opacity-90 disabled:cursor-not-allowed"
+                          style={{ backgroundColor: 'var(--accent)', color: b ? '#1A1A1A' : '#fff' }}
                         >
                           +
                         </button>
@@ -343,8 +384,8 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                           <button
                             onClick={() => addItem(item)}
                             disabled={soldOut}
-                            className="w-7 h-7 rounded-full font-bold flex items-center justify-center active:scale-90 transition-all text-white disabled:cursor-not-allowed"
-                            style={{ backgroundColor: 'var(--accent)' }}
+                            className="w-7 h-7 rounded-full font-bold flex items-center justify-center active:scale-90 transition-all disabled:cursor-not-allowed"
+                            style={{ backgroundColor: 'var(--accent)', color: b ? '#1A1A1A' : '#fff' }}
                           >
                             +
                           </button>
@@ -372,9 +413,10 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         >
           <button
             onClick={() => setCartOpen(true)}
-            className="w-full flex items-center justify-between px-4 text-white transition-all hover:brightness-95 active:scale-[0.99]"
+            className="w-full flex items-center justify-between px-4 transition-all hover:brightness-95 active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--accent)',
+              color: b ? '#1A1A1A' : '#fff',
               paddingTop: '12px',
               paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
             }}
@@ -384,7 +426,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               {totalItems} {totalItems === 1 ? 'producto' : 'productos'}
             </span>
             <span className="font-bold text-lg">{fmt(totalPrice)}</span>
-            <span className="flex items-center gap-0.5 text-sm font-medium text-white/90">
+            <span className="flex items-center gap-0.5 text-sm font-medium opacity-80">
               Ver pedido <ChevronRight size={16} />
             </span>
           </button>
@@ -402,7 +444,10 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                        flex flex-col max-h-[85vh] md:max-h-full
                        rounded-t-3xl md:rounded-none md:rounded-l-3xl
                        shadow-2xl animate-slide-up md:animate-none"
-            style={{ backgroundColor: 'var(--surface)' }}
+            style={{
+              backgroundColor: 'var(--surface)',
+              borderTop: b ? `2px solid ${b.accent}` : undefined,
+            }}
           >
             {/* Handle (mobile only) */}
             <div className="flex justify-center pt-3 pb-1 md:hidden flex-shrink-0">
@@ -440,7 +485,14 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
 
                   {/* Name + price */}
                   <div className="flex-1 min-w-0 ml-0">
-                    <p className="text-sm font-semibold truncate leading-tight" style={{ color: 'var(--text-primary)' }}>
+                    <p
+                      className="text-sm font-semibold truncate leading-tight"
+                      style={{
+                        color: 'var(--text-primary)',
+                        fontFamily: b?.display_font,
+                        textTransform: b ? 'uppercase' : 'none',
+                      }}
+                    >
                       {item.name}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -485,8 +537,24 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{fmt(totalPrice)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-black text-xl" style={{ color: 'var(--text-primary)' }}>Total</span>
-                  <span className="font-black text-xl" style={{ color: 'var(--text-primary)' }}>{fmt(totalPrice)}</span>
+                  <span
+                    className={b ? 'text-3xl' : 'font-black text-xl'}
+                    style={{
+                      color: b ? 'var(--accent)' : 'var(--text-primary)',
+                      fontFamily: b?.display_font,
+                    }}
+                  >
+                    Total
+                  </span>
+                  <span
+                    className={b ? 'text-3xl' : 'font-black text-xl'}
+                    style={{
+                      color: b ? 'var(--accent)' : 'var(--text-primary)',
+                      fontFamily: b?.display_font,
+                    }}
+                  >
+                    {fmt(totalPrice)}
+                  </span>
                 </div>
               </div>
             </div>

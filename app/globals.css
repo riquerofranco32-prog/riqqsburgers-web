@@ -101,6 +101,10 @@ html { scroll-behavior: smooth; }
 }
 .animate-pulse-glow { animation: pulseGlow 2.5s ease-in-out infinite; }
 
+/* ── Brand-aware product card hover ─────────────────────────────────────── */
+.brand-card { transition: border-color 200ms ease, box-shadow 200ms ease; }
+.brand-card:hover { border-color: var(--accent) !important; box-shadow: 0 0 0 1px var(--accent); }
+
 /* ── Takefyy homepage — restaurant card ─────────────────────────────────── */
 .restaurant-card {
   background: rgba(255,255,255,0.04);

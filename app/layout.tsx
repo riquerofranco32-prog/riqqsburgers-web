@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Syne, Inter } from 'next/font/google'
+import { Syne, Inter, Anton } from 'next/font/google'
 import './globals.css'
 
 const syne = Syne({
@@ -12,6 +12,13 @@ const syne = Syne({
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
+  display: 'swap',
+})
+
+const anton = Anton({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-anton',
   display: 'swap',
 })
 
@@ -33,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${syne.variable} ${inter.variable}`}>
+    <html lang="es" className={`${syne.variable} ${inter.variable} ${anton.variable}`}>
       <body className="bg-[#0d0d0d] text-white min-h-screen antialiased font-[family-name:var(--font-inter)]">
         {children}
       </body>
