@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
-import { Search, SlidersHorizontal } from 'lucide-react'
+import { Search, SlidersHorizontal, Camera, Loader2, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Toast } from '@/components/admin/Toast'
 import type { Tenant, Category, Product } from '@/types/supabase'
@@ -20,6 +20,102 @@ async function uploadImage(file: File, tenantSlug: string): Promise<string> {
     .from('product-images')
     .getPublicUrl(path)
   return publicUrl
+}
+
+// ── Inline image cell ─────────────────────────────────────────────────────────
+
+type UploadState = 'idle' | 'uploading' | 'success' | 'error'
+
+function ProductImageCell({
+  product,
+  tenantSlug,
+  categoryEmoji,
+  onUploaded,
+}: {
+  product: Product
+  tenantSlug: string
+  categoryEmoji: string
+  onUploaded: (productId: string, url: string) => void
+}) {
+  const [preview, setPreview] = useState<string | null>(null)
+  const [state, setState] = useState<UploadState>('idle')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const displayUrl = preview ?? product.image_url ?? null
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const localUrl = URL.createObjectURL(file)
+    setPreview(localUrl)
+    setState('uploading')
+    try {
+      const ext = file.name.split('.').pop() ?? 'jpg'
+      const path = `${tenantSlug}/${product.id}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(path)
+      await supabase.from('products').update({ image_url: publicUrl }).eq('id', product.id)
+      onUploaded(product.id, publicUrl)
+      setState('success')
+      setTimeout(() => setState('idle'), 2000)
+    } catch {
+      setState('error')
+      setTimeout(() => setState('idle'), 2500)
+    }
+  }
+
+  return (
+    <div className="relative w-14 h-14 flex-shrink-0 group/img">
+      <div className="w-14 h-14 rounded-xl overflow-hidden bg-zinc-800">
+        {displayUrl ? (
+          <Image src={displayUrl} alt={product.name} width={56} height={56} className="object-cover w-full h-full" unoptimized />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-2xl">{categoryEmoji}</div>
+        )}
+      </div>
+
+      {/* Upload overlay */}
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={state === 'uploading'}
+        className="absolute inset-0 rounded-xl flex items-center justify-center bg-black/0 group-hover/img:bg-black/55 transition-all"
+      >
+        {state === 'uploading' && (
+          <Loader2 className="w-5 h-5 text-white animate-spin" />
+        )}
+        {state === 'success' && (
+          <Check className="w-5 h-5 text-emerald-400" />
+        )}
+        {state === 'error' && (
+          <span className="text-[9px] text-red-400 font-bold text-center px-1">Error</span>
+        )}
+        {state === 'idle' && (
+          <Camera className="w-4 h-4 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
+        )}
+      </button>
+
+      {/* "Sin foto" badge */}
+      {!product.image_url && !preview && (
+        <span className="absolute -top-1.5 -right-1.5 text-[8px] font-bold bg-orange-500 text-white px-1 py-0.5 rounded-full leading-none pointer-events-none">
+          Sin foto
+        </span>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFile}
+        className="hidden"
+      />
+    </div>
+  )
 }
 
 // ── Form types ────────────────────────────────────────────────────────────────
@@ -326,6 +422,10 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
     setShowModal(false)
   }
 
+  function handleImageUploaded(productId: string, url: string) {
+    setProducts(prev => prev.map(p => p.id === productId ? { ...p, image_url: url } : p))
+  }
+
   async function toggleAvailable(product: Product) {
     const newVal = !product.available
     await supabase.from('products').update({ available: newVal }).eq('id', product.id)
@@ -418,13 +518,12 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
                 key={product.id}
                 className={`bg-zinc-900 rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${product.available ? 'border-zinc-800' : 'border-zinc-800 opacity-50'}`}
               >
-                <div className="relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 bg-zinc-800">
-                  {product.image_url ? (
-                    <Image src={product.image_url} alt={product.name} fill className="object-cover" unoptimized />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-2xl">{cat?.emoji ?? '🍽️'}</div>
-                  )}
-                </div>
+                <ProductImageCell
+                  product={product}
+                  tenantSlug={tenant.slug}
+                  categoryEmoji={cat?.emoji ?? '🍽️'}
+                  onUploaded={handleImageUploaded}
+                />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
