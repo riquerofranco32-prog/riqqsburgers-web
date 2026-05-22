@@ -92,7 +92,7 @@ export default function CheckoutModal({ isOpen, onClose, cart, onClearCart, tena
     })
 
     if (dbError) {
-      setError('Error al guardar el pedido. Intentá de nuevo.')
+      setError(`Error: ${dbError.message} (code: ${dbError.code})`)
       setLoading(false)
       return
     }

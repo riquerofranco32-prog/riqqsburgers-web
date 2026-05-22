@@ -1,29 +1,12 @@
 'use client'
 
-import Image from 'next/image'
-import { useState, useCallback, useEffect, useRef } from 'react'
-import { ShoppingBag, ChevronRight, X, Minus, Plus, Trash2 } from 'lucide-react'
+import { useState, useCallback, useEffect } from 'react'
+import { X, Minus, Plus, Trash2 } from 'lucide-react'
 import type { Restaurant, MenuItem, RestaurantBrand } from '@/lib/getRestaurant'
 import CheckoutModal from '@/components/CheckoutModal'
 import InfoRotator from '@/components/menu/InfoRotator'
 
 type CartItem = MenuItem & { quantity: number }
-
-function IGIcon() {
-  return (
-    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-    </svg>
-  )
-}
-
-function WAIcon({ className = 'w-5 h-5' }: { className?: string }) {
-  return (
-    <svg className={`${className} fill-current flex-shrink-0`} viewBox="0 0 24 24">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-    </svg>
-  )
-}
 
 function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')
@@ -59,16 +42,8 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
   }, [])
 
   const getQty = (id: string) => cart.find(i => i.id === id)?.quantity ?? 0
-
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0)
   const totalPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0)
-
-  const [popKey, setPopKey] = useState(0)
-  const isFirstRender = useRef(true)
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return }
-    setPopKey(k => k + 1)
-  }, [totalItems])
 
   useEffect(() => {
     if (!cartOpen) return
@@ -99,286 +74,307 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     }
   }, [restaurant.brand])
 
-  function handleWhatsApp() {
-    const lines = cart.map(i => `• ${i.quantity}x ${i.name} — ${fmt(i.price * i.quantity)}`)
-    const text = [
-      `🍔 *Pedido - ${restaurant.name}*`,
-      '',
-      ...lines,
-      '',
-      `💰 *Total: ${fmt(totalPrice)}*`,
-      '',
-      '📍 ¿Me podés dar tu dirección?',
-      '💳 ¿Cómo preferís pagar?',
-    ].join('\n')
-    window.open(`https://wa.me/${restaurant.phone}?text=${encodeURIComponent(text)}`)
-  }
-
   const currentCategory = restaurant.menu.categories.find(c => c.id === activeCategory)
-
-  const initials = restaurant.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
-  const logoSrc = restaurant.logo || ''
   const b: RestaurantBrand | null = restaurant.brand ?? null
   const accent = b?.accent ?? restaurant.accent_color
 
   const infoItems = [
-    restaurant.address  && { icon: '📍', text: restaurant.address },
-    restaurant.phone    && { icon: '📞', text: restaurant.phone },
-    restaurant.schedule && { icon: '🕐', text: restaurant.schedule },
+    restaurant.address   && { icon: '📍', text: restaurant.address },
+    restaurant.phone     && { icon: '📞', text: restaurant.phone },
+    restaurant.schedule  && { icon: '🕐', text: restaurant.schedule },
     restaurant.instagram && { icon: '📸', text: `@${restaurant.instagram}` },
   ].filter(Boolean) as { icon: string; text: string }[]
 
+  const badgeMap: Record<string, { bg: string; color: string; label: string }> = {
+    'Popular': { bg: '#fef08a', color: '#854d0e', label: '🔥 Popular' },
+    'Nuevo':   { bg: '#bfdbfe', color: '#1e40af', label: '✨ Nuevo' },
+    'Promo':   { bg: '#fecaca', color: '#991b1b', label: '🏷️ Promo' },
+    'Agotado': { bg: '#e5e7eb', color: '#374151', label: '😴 Agotado' },
+  }
+
   return (
     <div
-      className="min-h-screen pb-28"
-      style={{
-        backgroundColor: 'var(--bg)',
-        color: 'var(--text-primary)',
-        '--accent': accent,
-      } as React.CSSProperties}
+      className="min-h-screen"
+      style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)', '--accent': accent } as React.CSSProperties}
     >
-      {/* ── Header compacto (sticky, mobile-first) ─────────────────────── */}
-      <header
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          padding: '12px 16px',
-          position: 'sticky',
-          top: 0,
-          zIndex: 40,
-          background: 'var(--surface)',
-          borderBottom: '1px solid var(--border)',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        }}
-      >
-        {/* Logo circular */}
-        <div style={{ position: 'relative', width: 48, height: 48, flexShrink: 0 }}>
-          <div
-            style={{
-              position: 'absolute',
-              inset: -2,
-              borderRadius: '50%',
-              background: `conic-gradient(from 0deg, ${accent} 0%, ${accent} 35%, transparent 55%, transparent 75%, ${accent} 100%)`,
-            }}
-            className="animate-spin-slow"
-          />
-          <div
-            style={{
-              position: 'absolute',
-              inset: 2,
-              borderRadius: '50%',
-              overflow: 'hidden',
-              background: 'var(--surface-2)',
-            }}
-          >
-            {logoSrc ? (
-              <Image src={logoSrc} alt={restaurant.name} width={44} height={44} className="w-full h-full object-cover" unoptimized />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center font-black text-sm text-white" style={{ backgroundColor: accent }}>
-                {initials}
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Nombre + info rotante */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h1
-            style={{
-              fontSize: 16,
-              fontWeight: 800,
-              color: 'var(--text-primary)',
-              fontFamily: b?.display_font ?? 'inherit',
-              textTransform: b ? 'uppercase' : 'none',
-              letterSpacing: b ? '0.03em' : undefined,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              lineHeight: 1.2,
-              marginBottom: 2,
-            }}
-          >
-            {restaurant.name}
-          </h1>
-          <InfoRotator items={infoItems} accent={accent} />
-        </div>
-
-        {/* Badge abierto/cerrado */}
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <header style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 50,
+        background: 'var(--surface)',
+        borderBottom: '1px solid var(--border)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+      }}>
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 5,
-          flexShrink: 0,
-          padding: '4px 10px',
-          borderRadius: 20,
-          fontSize: 11,
-          fontWeight: 600,
-          background: restaurant.is_open ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
-          color: restaurant.is_open ? '#22c55e' : '#ef4444',
+          gap: 12,
+          padding: '10px 16px',
+          maxWidth: 640,
+          margin: '0 auto',
         }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
-          {restaurant.is_open ? 'Abierto' : 'Cerrado'}
+          <div style={{
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            background: accent,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontWeight: 800,
+            fontSize: 18,
+            flexShrink: 0,
+          }}>
+            {restaurant.name.charAt(0).toUpperCase()}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontWeight: 700,
+              fontSize: 15,
+              color: 'var(--text-primary)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
+              {restaurant.name}
+            </div>
+            <InfoRotator items={infoItems} accent={accent} />
+          </div>
+
+          <div style={{
+            flexShrink: 0,
+            padding: '4px 10px',
+            borderRadius: 20,
+            fontSize: 11,
+            fontWeight: 700,
+            background: restaurant.is_open ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
+            color: restaurant.is_open ? '#22c55e' : '#ef4444',
+            border: `1px solid ${restaurant.is_open ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
+          }}>
+            {restaurant.is_open ? 'Abierto' : 'Cerrado'}
+          </div>
         </div>
       </header>
 
-      {/* ── Category tabs (sticky bajo el header) ──────────────────────── */}
-      <div
-        className="categories-bar"
-        style={{
-          position: 'sticky',
-          top: 72,
-          zIndex: 30,
-          background: 'var(--bg)',
-          borderBottom: '1px solid var(--border)',
-          overflowX: 'auto',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch',
-          display: 'flex',
-          gap: 8,
-          padding: '10px 16px',
-        } as React.CSSProperties}
-      >
-        {restaurant.menu.categories.map(cat => {
-          const isActive = cat.id === activeCategory
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
-              style={isActive
-                ? { backgroundColor: accent, color: b ? '#1A1A1A' : '#fff', fontWeight: 700 }
-                : { backgroundColor: 'var(--surface-2)', color: 'var(--text-secondary)' }}
-            >
-              <span>{cat.emoji}</span>
-              <span>{cat.name}</span>
-            </button>
-          )
-        })}
+      {/* ── Categorías ──────────────────────────────────────────────────── */}
+      <div style={{
+        position: 'sticky',
+        top: 62,
+        zIndex: 40,
+        background: 'var(--bg)',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <div
+          className="categories-bar"
+          style={{
+            display: 'flex',
+            gap: 6,
+            padding: '10px 16px',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+          }}
+        >
+          {restaurant.menu.categories.map(cat => {
+            const isActive = activeCategory === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                style={{
+                  flexShrink: 0,
+                  padding: '7px 14px',
+                  borderRadius: 20,
+                  border: 'none',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  background: isActive ? accent : 'var(--surface)',
+                  color: isActive ? 'white' : 'var(--text-secondary)',
+                  boxShadow: isActive ? `0 2px 8px ${accent}40` : '0 1px 3px rgba(0,0,0,0.06)',
+                  transform: isActive ? 'scale(1.05)' : 'scale(1)',
+                }}
+              >
+                {cat.emoji && <span style={{ marginRight: 4 }}>{cat.emoji}</span>}
+                {cat.name}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
-      {/* ── Products grid (mobile-first) ───────────────────────────────── */}
-      <div className="pt-3 pb-4">
+      {/* ── Productos ───────────────────────────────────────────────────── */}
+      <div style={{
+        maxWidth: 640,
+        margin: '0 auto',
+        padding: '12px 12px 120px',
+      }}>
         {currentCategory && currentCategory.items.length > 0 ? (
-          <div key={activeCategory} className="menu-grid menu-grid-enter">
-            {currentCategory.items.map(item => {
-              const qty = getQty(item.id)
-              const soldOut = item.badge === 'Agotado'
-              const badgeColor =
-                item.badge === 'Popular' ? accent :
-                item.badge === 'Nuevo'   ? '#3B82F6' :
-                item.badge === 'Promo'   ? '#EF4444' :
-                item.badge === 'Agotado' ? '#6B7280' : '#4CAF50'
+          currentCategory.items.map(item => {
+            const qty = getQty(item.id)
+            const soldOut = item.badge === 'Agotado'
+            const badgeInfo = item.badge ? badgeMap[item.badge] : null
 
-              return (
-                <div
-                  key={item.id}
-                  className={`product-card-mobile${soldOut ? ' opacity-50' : ''}${b ? ' brand-card' : ''}`}
-                >
-                  {/* Imagen */}
-                  <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
-                    {item.image ? (
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="product-image object-cover"
-                        style={{ borderRadius: 10 }}
-                        sizes="72px"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="product-image flex items-center justify-center text-3xl" style={{ background: 'var(--surface-2)', borderRadius: 10 }}>
-                        🍔
-                      </div>
-                    )}
-                    {item.badge && (
+            return (
+              <div
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  background: 'var(--surface)',
+                  border: `1px solid ${qty > 0 ? accent + '40' : 'var(--border)'}`,
+                  borderRadius: 16,
+                  padding: '12px',
+                  marginBottom: 10,
+                  opacity: soldOut ? 0.5 : 1,
+                  transition: 'all 0.2s ease',
+                  boxShadow: qty > 0 ? `0 2px 12px ${accent}20` : 'none',
+                }}
+              >
+                {/* Imagen */}
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    style={{
+                      width: 80,
+                      height: 80,
+                      borderRadius: 12,
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 12,
+                    background: 'var(--surface-2)',
+                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 28,
+                  }}>
+                    🍽️
+                  </div>
+                )}
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                      {item.name}
+                    </span>
+                    {badgeInfo && (
                       <span style={{
-                        position: 'absolute', top: -4, right: -4,
-                        fontSize: 9, fontWeight: 700, padding: '2px 6px',
-                        borderRadius: 20, color: 'white', backgroundColor: badgeColor,
-                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: '2px 6px',
+                        borderRadius: 6,
+                        background: badgeInfo.bg,
+                        color: badgeInfo.color,
                       }}>
-                        {item.badge}
+                        {badgeInfo.label}
                       </span>
                     )}
                   </div>
 
-                  {/* Info */}
-                  <div className="product-info" style={{ flex: 1, minWidth: 0 }}>
-                    <p
-                      className="product-name"
-                      style={{
-                        fontFamily: b?.display_font,
-                        textTransform: b ? 'uppercase' : 'none',
-                      }}
-                    >
-                      {item.name}
+                  {item.description && (
+                    <p style={{
+                      fontSize: 12,
+                      color: 'var(--text-muted)',
+                      margin: '2px 0 6px',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical' as React.CSSProperties['WebkitBoxOrient'],
+                      overflow: 'hidden',
+                      lineHeight: 1.4,
+                    }}>
+                      {item.description}
                     </p>
-                    {item.description && (
-                      <p className="product-desc">{item.description}</p>
-                    )}
-                    <p className="product-price" style={{ color: accent }}>{fmt(item.price)}</p>
-                  </div>
+                  )}
 
-                  {/* Controles cantidad */}
-                  <div style={{ flexShrink: 0 }}>
-                    {qty === 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-primary)' }}>
+                      {fmt(item.price)}
+                    </span>
+
+                    {soldOut ? (
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No disponible</span>
+                    ) : qty === 0 ? (
                       <button
                         onClick={() => addItem(item)}
-                        disabled={soldOut}
                         style={{
                           width: 36,
                           height: 36,
                           borderRadius: '50%',
-                          background: soldOut ? 'var(--surface-2)' : accent,
-                          color: b ? '#1A1A1A' : 'white',
+                          background: accent,
+                          color: 'white',
                           border: 'none',
                           fontSize: 22,
                           fontWeight: 300,
-                          cursor: soldOut ? 'not-allowed' : 'pointer',
+                          cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          WebkitTapHighlightColor: 'transparent',
                           transition: 'transform 0.1s ease',
-                        } as React.CSSProperties}
-                        onTouchStart={e => { if (!soldOut) e.currentTarget.style.transform = 'scale(0.9)' }}
-                        onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)' }}
+                          flexShrink: 0,
+                        }}
+                        onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.88)')}
+                        onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
                       >
                         +
                       </button>
                     ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        background: 'var(--surface-2)',
+                        borderRadius: 20,
+                        padding: '4px 8px',
+                      }}>
                         <button
                           onClick={() => removeItem(item)}
                           style={{
-                            width: 28, height: 28, borderRadius: '50%',
-                            border: `2px solid ${accent}`,
-                            background: 'transparent', color: accent,
-                            fontSize: 18, fontWeight: 300,
+                            width: 28, height: 28,
+                            borderRadius: '50%',
+                            background: 'var(--border)',
+                            border: 'none',
+                            color: 'var(--text-primary)',
+                            fontSize: 18,
                             cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            WebkitTapHighlightColor: 'transparent',
-                          } as React.CSSProperties}
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                         >
                           −
                         </button>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', minWidth: 16, textAlign: 'center' }}>
+                        <span style={{ fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: 'center' }}>
                           {qty}
                         </span>
                         <button
                           onClick={() => addItem(item)}
-                          disabled={soldOut}
                           style={{
-                            width: 28, height: 28, borderRadius: '50%',
-                            background: accent, color: b ? '#1A1A1A' : 'white',
-                            border: 'none', fontSize: 18, fontWeight: 300,
+                            width: 28, height: 28,
+                            borderRadius: '50%',
+                            background: accent,
+                            border: 'none',
+                            color: 'white',
+                            fontSize: 18,
                             cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            WebkitTapHighlightColor: 'transparent',
-                          } as React.CSSProperties}
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
                         >
                           +
                         </button>
@@ -386,49 +382,71 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                     )}
                   </div>
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            )
+          })
         ) : (
-          <div className="flex flex-col items-center justify-center py-20" style={{ color: 'var(--text-muted)' }}>
-            <p className="text-4xl mb-3">{currentCategory?.emoji ?? '🍽️'}</p>
-            <p className="text-sm">Próximamente en esta categoría</p>
+          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: 32, marginBottom: 8 }}>{currentCategory?.emoji ?? '🍽️'}</p>
+            <p style={{ fontSize: 14 }}>Próximamente en esta categoría</p>
           </div>
         )}
       </div>
 
-      {/* ── Sticky cart bar ────────────────────────────────────────────── */}
+      {/* ── Cart bar ────────────────────────────────────────────────────── */}
       {totalItems > 0 && (
-        <div
-          className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up
-                     md:left-1/2 md:right-auto md:w-full md:max-w-[480px] md:-translate-x-1/2 md:rounded-t-2xl overflow-hidden"
-        >
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 60,
+          padding: '12px 16px 20px',
+          background: 'linear-gradient(to top, var(--bg) 70%, transparent)',
+          pointerEvents: 'none',
+        }}>
           <button
             onClick={() => setCartOpen(true)}
-            className="w-full flex items-center justify-between px-4 transition-all hover:brightness-95 active:scale-[0.99]"
             style={{
-              backgroundColor: 'var(--accent)',
-              color: b ? '#1A1A1A' : '#fff',
-              paddingTop: '12px',
-              paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-            }}
+              width: '100%',
+              maxWidth: 480,
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: accent,
+              color: 'white',
+              border: 'none',
+              borderRadius: 16,
+              padding: '14px 20px',
+              cursor: 'pointer',
+              fontWeight: 700,
+              fontSize: 15,
+              boxShadow: `0 8px 24px ${accent}50`,
+              pointerEvents: 'all',
+            } as React.CSSProperties}
           >
-            <span className="flex items-center gap-2 font-semibold text-sm">
-              <ShoppingBag key={popKey} size={20} className="animate-pop flex-shrink-0" />
-              {totalItems} {totalItems === 1 ? 'producto' : 'productos'}
+            <span style={{
+              background: 'rgba(255,255,255,0.25)',
+              borderRadius: 20,
+              padding: '2px 10px',
+              fontSize: 13,
+            }}>
+              {totalItems} {totalItems === 1 ? 'item' : 'items'}
             </span>
-            <span className="font-bold text-lg">{fmt(totalPrice)}</span>
-            <span className="flex items-center gap-0.5 text-sm font-medium opacity-80">
-              Ver pedido <ChevronRight size={16} />
-            </span>
+            <span>Ver pedido</span>
+            <span style={{ fontWeight: 800 }}>{fmt(totalPrice)}</span>
           </button>
         </div>
       )}
 
-      {/* ── Cart drawer ────────────────────────────────────────────────── */}
+      {/* ── Cart drawer ─────────────────────────────────────────────────── */}
       {cartOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={() => setCartOpen(false)} />
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setCartOpen(false)}
+          />
 
           <div
             className="fixed z-50 bottom-0 left-0 right-0
@@ -441,7 +459,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               borderTop: b ? `2px solid ${b.accent}` : undefined,
             }}
           >
-            {/* Handle (mobile only) */}
+            {/* Handle mobile */}
             <div className="flex justify-center pt-3 pb-1 md:hidden flex-shrink-0">
               <div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--border)' }} />
             </div>
@@ -454,7 +472,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Tu pedido</h2>
               <button
                 onClick={() => setCartOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:opacity-70"
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
                 style={{ backgroundColor: 'var(--surface-2)', color: 'var(--text-secondary)' }}
               >
                 <X size={18} />
@@ -465,26 +483,17 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
               {cart.map(item => (
                 <div key={item.id} className="flex items-center gap-3">
-                  {/* Thumbnail */}
                   <div
                     className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-lg"
                     style={{ backgroundColor: 'var(--surface-2)' }}
                   >
-                    {item.image ? (
-                      <Image src={item.image} alt={item.name} width={40} height={40} className="w-full h-full object-cover" unoptimized />
-                    ) : '🍔'}
+                    {item.image
+                      ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : '🍔'}
                   </div>
 
-                  {/* Name + price */}
-                  <div className="flex-1 min-w-0 ml-0">
-                    <p
-                      className="text-sm font-semibold truncate leading-tight"
-                      style={{
-                        color: 'var(--text-primary)',
-                        fontFamily: b?.display_font,
-                        textTransform: b ? 'uppercase' : 'none',
-                      }}
-                    >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate leading-tight" style={{ color: 'var(--text-primary)' }}>
                       {item.name}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -492,11 +501,10 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                     </p>
                   </div>
 
-                  {/* Qty controls */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => item.quantity === 1 ? removeAll(item) : removeItem(item)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 border"
+                      className="w-7 h-7 rounded-full flex items-center justify-center active:scale-90 border"
                       style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
                     >
                       {item.quantity === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
@@ -506,14 +514,13 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                     </span>
                     <button
                       onClick={() => addItem(item)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white transition-all active:scale-90"
-                      style={{ backgroundColor: 'var(--accent)' }}
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white active:scale-90"
+                      style={{ backgroundColor: accent }}
                     >
                       <Plus size={12} />
                     </button>
                   </div>
 
-                  {/* Subtotal */}
                   <span className="text-sm font-bold w-16 text-right flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
                     {fmt(item.price * item.quantity)}
                   </span>
@@ -521,48 +528,23 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               ))}
             </div>
 
-            {/* Order summary */}
+            {/* Summary */}
             <div className="border-t flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
-              <div className="px-5 py-4 flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Subtotal</span>
-                  <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{fmt(totalPrice)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span
-                    className={b ? 'text-3xl' : 'font-black text-xl'}
-                    style={{
-                      color: b ? 'var(--accent)' : 'var(--text-primary)',
-                      fontFamily: b?.display_font,
-                    }}
-                  >
-                    Total
-                  </span>
-                  <span
-                    className={b ? 'text-3xl' : 'font-black text-xl'}
-                    style={{
-                      color: b ? 'var(--accent)' : 'var(--text-primary)',
-                      fontFamily: b?.display_font,
-                    }}
-                  >
-                    {fmt(totalPrice)}
-                  </span>
-                </div>
+              <div className="px-5 py-4 flex justify-between items-center">
+                <span className="font-black text-xl" style={{ color: 'var(--text-primary)' }}>Total</span>
+                <span className="font-black text-xl" style={{ color: accent }}>{fmt(totalPrice)}</span>
               </div>
             </div>
 
             {/* CTA */}
             <div
               className="px-4 pt-3 flex-shrink-0 border-t"
-              style={{
-                paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-                borderColor: 'var(--border)',
-              }}
+              style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', borderColor: 'var(--border)' }}
             >
               <button
                 onClick={() => { setCartOpen(false); setCheckoutOpen(true) }}
-                className="w-full py-4 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-3 transition-all active:scale-[0.98] hover:brightness-110"
-                style={{ backgroundColor: 'var(--accent)' }}
+                className="w-full py-4 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-3 active:scale-[0.98] hover:brightness-110 transition-all"
+                style={{ backgroundColor: accent }}
               >
                 Hacer pedido →
               </button>
@@ -571,7 +553,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         </>
       )}
 
-      {/* Checkout modal */}
+      {/* ── Checkout modal ───────────────────────────────────────────────── */}
       <CheckoutModal
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}

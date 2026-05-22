@@ -241,3 +241,6 @@ input, textarea, select { font-size: 16px !important; }
 
 /* Categorías sin scrollbar */
 .categories-bar::-webkit-scrollbar { display: none; }
+
+/* Tap highlight off en mobile */
+button, a { -webkit-tap-highlight-color: transparent; }
