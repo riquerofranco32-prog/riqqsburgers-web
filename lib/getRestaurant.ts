@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import { getTenant, getAllTenants, getTenantProducts, getTenantCategories } from './tenants'
+import { getActiveTenant, getAllTenants, getTenantProducts, getTenantCategories } from './tenants'
 import type { Tenant, Category, Product } from '@/types/supabase'
 
 export interface RestaurantBrand {
@@ -88,7 +88,7 @@ function mapToRestaurant(
 export async function getRestaurant(slug: string): Promise<Restaurant | null> {
   // 1. Supabase (fuente principal)
   try {
-    const tenant = await getTenant(slug)
+    const tenant = await getActiveTenant(slug)
     if (tenant) {
       const [categories, products] = await Promise.all([
         getTenantCategories(tenant.id),

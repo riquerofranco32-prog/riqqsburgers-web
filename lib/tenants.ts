@@ -3,14 +3,27 @@ import type { Tenant, Category, Product } from '@/types/supabase'
 
 export type { Tenant }
 
+// Admin use: finds tenant regardless of active status
 export async function getTenant(slug: string): Promise<Tenant | null> {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('tenants')
     .select('*')
     .eq('slug', slug)
+    .maybeSingle()
+  if (error || !data) return null
+  return data as Tenant
+}
+
+// Public use: only returns tenant if active = true
+export async function getActiveTenant(slug: string): Promise<Tenant | null> {
+  const supabase = createServerClient()
+  const { data, error } = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('slug', slug)
     .eq('active', true)
-    .single()
+    .maybeSingle()
   if (error || !data) return null
   return data as Tenant
 }
