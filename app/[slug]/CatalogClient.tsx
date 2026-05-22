@@ -95,6 +95,9 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     .join('')
     .toUpperCase()
 
+  // Logo src: use stored URL, then slug-specific fallback, then initials
+  const logoSrc = restaurant.logo || (restaurant.slug === 'riqqsburgers' ? '/logo.png' : '')
+
   return (
     <div
       className="min-h-screen pb-32"
@@ -141,13 +144,13 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             className="absolute inset-0 m-[3px] rounded-full overflow-hidden z-10"
             style={{ backgroundColor: 'var(--surface-2)' }}
           >
-            {restaurant.logo ? (
+            {logoSrc ? (
               <Image
-                src={restaurant.logo}
+                src={logoSrc}
                 alt={restaurant.name}
                 width={96}
                 height={96}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-full"
                 unoptimized
               />
             ) : (

@@ -83,3 +83,32 @@ html { scroll-behavior: smooth; }
   to   { transform: translateY(0);    opacity: 1; }
 }
 .animate-slide-up { animation: slideUp 0.25s ease-out both; }
+
+/* ── Takefyy homepage — hero blobs ──────────────────────────────────────── */
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-24px); }
+}
+
+/* ── Takefyy homepage — emoji glow pulse ────────────────────────────────── */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255,107,53,0.5), 0 0 24px rgba(255,107,53,0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(255,107,53,0), 0 0 48px rgba(255,107,53,0.35);
+  }
+}
+.animate-pulse-glow { animation: pulseGlow 2.5s ease-in-out infinite; }
+
+/* ── Takefyy homepage — restaurant card ─────────────────────────────────── */
+.restaurant-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,107,53,0.15);
+  transition: border-color 300ms ease, box-shadow 300ms ease, transform 300ms ease;
+}
+.restaurant-card:hover {
+  border-color: rgba(255,107,53,0.7);
+  box-shadow: 0 0 24px rgba(255,107,53,0.18);
+  transform: translateY(-4px);
+}
