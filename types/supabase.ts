@@ -15,6 +15,7 @@ export interface Tenant {
   schedule: string | null
   is_open: boolean
   active: boolean
+  brand: Record<string, string> | null
   created_at: string
 }
 

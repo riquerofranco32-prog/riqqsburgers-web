@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('tenants')
-    .select('id, slug, name, tagline, logo_url, whatsapp_number, instagram_handle, primary_color, active, created_at')
+    .select('id, slug, name, tagline, logo_url, whatsapp_number, instagram_handle, primary_color, address, schedule, is_open, active, created_at')
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -30,6 +30,9 @@ export async function POST(req: NextRequest) {
     instagram?: string
     logo_url?: string
     accent_color?: string
+    address?: string
+    schedule?: string
+    is_open?: boolean
   }
 
   if (!body.slug || !body.name || !body.whatsapp_number) {
@@ -54,6 +57,9 @@ export async function POST(req: NextRequest) {
       secondary_color: '#FFB347',
       background_color: '#FFFAF7',
       delivery_cost: 0,
+      address: body.address || null,
+      schedule: body.schedule || null,
+      is_open: body.is_open ?? true,
       active: true,
     })
     .select('id, slug, name')

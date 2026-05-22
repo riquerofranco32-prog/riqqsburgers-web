@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 interface TenantRow {
   id: string
@@ -14,6 +13,9 @@ interface TenantRow {
   whatsapp_number: string
   instagram_handle: string | null
   primary_color: string | null
+  address: string | null
+  schedule: string | null
+  is_open: boolean
   active: boolean
   created_at: string
 }
@@ -29,10 +31,10 @@ function slugify(str: string) {
 const EMPTY_FORM = {
   name: '', slug: '', tagline: '', whatsapp_number: '',
   instagram: '', logo_url: '', accent_color: '#FF6B35',
+  address: '', schedule: '', is_open: true,
 }
 
 export default function AdminDashboard() {
-  const router = useRouter()
   const [restaurants, setRestaurants] = useState<TenantRow[]>([])
   const [loading, setLoading]         = useState(true)
   const [showForm, setShowForm]       = useState(false)
@@ -50,7 +52,7 @@ export default function AdminDashboard() {
 
   useEffect(() => { load() }, [load])
 
-  function setField(key: keyof typeof EMPTY_FORM, val: string) {
+  function setField(key: keyof typeof EMPTY_FORM, val: string | boolean) {
     setForm(f => ({ ...f, [key]: val }))
     setFormError('')
   }
@@ -108,7 +110,7 @@ export default function AdminDashboard() {
 
   async function handleLogout() {
     await fetch('/api/admin/auth', { method: 'DELETE' })
-    router.refresh()
+    window.location.href = '/admin'
   }
 
   return (
@@ -254,6 +256,43 @@ export default function AdminDashboard() {
                 </Field>
               </div>
 
+              {/* Address */}
+              <div className="sm:col-span-2">
+                <Field label="Dirección">
+                  <input
+                    value={form.address}
+                    onChange={e => setField('address', e.target.value)}
+                    placeholder="Ej: México 488, Mendoza"
+                  />
+                </Field>
+              </div>
+
+              {/* Schedule */}
+              <div className="sm:col-span-2">
+                <Field label="Horario">
+                  <input
+                    value={form.schedule}
+                    onChange={e => setField('schedule', e.target.value)}
+                    placeholder="Ej: Todos los días 20:00 - 00:00"
+                  />
+                </Field>
+              </div>
+
+              {/* is_open toggle */}
+              <div className="sm:col-span-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setField('is_open', !form.is_open)}
+                  className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.is_open ? 'bg-emerald-500' : 'bg-zinc-300'}`}
+                  style={form.is_open ? {} : { backgroundColor: 'var(--border)' }}
+                >
+                  <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_open ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                </button>
+                <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {form.is_open ? 'Abierto ahora' : 'Cerrado'}
+                </span>
+              </div>
+
               {/* Accent color */}
               <Field label="Color de acento">
                 <div className="flex items-center gap-3">
@@ -346,7 +385,7 @@ export default function AdminDashboard() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>
                         {r.name}
                       </p>
@@ -359,9 +398,19 @@ export default function AdminDashboard() {
                       >
                         {r.active ? 'Activo' : 'Inactivo'}
                       </span>
+                      <span
+                        className="text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1"
+                        style={{
+                          backgroundColor: r.is_open ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                          color: r.is_open ? '#16a34a' : '#dc2626',
+                        }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: r.is_open ? '#22c55e' : '#ef4444' }} />
+                        {r.is_open ? 'Abierto' : 'Cerrado'}
+                      </span>
                     </div>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                      /{r.slug}
+                      /{r.slug}{r.address ? ` · ${r.address}` : ''}
                     </p>
                   </div>
 

@@ -63,7 +63,7 @@ function mapToRestaurant(
     address: tenant.address ?? '',
     schedule: tenant.schedule ?? '',
     is_open: tenant.is_open ?? true,
-    brand: null,
+    brand: (tenant.brand as RestaurantBrand | null) ?? null,
     menu: {
       categories: categories.map(cat => ({
         id: cat.id,

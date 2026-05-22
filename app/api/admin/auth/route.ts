@@ -18,3 +18,9 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true })
 }
+
+export async function DELETE() {
+  const cookieStore = await cookies()
+  cookieStore.delete('admin_token')
+  return NextResponse.json({ ok: true })
+}
