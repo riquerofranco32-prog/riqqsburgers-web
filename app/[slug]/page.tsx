@@ -1,63 +1,25 @@
-import { createServerClient } from '@/lib/supabase'
+import { getRestaurant } from '@/lib/getRestaurant'
 import { notFound } from 'next/navigation'
-import { MenuPage } from '@/components/MenuPage'
-import { CartProvider } from '@/context/CartContext'
 import type { Metadata } from 'next'
-import type { Tenant, Category, Product } from '@/types/supabase'
+import CatalogClient from './CatalogClient'
 
-export const revalidate = 60
+interface Props {
+  params: Promise<{ slug: string }>
+}
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ slug: string }> }
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
-  const supabase = createServerClient()
-  const { data } = await supabase
-    .from('tenants')
-    .select('name, tagline')
-    .eq('slug', slug)
-    .single()
-
-  const tenant = data as { name: string; tagline: string | null } | null
-  if (!tenant) return { title: 'No encontrado' }
-
+  const restaurant = await getRestaurant(slug)
+  if (!restaurant) return { title: 'No encontrado — Takefyy' }
   return {
-    title: `${tenant.name} — Pedí online`,
-    description: tenant.tagline ?? undefined,
+    title: `${restaurant.name} — Takefyy`,
+    description: restaurant.tagline,
   }
 }
 
-export default async function Page(
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export default async function RestaurantPage({ params }: Props) {
   const { slug } = await params
-  const supabase = createServerClient()
-
-  const { data: rawTenant } = await supabase
-    .from('tenants')
-    .select('*')
-    .eq('slug', slug)
-    .eq('active', true)
-    .single()
-
-  const tenant = rawTenant as Tenant | null
-  if (!tenant) notFound()
-
-  const [{ data: rawCats }, { data: rawProds }] = await Promise.all([
-    supabase.from('categories').select('*').eq('tenant_id', tenant.id).eq('active', true).order('sort_order'),
-    supabase.from('products').select('*').eq('tenant_id', tenant.id).eq('available', true).order('sort_order'),
-  ])
-
-  const categories = (rawCats ?? []) as Category[]
-  const products = (rawProds ?? []) as Product[]
-
-  return (
-    <CartProvider tenantId={tenant.id}>
-      <MenuPage
-        tenant={tenant}
-        categories={categories}
-        products={products}
-      />
-    </CartProvider>
-  )
+  const restaurant = await getRestaurant(slug)
+  if (!restaurant) notFound()
+  return <CatalogClient restaurant={restaurant} />
 }

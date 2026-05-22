@@ -1,0 +1,64 @@
+{
+  "slug": "riqqsburgers",
+  "name": "Riqq's Burgers",
+  "tagline": "Amor a primera mordida 🍔",
+  "phone": "5491112345678",
+  "instagram": "riqqsburgers",
+  "logo": "https://postimg.cc/PPctfJtG",
+  "accent_color": "#F5A623",
+  "menu": {
+    "categories": [
+      {
+        "id": "burgers",
+        "name": "Burgers",
+        "emoji": "🍔",
+        "items": [
+          {
+            "id": "american",
+            "name": "AMERICAN",
+            "description": "Medallón de 110g, cheddar, tomate, lechuga, cebolla morada en aros y aderezo Riqq's",
+            "price": 9500,
+            "image": "/american.jpeg",
+            "badge": null
+          },
+          {
+            "id": "bacon",
+            "name": "BACON",
+            "description": "Medallón de 110g, cheddar, panceta ahumada, aderezo Riqq's y cebolla crispy",
+            "price": 10500,
+            "image": "/bacon.jpeg",
+            "badge": "Popular"
+          },
+          {
+            "id": "paltum",
+            "name": "PALTUM",
+            "description": "Medallón de 110g, cheddar, panceta ahumada y palta",
+            "price": 11000,
+            "image": "/paltum.jpeg",
+            "badge": null
+          },
+          {
+            "id": "cheese",
+            "name": "CHEESE",
+            "description": "Medallón de 110g, cebolla picada, ketchup y mostaza",
+            "price": 8500,
+            "image": "/cheese.jpeg",
+            "badge": null
+          }
+        ]
+      },
+      {
+        "id": "promos",
+        "name": "Promos",
+        "emoji": "🔥",
+        "items": []
+      },
+      {
+        "id": "bebidas",
+        "name": "Bebidas",
+        "emoji": "🥤",
+        "items": []
+      }
+    ]
+  }
+}

@@ -2,25 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Grain overlay ───────────────────────────────────────────────────────── */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9998;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 180px 180px;
+/* ── Design tokens ───────────────────────────────────────────────────────── */
+:root {
+  --accent:        #FF6B35;
+  --accent-dark:   #E85520;
+  --accent-light:  #FFF0EB;
+  --secondary:     #FFB347;
+  --bg:            #FFFAF7;
+  --surface:       #FFFFFF;
+  --surface-2:     #F5F0EC;
+  --border:        #EDE8E3;
+  --text-primary:  #1A1208;
+  --text-secondary:#6B5B4E;
+  --text-muted:    #A8998C;
 }
+
+/* ── Google Font ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
 html { scroll-behavior: smooth; }
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #F5A623; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ── Category tab fade+slide transition ──────────────────────────────────── */
 @keyframes tabFadeUp {
@@ -31,30 +36,14 @@ html { scroll-behavior: smooth; }
 .menu-grid-enter > * {
   animation: tabFadeUp 0.22s ease-out both;
 }
-.menu-grid-enter > *:nth-child(1) { animation-delay: 0ms;  }
-.menu-grid-enter > *:nth-child(2) { animation-delay: 40ms; }
-.menu-grid-enter > *:nth-child(3) { animation-delay: 80ms; }
+.menu-grid-enter > *:nth-child(1) { animation-delay: 0ms;   }
+.menu-grid-enter > *:nth-child(2) { animation-delay: 40ms;  }
+.menu-grid-enter > *:nth-child(3) { animation-delay: 80ms;  }
 .menu-grid-enter > *:nth-child(4) { animation-delay: 120ms; }
 .menu-grid-enter > *:nth-child(5) { animation-delay: 160ms; }
 .menu-grid-enter > *:nth-child(6) { animation-delay: 200ms; }
 .menu-grid-enter > *:nth-child(7) { animation-delay: 240ms; }
 .menu-grid-enter > *:nth-child(8) { animation-delay: 280ms; }
-
-/* ── Card hover glow ─────────────────────────────────────────────────────── */
-.card-hover {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-.card-hover:hover {
-  border-color: rgba(245, 166, 35, 0.4);
-  box-shadow: 0 0 20px rgba(245, 166, 35, 0.1), 0 4px 20px rgba(0,0,0,0.4);
-  transform: translateY(-2px);
-}
-
-/* ── Tab glow hover ──────────────────────────────────────────────────────── */
-.tab-inactive:hover {
-  box-shadow: 0 0 12px rgba(245, 166, 35, 0.25);
-  border-color: rgba(245, 166, 35, 0.5);
-}
 
 /* ── Animated counter pill ───────────────────────────────────────────────── */
 @keyframes pop {
@@ -79,15 +68,18 @@ html { scroll-behavior: smooth; }
   from { opacity: 0; transform: translateY(12px) scale(0.95); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.toast-enter {
-  animation: toastEnter 0.2s ease-out both;
-}
+.toast-enter { animation: toastEnter 0.2s ease-out both; }
 
-/* ── Cart drawer slide-in ────────────────────────────────────────────────── */
+/* ── Cart drawer slide-in (admin) ────────────────────────────────────────── */
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
 }
-.animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out both;
+.animate-slide-in-right { animation: slideInRight 0.3s ease-out both; }
+
+/* ── Sticky cart slide-up ────────────────────────────────────────────────── */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
+.animate-slide-up { animation: slideUp 0.25s ease-out both; }
