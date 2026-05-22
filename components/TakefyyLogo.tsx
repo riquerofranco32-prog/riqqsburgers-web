@@ -33,7 +33,7 @@ export default function TakefyyLogo({
             if (!cell) return null
             const x = ci * (unit + gap)
             const y = ri * (unit + gap)
-            const fill = cell === 'accent' ? '#FF6B35' : '#0E1116'
+            const fill = cell === 'accent' ? '#FF6B35' : 'currentColor'
             return (
               <rect
                 key={`${ri}-${ci}`}
@@ -48,7 +48,7 @@ export default function TakefyyLogo({
       </svg>
 
       <span style={{ fontSize: wordmarkSize, lineHeight: 1, display: 'flex', alignItems: 'baseline' }}>
-        <span style={{ fontFamily: 'var(--font-sans, system-ui, sans-serif)', fontWeight: 700, color: '#0E1116', letterSpacing: '-0.03em' }}>
+        <span style={{ fontFamily: 'var(--font-sans, system-ui, sans-serif)', fontWeight: 700, color: 'currentColor', letterSpacing: '-0.03em' }}>
           takef
         </span>
         <span style={{ fontFamily: 'var(--font-sans, system-ui, sans-serif)', fontWeight: 700, color: '#FF6B35', letterSpacing: '-0.03em' }}>
