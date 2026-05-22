@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import TakefyyLogo from '@/components/TakefyyLogo'
@@ -13,6 +13,33 @@ function fadeUp(delay = 0) {
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.65, delay, ease },
   }
+}
+
+// ── Step number with IntersectionObserver ────────────────────────────────────
+function StepNumber({ n }: { n: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setVisible(true) },
+      { threshold: 0.3 }
+    )
+    if (ref.current) obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [])
+
+  return (
+    <div ref={ref} style={{
+      fontSize: '6rem', fontWeight: 800, color: 'var(--accent)',
+      lineHeight: 1, marginBottom: 16, letterSpacing: '-0.04em',
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'translateY(0)' : 'translateY(24px)',
+      transition: 'all 0.6s cubic-bezier(0.22,1,0.36,1)',
+    }}>
+      {n}
+    </div>
+  )
 }
 
 const features = [
@@ -96,11 +123,12 @@ function PhoneMockup() {
       borderRadius: 32,
       border: '2px solid #2A2D35',
       padding: 16,
-      boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,107,53,0.15)',
       display: 'flex',
       flexDirection: 'column',
       gap: 10,
       position: 'relative',
+      animation: 'float 4s ease-in-out infinite',
+      filter: 'drop-shadow(0 32px 64px rgba(255,107,53,0.25)) drop-shadow(0 8px 24px rgba(0,0,0,0.5))',
     }}>
       {/* Status bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
@@ -170,7 +198,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 30)
+    const h = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', h, { passive: true })
     return () => window.removeEventListener('scroll', h)
   }, [])
@@ -193,9 +221,9 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? 'rgba(14,17,22,0.92)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(16px)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+          background: scrolled ? 'rgba(14,17,22,0.85)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(12px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,107,53,0.1)' : '1px solid transparent',
         }}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
@@ -220,7 +248,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
 
           <div className="flex items-center gap-3">
             <Link
-              href="/admin"
+              href="/login"
               className="hidden md:block text-sm font-medium"
               style={{ color: 'var(--dash-muted)', transition: 'color 0.15s' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--dash-text)')}
@@ -265,7 +293,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
                   {l.label}
                 </button>
               ))}
-              <Link href="/admin" className="text-sm" style={{ color: 'var(--dash-muted)' }}>
+              <Link href="/login" className="text-sm" style={{ color: 'var(--dash-muted)' }}>
                 Iniciar sesión
               </Link>
             </div>
@@ -274,11 +302,44 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
       </nav>
 
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
-      <section className="min-h-screen flex items-center relative overflow-hidden" style={{ paddingTop: 64 }}>
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 60% 50% at 15% 60%, rgba(255,107,53,0.07) 0%, transparent 70%)' }} />
-        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 40% 40% at 85% 30%, rgba(255,107,53,0.04) 0%, transparent 70%)' }} />
+      <section style={{
+        position: 'relative',
+        background: '#0E1116',
+        overflow: 'hidden',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        paddingTop: 64,
+      }}>
+        {/* Grain texture */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '200px 200px',
+          opacity: 0.4,
+          pointerEvents: 'none',
+        }} />
 
-        <div className="max-w-6xl mx-auto px-5 sm:px-8 w-full py-24">
+        {/* Glow naranja bottom-left */}
+        <div style={{
+          position: 'absolute',
+          bottom: '-10%', left: '-5%',
+          width: 500, height: 500,
+          background: 'radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%)',
+          pointerEvents: 'none', zIndex: 0,
+        }} />
+
+        {/* Glow tenue top-right */}
+        <div style={{
+          position: 'absolute',
+          top: '-10%', right: '-5%',
+          width: 400, height: 400,
+          background: 'radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 70%)',
+          pointerEvents: 'none', zIndex: 0,
+        }} />
+
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 w-full py-24" style={{ position: 'relative', zIndex: 1 }}>
           <motion.div {...fadeUp(0)} className="mb-5">
             <span className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold"
               style={{ background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.25)', color: 'var(--accent)' }}>
@@ -360,9 +421,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               <motion.div key={f.n}
                 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ duration: 0.55, delay: i * 0.1, ease }}>
-                <div style={{ fontSize: '5rem', fontWeight: 700, lineHeight: 1, color: 'var(--accent)', marginBottom: 16, letterSpacing: '-0.04em' }}>
-                  {f.n}
-                </div>
+                <StepNumber n={f.n} />
                 <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{f.desc}</p>
               </motion.div>
@@ -372,8 +431,18 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
       </section>
 
       {/* ── SHOWCASE ────────────────────────────────────────────────────────── */}
-      <section style={{ background: 'var(--brand-dark)', padding: '96px 0' }}>
-        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+      <section style={{ background: 'var(--brand-dark)', padding: '96px 0', position: 'relative', overflow: 'hidden' }}>
+        {/* Glow behind phone */}
+        <div style={{
+          position: 'absolute',
+          left: '20%', top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400, height: 400,
+          background: 'radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <div className="max-w-6xl mx-auto px-5 sm:px-8" style={{ position: 'relative', zIndex: 1 }}>
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.7, ease }} className="flex justify-center md:justify-start">
@@ -426,14 +495,38 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               <motion.div key={plan.name}
                 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ duration: 0.55, delay: i * 0.1, ease }}
-                whileHover={{ boxShadow: '0 0 0 2px #FF6B35' }}
                 style={{
                   background: plan.featured ? 'var(--brand-dark)' : 'var(--surface)',
-                  border: `1px solid ${plan.featured ? 'rgba(255,107,53,0.3)' : 'var(--border)'}`,
+                  border: `1px solid ${plan.featured ? 'rgba(255,107,53,0.4)' : 'var(--border)'}`,
+                  boxShadow: plan.featured
+                    ? '0 0 0 1px rgba(255,107,53,0.1), 0 24px 64px rgba(255,107,53,0.2)'
+                    : 'none',
                   borderRadius: 20, padding: 32, position: 'relative',
-                }}>
+                  overflow: 'hidden',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={!plan.featured ? (e) => {
+                  const el = e.currentTarget as HTMLDivElement
+                  el.style.borderColor = 'var(--accent)'
+                  el.style.transform = 'translateY(-4px)'
+                  el.style.boxShadow = '0 16px 48px rgba(255,107,53,0.15)'
+                } : undefined}
+                onMouseLeave={!plan.featured ? (e) => {
+                  const el = e.currentTarget as HTMLDivElement
+                  el.style.borderColor = 'var(--border)'
+                  el.style.transform = 'translateY(0)'
+                  el.style.boxShadow = 'none'
+                } : undefined}
+              >
                 {plan.featured && (
-                  <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: 'var(--accent)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 20 }}>
+                  <div style={{
+                    position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
+                    color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 20,
+                    background: 'linear-gradient(90deg, var(--accent) 0%, #ff8c5a 50%, var(--accent) 100%)',
+                    backgroundSize: '200% auto',
+                    animation: 'shimmer 2s linear infinite',
+                    whiteSpace: 'nowrap',
+                  }}>
                     MÁS POPULAR
                   </div>
                 )}
@@ -488,7 +581,26 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               <motion.div key={t.name}
                 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ duration: 0.55, delay: i * 0.1, ease }}
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 28 }}>
+                style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 20, padding: 28,
+                  transition: 'all 0.25s ease',
+                  cursor: 'default',
+                }}
+                onMouseEnter={e => {
+                  const el = e.currentTarget as HTMLDivElement
+                  el.style.transform = 'translateY(-6px)'
+                  el.style.boxShadow = '0 20px 48px rgba(0,0,0,0.1)'
+                  el.style.borderColor = 'rgba(255,107,53,0.3)'
+                }}
+                onMouseLeave={e => {
+                  const el = e.currentTarget as HTMLDivElement
+                  el.style.transform = 'translateY(0)'
+                  el.style.boxShadow = 'none'
+                  el.style.borderColor = 'var(--border)'
+                }}
+              >
                 <div className="flex mb-3">
                   {Array.from({ length: t.stars }).map((_, s) => (
                     <span key={s} style={{ color: 'var(--accent)', fontSize: 14 }}>★</span>
@@ -512,8 +624,15 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
         </div>
       </section>
 
+      {/* Gradient separator */}
+      <div style={{
+        height: 1,
+        background: 'linear-gradient(90deg, transparent, rgba(255,107,53,0.3), transparent)',
+        margin: 0,
+      }} />
+
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
-      <footer style={{ background: 'var(--brand-dark)', padding: '64px 0 32px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <footer style={{ background: 'var(--brand-dark)', padding: '64px 0 32px' }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
             <div>
