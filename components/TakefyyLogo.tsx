@@ -1,58 +1,60 @@
-interface TakefyyLogoProps {
+export default function TakefyyLogo({
+  size = 'md',
+  className = '',
+}: {
   size?: 'sm' | 'md' | 'lg'
   className?: string
-  iconOnly?: boolean
-}
+}) {
+  const scale = { sm: 0.6, md: 1, lg: 1.4 }[size]
+  const unit = 10 * scale
+  const gap = 2.5 * scale
+  const r = 2 * scale
 
-const sizes = { sm: 28, md: 36, lg: 48 }
-const fontSizes = { sm: '1rem', md: '1.25rem', lg: '1.6rem' }
+  const grid: (boolean | 'accent')[][] = [
+    [true,  true,  true,  true,  true ],
+    [true,  true,  true,  true,  true ],
+    [false, false, true,  true,  false],
+    [false, false, true,  true,  false],
+    [false, 'accent', true, true, false],
+  ]
 
-export default function TakefyyLogo({ size = 'md', className = '', iconOnly = false }: TakefyyLogoProps) {
-  const px = sizes[size]
+  const cols = 5
+  const rows = grid.length
+  const svgW = cols * unit + (cols - 1) * gap
+  const svgH = rows * unit + (rows - 1) * gap
+
+  const wordmarkSize = { sm: 18, md: 26, lg: 36 }[size]
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <svg width={px} height={px} viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect width="200" height="200" rx="44" fill="#0E1116"/>
-        <g fill="#F4EFE6">
-          {/* Top bar row 1 */}
-          <rect x="40" y="40" width="26" height="26" rx="4"/>
-          <rect x="70" y="40" width="26" height="26" rx="4"/>
-          <rect x="100" y="40" width="26" height="26" rx="4"/>
-          <rect x="130" y="40" width="26" height="26" rx="4"/>
-          {/* Top bar row 2 */}
-          <rect x="40" y="70" width="26" height="26" rx="4"/>
-          <rect x="70" y="70" width="26" height="26" rx="4"/>
-          <rect x="100" y="70" width="26" height="26" rx="4"/>
-          <rect x="130" y="70" width="26" height="26" rx="4"/>
-          {/* Stem row 3 */}
-          <rect x="70" y="100" width="26" height="26" rx="4"/>
-          <rect x="100" y="100" width="26" height="26" rx="4"/>
-          <rect x="130" y="100" width="26" height="26" rx="4"/>
-          {/* Stem row 4 */}
-          <rect x="70" y="130" width="26" height="26" rx="4"/>
-          <rect x="100" y="130" width="26" height="26" rx="4"/>
-          <rect x="130" y="130" width="26" height="26" rx="4"/>
-          {/* Stem row 5 — left and right, coral center */}
-          <rect x="70" y="160" width="26" height="26" rx="4"/>
-          <rect x="130" y="160" width="26" height="26" rx="4"/>
-        </g>
-        {/* Coral accent pixel */}
-        <rect x="100" y="160" width="26" height="26" rx="4" fill="#FF5C3C"/>
+    <div className={`flex items-center gap-3 ${className}`}>
+      <svg width={svgW} height={svgH} viewBox={`0 0 ${svgW} ${svgH}`} fill="none" aria-hidden="true">
+        {grid.map((row, ri) =>
+          row.map((cell, ci) => {
+            if (!cell) return null
+            const x = ci * (unit + gap)
+            const y = ri * (unit + gap)
+            const fill = cell === 'accent' ? '#FF6B35' : '#0E1116'
+            return (
+              <rect
+                key={`${ri}-${ci}`}
+                x={x} y={y}
+                width={unit} height={unit}
+                rx={r} ry={r}
+                fill={fill}
+              />
+            )
+          })
+        )}
       </svg>
 
-      {!iconOnly && (
-        <span style={{
-          fontFamily: 'var(--font-sans), Space Grotesk, system-ui, sans-serif',
-          fontWeight: 600,
-          fontSize: fontSizes[size],
-          color: 'inherit',
-          letterSpacing: '-0.02em',
-          lineHeight: 1,
-        }}>
-          Takefyy
+      <span style={{ fontSize: wordmarkSize, lineHeight: 1, display: 'flex', alignItems: 'baseline' }}>
+        <span style={{ fontFamily: 'var(--font-sans, system-ui, sans-serif)', fontWeight: 700, color: '#0E1116', letterSpacing: '-0.03em' }}>
+          takef
         </span>
-      )}
+        <span style={{ fontFamily: 'var(--font-sans, system-ui, sans-serif)', fontWeight: 700, color: '#FF6B35', letterSpacing: '-0.03em' }}>
+          yy
+        </span>
+      </span>
     </div>
   )
 }
