@@ -12,12 +12,33 @@ export default function TakefyyLogo({ size = 'md', className = '', iconOnly = fa
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <svg width={px} height={px} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect width="40" height="40" rx="8" fill="#0E1116"/>
-        {/* Horizontal bar of T */}
-        <rect x="6" y="9" width="28" height="7" rx="1.5" fill="#FF6B35"/>
-        {/* Vertical stem of T */}
-        <rect x="16.5" y="16" width="7" height="16" rx="1.5" fill="#FF6B35"/>
+      <svg width={px} height={px} viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="200" height="200" rx="44" fill="#0E1116"/>
+        <g fill="#F4EFE6">
+          {/* Top bar row 1 */}
+          <rect x="40" y="40" width="26" height="26" rx="4"/>
+          <rect x="70" y="40" width="26" height="26" rx="4"/>
+          <rect x="100" y="40" width="26" height="26" rx="4"/>
+          <rect x="130" y="40" width="26" height="26" rx="4"/>
+          {/* Top bar row 2 */}
+          <rect x="40" y="70" width="26" height="26" rx="4"/>
+          <rect x="70" y="70" width="26" height="26" rx="4"/>
+          <rect x="100" y="70" width="26" height="26" rx="4"/>
+          <rect x="130" y="70" width="26" height="26" rx="4"/>
+          {/* Stem row 3 */}
+          <rect x="70" y="100" width="26" height="26" rx="4"/>
+          <rect x="100" y="100" width="26" height="26" rx="4"/>
+          <rect x="130" y="100" width="26" height="26" rx="4"/>
+          {/* Stem row 4 */}
+          <rect x="70" y="130" width="26" height="26" rx="4"/>
+          <rect x="100" y="130" width="26" height="26" rx="4"/>
+          <rect x="130" y="130" width="26" height="26" rx="4"/>
+          {/* Stem row 5 — left and right, coral center */}
+          <rect x="70" y="160" width="26" height="26" rx="4"/>
+          <rect x="130" y="160" width="26" height="26" rx="4"/>
+        </g>
+        {/* Coral accent pixel */}
+        <rect x="100" y="160" width="26" height="26" rx="4" fill="#FF5C3C"/>
       </svg>
 
       {!iconOnly && (
