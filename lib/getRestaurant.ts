@@ -27,6 +27,9 @@ export interface Restaurant {
   instagram: string
   logo: string
   accent_color: string
+  address: string
+  schedule: string
+  is_open: boolean
   menu: {
     categories: MenuCategory[]
   }
@@ -45,6 +48,9 @@ function mapToRestaurant(
     instagram: tenant.instagram_handle ?? '',
     logo: tenant.logo_url ?? '',
     accent_color: tenant.primary_color ?? '#FF6B35',
+    address: tenant.address ?? '',
+    schedule: tenant.schedule ?? '',
+    is_open: tenant.is_open ?? true,
     menu: {
       categories: categories.map(cat => ({
         id: cat.id,

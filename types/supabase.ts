@@ -12,6 +12,8 @@ export interface Tenant {
   background_color: string
   instagram_handle: string | null
   address: string | null
+  schedule: string | null
+  is_open: boolean
   active: boolean
   created_at: string
 }
