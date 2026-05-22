@@ -1,26 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
-export async function POST(req: NextRequest) {
-  const { password } = (await req.json()) as { password: string }
-  const secret = process.env.ADMIN_SECRET
+export async function POST(request: Request) {
+  const { password } = await request.json()
 
-  if (!secret || password !== secret) {
+  if (!process.env.ADMIN_SECRET || password !== process.env.ADMIN_SECRET) {
     return NextResponse.json({ error: 'Contraseña incorrecta' }, { status: 401 })
   }
 
-  const res = NextResponse.json({ ok: true })
-  res.cookies.set('admin_token', secret, {
+  const cookieStore = await cookies()
+  cookieStore.set('admin_token', process.env.ADMIN_SECRET, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7,
-    path: '/',
   })
-  return res
-}
 
-export async function DELETE() {
-  const res = NextResponse.json({ ok: true })
-  res.cookies.delete('admin_token')
-  return res
+  return NextResponse.json({ ok: true })
 }

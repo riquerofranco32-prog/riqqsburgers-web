@@ -1,13 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
-  const router = useRouter()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -21,7 +19,7 @@ export default function AdminLogin() {
     })
 
     if (res.ok) {
-      router.refresh()
+      window.location.href = '/admin'
     } else {
       setError('Contraseña incorrecta')
       setLoading(false)
