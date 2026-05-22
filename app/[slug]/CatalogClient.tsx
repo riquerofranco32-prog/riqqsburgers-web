@@ -2,12 +2,10 @@
 
 import Image from 'next/image'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import {
-  MapPin, Clock, Phone, ShoppingBag, ChevronRight,
-  X, Minus, Plus, Trash2,
-} from 'lucide-react'
+import { ShoppingBag, ChevronRight, X, Minus, Plus, Trash2 } from 'lucide-react'
 import type { Restaurant, MenuItem, RestaurantBrand } from '@/lib/getRestaurant'
 import CheckoutModal from '@/components/CheckoutModal'
+import InfoRotator from '@/components/menu/InfoRotator'
 
 type CartItem = MenuItem & { quantity: number }
 
@@ -120,8 +118,15 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
 
   const initials = restaurant.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
   const logoSrc = restaurant.logo || ''
-  const hasInfoBar = !!(restaurant.address || restaurant.schedule || restaurant.phone)
   const b: RestaurantBrand | null = restaurant.brand ?? null
+  const accent = b?.accent ?? restaurant.accent_color
+
+  const infoItems = [
+    restaurant.address  && { icon: '📍', text: restaurant.address },
+    restaurant.phone    && { icon: '📞', text: restaurant.phone },
+    restaurant.schedule && { icon: '🕐', text: restaurant.schedule },
+    restaurant.instagram && { icon: '📸', text: `@${restaurant.instagram}` },
+  ].filter(Boolean) as { icon: string; text: string }[]
 
   return (
     <div
@@ -129,166 +134,121 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
       style={{
         backgroundColor: 'var(--bg)',
         color: 'var(--text-primary)',
-        '--accent': b?.accent ?? restaurant.accent_color,
+        '--accent': accent,
       } as React.CSSProperties}
     >
-      {/* ── Brand accent bar ───────────────────────────────────────────── */}
-      {b && <div style={{ height: 3, backgroundColor: b.accent, width: '100%' }} />}
-
-      {/* ── Banner ─────────────────────────────────────────────────────── */}
-      <div
-        className="h-32 relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 70%, black) 100%)` }}
-      >
-        <div
-          className="absolute inset-0 opacity-[0.07]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, white 1.5px, transparent 1.5px)',
-            backgroundSize: '18px 18px',
-          }}
-        />
-      </div>
-
-      {/* ── Header ─────────────────────────────────────────────────────── */}
+      {/* ── Header compacto (sticky, mobile-first) ─────────────────────── */}
       <header
-        className="pb-6 px-4 flex flex-col items-center gap-4 border-b -mt-10"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '12px 16px',
+          position: 'sticky',
+          top: 0,
+          zIndex: 40,
+          background: 'var(--surface)',
+          borderBottom: '1px solid var(--border)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        }}
       >
-        <div className="relative w-24 h-24 z-10">
-          <div className="absolute rounded-full" style={{ inset: '-5px', backgroundColor: 'var(--surface)' }} />
+        {/* Logo circular */}
+        <div style={{ position: 'relative', width: 48, height: 48, flexShrink: 0 }}>
           <div
-            className="absolute inset-[-3px] rounded-full animate-spin-slow"
-            style={{ background: `conic-gradient(from 0deg, var(--accent) 0%, var(--accent) 35%, transparent 55%, transparent 75%, var(--accent) 100%)` }}
+            style={{
+              position: 'absolute',
+              inset: -2,
+              borderRadius: '50%',
+              background: `conic-gradient(from 0deg, ${accent} 0%, ${accent} 35%, transparent 55%, transparent 75%, ${accent} 100%)`,
+            }}
+            className="animate-spin-slow"
           />
-          <div className="absolute inset-0 m-[3px] rounded-full overflow-hidden z-10" style={{ backgroundColor: 'var(--surface-2)' }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: 2,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              background: 'var(--surface-2)',
+            }}
+          >
             {logoSrc ? (
-              <Image src={logoSrc} alt={restaurant.name} width={96} height={96} className="w-full h-full object-cover rounded-full" unoptimized />
+              <Image src={logoSrc} alt={restaurant.name} width={44} height={44} className="w-full h-full object-cover" unoptimized />
             ) : (
-              <div className="w-full h-full flex items-center justify-center font-black text-2xl text-white" style={{ backgroundColor: 'var(--accent)' }}>
+              <div className="w-full h-full flex items-center justify-center font-black text-sm text-white" style={{ backgroundColor: accent }}>
                 {initials}
               </div>
             )}
           </div>
         </div>
 
-        <div className="text-center">
+        {/* Nombre + info rotante */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h1
-            className="text-2xl font-black tracking-tight"
             style={{
+              fontSize: 16,
+              fontWeight: 800,
               color: 'var(--text-primary)',
-              fontFamily: b?.display_font ?? "'Plus Jakarta Sans', system-ui, sans-serif",
+              fontFamily: b?.display_font ?? 'inherit',
               textTransform: b ? 'uppercase' : 'none',
-              letterSpacing: b ? '0.04em' : undefined,
+              letterSpacing: b ? '0.03em' : undefined,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: 1.2,
+              marginBottom: 2,
             }}
           >
             {restaurant.name}
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{restaurant.tagline}</p>
+          <InfoRotator items={infoItems} accent={accent} />
         </div>
 
-        {restaurant.instagram && (
-          <a
-            href={`https://instagram.com/${restaurant.instagram}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm font-medium transition-opacity hover:opacity-70"
-            style={{ color: 'var(--accent)' }}
-          >
-            <IGIcon />
-            @{restaurant.instagram}
-          </a>
-        )}
+        {/* Badge abierto/cerrado */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5,
+          flexShrink: 0,
+          padding: '4px 10px',
+          borderRadius: 20,
+          fontSize: 11,
+          fontWeight: 600,
+          background: restaurant.is_open ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
+          color: restaurant.is_open ? '#22c55e' : '#ef4444',
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
+          {restaurant.is_open ? 'Abierto' : 'Cerrado'}
+        </div>
       </header>
 
-      {/* ── Info bar ───────────────────────────────────────────────────── */}
-      {hasInfoBar && (
-        <div
-          className="overflow-x-auto scrollbar-hide border-b"
-          style={{ backgroundColor: b ? '#111111' : 'var(--surface-2)', borderColor: 'var(--border)' }}
-        >
-          <div className="px-4 py-2.5 flex items-center gap-4 text-sm whitespace-nowrap w-max min-w-full">
-            {restaurant.address && (
-              <span className="flex items-center gap-1.5 flex-shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                <MapPin size={14} className="flex-shrink-0" style={{ color: b ? 'var(--accent)' : 'inherit' }} />
-                {restaurant.address}
-              </span>
-            )}
-            {restaurant.schedule && (
-              <span className="flex items-center gap-1.5 flex-shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                <Clock size={14} className="flex-shrink-0" style={{ color: b ? 'var(--accent)' : 'inherit' }} />
-                {restaurant.schedule}
-              </span>
-            )}
-            {restaurant.phone && (
-              <a
-                href={`tel:${restaurant.phone}`}
-                className="flex items-center gap-1.5 flex-shrink-0 transition-opacity hover:opacity-70"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                <Phone size={14} className="flex-shrink-0" style={{ color: b ? 'var(--accent)' : 'inherit' }} />
-                {restaurant.phone}
-              </a>
-            )}
-            <span className="flex items-center gap-1.5 flex-shrink-0 ml-auto">
-              <span
-                className="w-2 h-2 rounded-full flex-shrink-0"
-                style={{ backgroundColor: restaurant.is_open ? '#22c55e' : '#ef4444' }}
-              />
-              <span
-                className="text-xs font-semibold"
-                style={{ color: restaurant.is_open ? '#22c55e' : '#ef4444' }}
-              >
-                {restaurant.is_open ? 'Abierto ahora' : 'Cerrado'}
-              </span>
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* ── Stats row ─────────────────────────────────────────────────── */}
+      {/* ── Category tabs (sticky bajo el header) ──────────────────────── */}
       <div
-        className="px-4 py-3 flex items-center justify-around border-b text-center"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
-      >
-        <div>
-          <p className="font-black text-base" style={{ color: 'var(--text-primary)' }}>
-            {restaurant.menu.categories.reduce((s, c) => s + c.items.length, 0)}
-          </p>
-          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>productos</p>
-        </div>
-
-        {restaurant.instagram ? (
-          <a href={`https://instagram.com/${restaurant.instagram}`} target="_blank" rel="noopener noreferrer">
-            <p className="font-black text-base" style={{ color: 'var(--accent)' }}>@{restaurant.instagram}</p>
-            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>instagram</p>
-          </a>
-        ) : (
-          <div>
-            <p className="font-black text-base" style={{ color: 'var(--text-primary)' }}>—</p>
-            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>instagram</p>
-          </div>
-        )}
-
-        <button onClick={handleWhatsApp} disabled={totalItems === 0}>
-          <p className="font-black text-base" style={{ color: '#25D366' }}>WhatsApp</p>
-          <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>pedidos</p>
-        </button>
-      </div>
-
-      {/* ── Category tabs ──────────────────────────────────────────────── */}
-      <div
-        className="px-4 py-3 flex gap-2 overflow-x-auto scrollbar-hide border-b sticky top-0 z-10"
-        style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+        className="categories-bar"
+        style={{
+          position: 'sticky',
+          top: 72,
+          zIndex: 30,
+          background: 'var(--bg)',
+          borderBottom: '1px solid var(--border)',
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+          display: 'flex',
+          gap: 8,
+          padding: '10px 16px',
+        } as React.CSSProperties}
       >
         {restaurant.menu.categories.map(cat => {
-          const active = cat.id === activeCategory
+          const isActive = cat.id === activeCategory
           return (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
-              style={active
-                ? { backgroundColor: 'var(--accent)', color: b ? '#1A1A1A' : '#fff', fontWeight: 700 }
+              style={isActive
+                ? { backgroundColor: accent, color: b ? '#1A1A1A' : '#fff', fontWeight: 700 }
                 : { backgroundColor: 'var(--surface-2)', color: 'var(--text-secondary)' }}
             >
               <span>{cat.emoji}</span>
@@ -298,102 +258,132 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         })}
       </div>
 
-      {/* ── Products grid ──────────────────────────────────────────────── */}
-      <div className="px-4 pt-4">
+      {/* ── Products grid (mobile-first) ───────────────────────────────── */}
+      <div className="pt-3 pb-4">
         {currentCategory && currentCategory.items.length > 0 ? (
-          <div key={activeCategory} className="grid grid-cols-2 gap-3 sm:grid-cols-3 menu-grid-enter">
+          <div key={activeCategory} className="menu-grid menu-grid-enter">
             {currentCategory.items.map(item => {
               const qty = getQty(item.id)
               const soldOut = item.badge === 'Agotado'
               const badgeColor =
-                item.badge === 'Popular' ? 'var(--secondary)' :
+                item.badge === 'Popular' ? accent :
                 item.badge === 'Nuevo'   ? '#3B82F6' :
                 item.badge === 'Promo'   ? '#EF4444' :
                 item.badge === 'Agotado' ? '#6B7280' : '#4CAF50'
+
               return (
                 <div
                   key={item.id}
-                  className={`group rounded-2xl overflow-hidden flex flex-col shadow-sm transition-all duration-200 hover:shadow-md${soldOut ? ' opacity-50' : ''}${b ? ' brand-card' : ''}`}
-                  style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+                  className={`product-card-mobile${soldOut ? ' opacity-50' : ''}${b ? ' brand-card' : ''}`}
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden">
+                  {/* Imagen */}
+                  <div style={{ position: 'relative', width: 72, height: 72, flexShrink: 0 }}>
                     {item.image ? (
                       <Image
                         src={item.image}
                         alt={item.name}
                         fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="(max-width: 640px) 50vw, 33vw"
+                        className="product-image object-cover"
+                        style={{ borderRadius: 10 }}
+                        sizes="72px"
+                        unoptimized
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-5xl" style={{ backgroundColor: 'var(--surface-2)' }}>
+                      <div className="product-image flex items-center justify-center text-3xl" style={{ background: 'var(--surface-2)', borderRadius: 10 }}>
                         🍔
                       </div>
                     )}
                     {item.badge && (
-                      <span
-                        className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                        style={{ backgroundColor: badgeColor }}
-                      >
+                      <span style={{
+                        position: 'absolute', top: -4, right: -4,
+                        fontSize: 9, fontWeight: 700, padding: '2px 6px',
+                        borderRadius: 20, color: 'white', backgroundColor: badgeColor,
+                        whiteSpace: 'nowrap',
+                      }}>
                         {item.badge}
                       </span>
                     )}
                   </div>
 
-                  <div className="p-3 flex flex-col flex-1 gap-2">
-                    <div className="flex-1">
-                      <p
-                        className="font-bold text-sm leading-tight"
+                  {/* Info */}
+                  <div className="product-info" style={{ flex: 1, minWidth: 0 }}>
+                    <p
+                      className="product-name"
+                      style={{
+                        fontFamily: b?.display_font,
+                        textTransform: b ? 'uppercase' : 'none',
+                      }}
+                    >
+                      {item.name}
+                    </p>
+                    {item.description && (
+                      <p className="product-desc">{item.description}</p>
+                    )}
+                    <p className="product-price" style={{ color: accent }}>{fmt(item.price)}</p>
+                  </div>
+
+                  {/* Controles cantidad */}
+                  <div style={{ flexShrink: 0 }}>
+                    {qty === 0 ? (
+                      <button
+                        onClick={() => addItem(item)}
+                        disabled={soldOut}
                         style={{
-                          color: 'var(--text-primary)',
-                          fontFamily: b?.display_font,
-                          textTransform: b ? 'uppercase' : 'none',
-                        }}
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          background: soldOut ? 'var(--surface-2)' : accent,
+                          color: b ? '#1A1A1A' : 'white',
+                          border: 'none',
+                          fontSize: 22,
+                          fontWeight: 300,
+                          cursor: soldOut ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          WebkitTapHighlightColor: 'transparent',
+                          transition: 'transform 0.1s ease',
+                        } as React.CSSProperties}
+                        onTouchStart={e => { if (!soldOut) e.currentTarget.style.transform = 'scale(0.9)' }}
+                        onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)' }}
                       >
-                        {item.name}
-                      </p>
-                      <p className="text-xs mt-1 line-clamp-3 leading-snug" style={{ color: 'var(--text-muted)' }}>
-                        {item.description}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between mt-auto pt-1">
-                      <span className={b ? 'font-bold text-xl' : 'font-bold text-sm'} style={{ color: 'var(--accent)' }}>
-                        {fmt(item.price)}
-                      </span>
-
-                      {qty === 0 ? (
+                        +
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <button
+                          onClick={() => removeItem(item)}
+                          style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            border: `2px solid ${accent}`,
+                            background: 'transparent', color: accent,
+                            fontSize: 18, fontWeight: 300,
+                            cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            WebkitTapHighlightColor: 'transparent',
+                          } as React.CSSProperties}
+                        >
+                          −
+                        </button>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', minWidth: 16, textAlign: 'center' }}>
+                          {qty}
+                        </span>
                         <button
                           onClick={() => addItem(item)}
                           disabled={soldOut}
-                          className="w-8 h-8 rounded-full font-bold text-xl leading-none flex items-center justify-center transition-all active:scale-90 hover:opacity-90 disabled:cursor-not-allowed"
-                          style={{ backgroundColor: 'var(--accent)', color: b ? '#1A1A1A' : '#fff' }}
+                          style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: accent, color: b ? '#1A1A1A' : 'white',
+                            border: 'none', fontSize: 18, fontWeight: 300,
+                            cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            WebkitTapHighlightColor: 'transparent',
+                          } as React.CSSProperties}
                         >
                           +
                         </button>
-                      ) : (
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => removeItem(item)}
-                            className="w-7 h-7 rounded-full font-bold flex items-center justify-center active:scale-90 transition-all border-2 bg-transparent"
-                            style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}
-                          >
-                            −
-                          </button>
-                          <span className="text-sm font-bold w-4 text-center tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                            {qty}
-                          </span>
-                          <button
-                            onClick={() => addItem(item)}
-                            disabled={soldOut}
-                            className="w-7 h-7 rounded-full font-bold flex items-center justify-center active:scale-90 transition-all disabled:cursor-not-allowed"
-                            style={{ backgroundColor: 'var(--accent)', color: b ? '#1A1A1A' : '#fff' }}
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )

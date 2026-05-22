@@ -44,7 +44,7 @@ export default async function RestaurantsPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
           {tenants.map(tenant => {
-            const initials = tenant.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
+            const initials = tenant.name.split(' ').filter(Boolean).slice(0, 2).map((w: string) => w[0]).join('').toUpperCase()
             return (
               <div key={tenant.id} style={{
                 background: 'var(--dash-surface)',

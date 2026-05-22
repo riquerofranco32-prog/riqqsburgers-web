@@ -28,14 +28,14 @@ export async function getActiveTenant(slug: string): Promise<Tenant | null> {
   return data as Tenant
 }
 
-export async function getAllTenants(): Promise<Tenant[]> {
+export async function getAllTenants() {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('tenants')
     .select('id, slug, name, tagline, active, primary_color, logo_url, whatsapp_number, created_at')
     .order('created_at', { ascending: false })
   if (error || !data) return []
-  return data as Tenant[]
+  return data
 }
 
 export async function getTenantProducts(tenantId: string): Promise<Product[]> {

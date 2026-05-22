@@ -119,7 +119,7 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
   try {
     const tenants = await getAllTenants()
     if (tenants.length > 0) {
-      return tenants.map(t => mapToRestaurant(t, [], []))
+      return tenants.map(t => mapToRestaurant(t as Tenant, [], []))
     }
   } catch {}
 
