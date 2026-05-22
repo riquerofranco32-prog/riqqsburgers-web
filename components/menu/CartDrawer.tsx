@@ -1,6 +1,6 @@
 'use client'
 
-import { ShoppingCart, Trash2, Plus, Minus, Loader2 } from 'lucide-react'
+import { ShoppingCart, Trash2, Plus, Minus } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { sendWhatsAppOrder } from '@/lib/whatsapp'
 import { useState } from 'react'
@@ -26,11 +26,9 @@ interface CartDrawerProps {
   onCheckout: () => void
 }
 
-export function CartDrawer({ tenantId, tenantName, slug, whatsappNumber, onClose }: CartDrawerProps) {
+export function CartDrawer({ tenantId, whatsappNumber, onClose }: CartDrawerProps) {
   const { items, totalPrice, updateQuantity, removeItem } = useCart()
-  const [sendingWA, setSendingWA]   = useState(false)
-  const [loadingMP, setLoadingMP]   = useState(false)
-  const [mpError,   setMpError]     = useState<string | null>(null)
+  const [sendingWA, setSendingWA] = useState(false)
 
   async function handleWhatsApp() {
     if (items.length === 0) return
@@ -40,44 +38,6 @@ export function CartDrawer({ tenantId, tenantName, slug, whatsappNumber, onClose
     } finally {
       setSendingWA(false)
       onClose()
-    }
-  }
-
-  async function handleMP() {
-    if (items.length === 0) return
-    setLoadingMP(true)
-    setMpError(null)
-    try {
-      const res = await fetch('/api/create-preference', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          slug,
-          items: items.map(i => ({
-            title: i.name,
-            quantity: i.quantity,
-            unit_price: i.price,
-          })),
-        }),
-      })
-
-      if (!res.ok) throw new Error('Error del servidor')
-      const { init_point } = await res.json() as { init_point: string }
-
-      // Save order context so success page can build the WA message
-      localStorage.setItem('mp_pending_order', JSON.stringify({
-        items,
-        total: totalPrice,
-        tenantName,
-        waNumber: whatsappNumber,
-        tenantId,
-        slug,
-      }))
-
-      window.location.href = init_point
-    } catch {
-      setMpError('No se pudo iniciar el pago. Intentá de nuevo.')
-      setLoadingMP(false)
     }
   }
 
@@ -165,32 +125,14 @@ export function CartDrawer({ tenantId, tenantName, slug, whatsappNumber, onClose
               <span className="font-bold text-xl text-white">{fmtARS(totalPrice)}</span>
             </div>
 
-            {/* MP button */}
-            <button
-              onClick={handleMP}
-              disabled={loadingMP || sendingWA}
-              className="w-full bg-[#009ee3] hover:bg-[#0087c7] active:scale-[0.98] text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2.5 transition-all disabled:opacity-60"
-            >
-              {loadingMP
-                ? <Loader2 className="w-5 h-5 animate-spin" />
-                : <span className="text-base">💳</span>
-              }
-              {loadingMP ? 'Cargando...' : 'Pagar ahora'}
-            </button>
-
-            {/* WA button */}
             <button
               onClick={handleWhatsApp}
-              disabled={sendingWA || loadingMP}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 active:scale-[0.98] text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2.5 transition-all disabled:opacity-60 border border-zinc-700"
+              disabled={sendingWA}
+              className="w-full bg-[#25D366] hover:bg-[#1ebe5d] active:scale-[0.98] text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2.5 transition-all disabled:opacity-60"
             >
               <WAIcon />
               {sendingWA ? 'Abriendo WhatsApp...' : 'Pedir por WhatsApp'}
             </button>
-
-            {mpError && (
-              <p className="text-red-400 text-xs text-center">{mpError}</p>
-            )}
           </div>
         )}
       </div>
