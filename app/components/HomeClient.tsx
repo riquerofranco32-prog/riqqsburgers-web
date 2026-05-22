@@ -2,346 +2,562 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { ArrowDown } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
-import type { Restaurant } from '@/lib/getRestaurant'
 import TakefyyLogo from '@/components/TakefyyLogo'
 
 const ease = [0.22, 1, 0.36, 1] as const
 
-function fadeUp(delay: number) {
+function fadeUp(delay = 0) {
   return {
-    initial: { opacity: 0, y: 32 },
+    initial: { opacity: 0, y: 28 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.65, delay, ease },
   }
 }
 
-export default function HomeClient({ restaurants }: { restaurants: Restaurant[] }) {
+const features = [
+  {
+    n: '01',
+    title: 'Cargás tu menú',
+    desc: 'Productos, fotos, precios y categorías. En minutos tenés tu carta lista.',
+  },
+  {
+    n: '02',
+    title: 'Compartís el link',
+    desc: 'Tu URL propia: takefyy.com/tu-restaurante. Lista al instante para compartir.',
+  },
+  {
+    n: '03',
+    title: 'Recibís pedidos',
+    desc: 'Directo a tu WhatsApp, sin intermediarios, sin comisiones por cada pedido.',
+  },
+]
+
+const showcaseFeatures = [
+  'Catálogo con fotos, precios y categorías',
+  'Badges: Popular, Nuevo, Promo, Agotado',
+  'Carrito y pedido directo por WhatsApp',
+  'Panel admin del restaurante incluido',
+  'URL propia: takefyy.com/{tu-negocio}',
+  'Sin comisiones por pedido',
+]
+
+const testimonials = [
+  {
+    name: 'Martina G.',
+    restaurant: 'Burguer Palace · Buenos Aires',
+    text: 'En un día ya estábamos tomando pedidos por WhatsApp. Mis clientes lo aman porque es simple y rápido.',
+    initials: 'MG',
+    stars: 5,
+  },
+  {
+    name: 'Roberto P.',
+    restaurant: 'La Parrilla de Juan · Córdoba',
+    text: 'Dejé de perder tiempo en llamadas. Ahora el cliente elige, yo confirmo y listo. Sin app, sin locura.',
+    initials: 'RP',
+    stars: 5,
+  },
+  {
+    name: 'Sofía V.',
+    restaurant: 'Sushi Express · Rosario',
+    text: 'El panel admin es súper intuitivo. Actualizo precios en segundos y mis clientes lo ven al instante.',
+    initials: 'SV',
+    stars: 5,
+  },
+]
+
+const plans = [
+  {
+    name: 'Base',
+    price: '$4.999',
+    period: '/mes',
+    desc: 'Todo lo que necesitás para empezar',
+    features: ['1 restaurante', 'Menú digital ilimitado', 'Pedidos por WhatsApp', 'Panel admin', 'URL propia'],
+    cta: 'Empezar →',
+    featured: false,
+  },
+  {
+    name: 'Pro',
+    price: '$9.999',
+    period: '/mes',
+    desc: 'Para negocios con más demanda',
+    features: ['Hasta 5 sucursales', 'Todo el plan Base', 'Analytics de ventas', 'Soporte prioritario', 'Múltiples admins'],
+    cta: 'Empezar →',
+    featured: true,
+  },
+]
+
+function PhoneMockup() {
+  return (
+    <div style={{
+      width: 260,
+      height: 480,
+      background: '#1A1D24',
+      borderRadius: 32,
+      border: '2px solid #2A2D35',
+      padding: 16,
+      boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,107,53,0.15)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      position: 'relative',
+    }}>
+      {/* Status bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
+        <span style={{ fontSize: 10, color: '#F0EDE8', fontWeight: 600 }}>9:41</span>
+        <div style={{ width: 48, height: 6, background: '#0E1116', borderRadius: 8 }} />
+        <span style={{ fontSize: 10, color: '#F0EDE8' }}>●●●</span>
+      </div>
+      {/* Header */}
+      <div style={{ background: '#FF6B35', borderRadius: 12, padding: '10px 12px' }}>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: 600 }}>Riqq&apos;s Burgers</div>
+        <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Abierto · Hacé tu pedido</div>
+      </div>
+      {/* Category tabs */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        {['Burgers', 'Bebidas', 'Promos'].map((c, i) => (
+          <div key={c} style={{
+            fontSize: 9, padding: '3px 8px', borderRadius: 20,
+            background: i === 0 ? '#FF6B35' : '#22262F',
+            color: i === 0 ? '#fff' : '#8A8D95',
+            fontWeight: 600,
+          }}>{c}</div>
+        ))}
+      </div>
+      {/* Products */}
+      {[
+        { name: 'Smash Clásica', price: '$3.500', badge: 'Popular' },
+        { name: 'BBQ Doble', price: '$4.800', badge: null },
+        { name: 'Chicken Crispy', price: '$3.900', badge: 'Nuevo' },
+      ].map(p => (
+        <div key={p.name} style={{
+          background: '#22262F',
+          borderRadius: 10,
+          padding: '8px 10px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div>
+            <div style={{ fontSize: 10, color: '#F0EDE8', fontWeight: 600 }}>{p.name}</div>
+            <div style={{ fontSize: 9, color: '#FF6B35', fontWeight: 700, marginTop: 2 }}>{p.price}</div>
+          </div>
+          {p.badge && (
+            <div style={{
+              fontSize: 8, padding: '2px 6px', borderRadius: 20,
+              background: 'rgba(255,107,53,0.15)',
+              color: '#FF6B35', fontWeight: 600,
+              border: '1px solid rgba(255,107,53,0.3)',
+            }}>{p.badge}</div>
+          )}
+        </div>
+      ))}
+      {/* Cart */}
+      <div style={{
+        background: '#FF6B35', borderRadius: 10, padding: '8px 12px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        marginTop: 'auto',
+      }}>
+        <span style={{ fontSize: 10, color: '#fff', fontWeight: 600 }}>Ver carrito (2)</span>
+        <span style={{ fontSize: 10, color: '#fff' }}>$7.400 →</span>
+      </div>
+    </div>
+  )
+}
+
+export default function HomeClient({ restaurantCount }: { restaurantCount: number }) {
   const [scrolled, setScrolled] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handler, { passive: true })
-    return () => window.removeEventListener('scroll', handler)
+    const h = () => setScrolled(window.scrollY > 30)
+    window.addEventListener('scroll', h, { passive: true })
+    return () => window.removeEventListener('scroll', h)
   }, [])
 
-  function scrollToRestaurants() {
-    document.getElementById('restaurants')?.scrollIntoView({ behavior: 'smooth' })
+  function scrollTo(id: string) {
+    setMobileOpen(false)
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  return (
-    <div style={{ background: '#0F0A06', fontFamily: "'Inter', sans-serif" }}>
+  const navLinks = [
+    { label: 'Producto', id: 'producto' },
+    { label: 'Precios', id: 'precios' },
+    { label: 'Clientes', id: 'clientes' },
+  ]
 
-      {/* ── Navbar ──────────────────────────────────────────────────────── */}
+  return (
+    <div style={{ background: 'var(--brand-dark)', color: 'var(--dash-text)', fontFamily: 'var(--font-sans)' }}>
+
+      {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? 'rgba(15,10,6,0.85)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(12px)' : 'none',
+          background: scrolled ? 'rgba(14,17,22,0.92)' : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
         }}
       >
-        <div className="max-w-[1280px] mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="text-white">
-            <TakefyyLogo size="md" />
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+          <Link href="/" style={{ color: 'var(--dash-text)' }}>
+            <TakefyyLogo size="sm" />
           </Link>
 
-          {/* Nav links — desktop only */}
           <div className="hidden md:flex items-center gap-8">
-            {['Restaurantes', 'Para negocios', 'Contacto'].map(label => (
+            {navLinks.map(l => (
               <button
-                key={label}
-                onClick={label === 'Restaurantes' ? scrollToRestaurants : undefined}
-                className="text-sm font-medium transition-colors duration-150"
-                style={{ color: 'rgba(255,255,255,0.7)' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                key={l.id}
+                onClick={() => scrollTo(l.id)}
+                className="text-sm font-medium"
+                style={{ color: 'var(--dash-muted)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.15s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--dash-text)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--dash-muted)')}
               >
-                {label}
+                {l.label}
               </button>
             ))}
           </div>
 
-          {/* Right buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link
               href="/admin"
-              className="px-5 py-2.5 rounded-full text-sm text-white transition-all duration-150 hover:bg-white/15"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
+              className="hidden md:block text-sm font-medium"
+              style={{ color: 'var(--dash-muted)', transition: 'color 0.15s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--dash-text)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--dash-muted)')}
             >
-              Admin
+              Iniciar sesión
             </Link>
-            <Link
-              href="/admin"
-              className="px-5 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-150 hover:brightness-110"
-              style={{ background: 'var(--accent)' }}
+            <button
+              onClick={() => scrollTo('precios')}
+              className="px-5 py-2 rounded-full text-sm font-semibold text-white"
+              style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer', transition: 'filter 0.15s' }}
+              onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.1)')}
+              onMouseLeave={e => (e.currentTarget.style.filter = '')}
             >
-              Sumar mi negocio
-            </Link>
+              Empezar →
+            </button>
+            <button
+              className="md:hidden p-2"
+              style={{ color: 'var(--dash-text)', background: 'none', border: 'none', cursor: 'pointer' }}
+              onClick={() => setMobileOpen(v => !v)}
+              aria-label="Menu"
+            >
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+                {mobileOpen ? (
+                  <path d="M4 4L18 18M18 4L4 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                ) : (
+                  <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+
+        {mobileOpen && (
+          <div style={{ background: 'var(--dash-surface)', borderTop: '1px solid var(--dash-border)' }} className="md:hidden">
+            <div className="px-5 py-4 flex flex-col gap-4">
+              {navLinks.map(l => (
+                <button key={l.id} onClick={() => scrollTo(l.id)}
+                  className="text-left text-sm font-medium"
+                  style={{ color: 'var(--dash-text)', background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  {l.label}
+                </button>
+              ))}
+              <Link href="/admin" className="text-sm" style={{ color: 'var(--dash-muted)' }}>
+                Iniciar sesión
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      {/* ── HERO ────────────────────────────────────────────────────────────── */}
+      <section className="min-h-screen flex items-center relative overflow-hidden" style={{ paddingTop: 64 }}>
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 60% 50% at 15% 60%, rgba(255,107,53,0.07) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse 40% 40% at 85% 30%, rgba(255,107,53,0.04) 0%, transparent 70%)' }} />
 
-        {/* Video background */}
-        <video
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 0 }}
-          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260518_003132_8b7edcb6-c64d-4a52-a9ca-879942e122ad.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-        />
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 w-full py-24">
+          <motion.div {...fadeUp(0)} className="mb-5">
+            <span className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold"
+              style={{ background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.25)', color: 'var(--accent)' }}>
+              🚀 Menú digital + WhatsApp en minutos
+            </span>
+          </motion.div>
 
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/60" style={{ zIndex: 10 }} />
+          <motion.h1 {...fadeUp(0.08)} className="font-bold mb-6"
+            style={{ fontSize: 'clamp(3rem, 8vw, 6.5rem)', lineHeight: 1.0, letterSpacing: '-0.03em', color: '#fff' }}>
+            Tu carta,{' '}
+            <br className="hidden sm:block" />
+            <span style={{ color: 'var(--accent)' }}>online</span>
+            <br className="hidden sm:block" />
+            en minutos.
+          </motion.h1>
 
-        {/* Hero content */}
-        <div
-          className="relative w-full pl-5 sm:pl-8 md:pl-16 lg:pl-24 pr-5"
-          style={{ zIndex: 20, paddingTop: 'clamp(60px, 10vw, 100px)' }}
-        >
-          <div style={{ maxWidth: 600 }}>
+          <motion.p {...fadeUp(0.18)} className="mb-10"
+            style={{ fontSize: 'clamp(1rem, 2vw, 1.15rem)', lineHeight: 1.7, color: 'var(--dash-muted)', maxWidth: 520 }}>
+            Creá el menú digital de tu restaurante, compartilo por WhatsApp
+            y recibí pedidos al instante. Sin apps, sin comisiones.
+          </motion.p>
 
-            {/* Hero logo */}
-            <motion.div {...fadeUp(0)} className="mb-6">
-              <TakefyyLogo size="lg" className="text-white" />
-            </motion.div>
-
-            {/* Eyebrow */}
-            <motion.div {...fadeUp(0.05)} className="mb-6">
-              <span
-                className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-medium"
-                style={{
-                  background: 'rgba(255,107,53,0.15)',
-                  border: '1px solid rgba(255,107,53,0.3)',
-                  color: 'var(--accent)',
-                }}
-              >
-                🚀 Tu restaurante online en minutos
-              </span>
-            </motion.div>
-
-            {/* Heading */}
-            <motion.h1
-              {...fadeUp(0.1)}
-              className="font-black text-white mb-6"
-              style={{
-                fontSize: 'clamp(2rem, 5.5vw, 3.5rem)',
-                lineHeight: 1.05,
-                letterSpacing: '-0.02em',
-              }}
+          <motion.div {...fadeUp(0.26)} className="flex flex-wrap gap-3 mb-14">
+            <motion.button
+              onClick={() => scrollTo('precios')}
+              className="rounded-full px-7 py-3.5 text-sm font-semibold text-white"
+              style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer' }}
+              whileHover={{ scale: 1.04, filter: 'brightness(1.1)', boxShadow: '0 4px 24px rgba(255,107,53,0.35)' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             >
-              Tu menú digital,
-              <br />
-              tus pedidos
-              <br />
-              por{' '}
-              <span style={{ color: 'var(--accent)' }}>WhatsApp</span> 📲
-            </motion.h1>
-
-            {/* Subtext */}
-            <motion.p
-              {...fadeUp(0.2)}
-              className="mb-8 font-normal"
-              style={{
-                fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
-                lineHeight: 1.65,
-                color: 'rgba(255,255,255,0.65)',
-                maxWidth: 480,
-              }}
+              Empezar gratis →
+            </motion.button>
+            <motion.button
+              onClick={() => scrollTo('producto')}
+              className="rounded-full px-7 py-3.5 text-sm font-semibold"
+              style={{ border: '1.5px solid rgba(255,255,255,0.2)', color: '#fff', background: 'transparent', cursor: 'pointer' }}
+              whileHover={{ background: 'rgba(255,255,255,0.06)' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             >
-              Sin apps, sin complicaciones. Tus clientes ven el menú, eligen lo que
-              quieren y te escriben directo por WhatsApp. Vos recibís el pedido listo.
-            </motion.p>
+              Ver demo
+            </motion.button>
+          </motion.div>
 
-            {/* CTA buttons */}
-            <motion.div {...fadeUp(0.3)} className="flex gap-3 flex-wrap">
-              <motion.button
-                onClick={scrollToRestaurants}
-                className="flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-semibold text-white"
-                style={{ background: 'var(--accent)' }}
-                whileHover={{
-                  scale: 1.04,
-                  filter: 'brightness(1.1)',
-                  boxShadow: '0 4px 24px rgba(255,107,53,0.35)',
-                }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              >
-                Ver restaurantes
-                <ArrowDown size={16} />
-              </motion.button>
+          <motion.div {...fadeUp(0.34)} className="flex items-center gap-4 flex-wrap">
+            <div className="flex">
+              {['MG', 'RP', 'SV', 'JC'].map((ini, i) => (
+                <div key={ini} style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: `hsl(${20 + i * 30}, 70%, 45%)`,
+                  border: '2px solid var(--brand-dark)',
+                  marginLeft: i === 0 ? 0 : -10,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 700, color: '#fff',
+                }}>{ini}</div>
+              ))}
+            </div>
+            <div style={{ color: 'var(--dash-muted)', fontSize: 14 }}>
+              <span style={{ color: '#fff', fontWeight: 600 }}>+{Math.max(restaurantCount, 50)} restaurantes</span>{' '}
+              ya usan Takefyy en Argentina
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-              <motion.button
-                className="rounded-full px-6 py-3.5 text-sm font-medium text-white transition-colors duration-150"
-                style={{ border: '1px solid rgba(255,255,255,0.25)' }}
-                whileHover={{ background: 'rgba(255,255,255,0.08)' }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              >
-                Sumar mi negocio
-              </motion.button>
-            </motion.div>
+      {/* ── FEATURES ────────────────────────────────────────────────────────── */}
+      <section id="producto" style={{ background: 'var(--brand-cream)', padding: '96px 0' }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6, ease }} className="mb-16">
+            <p className="text-xs font-semibold tracking-widest mb-3" style={{ color: 'var(--accent)', letterSpacing: '0.15em' }}>CÓMO FUNCIONA</p>
+            <h2 className="font-bold" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              Tan simple que da
+              <br />vergüenza ajena.
+            </h2>
+          </motion.div>
 
-            {/* Stats row */}
-            <motion.div {...fadeUp(0.4)} className="flex gap-6 flex-wrap items-center mt-10">
-              <div>
-                <div className="text-white font-bold text-lg">{restaurants.length}</div>
-                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  restaurantes activos
+          <div className="grid md:grid-cols-3 gap-10">
+            {features.map((f, i) => (
+              <motion.div key={f.n}
+                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: i * 0.1, ease }}>
+                <div style={{ fontSize: '5rem', fontWeight: 700, lineHeight: 1, color: 'var(--accent)', marginBottom: 16, letterSpacing: '-0.04em' }}>
+                  {f.n}
                 </div>
-              </div>
-
-              <div className="w-px h-8" style={{ background: 'rgba(255,255,255,0.2)' }} />
-
-              <div>
-                <div className="text-white font-bold text-lg">WhatsApp</div>
-                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  pedidos directos
-                </div>
-              </div>
-
-              <div className="w-px h-8" style={{ background: 'rgba(255,255,255,0.2)' }} />
-
-              <div>
-                <div className="text-white font-bold text-lg">0%</div>
-                <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  sin comisiones
-                </div>
-              </div>
-            </motion.div>
-
+                <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{f.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{f.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Restaurants section ─────────────────────────────────────────── */}
-      <section
-        id="restaurants"
-        className="py-24 px-5 sm:px-8 relative"
-        style={{ zIndex: 20 }}
-      >
-        <div className="max-w-[1280px] mx-auto">
+      {/* ── SHOWCASE ────────────────────────────────────────────────────────── */}
+      <section style={{ background: 'var(--brand-dark)', padding: '96px 0' }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <motion.div initial={{ opacity: 0, x: -32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.7, ease }} className="flex justify-center md:justify-start">
+              <PhoneMockup />
+            </motion.div>
 
-          {/* Section header */}
-          <p
-            className="text-xs font-semibold tracking-widest mb-3"
-            style={{ color: 'var(--accent)', letterSpacing: '0.15em' }}
-          >
-            NEGOCIOS ACTIVOS
-          </p>
-          <h2 className="text-3xl font-black text-white mb-2">
-            Explorá los restaurantes
-          </h2>
-          <p className="text-sm mb-12" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            Menú digital, pedidos por WhatsApp
-          </p>
-
-          {/* Grid */}
-          {restaurants.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {restaurants.map((r, i) => {
-                const logoSrc = r.logo || ''
-                const initials = r.name
-                  .split(' ')
-                  .filter(Boolean)
-                  .slice(0, 2)
-                  .map(w => w[0])
-                  .join('')
-                  .toUpperCase()
-
-                return (
-                  <motion.div
-                    key={r.slug}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: i * 0.08, ease }}
-                  >
-                    <Link
-                      href={`/${r.slug}`}
-                      className="restaurant-card group flex flex-col gap-4 rounded-2xl p-6 backdrop-blur-sm h-full block"
-                    >
-                      {/* Logo + name */}
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center font-black text-white text-lg"
-                          style={{
-                            width: 60,
-                            height: 60,
-                            border: '2px solid #FF6B35',
-                            backgroundColor: logoSrc ? 'rgba(255,107,53,0.1)' : '#FF6B35',
-                          }}
-                        >
-                          {logoSrc ? (
-                            <Image
-                              src={logoSrc}
-                              alt={r.name}
-                              width={60}
-                              height={60}
-                              className="w-full h-full object-cover rounded-full"
-                              unoptimized
-                            />
-                          ) : (
-                            initials
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-xl text-white leading-tight truncate">
-                            {r.name}
-                          </p>
-                          <p className="text-sm mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                            {r.tagline}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Footer row */}
-                      <div className="flex items-center justify-between mt-auto">
-                        <span
-                          className="text-xs px-2.5 py-1 rounded-full font-medium"
-                          style={{
-                            background: 'rgba(255,107,53,0.1)',
-                            color: '#FF6B35',
-                            border: '1px solid rgba(255,107,53,0.2)',
-                          }}
-                        >
-                          ● Activo
-                        </span>
-                        <span
-                          className="text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                          style={{ color: '#FF6B35' }}
-                        >
-                          Ver menú →
-                        </span>
-                      </div>
-                    </Link>
+            <motion.div initial={{ opacity: 0, x: 32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.7, ease }}>
+              <p className="text-xs font-semibold tracking-widest mb-4" style={{ color: 'var(--accent)', letterSpacing: '0.15em' }}>QUÉ INCLUYE</p>
+              <h2 className="font-bold mb-10" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', letterSpacing: '-0.02em', color: '#fff', lineHeight: 1.15 }}>
+                Todo lo que necesitás,
+                <br />nada de lo que no.
+              </h2>
+              <div className="flex flex-col gap-4">
+                {showcaseFeatures.map((f, i) => (
+                  <motion.div key={f}
+                    initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: i * 0.07, ease }}
+                    className="flex items-start gap-3">
+                    <span style={{ color: 'var(--accent)', fontSize: 16, marginTop: 1, flexShrink: 0 }}>✓</span>
+                    <span className="text-sm" style={{ color: 'rgba(240,237,232,0.8)', lineHeight: 1.5 }}>{f}</span>
                   </motion.div>
-                )
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-24" style={{ color: 'rgba(255,255,255,0.3)' }}>
-              <p className="text-5xl mb-4">🍽️</p>
-              <p className="text-sm">No hay restaurantes activos todavía.</p>
-            </div>
-          )}
+                ))}
+              </div>
+              <motion.button onClick={() => scrollTo('precios')}
+                className="mt-10 rounded-full px-6 py-3 text-sm font-semibold text-white"
+                style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer' }}
+                whileHover={{ scale: 1.04, filter: 'brightness(1.1)' }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}>
+                Empezar ahora →
+              </motion.button>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────────────────────── */}
-      <footer
-        className="py-8 text-center text-xs border-t"
-        style={{
-          color: 'rgba(255,255,255,0.2)',
-          borderColor: 'rgba(255,255,255,0.06)',
-        }}
-      >
-        Powered by Takefyy • {new Date().getFullYear()}
+      {/* ── PRICING ─────────────────────────────────────────────────────────── */}
+      <section id="precios" style={{ background: 'var(--bg)', padding: '96px 0' }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6, ease }} className="text-center mb-16">
+            <p className="text-xs font-semibold tracking-widest mb-3" style={{ color: 'var(--accent)', letterSpacing: '0.15em' }}>PRECIOS</p>
+            <h2 className="font-bold" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              Un precio. Sin sorpresas.
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {plans.map((plan, i) => (
+              <motion.div key={plan.name}
+                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: i * 0.1, ease }}
+                whileHover={{ boxShadow: '0 0 0 2px #FF6B35' }}
+                style={{
+                  background: plan.featured ? 'var(--brand-dark)' : 'var(--surface)',
+                  border: `1px solid ${plan.featured ? 'rgba(255,107,53,0.3)' : 'var(--border)'}`,
+                  borderRadius: 20, padding: 32, position: 'relative',
+                }}>
+                {plan.featured && (
+                  <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: 'var(--accent)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 20 }}>
+                    MÁS POPULAR
+                  </div>
+                )}
+                <div className="mb-6">
+                  <div className="text-xs font-bold tracking-widest mb-2" style={{ color: 'var(--accent)', letterSpacing: '0.1em' }}>{plan.name.toUpperCase()}</div>
+                  <div className="flex items-end gap-1 mb-2">
+                    <span className="font-bold" style={{ fontSize: '2.5rem', letterSpacing: '-0.03em', color: plan.featured ? '#fff' : 'var(--text-primary)', lineHeight: 1 }}>
+                      {plan.price}
+                    </span>
+                    <span className="text-sm mb-1" style={{ color: plan.featured ? 'var(--dash-muted)' : 'var(--text-muted)' }}>{plan.period}</span>
+                  </div>
+                  <p className="text-sm" style={{ color: plan.featured ? 'var(--dash-muted)' : 'var(--text-secondary)' }}>{plan.desc}</p>
+                </div>
+                <div className="flex flex-col gap-3 mb-8">
+                  {plan.features.map(f => (
+                    <div key={f} className="flex items-center gap-2">
+                      <span style={{ color: 'var(--accent)', fontSize: 14 }}>✓</span>
+                      <span className="text-sm" style={{ color: plan.featured ? 'rgba(240,237,232,0.8)' : 'var(--text-secondary)' }}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <button className="w-full py-3 rounded-xl text-sm font-semibold"
+                  style={{
+                    background: plan.featured ? 'var(--accent)' : 'transparent',
+                    color: plan.featured ? '#fff' : 'var(--accent)',
+                    border: plan.featured ? 'none' : '1.5px solid var(--accent)',
+                    cursor: 'pointer', transition: 'filter 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.1)' }}
+                  onMouseLeave={e => { e.currentTarget.style.filter = '' }}>
+                  {plan.cta}
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
+      <section id="clientes" style={{ background: 'var(--brand-cream)', padding: '96px 0' }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+          <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6, ease }} className="text-center mb-16">
+            <p className="text-xs font-semibold tracking-widest mb-3" style={{ color: 'var(--accent)', letterSpacing: '0.15em' }}>TESTIMONIOS</p>
+            <h2 className="font-bold" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.02em', color: 'var(--text-primary)', lineHeight: 1.1 }}>
+              Lo que dicen nuestros clientes.
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <motion.div key={t.name}
+                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: i * 0.1, ease }}
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 28 }}>
+                <div className="flex mb-3">
+                  {Array.from({ length: t.stars }).map((_, s) => (
+                    <span key={s} style={{ color: 'var(--accent)', fontSize: 14 }}>★</span>
+                  ))}
+                </div>
+                <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  &ldquo;{t.text}&rdquo;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                    {t.initials}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{t.name}</div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{t.restaurant}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
+      <footer style={{ background: 'var(--brand-dark)', padding: '64px 0 32px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+          <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
+            <div>
+              <div className="mb-3" style={{ color: 'var(--dash-text)' }}>
+                <TakefyyLogo size="md" />
+              </div>
+              <p className="text-sm max-w-xs" style={{ color: 'var(--dash-muted)', lineHeight: 1.6 }}>
+                Tu carta, online en minutos.
+              </p>
+            </div>
+            <div className="flex gap-12">
+              <div>
+                <div className="text-xs font-semibold mb-4" style={{ color: 'var(--dash-muted)', letterSpacing: '0.1em' }}>PRODUCTO</div>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { label: 'Funcionalidades', id: 'producto' },
+                    { label: 'Precios', id: 'precios' },
+                    { label: 'Clientes', id: 'clientes' },
+                  ].map(l => (
+                    <button key={l.label} onClick={() => scrollTo(l.id)}
+                      className="text-sm text-left"
+                      style={{ color: 'var(--dash-muted)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--dash-text)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--dash-muted)')}
+                    >{l.label}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold mb-4" style={{ color: 'var(--dash-muted)', letterSpacing: '0.1em' }}>EMPRESA</div>
+                <div className="flex flex-col gap-3">
+                  {['Contacto', 'Instagram'].map(l => (
+                    <span key={l} className="text-sm" style={{ color: 'var(--dash-muted)' }}>{l}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24 }}>
+            <p className="text-xs" style={{ color: 'var(--dash-muted)' }}>
+              © 2025 Takefyy · Hecho en Argentina 🇦🇷
+            </p>
+          </div>
+        </div>
       </footer>
 
     </div>

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Syne, Inter, Anton, Space_Grotesk } from 'next/font/google'
+import { Syne, Inter, Anton, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
 const syne = Syne({
@@ -29,6 +29,13 @@ const spaceGrotesk = Space_Grotesk({
   display: 'swap',
 })
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+})
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -37,18 +44,21 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: "Riqq's Burgers — Pedí online",
-  description: 'Amor a primera mordida. Armá tu pedido y cerramos por WhatsApp.',
+  title: 'Takefyy — Tu carta, online en minutos',
+  description: 'Creá el menú digital de tu restaurante y recibí pedidos por WhatsApp. Sin apps, sin comisiones.',
   openGraph: {
-    title: "Riqq's Burgers",
-    description: 'Amor a primera mordida 🍔',
+    title: 'Takefyy',
+    description: 'Tu carta, online en minutos.',
   },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${syne.variable} ${inter.variable} ${anton.variable} ${spaceGrotesk.variable}`}>
-      <body className="bg-[#0d0d0d] text-white min-h-screen antialiased font-[family-name:var(--font-inter)]">
+    <html
+      lang="es"
+      className={`${syne.variable} ${inter.variable} ${anton.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+    >
+      <body className="min-h-screen antialiased">
         {children}
       </body>
     </html>

@@ -2,12 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design tokens ───────────────────────────────────────────────────────── */
+/* ── Brand system ────────────────────────────────────────────────────────── */
 :root {
+  /* Brand */
+  --brand-dark:    #0E1116;
+  --brand-cream:   #E8E5DE;
   --accent:        #FF6B35;
-  --accent-dark:   #E85520;
-  --accent-light:  #FFF0EB;
-  --secondary:     #FFB347;
+
+  /* UI pública (restaurantes) */
   --bg:            #FFFAF7;
   --surface:       #FFFFFF;
   --surface-2:     #F5F0EC;
@@ -15,12 +17,20 @@
   --text-primary:  #1A1208;
   --text-secondary:#6B5B4E;
   --text-muted:    #A8998C;
+
+  /* UI interna (dashboards) */
+  --dash-bg:       #0E1116;
+  --dash-surface:  #1A1D24;
+  --dash-surface-2:#22262F;
+  --dash-border:   #2A2D35;
+  --dash-text:     #F0EDE8;
+  --dash-muted:    #8A8D95;
 }
 
-/* ── Google Font ─────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+/* ── Base ────────────────────────────────────────────────────────────────── */
+body { font-family: var(--font-sans), system-ui, sans-serif; }
+code, .mono { font-family: var(--font-mono), monospace; }
 
-/* ── Scrollbar ───────────────────────────────────────────────────────────── */
 html { scroll-behavior: smooth; }
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -32,7 +42,6 @@ html { scroll-behavior: smooth; }
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 .menu-grid-enter > * {
   animation: tabFadeUp 0.22s ease-out both;
 }
@@ -70,7 +79,7 @@ html { scroll-behavior: smooth; }
 }
 .toast-enter { animation: toastEnter 0.2s ease-out both; }
 
-/* ── Cart drawer slide-in (admin) ────────────────────────────────────────── */
+/* ── Cart drawer slide-in ────────────────────────────────────────────────── */
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
@@ -84,13 +93,13 @@ html { scroll-behavior: smooth; }
 }
 .animate-slide-up { animation: slideUp 0.25s ease-out both; }
 
-/* ── Takefyy homepage — hero blobs ──────────────────────────────────────── */
+/* ── Hero float ─────────────────────────────────────────────────────────── */
 @keyframes heroFloat {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-24px); }
 }
 
-/* ── Takefyy homepage — emoji glow pulse ────────────────────────────────── */
+/* ── Pulse glow ─────────────────────────────────────────────────────────── */
 @keyframes pulseGlow {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(255,107,53,0.5), 0 0 24px rgba(255,107,53,0.2);
@@ -101,11 +110,18 @@ html { scroll-behavior: smooth; }
 }
 .animate-pulse-glow { animation: pulseGlow 2.5s ease-in-out infinite; }
 
+/* ── Landing fade-in animation ───────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up { animation: fadeInUp 0.7s ease-out both; }
+
 /* ── Brand-aware product card hover ─────────────────────────────────────── */
 .brand-card { transition: border-color 200ms ease, box-shadow 200ms ease; }
 .brand-card:hover { border-color: var(--accent) !important; box-shadow: 0 0 0 1px var(--accent); }
 
-/* ── Takefyy homepage — restaurant card ─────────────────────────────────── */
+/* ── Restaurant card (homepage) ─────────────────────────────────────────── */
 .restaurant-card {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,107,53,0.15);
