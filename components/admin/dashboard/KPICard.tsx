@@ -29,7 +29,18 @@ export function KPICard({ label, value, change, changeLabel, sub, icon: Icon, lo
   const hasChange = change !== null && change !== undefined
 
   return (
-    <div className="bg-dash-surface border border-dash-border rounded-2xl p-5 flex flex-col gap-3 transition-colors duration-150 hover:border-accent/30 min-h-[120px]">
+    <div
+      className="bg-dash-surface border border-dash-border rounded-2xl p-5 flex flex-col gap-3 min-h-[120px]"
+      style={{ transition: 'border-color 0.2s, transform 0.2s', cursor: 'default' }}
+      onMouseEnter={e => {
+        e.currentTarget.style.borderColor = 'rgba(255,107,53,0.3)'
+        e.currentTarget.style.transform = 'translateY(-2px)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.borderColor = 'var(--dash-border)'
+        e.currentTarget.style.transform = 'translateY(0)'
+      }}
+    >
 
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
@@ -40,7 +51,10 @@ export function KPICard({ label, value, change, changeLabel, sub, icon: Icon, lo
       </div>
 
       {/* Value */}
-      <p className="text-[26px] font-mono font-semibold text-dash-text leading-none tracking-tight truncate">
+      <p
+        className="font-mono leading-none tracking-tight truncate"
+        style={{ color: 'var(--accent)', fontSize: 32, fontWeight: 800 }}
+      >
         {value}
       </p>
 

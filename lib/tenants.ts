@@ -32,9 +32,8 @@ export async function getAllTenants(): Promise<Tenant[]> {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('tenants')
-    .select('*')
-    .eq('active', true)
-    .order('name')
+    .select('id, slug, name, tagline, active, primary_color, logo_url, whatsapp_number, created_at')
+    .order('created_at', { ascending: false })
   if (error || !data) return []
   return data as Tenant[]
 }

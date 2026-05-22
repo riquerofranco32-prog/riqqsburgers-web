@@ -31,6 +31,7 @@ export interface MenuCategory {
 }
 
 export interface Restaurant {
+  id: string
   slug: string
   name: string
   tagline: string
@@ -38,6 +39,8 @@ export interface Restaurant {
   instagram: string
   logo: string
   accent_color: string
+  primary_color: string
+  delivery_cost: number
   address: string
   schedule: string
   is_open: boolean
@@ -53,6 +56,7 @@ function mapToRestaurant(
   products: Product[],
 ): Restaurant {
   return {
+    id: tenant.id,
     slug: tenant.slug,
     name: tenant.name,
     tagline: tenant.tagline ?? '',
@@ -60,6 +64,8 @@ function mapToRestaurant(
     instagram: tenant.instagram_handle ?? '',
     logo: tenant.logo_url ?? '',
     accent_color: tenant.primary_color ?? '#FF6B35',
+    primary_color: tenant.primary_color ?? '#FF6B35',
+    delivery_cost: tenant.delivery_cost ?? 0,
     address: tenant.address ?? '',
     schedule: tenant.schedule ?? '',
     is_open: tenant.is_open ?? true,

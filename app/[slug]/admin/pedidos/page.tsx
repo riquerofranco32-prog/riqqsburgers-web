@@ -38,7 +38,7 @@ export default async function PedidosPage(
         <h1 className="text-xl font-bold font-[family-name:var(--font-syne)]">Pedidos</h1>
         <p className="text-xs text-zinc-500 mt-0.5">Todos los pedidos recientes</p>
       </div>
-      <OrdersTable initialOrders={orders} />
+      <OrdersTable initialOrders={orders} slug={slug} />
     </div>
   )
 }

@@ -48,9 +48,11 @@ export interface Order {
   order_ref: string
   customer_name: string | null
   customer_phone: string | null
-  delivery_type: 'domicilio' | 'retiro'
+  customer_address: string | null
+  delivery_type: 'domicilio' | 'retiro' | 'pickup' | 'delivery'
   address: string | null
-  payment_method: 'mercadopago' | 'efectivo'
+  payment_method: 'mercadopago' | 'efectivo' | 'cash' | 'transfer'
+  notes: string | null
   items: OrderItem[]
   subtotal: number
   delivery_cost: number

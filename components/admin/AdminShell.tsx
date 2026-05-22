@@ -132,7 +132,7 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
           })}
         </nav>
 
-        {/* Footer: ver menú + logout */}
+        {/* Footer: panel takefyy + ver menú + logout */}
         <div style={{
           padding: '12px 8px',
           borderTop: '1px solid var(--dash-border)',
@@ -140,6 +140,28 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
           flexDirection: 'column',
           gap: 4,
         }}>
+          <Link
+            href="/admin"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: collapsed ? '10px 0' : '10px 12px',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              borderRadius: 8,
+              fontSize: 13,
+              color: 'var(--accent)',
+              textDecoration: 'none',
+              transition: 'opacity 0.15s',
+              whiteSpace: 'nowrap',
+              opacity: 0.8,
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+            onMouseLeave={e => (e.currentTarget.style.opacity = '0.8')}
+          >
+            <span style={{ fontSize: 14 }}>⬡</span>
+            {!collapsed && '← Panel Takefyy'}
+          </Link>
           <Link
             href={`/${slug}`}
             style={{

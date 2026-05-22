@@ -7,6 +7,7 @@ import {
   X, Minus, Plus, Trash2,
 } from 'lucide-react'
 import type { Restaurant, MenuItem, RestaurantBrand } from '@/lib/getRestaurant'
+import CheckoutModal from '@/components/CheckoutModal'
 
 type CartItem = MenuItem & { quantity: number }
 
@@ -36,6 +37,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
   )
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
 
   const addItem = useCallback((item: MenuItem) => {
     setCart(prev => {
@@ -559,7 +561,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               </div>
             </div>
 
-            {/* WhatsApp CTA */}
+            {/* CTA */}
             <div
               className="px-4 pt-3 flex-shrink-0 border-t"
               style={{
@@ -568,17 +570,32 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               }}
             >
               <button
-                onClick={() => { handleWhatsApp(); setCartOpen(false) }}
+                onClick={() => { setCartOpen(false); setCheckoutOpen(true) }}
                 className="w-full py-4 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-3 transition-all active:scale-[0.98] hover:brightness-110"
-                style={{ backgroundColor: '#25D366' }}
+                style={{ backgroundColor: 'var(--accent)' }}
               >
-                <WAIcon />
-                Pedir por WhatsApp
+                Hacer pedido →
               </button>
             </div>
           </div>
         </>
       )}
+
+      {/* Checkout modal */}
+      <CheckoutModal
+        isOpen={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
+        cart={cart.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity }))}
+        onClearCart={() => setCart([])}
+        tenant={{
+          id: restaurant.id,
+          name: restaurant.name,
+          slug: restaurant.slug,
+          whatsapp_number: restaurant.phone,
+          delivery_cost: restaurant.delivery_cost,
+          primary_color: restaurant.primary_color,
+        }}
+      />
     </div>
   )
 }

@@ -2,19 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase'
 import { getAllTenants } from '@/lib/tenants'
 
-function isAuthed(req: NextRequest) {
-  const token = req.cookies.get('admin_token')?.value
-  return !!process.env.ADMIN_SECRET && token === process.env.ADMIN_SECRET
+async function isSuperAdmin(): Promise<boolean> {
+  const supabase = createServerClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return false
+
+  const { data } = await supabase
+    .from('tenant_users')
+    .select('role')
+    .eq('user_id', session.user.id)
+    .eq('role', 'superadmin')
+    .maybeSingle()
+
+  return !!data
 }
 
 export async function GET(req: NextRequest) {
-  if (!isAuthed(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  if (!await isSuperAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
   const tenants = await getAllTenants()
   return NextResponse.json(tenants)
 }
 
 export async function POST(req: NextRequest) {
-  if (!isAuthed(req)) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  if (!await isSuperAdmin()) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
   const body = (await req.json()) as {
     slug: string

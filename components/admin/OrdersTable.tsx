@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { Order } from '@/types/supabase'
 
@@ -30,7 +31,7 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
 
 const STATUS_FLOW = ['nuevo', 'preparando', 'listo', 'entregado'] as const
 
-export function OrdersTable({ initialOrders }: { initialOrders: Order[] }) {
+export function OrdersTable({ initialOrders, slug }: { initialOrders: Order[]; slug: string }) {
   const [orders, setOrders] = useState(initialOrders)
   const [expanded, setExpanded] = useState<string | null>(null)
 
@@ -65,9 +66,14 @@ export function OrdersTable({ initialOrders }: { initialOrders: Order[] }) {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-sm text-white">
-                        {(order as { order_ref?: string }).order_ref ?? `#${order.id.slice(0, 6)}`}
-                      </span>
+                      <Link
+                        href={`/${slug}/admin/pedidos/${order.order_ref}`}
+                        className="font-semibold text-sm hover:underline"
+                        style={{ color: 'var(--accent)' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        #{order.order_ref ?? order.id.slice(0, 6)} →
+                      </Link>
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${meta.color}`}>
                         {meta.label}
                       </span>

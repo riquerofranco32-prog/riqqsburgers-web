@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import Image from 'next/image'
 import type { Tenant, Category, Product } from '@/types/supabase'
-import { CheckoutModal } from '@/components/CheckoutModal'
+import CheckoutModal from '@/components/CheckoutModal'
 import { CartDrawer } from '@/components/menu/CartDrawer'
 import { CartButton } from '@/components/menu/CartButton'
 import { useCart, type CartItem } from '@/context/CartContext'
@@ -155,13 +155,11 @@ export function MenuPage({ tenant, categories, products }: {
   categories: Category[]
   products: Product[]
 }) {
-  const { items } = useCart()
+  const { items, addItem, clearCart } = useCart()
   const [categoriaActiva, setCategoriaActiva] = useState<string>(categories[0]?.name ?? '')
   const [gridKey, setGridKey] = useState(0)
   const [showCart, setShowCart] = useState(false)
   const [showCheckout, setShowCheckout] = useState(false)
-
-  const { addItem } = useCart()
 
   const productosFiltrados = products.filter(p => {
     const cat = categories.find(c => c.id === p.category_id)
@@ -185,22 +183,11 @@ export function MenuPage({ tenant, categories, products }: {
     setGridKey(k => k + 1)
   }
 
-  // CheckoutModal needs CartItem in the old shape — build adapter
   const checkoutCart = items.map(i => ({
-    product: products.find(p => p.id === i.product_id) ?? {
-      id: i.product_id,
-      name: i.name,
-      price: i.price,
-      image_url: i.image_url ?? null,
-      badge: null,
-      description: null,
-      available: true,
-      tenant_id: tenant.id,
-      category_id: null,
-      sort_order: 0,
-      created_at: '',
-    } as Product,
-    cantidad: i.quantity,
+    id: i.product_id,
+    name: i.name,
+    price: i.price,
+    quantity: i.quantity,
   }))
 
   return (
@@ -311,14 +298,21 @@ export function MenuPage({ tenant, categories, products }: {
         />
       )}
 
-      {/* ── Checkout Modal (for detailed orders with delivery info) ───────── */}
-      {showCheckout && (
-        <CheckoutModal
-          cart={checkoutCart}
-          tenant={tenant}
-          onClose={() => setShowCheckout(false)}
-        />
-      )}
+      {/* ── Checkout Modal ───────────────────────────────────────────────── */}
+      <CheckoutModal
+        isOpen={showCheckout}
+        onClose={() => setShowCheckout(false)}
+        cart={checkoutCart}
+        onClearCart={clearCart}
+        tenant={{
+          id: tenant.id,
+          name: tenant.name,
+          slug: tenant.slug,
+          whatsapp_number: tenant.whatsapp_number,
+          delivery_cost: tenant.delivery_cost,
+          primary_color: tenant.primary_color,
+        }}
+      />
     </div>
   )
 }

@@ -53,21 +53,33 @@ export default function AdminDashboard({
   return (
     <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
 
-      {/* Greeting */}
-      <div className="flex items-start justify-between gap-4">
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+        paddingBottom: 24,
+        borderBottom: '1px solid var(--dash-border)',
+      }}>
         <div>
-          <h1 className="text-xl font-bold text-dash-text">
-            {greeting}, {tenantName} 👋
+          <h1 style={{ color: 'var(--dash-text)', fontSize: 22, fontWeight: 700, marginBottom: 4 }}>
+            {tenantName}
           </h1>
-          <p className="text-sm text-dash-muted mt-1">{dateLabel}</p>
+          <p style={{ color: 'var(--dash-muted)', fontSize: 14 }}>
+            Panel de administración
+          </p>
         </div>
-        <Link
-          href={`/${slug}`}
-          target="_blank"
-          className="flex-shrink-0 text-xs text-dash-muted hover:text-accent transition-colors duration-150 mt-1"
-        >
-          Ver catálogo →
-        </Link>
+        <div style={{
+          padding: '6px 14px',
+          background: 'var(--dash-surface-2)',
+          borderRadius: 8,
+          border: '1px solid var(--dash-border)',
+          color: 'var(--dash-muted)',
+          fontSize: 13,
+        }}>
+          {dateLabel}
+        </div>
       </div>
 
       {/* KPIs */}
