@@ -245,7 +245,7 @@ export default function HomeClient({ restaurants }: { restaurants: Restaurant[] 
           {restaurants.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {restaurants.map((r, i) => {
-                const logoSrc = r.logo || (r.slug === 'riqqsburgers' ? '/logo.png' : '')
+                const logoSrc = r.logo || ''
                 const initials = r.name
                   .split(' ')
                   .filter(Boolean)

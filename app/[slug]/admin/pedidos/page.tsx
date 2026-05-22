@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import type { Tenant, Order } from '@/types/supabase'
 import { OrdersTable } from '@/components/admin/OrdersTable'
 
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Pedidos' }
 
 export default async function PedidosPage(

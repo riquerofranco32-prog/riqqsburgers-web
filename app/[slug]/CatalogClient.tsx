@@ -117,7 +117,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
   const currentCategory = restaurant.menu.categories.find(c => c.id === activeCategory)
 
   const initials = restaurant.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
-  const logoSrc = restaurant.logo || (restaurant.slug === 'riqqsburgers' ? '/logo.png' : '')
+  const logoSrc = restaurant.logo || ''
   const hasInfoBar = !!(restaurant.address || restaurant.schedule || restaurant.phone)
   const b: RestaurantBrand | null = restaurant.brand ?? null
 

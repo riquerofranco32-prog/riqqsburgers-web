@@ -4,6 +4,7 @@ import type { Tenant, Category, Product, Order, OrderItem } from '@/types/supaba
 import type { DashboardKPIs, DailyRevenue, CategoryRevenue, TopProduct } from '@/types/dashboard'
 import AdminDashboard from '@/components/AdminDashboard'
 
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Panel Admin' }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

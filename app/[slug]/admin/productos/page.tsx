@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import type { Tenant, Category, Product } from '@/types/supabase'
 import ProductsAdmin from '@/components/ProductsAdmin'
 
+export const dynamic = 'force-dynamic'
 export const metadata: Metadata = { title: 'Administrar productos' }
 
 export default async function ProductsPage(
