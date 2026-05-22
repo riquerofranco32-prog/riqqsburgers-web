@@ -1,8 +1,8 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabase'
 
 const navLinks = [
   { label: 'Dashboard', icon: '🏠', href: '/admin', exact: true },
@@ -16,8 +16,9 @@ export default function AdminSidebarNav() {
   const router = useRouter()
 
   async function handleLogout() {
-    await fetch('/api/admin/auth', { method: 'DELETE' })
-    window.location.href = '/admin'
+    const supabase = createSupabaseBrowser()
+    await supabase.auth.signOut()
+    router.push('/login')
   }
 
   return (

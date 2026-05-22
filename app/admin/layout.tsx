@@ -1,5 +1,6 @@
-import { cookies } from 'next/headers'
-import AdminLogin from './AdminLogin'
+import { redirect } from 'next/navigation'
+import { createAuthClient } from '@/lib/auth'
+import { createServerClient } from '@/lib/supabase'
 import AdminSidebarNav from '@/components/admin/AdminSidebarNav'
 import TakefyyLogo from '@/components/TakefyyLogo'
 import Link from 'next/link'
@@ -7,13 +8,20 @@ import Link from 'next/link'
 export const metadata = { title: 'Takefyy Admin' }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('admin_token')?.value
-  const isAuthed = !!process.env.ADMIN_SECRET && token === process.env.ADMIN_SECRET
+  const authClient = await createAuthClient()
+  const { data: { user } } = await authClient.auth.getUser()
 
-  if (!isAuthed) {
-    return <AdminLogin />
-  }
+  if (!user) redirect('/login')
+
+  const db = createServerClient()
+  const { data: tuData } = await db
+    .from('tenant_users')
+    .select('role')
+    .eq('user_id', user.id)
+    .eq('role', 'superadmin')
+    .maybeSingle()
+
+  if (!tuData) redirect('/login')
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--dash-bg)', fontFamily: 'var(--font-sans)' }}>
@@ -39,7 +47,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       {/* Main */}
       <div style={{ marginLeft: 240, flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        {/* Top bar */}
         <header style={{
           height: 56,
           borderBottom: '1px solid var(--dash-border)',
@@ -60,7 +67,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </span>
         </header>
 
-        {/* Page content */}
         <main style={{ flex: 1, padding: '28px 28px', overflowY: 'auto' }}>
           {children}
         </main>

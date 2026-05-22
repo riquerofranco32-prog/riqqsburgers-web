@@ -1,7 +1,6 @@
 import { createServerClient } from '@/lib/supabase'
+import { createAuthClient } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { cookies } from 'next/headers'
-import { createServerClient as createSSRClient } from '@supabase/ssr'
 import AdminShell from '@/components/admin/AdminShell'
 import type { Tenant } from '@/types/supabase'
 
@@ -13,20 +12,9 @@ export default async function AdminLayout({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const cookieStore = await cookies()
 
-  const ssrClient = createSSRClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll() },
-        setAll() {},
-      },
-    }
-  )
-
-  const { data: { user } } = await ssrClient.auth.getUser()
+  const authClient = await createAuthClient()
+  const { data: { user } } = await authClient.auth.getUser()
   if (!user) redirect('/login')
 
   const db = createServerClient()
@@ -35,7 +23,7 @@ export default async function AdminLayout({
     .from('tenants')
     .select('id, name, slug')
     .eq('slug', slug)
-    .single()
+    .maybeSingle()
 
   const tenant = rawTenant as Pick<Tenant, 'id' | 'name' | 'slug'> | null
   if (!tenant) {
@@ -46,7 +34,7 @@ export default async function AdminLayout({
             Restaurante &quot;{slug}&quot; no encontrado
           </p>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>
-            Verificá que el slug existe en Supabase o en data/restaurants/{slug}.json
+            Verificá que el slug existe en Supabase
           </p>
           <a href="/admin" style={{ color: '#FF6B35', fontSize: 14 }}>
             → Ir al panel Takefyy
@@ -56,14 +44,15 @@ export default async function AdminLayout({
     )
   }
 
+  // Superadmin puede acceder a cualquier tenant; admin solo al suyo
   const { data: tenantUser } = await db
     .from('tenant_users')
-    .select('role')
+    .select('role, tenant_id')
     .eq('user_id', user.id)
-    .eq('tenant_id', tenant.id)
-    .single()
+    .maybeSingle()
 
   if (!tenantUser) redirect('/login')
+  if (tenantUser.role !== 'superadmin' && tenantUser.tenant_id !== tenant.id) redirect('/login')
 
   return (
     <AdminShell slug={slug} tenantName={tenant.name} userEmail={user.email ?? ''}>

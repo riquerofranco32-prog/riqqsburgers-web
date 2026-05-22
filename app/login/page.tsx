@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createSupabaseBrowser } from '@/lib/supabase'
+import TakefyyLogo from '@/components/TakefyyLogo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,60 +20,49 @@ export default function LoginPage() {
     try {
       const supabase = createSupabaseBrowser()
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-      if (authError) {
-        setError(`Auth error: ${authError.message}`)
+      if (authError || !data.user) {
+        setError(authError?.message ?? 'Error al iniciar sesión')
         setLoading(false)
         return
       }
 
-      if (!data.user) {
-        setError('No se obtuvo usuario del servidor.')
-        setLoading(false)
-        return
-      }
-
-      const { data: tenantUser, error: tuError } = await supabase
+      const { data: tuData, error: tuError } = await supabase
         .from('tenant_users')
-        .select('tenant_id')
+        .select('role, tenant_id, tenants(slug)')
         .eq('user_id', data.user.id)
-        .single()
+        .order('role', { ascending: false }) // superadmin primero
+        .limit(1)
+        .maybeSingle()
 
       if (tuError) {
-        setError(`tenant_users error: ${tuError.message}`)
+        setError(`Error de permisos: ${tuError.message}`)
         setLoading(false)
         return
       }
 
-      const tenantId = (tenantUser as { tenant_id: string } | null)?.tenant_id
-
-      if (!tenantId) {
-        setError('No tenés acceso a ningún negocio.')
+      if (!tuData) {
+        setError('No tenés acceso a ningún negocio. Contactá al administrador.')
         setLoading(false)
         return
       }
 
-      const { data: tenantData, error: tError } = await supabase
-        .from('tenants')
-        .select('slug')
-        .eq('id', tenantId)
-        .single()
+      const role = tuData.role
+      const slug = (tuData.tenants as unknown as { slug: string } | null)?.slug
 
-      if (tError) {
-        setError(`tenants error: ${tError.message}`)
-        setLoading(false)
-        return
-      }
-
-      const slug = (tenantData as { slug: string } | null)?.slug
-
-      if (slug) {
+      if (role === 'superadmin') {
+        router.push('/admin')
+      } else if (slug) {
         router.push(`/${slug}/admin`)
       } else {
-        setError('No se encontró el negocio.')
+        setError('No se encontró el negocio asignado.')
         setLoading(false)
       }
+
     } catch (err) {
       setError(`Error inesperado: ${err instanceof Error ? err.message : String(err)}`)
       setLoading(false)
@@ -80,49 +70,140 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0d0b] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-extrabold font-[family-name:var(--font-syne)]">Panel Admin</h1>
-          <p className="text-[#888] text-sm mt-1">Ingresá con tu cuenta</p>
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--brand-dark, #0E1116)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1rem',
+    }}>
+      <div style={{ width: '100%', maxWidth: 360 }}>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 40 }}>
+          <TakefyyLogo size="md" />
         </div>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        <div style={{ marginBottom: 28, textAlign: 'center' }}>
+          <h1 style={{
+            color: 'var(--dash-text, #F0EDE8)',
+            fontSize: 22,
+            fontWeight: 700,
+            marginBottom: 6,
+          }}>
+            Bienvenido de vuelta
+          </h1>
+          <p style={{ color: 'var(--dash-muted, #8A8D95)', fontSize: 14 }}>
+            Ingresá con tu cuenta para continuar
+          </p>
+        </div>
+
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
           <div>
-            <label className="text-xs font-semibold text-[#888] uppercase tracking-wide block mb-1.5">Email</label>
+            <label style={{
+              display: 'block',
+              color: 'var(--dash-muted, #8A8D95)',
+              fontSize: 12,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              marginBottom: 6,
+            }}>
+              Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              placeholder="admin@ejemplo.com"
-              className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white text-sm placeholder-[#444] outline-none focus:border-[#f5c518] transition-colors min-h-[48px]"
+              placeholder="tu@email.com"
+              style={{
+                width: '100%',
+                background: 'var(--dash-surface, #1A1D24)',
+                border: '1px solid var(--dash-border, #2A2D35)',
+                borderRadius: 10,
+                padding: '12px 16px',
+                color: 'var(--dash-text, #F0EDE8)',
+                fontSize: 14,
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s',
+              }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent, #FF6B35)')}
+              onBlur={e => (e.target.style.borderColor = 'var(--dash-border, #2A2D35)')}
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-[#888] uppercase tracking-wide block mb-1.5">Contraseña</label>
+            <label style={{
+              display: 'block',
+              color: 'var(--dash-muted, #8A8D95)',
+              fontSize: 12,
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              marginBottom: 6,
+            }}>
+              Contraseña
+            </label>
             <input
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-3 text-white text-sm placeholder-[#444] outline-none focus:border-[#f5c518] transition-colors min-h-[48px]"
+              style={{
+                width: '100%',
+                background: 'var(--dash-surface, #1A1D24)',
+                border: '1px solid var(--dash-border, #2A2D35)',
+                borderRadius: 10,
+                padding: '12px 16px',
+                color: 'var(--dash-text, #F0EDE8)',
+                fontSize: 14,
+                outline: 'none',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.15s',
+              }}
+              onFocus={e => (e.target.style.borderColor = 'var(--accent, #FF6B35)')}
+              onBlur={e => (e.target.style.borderColor = 'var(--dash-border, #2A2D35)')}
             />
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm text-center">{error}</p>
+            <p style={{
+              color: '#f87171',
+              fontSize: 13,
+              textAlign: 'center',
+              background: 'rgba(248,113,113,0.1)',
+              border: '1px solid rgba(248,113,113,0.2)',
+              borderRadius: 8,
+              padding: '8px 12px',
+            }}>
+              {error}
+            </p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#f5c518] text-black font-bold py-3.5 rounded-xl hover:bg-amber-400 active:scale-[0.98] transition-all min-h-[52px] disabled:opacity-50"
+            style={{
+              width: '100%',
+              background: loading ? 'var(--dash-border)' : 'var(--accent, #FF6B35)',
+              color: 'white',
+              fontWeight: 700,
+              fontSize: 15,
+              padding: '14px',
+              borderRadius: 10,
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.15s',
+              marginTop: 4,
+            }}
           >
-            {loading ? 'Ingresando...' : 'Ingresar'}
+            {loading ? 'Ingresando...' : 'Ingresar →'}
           </button>
+
         </form>
       </div>
     </div>
