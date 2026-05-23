@@ -220,12 +220,13 @@ export default async function AdminPage(
       <AdminDashboard
         tenantName={tenant.name}
         slug={slug}
-      kpis={kpis}
-      salesData={salesData}
-      categoryData={categoryData}
-      recentOrders={recentOrders}
-      topProducts={topProducts}
-    />
+        tenantId={tenant.id}
+        kpis={kpis}
+        salesData={salesData}
+        categoryData={categoryData}
+        recentOrders={recentOrders}
+        topProducts={topProducts}
+      />
     </>
   )
 }

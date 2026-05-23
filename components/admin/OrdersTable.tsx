@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { createSupabaseBrowser } from '@/lib/supabase'
@@ -40,9 +40,33 @@ function deliveryLabel(type: string, address: string | null) {
     : '📍 Retiro en local'
 }
 
-export function OrdersTable({ initialOrders, slug }: { initialOrders: Order[]; slug: string }) {
+export function OrdersTable({ initialOrders, slug, tenantId }: { initialOrders: Order[]; slug: string; tenantId: string }) {
   const [orders, setOrders] = useState(initialOrders)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowser()
+    const channel = supabase
+      .channel(`orders:${tenantId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `tenant_id=eq.${tenantId}` },
+        (payload) => {
+          const incoming = payload.new as Order
+          setOrders(prev => {
+            if (prev.some(o => o.id === incoming.id)) return prev
+            return [incoming, ...prev]
+          })
+          setNewOrderIds(prev => { const s = new Set(prev); s.add(incoming.id); return s })
+          setTimeout(() => {
+            setNewOrderIds(prev => { const s = new Set(prev); s.delete(incoming.id); return s })
+          }, 8000)
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [tenantId])
 
   async function updateStatus(orderId: string, status: string) {
     const supabase = createSupabaseBrowser()
@@ -67,9 +91,10 @@ export function OrdersTable({ initialOrders, slug }: { initialOrders: Order[]; s
           {orders.map(order => {
             const meta = STATUS_META[order.status] ?? { label: order.status, color: 'bg-zinc-800 text-zinc-400 border-zinc-700' }
             const isOpen = expanded === order.id
+            const isNew = newOrderIds.has(order.id)
 
             return (
-              <div key={order.id}>
+              <div key={order.id} style={{ background: isNew ? 'rgba(255,107,53,0.06)' : undefined, transition: 'background 1s ease' }}>
                 <button
                   onClick={() => setExpanded(isOpen ? null : order.id)}
                   className="w-full px-5 py-3.5 flex items-center gap-3 hover:bg-zinc-800/40 transition-colors text-left"
@@ -87,6 +112,11 @@ export function OrdersTable({ initialOrders, slug }: { initialOrders: Order[]; s
                       <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${meta.color}`}>
                         {meta.label}
                       </span>
+                      {isNew && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 animate-pulse">
+                          🔔 Nuevo
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-zinc-500 mt-0.5">
                       {order.customer_name} · {fmtFecha(order.created_at)}

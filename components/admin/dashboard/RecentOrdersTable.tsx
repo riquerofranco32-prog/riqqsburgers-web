@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ChevronDown, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { createSupabaseBrowser } from '@/lib/supabase'
-const supabase = createSupabaseBrowser()
 import type { Order } from '@/types/supabase'
 
 function fmtARS(n: number) {
@@ -54,6 +53,7 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: string; currentSt
     setStatus(next)
     setBusy(true)
     try {
+      const supabase = createSupabaseBrowser()
       const { error } = await supabase.from('orders').update({ status: next }).eq('id', orderId)
       if (error) throw error
       toast.success('Estado actualizado')
@@ -99,10 +99,37 @@ function StatusDropdown({ orderId, currentStatus }: { orderId: string; currentSt
 interface RecentOrdersTableProps {
   orders: Order[]
   slug: string
+  tenantId: string
   loading?: boolean
 }
 
-export function RecentOrdersTable({ orders, slug, loading = false }: RecentOrdersTableProps) {
+export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loading = false }: RecentOrdersTableProps) {
+  const [orders, setOrders] = useState(initialOrders)
+
+  useEffect(() => {
+    setOrders(initialOrders)
+  }, [initialOrders])
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowser()
+    const channel = supabase
+      .channel(`recent-orders:${tenantId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders', filter: `tenant_id=eq.${tenantId}` },
+        (payload) => {
+          const incoming = payload.new as Order
+          setOrders(prev => {
+            if (prev.some(o => o.id === incoming.id)) return prev
+            return [incoming, ...prev].slice(0, 10)
+          })
+          toast.success(`Nuevo pedido #${incoming.order_ref} 🛒`, { duration: 5000 })
+        }
+      )
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [tenantId])
+
   if (loading) {
     return (
       <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">

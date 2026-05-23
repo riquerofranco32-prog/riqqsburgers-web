@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase'
 import { createAuthClient } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import AdminShell from '@/components/admin/AdminShell'
+import { Toaster } from 'sonner'
 import type { Tenant } from '@/types/supabase'
 
 export default async function AdminLayout({
@@ -57,6 +58,16 @@ export default async function AdminLayout({
   return (
     <AdminShell slug={slug} tenantName={tenant.name}>
       {children}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: 'var(--dash-surface)',
+            border: '1px solid var(--dash-border)',
+            color: 'var(--dash-text)',
+          },
+        }}
+      />
     </AdminShell>
   )
 }

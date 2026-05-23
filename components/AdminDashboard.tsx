@@ -31,6 +31,7 @@ function getDateLabel(): string {
 interface AdminDashboardProps {
   tenantName: string
   slug: string
+  tenantId: string
   kpis: DashboardKPIs
   salesData: DailyRevenue[]
   categoryData: CategoryRevenue[]
@@ -41,6 +42,7 @@ interface AdminDashboardProps {
 export default function AdminDashboard({
   tenantName,
   slug,
+  tenantId,
   kpis,
   salesData,
   categoryData,
@@ -121,7 +123,7 @@ export default function AdminDashboard({
 
       {/* Tables */}
       <div className="grid md:grid-cols-2 gap-4">
-        <RecentOrdersTable orders={recentOrders} slug={slug} />
+        <RecentOrdersTable orders={recentOrders} slug={slug} tenantId={tenantId} />
         <TopProductsList products={topProducts} />
       </div>
 

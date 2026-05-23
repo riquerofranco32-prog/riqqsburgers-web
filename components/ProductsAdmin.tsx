@@ -4,13 +4,13 @@ import { useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { Search, SlidersHorizontal, Camera, Loader2, Check } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabase'
-const supabase = createSupabaseBrowser()
 import { Toast } from '@/components/admin/Toast'
 import type { Tenant, Category, Product } from '@/types/supabase'
 
 // ── Image upload ──────────────────────────────────────────────────────────────
 
 async function uploadImage(file: File, tenantSlug: string): Promise<string> {
+  const supabase = createSupabaseBrowser()
   const ext = file.name.split('.').pop()
   const path = `${tenantSlug}/${Date.now()}.${ext}`
   const { error } = await supabase.storage
@@ -51,6 +51,7 @@ function ProductImageCell({
     setPreview(localUrl)
     setState('uploading')
     try {
+      const supabase = createSupabaseBrowser()
       const ext = file.name.split('.').pop() ?? 'jpg'
       const path = `${tenantSlug}/${product.id}.${ext}`
       const { error: uploadError } = await supabase.storage
@@ -387,6 +388,7 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
   }
 
   async function handleSave(form: ProductForm) {
+    const supabase = createSupabaseBrowser()
     const payload = {
       tenant_id: tenant.id,
       name: form.name.trim(),
@@ -428,6 +430,7 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
   }
 
   async function toggleAvailable(product: Product) {
+    const supabase = createSupabaseBrowser()
     const newVal = !product.available
     await supabase.from('products').update({ available: newVal }).eq('id', product.id)
     setProducts(prev => prev.map(p => p.id === product.id ? { ...p, available: newVal } : p))
