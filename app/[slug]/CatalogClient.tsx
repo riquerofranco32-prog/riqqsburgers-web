@@ -19,6 +19,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     restaurant.menu.categories[0]?.id ?? ''
   )
   const [animKey, setAnimKey] = useState(0)
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [cart, setCart] = useState<CartItem[]>(() => {
     if (typeof window === 'undefined') return []
     try {
@@ -59,11 +60,15 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
   }, [cart, CART_KEY])
 
   useEffect(() => {
-    if (!cartOpen) return
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setCartOpen(false) }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (selectedItem) setSelectedItem(null)
+        else if (cartOpen) setCartOpen(false)
+      }
+    }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [cartOpen])
+  }, [cartOpen, selectedItem])
 
   useEffect(() => {
     const b = restaurant.brand
@@ -251,6 +256,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             return (
               <div
                 key={item.id}
+                onClick={() => !soldOut && setSelectedItem(item)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -263,6 +269,8 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                   opacity: soldOut ? 0.5 : 1,
                   transition: 'all 0.2s ease',
                   boxShadow: qty > 0 ? `0 2px 12px ${accent}20` : 'none',
+                  cursor: soldOut ? 'default' : 'pointer',
+                  WebkitTapHighlightColor: 'transparent',
                 }}
               >
                 {/* Imagen */}
@@ -339,7 +347,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                       <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No disponible</span>
                     ) : qty === 0 ? (
                       <button
-                        onClick={() => addItem(item)}
+                        onClick={e => { e.stopPropagation(); addItem(item) }}
                         style={{
                           width: 36,
                           height: 36,
@@ -363,14 +371,16 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                         +
                       </button>
                     ) : (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        background: 'var(--surface-2)',
-                        borderRadius: 20,
-                        padding: '4px 8px',
-                      }}>
+                      <div
+                        onClick={e => e.stopPropagation()}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          background: 'var(--surface-2)',
+                          borderRadius: 20,
+                          padding: '4px 8px',
+                        }}>
                         <button
                           onClick={() => removeItem(item)}
                           style={{
@@ -569,6 +579,122 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               >
                 Hacer pedido →
               </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Product detail bottom sheet ─────────────────────────────────── */}
+      {selectedItem && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setSelectedItem(null)}
+          />
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up"
+            style={{
+              background: 'var(--surface)',
+              borderRadius: '24px 24px 0 0',
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              maxWidth: 640,
+              margin: '0 auto',
+              boxShadow: '0 -8px 48px rgba(0,0,0,0.25)',
+              borderTop: `2px solid ${accent}`,
+            }}
+          >
+            {/* Handle */}
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 0' }}>
+              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)' }} />
+            </div>
+
+            {/* Image */}
+            {selectedItem.image ? (
+              <img
+                src={selectedItem.image}
+                alt={selectedItem.name}
+                style={{ width: '100%', height: 220, objectFit: 'cover', marginTop: 12 }}
+              />
+            ) : (
+              <div style={{ width: '100%', height: 160, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56, marginTop: 12 }}>
+                🍽️
+              </div>
+            )}
+
+            {/* Info */}
+            <div style={{ padding: '20px 20px 32px' }}>
+              {/* Badge */}
+              {selectedItem.badge && (() => {
+                const badgeMap: Record<string, { bg: string; color: string; label: string }> = {
+                  'Popular': { bg: '#fef08a', color: '#854d0e', label: '🔥 Popular' },
+                  'Nuevo':   { bg: '#bfdbfe', color: '#1e40af', label: '✨ Nuevo' },
+                  'Promo':   { bg: '#fecaca', color: '#991b1b', label: '🏷️ Promo' },
+                  'Agotado': { bg: '#e5e7eb', color: '#374151', label: '😴 Agotado' },
+                }
+                const b = badgeMap[selectedItem.badge]
+                return b ? (
+                  <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: b.bg, color: b.color, marginBottom: 10 }}>
+                    {b.label}
+                  </span>
+                ) : null
+              })()}
+
+              <h2 style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-primary)', marginBottom: 8, lineHeight: 1.2 }}>
+                {selectedItem.name}
+              </h2>
+
+              {selectedItem.description && (
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>
+                  {selectedItem.description}
+                </p>
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                <span style={{ fontWeight: 900, fontSize: 26, color: 'var(--text-primary)' }}>
+                  {fmt(selectedItem.price)}
+                </span>
+                {getQty(selectedItem.id) > 0 && (
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                    En carrito: {getQty(selectedItem.id)}
+                  </span>
+                )}
+              </div>
+
+              {/* Controls */}
+              {getQty(selectedItem.id) === 0 ? (
+                <button
+                  onClick={() => { addItem(selectedItem); setSelectedItem(null) }}
+                  style={{
+                    width: '100%',
+                    background: accent,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 14,
+                    padding: '16px',
+                    fontSize: 16,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  Agregar al pedido →
+                </button>
+              ) : (
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface-2)', borderRadius: 12, padding: '8px 12px', flex: 1, justifyContent: 'space-between' }}>
+                    <button onClick={() => removeItem(selectedItem)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--border)', border: 'none', color: 'var(--text-primary)', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+                    <span style={{ fontWeight: 800, fontSize: 18, minWidth: 28, textAlign: 'center' }}>{getQty(selectedItem.id)}</span>
+                    <button onClick={() => addItem(selectedItem)} style={{ width: 36, height: 36, borderRadius: '50%', background: accent, border: 'none', color: 'white', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  </div>
+                  <button
+                    onClick={() => setSelectedItem(null)}
+                    style={{ padding: '0 20px', height: 52, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    Listo ✓
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </>

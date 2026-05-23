@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { createSupabaseBrowser } from '@/lib/supabase'
-const supabase = createSupabaseBrowser()
 import type { Order } from '@/types/supabase'
 
 function fmtARS(n: number) {
@@ -19,24 +18,34 @@ function fmtFecha(iso: string) {
 }
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
-  nuevo:      { label: 'Nuevo',          color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  pending:    { label: 'Nuevo',          color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
   preparando: { label: 'En preparación', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
   listo:      { label: 'Listo',          color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
   entregado:  { label: 'Entregado',      color: 'bg-zinc-500/20 text-zinc-400 border-zinc-700' },
-  // legacy
-  pending:   { label: 'Pendiente',   color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  confirmed: { label: 'Confirmado',  color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  delivered: { label: 'Entregado',   color: 'bg-zinc-500/20 text-zinc-400 border-zinc-700' },
-  cancelled: { label: 'Cancelado',   color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  cancelled:  { label: 'Cancelado',      color: 'bg-red-500/20 text-red-400 border-red-500/30' },
 }
 
-const STATUS_FLOW = ['nuevo', 'preparando', 'listo', 'entregado'] as const
+const STATUS_FLOW = ['pending', 'preparando', 'listo', 'entregado'] as const
+
+function paymentLabel(method: string) {
+  if (method === 'transfer') return '📲 Transferencia'
+  if (method === 'mercadopago') return '💳 MercadoPago'
+  return '💵 Efectivo'
+}
+
+function deliveryLabel(type: string, address: string | null) {
+  const isDelivery = type === 'delivery' || type === 'domicilio'
+  return isDelivery
+    ? `🛵 Delivery${address ? ` — ${address}` : ''}`
+    : '📍 Retiro en local'
+}
 
 export function OrdersTable({ initialOrders, slug }: { initialOrders: Order[]; slug: string }) {
   const [orders, setOrders] = useState(initialOrders)
   const [expanded, setExpanded] = useState<string | null>(null)
 
   async function updateStatus(orderId: string, status: string) {
+    const supabase = createSupabaseBrowser()
     await supabase.from('orders').update({ status }).eq('id', orderId)
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
   }
@@ -99,16 +108,12 @@ export function OrdersTable({ initialOrders, slug }: { initialOrders: Order[]; s
                       <p>
                         <span className="text-zinc-500">Servicio:</span>{' '}
                         <span className="text-zinc-200">
-                          {order.delivery_type === 'domicilio'
-                            ? `🛵 Domicilio${order.address ? ` — ${order.address}` : ''}`
-                            : '📍 Retiro en local'}
+                          {deliveryLabel(order.delivery_type, order.customer_address ?? order.address)}
                         </span>
                       </p>
                       <p>
                         <span className="text-zinc-500">Pago:</span>{' '}
-                        <span className="text-zinc-200">
-                          {order.payment_method === 'mercadopago' ? '💳 MercadoPago' : '💵 Efectivo'}
-                        </span>
+                        <span className="text-zinc-200">{paymentLabel(order.payment_method)}</span>
                       </p>
                     </div>
 
