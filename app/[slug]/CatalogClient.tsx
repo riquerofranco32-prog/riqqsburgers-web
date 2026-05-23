@@ -435,7 +435,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
       </div>
 
       {/* ── Cart bar ────────────────────────────────────────────────────── */}
-      {totalItems > 0 && (
+      {totalItems > 0 && !selectedItem && (
         <button
           onClick={() => setCartOpen(true)}
           style={{

@@ -104,8 +104,8 @@ export default function CheckoutModal({ isOpen, onClose, cart, onClearCart, tena
       customer_name: `${form.name} ${form.lastname}`.trim(),
       customer_phone: form.phone || null,
       customer_address: form.delivery === 'delivery' ? form.address : null,
-      delivery_type: form.delivery,
-      payment_method: form.payment,
+      delivery_type: form.delivery === 'delivery' ? 'domicilio' : 'retiro',
+      payment_method: form.payment === 'transfer' ? 'transfer' : 'cash',
       notes: form.notes || null,
       items: cart.map(i => ({
         product_id: i.id,
