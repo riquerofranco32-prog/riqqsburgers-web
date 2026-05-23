@@ -45,11 +45,28 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'Takefyy — Tu carta, online en minutos',
-  description: 'Creá el menú digital de tu restaurante y recibí pedidos por WhatsApp. Sin apps, sin comisiones.',
+  description: 'Creá el menú digital de tu restaurante y recibí pedidos por WhatsApp. Sin apps, sin comisiones. Probá gratis 14 días.',
+  keywords: ['menu digital', 'restaurante', 'WhatsApp', 'carta digital', 'Argentina', 'pedidos online'],
+  authors: [{ name: 'Franco Riquero' }],
+  creator: 'Takefyy',
   openGraph: {
-    title: 'Takefyy',
-    description: 'Tu carta, online en minutos.',
+    title: 'Takefyy — Tu carta, online en minutos',
+    description: 'Creá el menú digital de tu restaurante y recibí pedidos por WhatsApp.',
+    url: 'https://takefyy.vercel.app',
+    siteName: 'Takefyy',
+    locale: 'es_AR',
+    type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Takefyy — Tu carta, online en minutos',
+    description: 'Menú digital + pedidos por WhatsApp para restaurantes en Argentina.',
+  },
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+  },
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -244,3 +244,9 @@ input, textarea, select { font-size: 16px !important; }
 
 /* Tap highlight off en mobile */
 button, a { -webkit-tap-highlight-color: transparent; }
+
+/* Pulsing live dot */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}

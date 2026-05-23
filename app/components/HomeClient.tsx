@@ -11,11 +11,10 @@ function fadeUp(delay = 0) {
   return {
     initial: { opacity: 0, y: 28 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.65, delay, ease },
+    transition: { duration: 0.7, delay, ease },
   }
 }
 
-// ── Step number with IntersectionObserver ────────────────────────────────────
 function StepNumber({ n }: { n: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
@@ -43,21 +42,9 @@ function StepNumber({ n }: { n: string }) {
 }
 
 const features = [
-  {
-    n: '01',
-    title: 'Cargás tu menú',
-    desc: 'Productos, fotos, precios y categorías. En minutos tenés tu carta lista.',
-  },
-  {
-    n: '02',
-    title: 'Compartís el link',
-    desc: 'Tu URL propia: takefyy.com/tu-restaurante. Lista al instante para compartir.',
-  },
-  {
-    n: '03',
-    title: 'Recibís pedidos',
-    desc: 'Directo a tu WhatsApp, sin intermediarios, sin comisiones por cada pedido.',
-  },
+  { n: '01', title: 'Cargás tu menú', desc: 'Productos, fotos, precios y categorías. En minutos tenés tu carta lista.' },
+  { n: '02', title: 'Compartís el link', desc: 'Tu URL propia: takefyy.com/tu-restaurante. Lista al instante para compartir.' },
+  { n: '03', title: 'Recibís pedidos', desc: 'Directo a tu WhatsApp, sin intermediarios, sin comisiones por cada pedido.' },
 ]
 
 const showcaseFeatures = [
@@ -96,7 +83,7 @@ const testimonials = [
 const plans = [
   {
     name: 'Base',
-    price: '$4.999',
+    price: '$8.999',
     period: '/mes',
     desc: 'Todo lo que necesitás para empezar',
     features: ['1 restaurante', 'Menú digital ilimitado', 'Pedidos por WhatsApp', 'Panel admin', 'URL propia'],
@@ -105,12 +92,21 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '$9.999',
+    price: '$14.999',
     period: '/mes',
     desc: 'Para negocios con más demanda',
     features: ['Hasta 5 sucursales', 'Todo el plan Base', 'Analytics de ventas', 'Soporte prioritario', 'Múltiples admins'],
     cta: 'Empezar →',
     featured: true,
+  },
+  {
+    name: 'Multi',
+    price: '$29.999',
+    period: '/mes',
+    desc: 'Para cadenas y dark kitchens',
+    features: ['Todo el plan Pro', 'Hasta 5 sucursales', 'Panel unificado', 'Múltiples admins', 'Reportes por sucursal'],
+    cta: 'Contactar →',
+    featured: false,
   },
 ]
 
@@ -127,8 +123,6 @@ function PhoneMockup() {
       flexDirection: 'column',
       gap: 10,
       position: 'relative',
-      animation: 'float 4s ease-in-out infinite',
-      filter: 'drop-shadow(0 32px 64px rgba(255,107,53,0.25)) drop-shadow(0 8px 24px rgba(0,0,0,0.5))',
     }}>
       {/* Status bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
@@ -159,12 +153,8 @@ function PhoneMockup() {
         { name: 'Chicken Crispy', price: '$3.900', badge: 'Nuevo' },
       ].map(p => (
         <div key={p.name} style={{
-          background: '#22262F',
-          borderRadius: 10,
-          padding: '8px 10px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          background: '#22262F', borderRadius: 10, padding: '8px 10px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <div>
             <div style={{ fontSize: 10, color: '#F0EDE8', fontWeight: 600 }}>{p.name}</div>
@@ -173,8 +163,7 @@ function PhoneMockup() {
           {p.badge && (
             <div style={{
               fontSize: 8, padding: '2px 6px', borderRadius: 20,
-              background: 'rgba(255,107,53,0.15)',
-              color: '#FF6B35', fontWeight: 600,
+              background: 'rgba(255,107,53,0.15)', color: '#FF6B35', fontWeight: 600,
               border: '1px solid rgba(255,107,53,0.3)',
             }}>{p.badge}</div>
           )}
@@ -223,7 +212,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
         style={{
           background: scrolled ? 'rgba(14,17,22,0.85)' : 'transparent',
           backdropFilter: scrolled ? 'blur(12px)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(255,107,53,0.1)' : '1px solid transparent',
+          borderBottom: scrolled ? '1px solid rgba(255,107,53,0.15)' : '1px solid transparent',
         }}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
@@ -282,21 +271,64 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
           </div>
         </div>
 
+        {/* Mobile menu */}
         {mobileOpen && (
-          <div style={{ background: 'var(--dash-surface)', borderTop: '1px solid var(--dash-border)' }} className="md:hidden">
-            <div className="px-5 py-4 flex flex-col gap-4">
-              {navLinks.map(l => (
-                <button key={l.id} onClick={() => scrollTo(l.id)}
-                  className="text-left text-sm font-medium"
-                  style={{ color: 'var(--dash-text)', background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  {l.label}
-                </button>
-              ))}
-              <Link href="/login" className="text-sm" style={{ color: 'var(--dash-muted)' }}>
-                Iniciar sesión
+          <div
+            className="md:hidden"
+            style={{
+              background: 'rgba(14,17,22,0.98)',
+              backdropFilter: 'blur(20px)',
+              borderTop: '1px solid rgba(255,107,53,0.12)',
+              padding: '28px 24px 36px',
+            }}
+          >
+            {navLinks.map((l, i) => (
+              <motion.button
+                key={l.id}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05, duration: 0.25 }}
+                onClick={() => scrollTo(l.id)}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  fontSize: 24,
+                  fontWeight: 700,
+                  color: 'var(--dash-text)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '10px 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {l.label}
+              </motion.button>
+            ))}
+            <motion.div
+              initial={{ opacity: 0, x: -16 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: navLinks.length * 0.05, duration: 0.25 }}
+            >
+              <Link
+                href="/login"
+                style={{
+                  display: 'block',
+                  marginTop: 32,
+                  padding: '16px',
+                  background: 'var(--accent)',
+                  color: 'white',
+                  borderRadius: 12,
+                  textAlign: 'center',
+                  fontWeight: 700,
+                  fontSize: 16,
+                  textDecoration: 'none',
+                }}
+              >
+                Empezar gratis →
               </Link>
-            </div>
+            </motion.div>
           </div>
         )}
       </nav>
@@ -314,55 +346,61 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
         {/* Grain texture */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E")`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: '200px 200px',
-          opacity: 0.4,
+          opacity: 0.035,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundSize: '180px 180px',
           pointerEvents: 'none',
         }} />
 
         {/* Glow naranja bottom-left */}
         <div style={{
-          position: 'absolute',
-          bottom: '-10%', left: '-5%',
+          position: 'absolute', bottom: '-8%', left: '-4%',
           width: 500, height: 500,
-          background: 'radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,107,53,0.14) 0%, transparent 70%)',
           pointerEvents: 'none', zIndex: 0,
         }} />
 
         {/* Glow tenue top-right */}
         <div style={{
-          position: 'absolute',
-          top: '-10%', right: '-5%',
+          position: 'absolute', top: '-10%', right: '-5%',
           width: 400, height: 400,
           background: 'radial-gradient(circle, rgba(255,107,53,0.06) 0%, transparent 70%)',
           pointerEvents: 'none', zIndex: 0,
         }} />
 
         <div className="max-w-6xl mx-auto px-5 sm:px-8 w-full py-24" style={{ position: 'relative', zIndex: 1 }}>
+          {/* Badge */}
           <motion.div {...fadeUp(0)} className="mb-5">
-            <span className="inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold"
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
               style={{ background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.25)', color: 'var(--accent)' }}>
-              🚀 Menú digital + WhatsApp en minutos
+              <span style={{
+                width: 6, height: 6, borderRadius: '50%',
+                background: '#22c55e', display: 'inline-block',
+                animation: 'pulse-dot 2s ease-in-out infinite',
+              }} />
+              Menú digital + WhatsApp en minutos
             </span>
           </motion.div>
 
-          <motion.h1 {...fadeUp(0.08)} className="font-bold mb-6"
-            style={{ fontSize: 'clamp(3rem, 8vw, 6.5rem)', lineHeight: 1.0, letterSpacing: '-0.03em', color: '#fff' }}>
-            Tu carta,{' '}
-            <br className="hidden sm:block" />
-            <span style={{ color: 'var(--accent)' }}>online</span>
-            <br className="hidden sm:block" />
-            en minutos.
-          </motion.h1>
+          {/* Headline — cada línea con stagger */}
+          <div className="font-bold mb-6" style={{
+            fontSize: 'clamp(3rem, 8vw, 6.5rem)',
+            lineHeight: 1.0,
+            letterSpacing: '-0.03em',
+            color: '#fff',
+          }}>
+            <motion.div {...fadeUp(0.1)}>Tu carta,</motion.div>
+            <motion.div {...fadeUp(0.2)} style={{ color: 'var(--accent)' }}>online</motion.div>
+            <motion.div {...fadeUp(0.3)}>en minutos.</motion.div>
+          </div>
 
-          <motion.p {...fadeUp(0.18)} className="mb-10"
+          <motion.p {...fadeUp(0.4)} className="mb-10"
             style={{ fontSize: 'clamp(1rem, 2vw, 1.15rem)', lineHeight: 1.7, color: 'var(--dash-muted)', maxWidth: 520 }}>
             Creá el menú digital de tu restaurante, compartilo por WhatsApp
             y recibí pedidos al instante. Sin apps, sin comisiones.
           </motion.p>
 
-          <motion.div {...fadeUp(0.26)} className="flex flex-wrap gap-3 mb-14">
+          <motion.div {...fadeUp(0.5)} className="flex flex-wrap gap-3 mb-14">
             <motion.button
               onClick={() => scrollTo('precios')}
               className="rounded-full px-7 py-3.5 text-sm font-semibold text-white"
@@ -372,18 +410,19 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
             >
               Empezar gratis →
             </motion.button>
-            <motion.button
-              onClick={() => scrollTo('producto')}
+            <motion.a
+              href="/riqqsburgers"
               className="rounded-full px-7 py-3.5 text-sm font-semibold"
-              style={{ border: '1.5px solid rgba(255,255,255,0.2)', color: '#fff', background: 'transparent', cursor: 'pointer' }}
+              style={{ border: '1.5px solid rgba(255,255,255,0.2)', color: '#fff', background: 'transparent', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
               whileHover={{ background: 'rgba(255,255,255,0.06)' }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             >
               Ver demo
-            </motion.button>
+            </motion.a>
           </motion.div>
 
-          <motion.div {...fadeUp(0.34)} className="flex items-center gap-4 flex-wrap">
+          {/* Social proof */}
+          <motion.div {...fadeUp(0.6)} className="flex items-center gap-4 flex-wrap">
             <div className="flex">
               {['MG', 'RP', 'SV', 'JC'].map((ini, i) => (
                 <div key={ini} style={{
@@ -416,26 +455,45 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-10">
-            {features.map((f, i) => (
-              <motion.div key={f.n}
-                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                transition={{ duration: 0.55, delay: i * 0.1, ease }}>
-                <StepNumber n={f.n} />
-                <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{f.title}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{f.desc}</p>
-              </motion.div>
-            ))}
+          {/* Grid con conector punteado */}
+          <div style={{ position: 'relative' }}>
+            {/* Línea conectora desktop */}
+            <div className="hidden md:block" style={{
+              position: 'absolute',
+              top: 48,
+              left: '20%',
+              right: '20%',
+              height: 1,
+              background: 'repeating-linear-gradient(90deg, var(--accent) 0, var(--accent) 6px, transparent 6px, transparent 16px)',
+              opacity: 0.3,
+              zIndex: 0,
+            }} />
+
+            <div className="grid md:grid-cols-3 gap-10">
+              {features.map((f, i) => (
+                <motion.div key={f.n}
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                  transition={{ duration: 0.55, delay: i * 0.1, ease }}
+                  style={{ position: 'relative', zIndex: 1 }}>
+                  <StepNumber n={f.n} />
+                  <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{f.title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{f.desc}</p>
+                  {f.n === '02' && (
+                    <p style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>
+                      → takefyy.com/tu-restaurante
+                    </p>
+                  )}
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── SHOWCASE ────────────────────────────────────────────────────────── */}
       <section style={{ background: 'var(--brand-dark)', padding: '96px 0', position: 'relative', overflow: 'hidden' }}>
-        {/* Glow behind phone */}
         <div style={{
-          position: 'absolute',
-          left: '20%', top: '50%',
+          position: 'absolute', left: '20%', top: '50%',
           transform: 'translate(-50%, -50%)',
           width: 400, height: 400,
           background: 'radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%)',
@@ -444,11 +502,32 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
 
         <div className="max-w-6xl mx-auto px-5 sm:px-8" style={{ position: 'relative', zIndex: 1 }}>
           <div className="grid md:grid-cols-2 gap-16 items-center">
+
+            {/* Phone con animación y glow */}
             <motion.div initial={{ opacity: 0, x: -32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.7, ease }} className="flex justify-center md:justify-start">
-              <PhoneMockup />
+              <motion.div
+                animate={{ y: [0, -12, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                  filter: 'drop-shadow(0 32px 64px rgba(255,107,53,0.22)) drop-shadow(0 8px 24px rgba(0,0,0,0.45))',
+                  position: 'relative',
+                }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  top: '50%', left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: 280, height: 280,
+                  background: 'radial-gradient(circle, rgba(255,107,53,0.18) 0%, transparent 70%)',
+                  pointerEvents: 'none',
+                  zIndex: -1,
+                }} />
+                <PhoneMockup />
+              </motion.div>
             </motion.div>
 
+            {/* Feature list */}
             <motion.div initial={{ opacity: 0, x: 32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.7, ease }}>
               <p className="text-xs font-semibold tracking-widest mb-4" style={{ color: 'var(--accent)', letterSpacing: '0.15em' }}>QUÉ INCLUYE</p>
@@ -467,13 +546,28 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
                   </motion.div>
                 ))}
               </div>
-              <motion.button onClick={() => scrollTo('precios')}
-                className="mt-10 rounded-full px-6 py-3 text-sm font-semibold text-white"
-                style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer' }}
-                whileHover={{ scale: 1.04, filter: 'brightness(1.1)' }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}>
-                Empezar ahora →
-              </motion.button>
+
+              {/* Demo link */}
+              <Link
+                href="/riqqsburgers"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  color: 'var(--accent)',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  marginTop: 28,
+                  padding: '8px 0',
+                  borderBottom: '1px solid rgba(255,107,53,0.3)',
+                  transition: 'border-color 0.2s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(255,107,53,0.8)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,107,53,0.3)')}
+              >
+                Ver demo en vivo: takefyy.com/riqqsburgers →
+              </Link>
             </motion.div>
           </div>
         </div>
@@ -490,7 +584,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {plans.map((plan, i) => (
               <motion.div key={plan.name}
                 initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
@@ -522,9 +616,9 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
                   <div style={{
                     position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
                     color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 20,
-                    background: 'linear-gradient(90deg, var(--accent) 0%, #ff8c5a 50%, var(--accent) 100%)',
+                    background: 'linear-gradient(90deg, #FF6B35 0%, #ff8c5a 50%, #FF6B35 100%)',
                     backgroundSize: '200% auto',
-                    animation: 'shimmer 2s linear infinite',
+                    animation: 'shimmer 2.5s linear infinite',
                     whiteSpace: 'nowrap',
                   }}>
                     MÁS POPULAR
@@ -562,6 +656,10 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               </motion.div>
             ))}
           </div>
+
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, marginTop: 24 }}>
+            14 días gratis · Sin tarjeta · Cancelás cuando querés
+          </p>
         </div>
       </section>
 
@@ -587,6 +685,8 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
                   borderRadius: 20, padding: 28,
                   transition: 'all 0.25s ease',
                   cursor: 'default',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
                 onMouseEnter={e => {
                   const el = e.currentTarget as HTMLDivElement
@@ -601,9 +701,19 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
                   el.style.borderColor = 'var(--border)'
                 }}
               >
+                {/* Decorative quote */}
+                <span style={{
+                  position: 'absolute', top: -8, left: 16,
+                  fontSize: 60, fontWeight: 900,
+                  color: 'var(--accent)', opacity: 0.12,
+                  lineHeight: 1, fontFamily: 'Georgia, serif',
+                  userSelect: 'none',
+                  pointerEvents: 'none',
+                }}>&ldquo;</span>
+
                 <div className="flex mb-3">
-                  {Array.from({ length: t.stars }).map((_, s) => (
-                    <span key={s} style={{ color: 'var(--accent)', fontSize: 14 }}>★</span>
+                  {'★★★★★'.split('').map((s, si) => (
+                    <span key={si} style={{ color: 'var(--accent)', fontSize: 14 }}>{s}</span>
                   ))}
                 </div>
                 <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
@@ -627,8 +737,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
       {/* Gradient separator */}
       <div style={{
         height: 1,
-        background: 'linear-gradient(90deg, transparent, rgba(255,107,53,0.3), transparent)',
-        margin: 0,
+        background: 'linear-gradient(90deg, transparent, rgba(255,107,53,0.4), transparent)',
       }} />
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
@@ -642,6 +751,20 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               <p className="text-sm max-w-xs" style={{ color: 'var(--dash-muted)', lineHeight: 1.6 }}>
                 Tu carta, online en minutos.
               </p>
+              <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+                <a href="https://instagram.com/takefyy" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
+                  Instagram
+                </a>
+                <a href="mailto:hola@takefyy.com"
+                  style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
+                  Contacto
+                </a>
+              </div>
             </div>
             <div className="flex gap-12">
               <div>
@@ -664,16 +787,17 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               <div>
                 <div className="text-xs font-semibold mb-4" style={{ color: 'var(--dash-muted)', letterSpacing: '0.1em' }}>EMPRESA</div>
                 <div className="flex flex-col gap-3">
-                  {['Contacto', 'Instagram'].map(l => (
-                    <span key={l} className="text-sm" style={{ color: 'var(--dash-muted)' }}>{l}</span>
-                  ))}
+                  <a href="https://instagram.com/takefyy" target="_blank" rel="noopener noreferrer"
+                    className="text-sm" style={{ color: 'var(--dash-muted)', textDecoration: 'none' }}>Instagram</a>
+                  <a href="mailto:hola@takefyy.com"
+                    className="text-sm" style={{ color: 'var(--dash-muted)', textDecoration: 'none' }}>Contacto</a>
                 </div>
               </div>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24 }}>
-            <p className="text-xs" style={{ color: 'var(--dash-muted)' }}>
-              © 2025 Takefyy · Hecho en Argentina 🇦🇷
+            <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 12 }}>
+              © 2026 Takefyy · Hecho en Argentina 🇦🇷 · Franco Riquero
             </p>
           </div>
         </div>
