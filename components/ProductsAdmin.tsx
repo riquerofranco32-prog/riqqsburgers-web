@@ -3,7 +3,8 @@
 import { useState, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { Search, SlidersHorizontal, Camera, Loader2, Check } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { createSupabaseBrowser } from '@/lib/supabase'
+const supabase = createSupabaseBrowser()
 import { Toast } from '@/components/admin/Toast'
 import type { Tenant, Category, Product } from '@/types/supabase'
 

@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createSupabaseBrowser } from '@/lib/supabase'
+const supabase = createSupabaseBrowser()
 import type { Order } from '@/types/supabase'
 
 function fmtARS(n: number) {

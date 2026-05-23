@@ -11,4 +11,3 @@ export const createServerClient = () =>
 
 // Browser client — solo para 'use client'
 export const createSupabaseBrowser = () => createBrowserClient(URL, ANON_KEY)
-export const supabase = createBrowserClient(URL, ANON_KEY) // singleton legacy

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { ChevronDown, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { supabase } from '@/lib/supabase'
+import { createSupabaseBrowser } from '@/lib/supabase'
+const supabase = createSupabaseBrowser()
 import type { Order } from '@/types/supabase'
 
 function fmtARS(n: number) {

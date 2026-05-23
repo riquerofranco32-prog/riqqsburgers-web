@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { createSupabaseBrowser } from '@/lib/supabase'
 import type { CartItem } from '@/context/CartContext'
 
 function sanitizePhone(raw: string): string {
@@ -60,6 +60,7 @@ export async function sendWhatsAppOrder({
   items: CartItem[]
   total: number
 }): Promise<void> {
+  const supabase = createSupabaseBrowser()
   const orderRef = 'WA-' + Math.floor(1000000 + Math.random() * 9000000)
 
   supabase.from('orders').insert({
