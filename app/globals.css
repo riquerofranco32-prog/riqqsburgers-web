@@ -261,3 +261,44 @@ button, a { -webkit-tap-highlight-color: transparent; }
   will-change: transform;
 }
 .marquee-track:hover { animation-play-state: paused; }
+
+/* ── Animated gradient text ─────────────────────────────────────────────── */
+@keyframes gradientText {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+.gradient-text-animate {
+  background: linear-gradient(90deg, #FF6B35, #ffb380, #FF6B35);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientText 3s linear infinite;
+}
+
+/* ── Dot grid ────────────────────────────────────────────────────────────── */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(255,107,53,0.18) 1px, transparent 1px);
+  background-size: 36px 36px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+}
+
+/* ── Animated border glow ────────────────────────────────────────────────── */
+@keyframes borderGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,107,53,0.3), 0 24px 64px rgba(255,107,53,0.2); }
+  50%       { box-shadow: 0 0 0 1px rgba(255,107,53,0.6), 0 24px 80px rgba(255,107,53,0.35); }
+}
+.animate-border-glow { animation: borderGlow 2.5s ease-in-out infinite; }
+
+/* ── Float with rotation ─────────────────────────────────────────────────── */
+@keyframes floatA {
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50%       { transform: translateY(-10px) rotate(1deg); }
+}
+@keyframes floatB {
+  0%, 100% { transform: translateY(0px) rotate(1deg); }
+  50%       { transform: translateY(-14px) rotate(-1deg); }
+}
+.float-a { animation: floatA 4s ease-in-out infinite; }
+.float-b { animation: floatB 5s ease-in-out infinite; }

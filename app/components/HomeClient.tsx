@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import Link from 'next/link'
 import TakefyyLogo from '@/components/TakefyyLogo'
 
@@ -9,13 +9,13 @@ const ease = [0.22, 1, 0.36, 1] as const
 
 function fadeUp(delay = 0) {
   return {
-    initial: { opacity: 0, y: 28 },
+    initial: { opacity: 0, y: 32 },
     animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.7, delay, ease },
+    transition: { duration: 0.75, delay, ease },
   }
 }
 
-function AnimatedCounter({ target, prefix = '+' }: { target: number; prefix?: string }) {
+function AnimatedCounter({ target, suffix = '', prefix = '' }: { target: number; suffix?: string; prefix?: string }) {
   const [count, setCount] = useState(0)
   const ref = useRef<HTMLSpanElement>(null)
   const started = useRef(false)
@@ -24,7 +24,7 @@ function AnimatedCounter({ target, prefix = '+' }: { target: number; prefix?: st
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting && !started.current) {
         started.current = true
-        const duration = 1200
+        const duration = 1400
         const startTime = Date.now()
         const tick = () => {
           const elapsed = Date.now() - startTime
@@ -40,35 +40,7 @@ function AnimatedCounter({ target, prefix = '+' }: { target: number; prefix?: st
     return () => obs.disconnect()
   }, [target])
 
-  return <span ref={ref}>{prefix}{count}</span>
-}
-
-function StepNumber({ n }: { n: string }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true) },
-      { threshold: 0.3 }
-    )
-    if (ref.current) obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [])
-
-  return (
-    <div ref={ref} style={{
-      fontSize: '5rem',
-      fontFamily: 'var(--font-anton)',
-      color: 'var(--accent)',
-      lineHeight: 1, marginBottom: 16, letterSpacing: '0.01em',
-      opacity: visible ? 1 : 0,
-      transform: visible ? 'translateY(0)' : 'translateY(24px)',
-      transition: 'all 0.6s cubic-bezier(0.22,1,0.36,1)',
-    }}>
-      {n}
-    </div>
-  )
+  return <span ref={ref}>{prefix}{count.toLocaleString('es-AR')}{suffix}</span>
 }
 
 function FAQItem({ q, a }: { q: string; a: string }) {
@@ -78,30 +50,23 @@ function FAQItem({ q, a }: { q: string; a: string }) {
       <button
         onClick={() => setOpen(v => !v)}
         style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '20px 0',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-          gap: 16,
+          width: '100%', display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', padding: '20px 0',
+          background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', gap: 16,
         }}
       >
         <span style={{ fontWeight: 600, fontSize: 16, color: 'var(--text-primary)', lineHeight: 1.4 }}>{q}</span>
-        <span style={{
-          flexShrink: 0,
-          width: 28, height: 28,
-          borderRadius: '50%',
-          background: open ? 'var(--accent)' : 'var(--surface-2)',
-          color: open ? '#fff' : 'var(--text-secondary)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 20, fontWeight: 300,
-          transition: 'all 0.22s ease',
-          transform: open ? 'rotate(45deg)' : 'rotate(0)',
-        }}>+</span>
+        <motion.span
+          animate={{ rotate: open ? 45 : 0 }}
+          transition={{ duration: 0.2, ease }}
+          style={{
+            flexShrink: 0, width: 28, height: 28, borderRadius: '50%',
+            background: open ? 'var(--accent)' : 'var(--surface-2)',
+            color: open ? '#fff' : 'var(--text-secondary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 20, fontWeight: 300,
+          }}
+        >+</motion.span>
       </button>
       <AnimatePresence initial={false}>
         {open && (
@@ -109,7 +74,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.25, ease }}
             style={{ overflow: 'hidden' }}
           >
             <p style={{ paddingBottom: 20, color: 'var(--text-secondary)', fontSize: 15, lineHeight: 1.7 }}>{a}</p>
@@ -120,7 +85,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
   )
 }
 
-function SectionLabel({ children, dark = false }: { children: string; dark?: boolean }) {
+function SectionLabel({ children }: { children: string }) {
   return (
     <p className="text-xs font-semibold tracking-widest mb-3 flex items-center gap-2.5" style={{ color: 'var(--accent)', letterSpacing: '0.15em' }}>
       <span style={{ display: 'inline-block', width: 24, height: 2, background: 'var(--accent)', borderRadius: 1, flexShrink: 0 }} />
@@ -129,10 +94,47 @@ function SectionLabel({ children, dark = false }: { children: string; dark?: boo
   )
 }
 
+/* Tilt card wrapper using framer-motion */
+function TiltCard({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [6, -6]), { stiffness: 300, damping: 30 })
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-6, 6]), { stiffness: 300, damping: 30 })
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    x.set((e.clientX - rect.left) / rect.width - 0.5)
+    y.set((e.clientY - rect.top) / rect.height - 0.5)
+  }
+  function handleMouseLeave() { x.set(0); y.set(0) }
+
+  return (
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: 'preserve-3d', perspective: 800, ...style }}
+    >
+      {children}
+    </motion.div>
+  )
+}
+
 const features = [
-  { n: '01', title: 'Cargás tu menú', desc: 'Productos, fotos, precios y categorías. En minutos tenés tu carta lista.' },
-  { n: '02', title: 'Compartís el link', desc: 'Tu URL propia: takefyy.com/tu-restaurante. Lista al instante para compartir.' },
-  { n: '03', title: 'Recibís pedidos', desc: 'Directo a tu WhatsApp, sin intermediarios, sin comisiones por cada pedido.' },
+  {
+    n: '01', title: 'Cargás tu menú',
+    desc: 'Productos, fotos, precios y categorías. En minutos tenés tu carta lista.',
+    icon: '📋', size: 'large',
+  },
+  {
+    n: '02', title: 'Compartís el link',
+    desc: 'Tu URL propia: takefyy.com/tu-restaurante. Lista al instante.',
+    icon: '🔗', size: 'small',
+  },
+  {
+    n: '03', title: 'Recibís pedidos',
+    desc: 'Directo a tu WhatsApp, sin intermediarios, sin comisiones.',
+    icon: '📲', size: 'small',
+  },
 ]
 
 const showcaseFeatures = [
@@ -146,58 +148,37 @@ const showcaseFeatures = [
 
 const testimonials = [
   {
-    name: 'Martina G.',
-    restaurant: 'Burguer Palace · Buenos Aires',
+    name: 'Martina G.', restaurant: 'Burguer Palace · Buenos Aires', initials: 'MG',
     text: 'En un día ya estábamos tomando pedidos por WhatsApp. Mis clientes lo aman porque es simple y rápido. Dejé de perder tiempo en llamadas y ahora el negocio va solo.',
-    initials: 'MG',
-    stars: 5,
-    featured: true,
   },
   {
-    name: 'Roberto P.',
-    restaurant: 'La Parrilla de Juan · Córdoba',
+    name: 'Roberto P.', restaurant: 'La Parrilla de Juan · Córdoba', initials: 'RP',
     text: 'Dejé de perder tiempo en llamadas. Ahora el cliente elige, yo confirmo y listo. Sin app, sin locura.',
-    initials: 'RP',
-    stars: 5,
-    featured: false,
   },
   {
-    name: 'Sofía V.',
-    restaurant: 'Sushi Express · Rosario',
+    name: 'Sofía V.', restaurant: 'Sushi Express · Rosario', initials: 'SV',
     text: 'El panel admin es súper intuitivo. Actualizo precios en segundos y mis clientes lo ven al instante.',
-    initials: 'SV',
-    stars: 5,
-    featured: false,
   },
 ]
 
 const plans = [
   {
-    name: 'Base',
-    price: '$8.999',
-    period: '/mes',
+    name: 'Base', price: '$8.999', period: '/mes',
     desc: 'Todo lo que necesitás para empezar',
     features: ['1 restaurante', 'Menú digital ilimitado', 'Pedidos por WhatsApp', 'Panel admin', 'URL propia'],
-    cta: 'Empezar →',
-    featured: false,
+    cta: 'Empezar →', featured: false,
   },
   {
-    name: 'Pro',
-    price: '$14.999',
-    period: '/mes',
+    name: 'Pro', price: '$14.999', period: '/mes',
     desc: 'Para negocios con más demanda',
     features: ['Hasta 5 sucursales', 'Todo el plan Base', 'Analytics de ventas', 'Soporte prioritario', 'Múltiples admins'],
-    cta: 'Empezar →',
-    featured: true,
+    cta: 'Empezar →', featured: true,
   },
   {
-    name: 'Multi',
-    price: '$29.999',
-    period: '/mes',
+    name: 'Multi', price: '$29.999', period: '/mes',
     desc: 'Para cadenas y dark kitchens',
     features: ['Todo el plan Pro', 'Hasta 5 sucursales', 'Panel unificado', 'Múltiples admins', 'Reportes por sucursal'],
-    cta: 'Contactar →',
-    featured: false,
+    cta: 'Contactar →', featured: false,
   },
 ]
 
@@ -217,27 +198,28 @@ const marqueeItems = [
   'Sin apps que instalar', 'URL propia', 'Panel admin', 'Entregás más',
 ]
 
+const stats = [
+  { value: 1200, suffix: '+', label: 'Pedidos por semana' },
+  { value: 3, suffix: ' min', label: 'Para estar online' },
+  { value: 0, suffix: '%', label: 'Comisión por pedido' },
+  { value: 100, suffix: '%', label: 'Directo a tu WhatsApp' },
+]
+
 function PhoneMockup() {
   return (
     <div style={{
-      width: 260,
-      height: 480,
-      background: '#1A1D24',
-      borderRadius: 32,
-      border: '2px solid #2A2D35',
-      padding: 16,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      position: 'relative',
+      width: 260, height: 480, background: '#1A1D24',
+      borderRadius: 36, border: '2px solid rgba(255,107,53,0.2)',
+      padding: 16, display: 'flex', flexDirection: 'column', gap: 10,
+      boxShadow: '0 0 0 8px rgba(255,107,53,0.04), inset 0 1px 0 rgba(255,255,255,0.05)',
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px' }}>
         <span style={{ fontSize: 10, color: '#F0EDE8', fontWeight: 600 }}>9:41</span>
         <div style={{ width: 48, height: 6, background: '#0E1116', borderRadius: 8 }} />
         <span style={{ fontSize: 10, color: '#F0EDE8' }}>●●●</span>
       </div>
-      <div style={{ background: '#FF6B35', borderRadius: 12, padding: '10px 12px' }}>
-        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.9)', fontWeight: 600 }}>Riqq&apos;s Burgers</div>
+      <div style={{ background: 'linear-gradient(135deg, #FF6B35, #e85a28)', borderRadius: 14, padding: '10px 12px' }}>
+        <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.95)', fontWeight: 700 }}>Riqq&apos;s Burgers</div>
         <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>Abierto · Hacé tu pedido</div>
       </div>
       <div style={{ display: 'flex', gap: 6 }}>
@@ -245,8 +227,7 @@ function PhoneMockup() {
           <div key={c} style={{
             fontSize: 9, padding: '3px 8px', borderRadius: 20,
             background: i === 0 ? '#FF6B35' : '#22262F',
-            color: i === 0 ? '#fff' : '#8A8D95',
-            fontWeight: 600,
+            color: i === 0 ? '#fff' : '#8A8D95', fontWeight: 600,
           }}>{c}</div>
         ))}
       </div>
@@ -256,7 +237,7 @@ function PhoneMockup() {
         { name: 'Chicken Crispy', price: '$3.900', badge: 'Nuevo' },
       ].map(p => (
         <div key={p.name} style={{
-          background: '#22262F', borderRadius: 10, padding: '8px 10px',
+          background: '#22262F', borderRadius: 12, padding: '9px 10px',
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         }}>
           <div>
@@ -273,26 +254,74 @@ function PhoneMockup() {
         </div>
       ))}
       <div style={{
-        background: '#FF6B35', borderRadius: 10, padding: '8px 12px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        marginTop: 'auto',
+        background: '#FF6B35', borderRadius: 12, padding: '10px 12px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto',
+        boxShadow: '0 4px 16px rgba(255,107,53,0.4)',
       }}>
-        <span style={{ fontSize: 10, color: '#fff', fontWeight: 600 }}>Ver carrito (2)</span>
-        <span style={{ fontSize: 10, color: '#fff' }}>$7.400 →</span>
+        <span style={{ fontSize: 10, color: '#fff', fontWeight: 700 }}>Ver carrito (2)</span>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.8)' }}>$7.400 →</span>
       </div>
     </div>
+  )
+}
+
+/* Floating notification toast */
+function FloatToast({
+  icon, title, sub, color = 'rgba(255,107,53,0.25)', delay = 0, style,
+}: {
+  icon: string; title: string; sub: string; color?: string; delay?: number; style?: React.CSSProperties
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay, duration: 0.5, ease }}
+      className="float-a"
+      style={{
+        position: 'absolute',
+        background: 'rgba(20,23,30,0.92)',
+        backdropFilter: 'blur(16px)',
+        border: `1px solid ${color}`,
+        borderRadius: 14, padding: '10px 14px',
+        display: 'flex', alignItems: 'center', gap: 10,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.35)',
+        whiteSpace: 'nowrap', zIndex: 10,
+        ...style,
+      }}
+    >
+      <span style={{ fontSize: 18 }}>{icon}</span>
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>{title}</div>
+        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 1 }}>{sub}</div>
+      </div>
+    </motion.div>
   )
 }
 
 export default function HomeClient({ restaurantCount }: { restaurantCount: number }) {
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 })
+  const heroRef = useRef<HTMLElement>(null)
+  const rafRef = useRef<number>(0)
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', h, { passive: true })
     return () => window.removeEventListener('scroll', h)
   }, [])
+
+  function handleHeroMouseMove(e: React.MouseEvent<HTMLElement>) {
+    cancelAnimationFrame(rafRef.current)
+    rafRef.current = requestAnimationFrame(() => {
+      const rect = heroRef.current?.getBoundingClientRect()
+      if (!rect) return
+      setMousePos({
+        x: (e.clientX - rect.left) / rect.width,
+        y: (e.clientY - rect.top) / rect.height,
+      })
+    })
+  }
 
   function scrollTo(id: string) {
     setMobileOpen(false)
@@ -314,8 +343,8 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
           background: scrolled ? 'rgba(14,17,22,0.88)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(14px)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(255,107,53,0.12)' : '1px solid transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          borderBottom: scrolled ? '1px solid rgba(255,107,53,0.1)' : '1px solid transparent',
         }}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
@@ -325,132 +354,122 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
 
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map(l => (
-              <button
-                key={l.id}
-                onClick={() => scrollTo(l.id)}
-                className="text-sm font-medium"
+              <button key={l.id} onClick={() => scrollTo(l.id)} className="text-sm font-medium"
                 style={{ color: 'var(--dash-muted)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.15s' }}
                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--dash-text)')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--dash-muted)')}
-              >
-                {l.label}
-              </button>
+              >{l.label}</button>
             ))}
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden md:block text-sm font-medium"
+            <Link href="/login" className="hidden md:block text-sm font-medium"
               style={{ color: 'var(--dash-muted)', transition: 'color 0.15s' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--dash-text)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'var(--dash-muted)')}
-            >
-              Iniciar sesión
-            </Link>
-            <button
-              onClick={() => scrollTo('precios')}
+            >Iniciar sesión</Link>
+            <motion.button onClick={() => scrollTo('precios')}
               className="px-5 py-2 rounded-full text-sm font-semibold text-white"
-              style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer', transition: 'filter 0.15s' }}
-              onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.1)')}
-              onMouseLeave={e => (e.currentTarget.style.filter = '')}
-            >
-              Empezar →
-            </button>
-            <button
-              className="md:hidden p-2"
+              style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer' }}
+              whileHover={{ scale: 1.05, filter: 'brightness(1.1)' }}
+              whileTap={{ scale: 0.97 }}
+            >Empezar →</motion.button>
+            <button className="md:hidden p-2"
               style={{ color: 'var(--dash-text)', background: 'none', border: 'none', cursor: 'pointer' }}
-              onClick={() => setMobileOpen(v => !v)}
-              aria-label="Menu"
+              onClick={() => setMobileOpen(v => !v)} aria-label="Menu"
             >
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                {mobileOpen ? (
-                  <path d="M4 4L18 18M18 4L4 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                ) : (
-                  <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                )}
+                {mobileOpen
+                  ? <path d="M4 4L18 18M18 4L4 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  : <path d="M3 6h16M3 11h16M3 16h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                }
               </svg>
             </button>
           </div>
         </div>
 
-        {mobileOpen && (
-          <div
-            className="md:hidden"
-            style={{
-              background: 'rgba(14,17,22,0.98)',
-              backdropFilter: 'blur(20px)',
-              borderTop: '1px solid rgba(255,107,53,0.12)',
-              padding: '28px 24px 36px',
-            }}
-          >
-            {navLinks.map((l, i) => (
-              <motion.button
-                key={l.id}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.25 }}
-                onClick={() => scrollTo(l.id)}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left',
-                  fontSize: 24, fontWeight: 700,
-                  fontFamily: 'var(--font-anton)',
-                  color: 'var(--dash-text)', background: 'none', border: 'none',
-                  cursor: 'pointer', padding: '10px 0', letterSpacing: '0.01em',
-                }}
-              >
-                {l.label}
-              </motion.button>
-            ))}
+        <AnimatePresence>
+          {mobileOpen && (
             <motion.div
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: navLinks.length * 0.05, duration: 0.25 }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.28, ease }}
+              className="md:hidden overflow-hidden"
+              style={{
+                background: 'rgba(14,17,22,0.98)', backdropFilter: 'blur(20px)',
+                borderTop: '1px solid rgba(255,107,53,0.1)',
+              }}
             >
-              <Link
-                href="/login"
-                style={{
-                  display: 'block', marginTop: 32, padding: '16px',
-                  background: 'var(--accent)', color: 'white',
-                  borderRadius: 12, textAlign: 'center',
-                  fontWeight: 700, fontSize: 16, textDecoration: 'none',
-                }}
-              >
-                Empezar gratis →
-              </Link>
+              <div style={{ padding: '28px 24px 36px' }}>
+                {navLinks.map((l, i) => (
+                  <motion.button key={l.id}
+                    initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.06, duration: 0.25 }}
+                    onClick={() => scrollTo(l.id)}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left',
+                      fontSize: 28, fontFamily: 'var(--font-anton)',
+                      color: 'var(--dash-text)', background: 'none', border: 'none',
+                      cursor: 'pointer', padding: '10px 0',
+                    }}
+                  >{l.label}</motion.button>
+                ))}
+                <motion.div
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  transition={{ delay: navLinks.length * 0.06, duration: 0.25 }}
+                >
+                  <Link href="/login" style={{
+                    display: 'block', marginTop: 32, padding: '16px',
+                    background: 'var(--accent)', color: 'white',
+                    borderRadius: 12, textAlign: 'center', fontWeight: 700,
+                    fontSize: 16, textDecoration: 'none',
+                  }}>Empezar gratis →</Link>
+                </motion.div>
+              </div>
             </motion.div>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* ── HERO ────────────────────────────────────────────────────────────── */}
-      <section style={{
-        position: 'relative',
-        background: '#0E1116',
-        overflow: 'hidden',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        paddingTop: 64,
-      }}>
+      <section
+        ref={heroRef}
+        onMouseMove={handleHeroMouseMove}
+        style={{
+          position: 'relative', background: '#0E1116',
+          overflow: 'hidden', minHeight: '100vh',
+          display: 'flex', alignItems: 'center', paddingTop: 64,
+        }}
+      >
+        {/* Dot grid */}
+        <div className="dot-grid" style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+        }} />
+
         {/* Grain */}
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 0, opacity: 0.035,
+          position: 'absolute', inset: 0, zIndex: 0, opacity: 0.025,
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
           backgroundSize: '180px 180px', pointerEvents: 'none',
         }} />
-        {/* Glow bottom-left */}
+
+        {/* Mouse-tracking glow */}
         <div style={{
-          position: 'absolute', bottom: '-8%', left: '-4%',
+          position: 'absolute',
+          left: `calc(${mousePos.x * 100}% - 300px)`,
+          top: `calc(${mousePos.y * 100}% - 300px)`,
           width: 600, height: 600,
-          background: 'radial-gradient(circle, rgba(255,107,53,0.13) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,107,53,0.09) 0%, transparent 70%)',
+          transition: 'left 0.6s ease, top 0.6s ease',
           pointerEvents: 'none', zIndex: 0,
         }} />
-        {/* Glow top-right */}
+
+        {/* Static glow bottom-left */}
         <div style={{
-          position: 'absolute', top: '-10%', right: '-5%',
-          width: 400, height: 400,
-          background: 'radial-gradient(circle, rgba(255,107,53,0.05) 0%, transparent 70%)',
+          position: 'absolute', bottom: '-10%', left: '-6%',
+          width: 700, height: 700,
+          background: 'radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%)',
           pointerEvents: 'none', zIndex: 0,
         }} />
 
@@ -459,57 +478,51 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
 
             {/* Left col */}
             <div>
-              {/* Badge */}
               <motion.div {...fadeUp(0)} className="mb-6">
                 <span className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
                   style={{ background: 'rgba(255,107,53,0.1)', border: '1px solid rgba(255,107,53,0.22)', color: 'var(--accent)' }}>
                   <span style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: '#22c55e', display: 'inline-block',
-                    animation: 'pulse-dot 2s ease-in-out infinite',
+                    width: 6, height: 6, borderRadius: '50%', background: '#22c55e',
+                    display: 'inline-block', animation: 'pulse-dot 2s ease-in-out infinite',
                   }} />
                   Menú digital + WhatsApp en minutos
                 </span>
               </motion.div>
 
-              {/* Headline — Anton editorial */}
+              {/* Anton headline */}
               <div className="mb-7" style={{
                 fontFamily: 'var(--font-anton)',
-                fontSize: 'clamp(3rem, 8vw, 7rem)',
-                lineHeight: 0.95,
-                letterSpacing: '0.01em',
-                color: '#fff',
+                fontSize: 'clamp(3rem, 8.5vw, 7.5rem)',
+                lineHeight: 0.93, letterSpacing: '0.01em', color: '#fff',
               }}>
                 <motion.div {...fadeUp(0.08)}>Tu carta,</motion.div>
-                <motion.div {...fadeUp(0.16)} style={{ color: 'var(--accent)' }}>online</motion.div>
+                <motion.div {...fadeUp(0.16)}>
+                  <span className="gradient-text-animate">online</span>
+                </motion.div>
                 <motion.div {...fadeUp(0.24)}>en minutos.</motion.div>
               </div>
 
-              <motion.p {...fadeUp(0.35)} className="mb-10"
-                style={{ fontSize: 'clamp(1rem, 2vw, 1.1rem)', lineHeight: 1.75, color: 'var(--dash-muted)', maxWidth: 460 }}>
+              <motion.p {...fadeUp(0.34)} className="mb-10"
+                style={{ fontSize: 'clamp(1rem, 2vw, 1.1rem)', lineHeight: 1.75, color: 'var(--dash-muted)', maxWidth: 450 }}>
                 Creá el menú digital de tu restaurante, compartilo por WhatsApp
                 y recibí pedidos al instante. Sin apps, sin comisiones.
               </motion.p>
 
-              <motion.div {...fadeUp(0.44)} className="flex flex-wrap gap-3 mb-12">
-                <motion.button
-                  onClick={() => scrollTo('precios')}
+              <motion.div {...fadeUp(0.43)} className="flex flex-wrap gap-3 mb-12">
+                <motion.button onClick={() => scrollTo('precios')}
                   className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
                   style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer' }}
-                  whileHover={{ scale: 1.04, filter: 'brightness(1.1)', boxShadow: '0 4px 28px rgba(255,107,53,0.4)' }}
+                  whileHover={{ scale: 1.05, filter: 'brightness(1.12)', boxShadow: '0 6px 32px rgba(255,107,53,0.45)' }}
+                  whileTap={{ scale: 0.97 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                >
-                  Empezar gratis →
-                </motion.button>
-                <motion.a
-                  href="/riqqsburgers"
+                >Empezar gratis →</motion.button>
+                <motion.a href="/riqqsburgers"
                   className="rounded-full px-7 py-3.5 text-sm font-semibold"
-                  style={{ border: '1.5px solid rgba(255,255,255,0.18)', color: '#fff', background: 'transparent', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
-                  whileHover={{ background: 'rgba(255,255,255,0.06)' }}
+                  style={{ border: '1.5px solid rgba(255,255,255,0.16)', color: '#fff', background: 'transparent', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                  whileHover={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.3)' }}
+                  whileTap={{ scale: 0.97 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-                >
-                  Ver demo
-                </motion.a>
+                >Ver demo</motion.a>
               </motion.div>
 
               {/* Social proof */}
@@ -517,39 +530,57 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
                 <div className="flex">
                   {['MG', 'RP', 'SV', 'JC'].map((ini, i) => (
                     <div key={ini} style={{
-                      width: 36, height: 36, borderRadius: '50%',
+                      width: 34, height: 34, borderRadius: '50%',
                       background: `hsl(${20 + i * 30}, 65%, 42%)`,
-                      border: '2px solid var(--brand-dark)',
-                      marginLeft: i === 0 ? 0 : -10,
+                      border: '2.5px solid #0E1116',
+                      marginLeft: i === 0 ? 0 : -9,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 11, fontWeight: 700, color: '#fff',
+                      fontSize: 10, fontWeight: 700, color: '#fff',
                     }}>{ini}</div>
                   ))}
                 </div>
-                <div style={{ color: 'var(--dash-muted)', fontSize: 14 }}>
+                <div style={{ color: 'var(--dash-muted)', fontSize: 13 }}>
                   <span style={{ color: '#fff', fontWeight: 600 }}>
-                    <AnimatedCounter target={Math.max(restaurantCount, 50)} /> restaurantes
+                    <AnimatedCounter target={Math.max(restaurantCount, 50)} suffix="+" prefix="" /> restaurantes
                   </span>{' '}
-                  ya usan Takefyy en Argentina
+                  ya usan Takefyy
                 </div>
               </motion.div>
             </div>
 
-            {/* Right col — desktop only */}
-            <div className="hidden md:flex justify-center items-center">
+            {/* Right col — phone + floating toasts */}
+            <div className="hidden md:flex justify-center items-center" style={{ position: 'relative' }}>
+
+              {/* Toasts - desktop only */}
+              <FloatToast
+                icon="🛒" title="Nuevo pedido" sub="$4.200 · BBQ Doble x2"
+                color="rgba(255,107,53,0.25)" delay={0.8}
+                style={{ top: '10%', right: -16 }}
+              />
+              <FloatToast
+                icon="✅" title="Pedido confirmado" sub="Retiro en 20 min"
+                color="rgba(34,197,94,0.25)" delay={1.2}
+                style={{ bottom: '22%', left: -20 }}
+              />
+              <FloatToast
+                icon="⭐" title="Nueva reseña" sub="Martina · 5 estrellas"
+                color="rgba(234,179,8,0.25)" delay={1.6}
+                style={{ bottom: '5%', right: 0 }}
+              />
+
               <motion.div
-                animate={{ y: [0, -12, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                animate={{ y: [0, -14, 0] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
                 style={{
-                  filter: 'drop-shadow(0 32px 64px rgba(255,107,53,0.22)) drop-shadow(0 8px 24px rgba(0,0,0,0.45))',
+                  filter: 'drop-shadow(0 40px 80px rgba(255,107,53,0.28)) drop-shadow(0 8px 24px rgba(0,0,0,0.5))',
                   position: 'relative',
                 }}
               >
                 <div style={{
                   position: 'absolute', top: '50%', left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: 300, height: 300,
-                  background: 'radial-gradient(circle, rgba(255,107,53,0.18) 0%, transparent 70%)',
+                  width: 340, height: 340,
+                  background: 'radial-gradient(circle, rgba(255,107,53,0.2) 0%, transparent 70%)',
                   pointerEvents: 'none', zIndex: -1,
                 }} />
                 <PhoneMockup />
@@ -560,93 +591,202 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
         </div>
       </section>
 
-      {/* ── MARQUEE STRIP ───────────────────────────────────────────────────── */}
-      <div style={{
-        background: 'var(--accent)',
-        overflow: 'hidden',
-        padding: '14px 0',
-        position: 'relative',
-      }}>
-        <div className="marquee-track" style={{ display: 'flex', width: 'max-content', gap: 0 }}>
+      {/* ── MARQUEE ─────────────────────────────────────────────────────────── */}
+      <div style={{ background: 'var(--accent)', overflow: 'hidden', padding: '14px 0' }}>
+        <div className="marquee-track" style={{ display: 'flex', width: 'max-content' }}>
           {marqueeItems.map((item, i) => (
             <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 20, padding: '0 24px', whiteSpace: 'nowrap' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#fff', letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-                {item}
-              </span>
-              <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', flexShrink: 0 }} />
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{item}</span>
+              <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
             </span>
           ))}
         </div>
       </div>
 
-      {/* ── FEATURES ────────────────────────────────────────────────────────── */}
-      <section id="producto" style={{ background: 'var(--brand-cream)', padding: '96px 0' }}>
+      {/* ── STATS ───────────────────────────────────────────────────────────── */}
+      <section style={{ background: '#0E1116', padding: '80px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+            {stats.map((s, i) => (
+              <motion.div key={s.label}
+                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease }}
+                style={{ textAlign: 'center', padding: '24px 16px', position: 'relative' }}
+              >
+                {i < stats.length - 1 && (
+                  <div className="hidden md:block" style={{
+                    position: 'absolute', right: 0, top: '20%', bottom: '20%',
+                    width: 1, background: 'rgba(255,255,255,0.06)',
+                  }} />
+                )}
+                <div style={{
+                  fontFamily: 'var(--font-anton)',
+                  fontSize: 'clamp(2.8rem, 5vw, 4.5rem)',
+                  color: '#fff', lineHeight: 1, letterSpacing: '0.01em',
+                  marginBottom: 8,
+                }}>
+                  <AnimatedCounter target={s.value} suffix={s.suffix} />
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--dash-muted)', letterSpacing: '0.01em' }}>{s.label}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FEATURES (Bento) ────────────────────────────────────────────────── */}
+      <section id="producto" style={{ background: 'var(--brand-cream)', padding: '100px 0' }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6, ease }} className="mb-16">
             <SectionLabel>CÓMO FUNCIONA</SectionLabel>
             <h2 style={{
               fontFamily: 'var(--font-anton)',
-              fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)',
-              letterSpacing: '0.01em',
-              color: 'var(--text-primary)',
-              lineHeight: 1.0,
+              fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
+              letterSpacing: '0.01em', color: 'var(--text-primary)', lineHeight: 1.0,
             }}>
               Tan simple que da<br />vergüenza ajena.
             </h2>
           </motion.div>
 
-          <div style={{ position: 'relative' }}>
-            <div className="hidden md:block" style={{
-              position: 'absolute', top: 44, left: '20%', right: '20%', height: 1,
-              background: 'repeating-linear-gradient(90deg, var(--accent) 0, var(--accent) 6px, transparent 6px, transparent 16px)',
-              opacity: 0.25, zIndex: 0,
-            }} />
-            <div className="grid md:grid-cols-3 gap-10">
-              {features.map((f, i) => (
-                <motion.div key={f.n}
-                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                  transition={{ duration: 0.55, delay: i * 0.1, ease }}
-                  style={{ position: 'relative', zIndex: 1 }}>
-                  <StepNumber n={f.n} />
-                  <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{f.title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{f.desc}</p>
-                  {f.n === '02' && (
-                    <p style={{ marginTop: 8, fontSize: 13, fontWeight: 600, color: 'var(--accent)' }}>
-                      → takefyy.com/tu-restaurante
-                    </p>
-                  )}
-                </motion.div>
+          {/* Bento grid */}
+          <div className="grid md:grid-cols-3 gap-4">
+
+            {/* Card 1 — large */}
+            <motion.div
+              className="md:col-span-2"
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.55, ease }}
+              style={{
+                background: 'var(--brand-dark)', borderRadius: 24,
+                padding: 36, position: 'relative', overflow: 'hidden',
+                border: '1px solid rgba(255,107,53,0.12)',
+                minHeight: 220,
+              }}
+            >
+              <div style={{
+                position: 'absolute', top: 0, right: 0,
+                width: 200, height: 200,
+                background: 'radial-gradient(circle at top right, rgba(255,107,53,0.12) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }} />
+              <div style={{
+                fontFamily: 'var(--font-anton)', fontSize: '4.5rem',
+                color: 'var(--accent)', lineHeight: 1, marginBottom: 20, letterSpacing: '0.01em',
+              }}>01</div>
+              <h3 style={{ fontSize: 22, fontWeight: 700, color: '#fff', marginBottom: 10 }}>Cargás tu menú</h3>
+              <p style={{ fontSize: 15, color: 'var(--dash-muted)', lineHeight: 1.6, maxWidth: 340 }}>
+                Productos, fotos, precios y categorías. En minutos tenés tu carta lista para compartir.
+              </p>
+            </motion.div>
+
+            {/* Card 2 */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: 0.1, ease }}
+              style={{
+                background: 'var(--surface)', borderRadius: 24,
+                padding: 32, border: '1px solid var(--border)',
+                position: 'relative', overflow: 'hidden',
+              }}
+            >
+              <div style={{
+                fontFamily: 'var(--font-anton)', fontSize: '4.5rem',
+                color: 'var(--accent)', lineHeight: 1, marginBottom: 20, letterSpacing: '0.01em',
+              }}>02</div>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 10 }}>Compartís el link</h3>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                Tu URL propia, lista al instante.
+              </p>
+              <p style={{ marginTop: 12, fontSize: 13, fontWeight: 600, color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>
+                → takefyy.com/tu-restaurante
+              </p>
+            </motion.div>
+
+            {/* Card 3 */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: 0.15, ease }}
+              style={{
+                background: 'linear-gradient(135deg, #FF6B35 0%, #d94f1e 100%)',
+                borderRadius: 24, padding: 32,
+                position: 'relative', overflow: 'hidden',
+              }}
+            >
+              <div style={{
+                position: 'absolute', inset: 0, opacity: 0.06,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                backgroundSize: '120px 120px', pointerEvents: 'none',
+              }} />
+              <div style={{
+                fontFamily: 'var(--font-anton)', fontSize: '4.5rem',
+                color: 'rgba(255,255,255,0.4)', lineHeight: 1, marginBottom: 20, letterSpacing: '0.01em',
+              }}>03</div>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 10 }}>Recibís pedidos</h3>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>
+                Directo a tu WhatsApp, sin intermediarios, sin comisiones por cada pedido.
+              </p>
+            </motion.div>
+
+            {/* Card 4 — wide */}
+            <motion.div
+              className="md:col-span-2"
+              initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: 0.2, ease }}
+              style={{
+                background: 'var(--surface)', borderRadius: 24,
+                padding: 32, border: '1px solid var(--border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 24, flexWrap: 'wrap',
+              }}
+            >
+              {[
+                { icon: '📷', text: 'Fotos y descripciones' },
+                { icon: '🏷️', text: 'Badges y promos' },
+                { icon: '🛒', text: 'Carrito integrado' },
+                { icon: '📊', text: 'Panel admin' },
+              ].map(item => (
+                <div key={item.text} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: '1 1 80px', textAlign: 'center' }}>
+                  <div style={{
+                    width: 52, height: 52, borderRadius: 16,
+                    background: 'rgba(255,107,53,0.08)',
+                    border: '1px solid rgba(255,107,53,0.15)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 22,
+                  }}>{item.icon}</div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>{item.text}</span>
+                </div>
               ))}
-            </div>
+            </motion.div>
+
           </div>
         </div>
       </section>
 
       {/* ── SHOWCASE ────────────────────────────────────────────────────────── */}
-      <section style={{ background: 'var(--brand-dark)', padding: '96px 0', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: 'var(--brand-dark)', padding: '100px 0', position: 'relative', overflow: 'hidden' }}>
         <div style={{
-          position: 'absolute', left: '20%', top: '50%',
+          position: 'absolute', left: '15%', top: '40%',
           transform: 'translate(-50%, -50%)',
-          width: 400, height: 400,
-          background: 'radial-gradient(circle, rgba(255,107,53,0.11) 0%, transparent 70%)',
+          width: 500, height: 500,
+          background: 'radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
         <div className="max-w-6xl mx-auto px-5 sm:px-8" style={{ position: 'relative', zIndex: 1 }}>
           <div className="grid md:grid-cols-2 gap-16 items-center">
 
             <motion.div initial={{ opacity: 0, x: -32 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
-              transition={{ duration: 0.7, ease }} className="flex justify-center md:justify-start">
+              transition={{ duration: 0.7, ease }} className="flex justify-center md:justify-start" style={{ position: 'relative' }}>
               <motion.div
-                animate={{ y: [0, -12, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                style={{ filter: 'drop-shadow(0 32px 64px rgba(255,107,53,0.22)) drop-shadow(0 8px 24px rgba(0,0,0,0.45))', position: 'relative' }}
+                animate={{ y: [0, -14, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                style={{ filter: 'drop-shadow(0 40px 80px rgba(255,107,53,0.25)) drop-shadow(0 8px 24px rgba(0,0,0,0.5))', position: 'relative' }}
               >
                 <div style={{
                   position: 'absolute', top: '50%', left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: 280, height: 280,
-                  background: 'radial-gradient(circle, rgba(255,107,53,0.18) 0%, transparent 70%)',
+                  width: 300, height: 300,
+                  background: 'radial-gradient(circle, rgba(255,107,53,0.2) 0%, transparent 70%)',
                   pointerEvents: 'none', zIndex: -1,
                 }} />
                 <PhoneMockup />
@@ -658,33 +798,34 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               <SectionLabel>QUÉ INCLUYE</SectionLabel>
               <h2 style={{
                 fontFamily: 'var(--font-anton)',
-                fontSize: 'clamp(2rem, 4vw, 3.2rem)',
-                letterSpacing: '0.01em',
-                color: '#fff',
-                lineHeight: 1.0,
-                marginBottom: 36,
+                fontSize: 'clamp(2rem, 4.5vw, 3.5rem)',
+                letterSpacing: '0.01em', color: '#fff', lineHeight: 1.0, marginBottom: 36,
               }}>
                 Todo lo que necesitás,<br />nada de lo que no.
               </h2>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {showcaseFeatures.map((f, i) => (
                   <motion.div key={f}
-                    initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
+                    initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: i * 0.07, ease }}
-                    className="flex items-start gap-3">
-                    <span style={{ color: 'var(--accent)', fontSize: 16, marginTop: 1, flexShrink: 0 }}>✓</span>
-                    <span className="text-sm" style={{ color: 'rgba(240,237,232,0.8)', lineHeight: 1.5 }}>{f}</span>
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 14px', borderRadius: 12,
+                      background: 'rgba(255,107,53,0.05)',
+                      border: '1px solid rgba(255,107,53,0.1)',
+                    }}
+                  >
+                    <span style={{ color: 'var(--accent)', fontSize: 15, flexShrink: 0 }}>✓</span>
+                    <span style={{ fontSize: 14, color: 'rgba(240,237,232,0.85)', lineHeight: 1.5 }}>{f}</span>
                   </motion.div>
                 ))}
               </div>
-              <Link
-                href="/riqqsburgers"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  color: 'var(--accent)', fontSize: 14, fontWeight: 600,
-                  textDecoration: 'none', marginTop: 28, padding: '8px 0',
-                  borderBottom: '1px solid rgba(255,107,53,0.3)', transition: 'border-color 0.2s',
-                }}
+              <Link href="/riqqsburgers" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                color: 'var(--accent)', fontSize: 14, fontWeight: 600,
+                textDecoration: 'none', marginTop: 28, padding: '8px 0',
+                borderBottom: '1px solid rgba(255,107,53,0.3)', transition: 'border-color 0.2s',
+              }}
                 onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(255,107,53,0.8)')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(255,107,53,0.3)')}
               >
@@ -696,7 +837,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
       </section>
 
       {/* ── PRICING ─────────────────────────────────────────────────────────── */}
-      <section id="precios" style={{ background: 'var(--bg)', padding: '96px 0' }}>
+      <section id="precios" style={{ background: 'var(--bg)', padding: '100px 0' }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6, ease }} className="text-center mb-16">
@@ -705,135 +846,113 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
             </div>
             <h2 style={{
               fontFamily: 'var(--font-anton)',
-              fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)',
-              letterSpacing: '0.01em',
-              color: 'var(--text-primary)',
-              lineHeight: 1.0,
-            }}>
-              Un precio. Sin sorpresas.
-            </h2>
+              fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
+              letterSpacing: '0.01em', color: 'var(--text-primary)', lineHeight: 1.0,
+            }}>Un precio. Sin sorpresas.</h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
             {plans.map((plan, i) => (
               <motion.div key={plan.name}
-                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
                 transition={{ duration: 0.55, delay: i * 0.1, ease }}
-                style={{
-                  background: plan.featured
-                    ? 'linear-gradient(145deg, #FF6B35 0%, #d94f1e 100%)'
-                    : 'var(--surface)',
-                  border: `1px solid ${plan.featured ? 'transparent' : 'var(--border)'}`,
-                  boxShadow: plan.featured
-                    ? '0 24px 64px rgba(255,107,53,0.35), 0 0 0 1px rgba(255,107,53,0.2)'
-                    : 'none',
-                  borderRadius: 20, padding: 32, position: 'relative',
-                  overflow: 'hidden', transition: 'all 0.2s ease',
-                  transform: plan.featured ? 'scale(1.02)' : 'scale(1)',
-                }}
-                onMouseEnter={!plan.featured ? (e) => {
-                  const el = e.currentTarget as HTMLDivElement
-                  el.style.borderColor = 'var(--accent)'
-                  el.style.transform = 'translateY(-4px)'
-                  el.style.boxShadow = '0 16px 48px rgba(255,107,53,0.12)'
-                } : undefined}
-                onMouseLeave={!plan.featured ? (e) => {
-                  const el = e.currentTarget as HTMLDivElement
-                  el.style.borderColor = 'var(--border)'
-                  el.style.transform = 'translateY(0)'
-                  el.style.boxShadow = 'none'
-                } : undefined}
               >
-                {plan.featured && (
-                  <>
-                    {/* Grain on Pro card */}
-                    <div style={{
-                      position: 'absolute', inset: 0, zIndex: 0, opacity: 0.06,
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                      backgroundSize: '120px 120px', pointerEvents: 'none',
-                    }} />
-                    <div style={{
-                      position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                      color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 14px', borderRadius: 20,
-                      background: 'rgba(0,0,0,0.25)',
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      whiteSpace: 'nowrap', zIndex: 1, letterSpacing: '0.08em',
-                    }}>
-                      MÁS POPULAR
+                <TiltCard style={{ height: '100%' }}>
+                  <div
+                    className={plan.featured ? 'animate-border-glow' : ''}
+                    style={{
+                      background: plan.featured
+                        ? 'linear-gradient(145deg, #FF6B35 0%, #d94f1e 100%)'
+                        : 'var(--surface)',
+                      border: `1px solid ${plan.featured ? 'transparent' : 'var(--border)'}`,
+                      borderRadius: 22, padding: '32px 28px',
+                      position: 'relative', overflow: 'hidden',
+                      transform: plan.featured ? 'scale(1.03)' : 'scale(1)',
+                      height: '100%',
+                    }}
+                  >
+                    {plan.featured && (
+                      <>
+                        <div style={{
+                          position: 'absolute', inset: 0, opacity: 0.06,
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                          backgroundSize: '120px 120px', pointerEvents: 'none',
+                        }} />
+                        <div style={{
+                          position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
+                          color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 14px',
+                          borderRadius: 20, background: 'rgba(0,0,0,0.22)',
+                          border: '1px solid rgba(255,255,255,0.22)',
+                          whiteSpace: 'nowrap', zIndex: 2, letterSpacing: '0.08em',
+                        }}>MÁS POPULAR</div>
+                      </>
+                    )}
+                    <div className="mb-6" style={{ position: 'relative', zIndex: 1 }}>
+                      <div className="text-xs font-bold tracking-widest mb-2" style={{ color: plan.featured ? 'rgba(255,255,255,0.65)' : 'var(--accent)', letterSpacing: '0.1em' }}>{plan.name.toUpperCase()}</div>
+                      <div className="flex items-end gap-1 mb-2">
+                        <span style={{
+                          fontFamily: 'var(--font-anton)', fontSize: '2.8rem',
+                          color: plan.featured ? '#fff' : 'var(--text-primary)', lineHeight: 1, letterSpacing: '0.01em',
+                        }}>{plan.price}</span>
+                        <span className="text-sm mb-1" style={{ color: plan.featured ? 'rgba(255,255,255,0.6)' : 'var(--text-muted)' }}>{plan.period}</span>
+                      </div>
+                      <p className="text-sm" style={{ color: plan.featured ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)' }}>{plan.desc}</p>
                     </div>
-                  </>
-                )}
-                <div className="mb-6" style={{ position: 'relative', zIndex: 1 }}>
-                  <div className="text-xs font-bold tracking-widest mb-2" style={{ color: plan.featured ? 'rgba(255,255,255,0.7)' : 'var(--accent)', letterSpacing: '0.1em' }}>{plan.name.toUpperCase()}</div>
-                  <div className="flex items-end gap-1 mb-2">
-                    <span style={{
-                      fontFamily: 'var(--font-anton)',
-                      fontSize: '2.8rem', letterSpacing: '0.01em',
-                      color: plan.featured ? '#fff' : 'var(--text-primary)', lineHeight: 1,
-                    }}>
-                      {plan.price}
-                    </span>
-                    <span className="text-sm mb-1" style={{ color: plan.featured ? 'rgba(255,255,255,0.65)' : 'var(--text-muted)' }}>{plan.period}</span>
+                    <div className="flex flex-col gap-2.5 mb-8" style={{ position: 'relative', zIndex: 1 }}>
+                      {plan.features.map(f => (
+                        <div key={f} className="flex items-center gap-2.5">
+                          <span style={{ color: plan.featured ? 'rgba(255,255,255,0.9)' : 'var(--accent)', fontSize: 14, flexShrink: 0 }}>✓</span>
+                          <span className="text-sm" style={{ color: plan.featured ? 'rgba(255,255,255,0.82)' : 'var(--text-secondary)' }}>{f}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button className="w-full py-3 rounded-xl text-sm font-semibold" style={{ position: 'relative', zIndex: 1,
+                      background: plan.featured ? 'rgba(255,255,255,0.16)' : 'transparent',
+                      color: plan.featured ? '#fff' : 'var(--accent)',
+                      border: plan.featured ? '1.5px solid rgba(255,255,255,0.28)' : '1.5px solid var(--accent)',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                    }}
+                      onMouseEnter={e => {
+                        e.currentTarget.style.background = plan.featured ? 'rgba(255,255,255,0.26)' : 'var(--accent)'
+                        if (!plan.featured) e.currentTarget.style.color = '#fff'
+                      }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.background = plan.featured ? 'rgba(255,255,255,0.16)' : 'transparent'
+                        if (!plan.featured) e.currentTarget.style.color = 'var(--accent)'
+                      }}
+                    >{plan.cta}</button>
                   </div>
-                  <p className="text-sm" style={{ color: plan.featured ? 'rgba(255,255,255,0.75)' : 'var(--text-secondary)' }}>{plan.desc}</p>
-                </div>
-                <div className="flex flex-col gap-3 mb-8" style={{ position: 'relative', zIndex: 1 }}>
-                  {plan.features.map(f => (
-                    <div key={f} className="flex items-center gap-2">
-                      <span style={{ color: plan.featured ? 'rgba(255,255,255,0.9)' : 'var(--accent)', fontSize: 14 }}>✓</span>
-                      <span className="text-sm" style={{ color: plan.featured ? 'rgba(255,255,255,0.85)' : 'var(--text-secondary)' }}>{f}</span>
-                    </div>
-                  ))}
-                </div>
-                <button className="w-full py-3 rounded-xl text-sm font-semibold" style={{ position: 'relative', zIndex: 1,
-                  background: plan.featured ? 'rgba(255,255,255,0.18)' : 'transparent',
-                  color: plan.featured ? '#fff' : 'var(--accent)',
-                  border: plan.featured ? '1.5px solid rgba(255,255,255,0.3)' : '1.5px solid var(--accent)',
-                  cursor: 'pointer', transition: 'all 0.15s',
-                  backdropFilter: plan.featured ? 'blur(4px)' : 'none',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.background = plan.featured ? 'rgba(255,255,255,0.28)' : 'var(--accent)'; if (!plan.featured) e.currentTarget.style.color = '#fff' }}
-                  onMouseLeave={e => { e.currentTarget.style.background = plan.featured ? 'rgba(255,255,255,0.18)' : 'transparent'; if (!plan.featured) e.currentTarget.style.color = 'var(--accent)' }}>
-                  {plan.cta}
-                </button>
+                </TiltCard>
               </motion.div>
             ))}
           </div>
 
-          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, marginTop: 24 }}>
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, marginTop: 28 }}>
             14 días gratis · Sin tarjeta · Cancelás cuando querés
           </p>
         </div>
       </section>
 
       {/* ── TESTIMONIALS ────────────────────────────────────────────────────── */}
-      <section id="clientes" style={{ background: 'var(--brand-cream)', padding: '96px 0' }}>
+      <section id="clientes" style={{ background: 'var(--brand-cream)', padding: '100px 0' }}>
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6, ease }} className="mb-14">
             <SectionLabel>TESTIMONIOS</SectionLabel>
             <h2 style={{
               fontFamily: 'var(--font-anton)',
-              fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)',
-              letterSpacing: '0.01em',
-              color: 'var(--text-primary)',
-              lineHeight: 1.0,
-            }}>
-              Lo que dicen<br />nuestros clientes.
-            </h2>
+              fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
+              letterSpacing: '0.01em', color: 'var(--text-primary)', lineHeight: 1.0,
+            }}>Lo que dicen<br />nuestros clientes.</h2>
           </motion.div>
 
-          {/* Featured testimonial + 2 smaller */}
           <div className="grid md:grid-cols-5 gap-5">
-
             {/* Large featured */}
-            <motion.div
+            <motion.div className="md:col-span-3"
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.6, ease }}
-              className="md:col-span-3"
               style={{
-                background: 'var(--brand-dark)',
-                border: '1px solid rgba(255,107,53,0.2)',
+                background: 'var(--brand-dark)', border: '1px solid rgba(255,107,53,0.18)',
                 borderRadius: 24, padding: 40,
                 position: 'relative', overflow: 'hidden',
                 display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
@@ -841,23 +960,23 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               }}
             >
               <span style={{
-                position: 'absolute', top: -16, left: 24,
-                fontSize: 100, fontFamily: 'Georgia, serif',
-                color: 'var(--accent)', opacity: 0.1, lineHeight: 1,
+                position: 'absolute', top: -20, left: 20,
+                fontSize: 120, fontFamily: 'Georgia, serif',
+                color: 'var(--accent)', opacity: 0.08, lineHeight: 1,
                 userSelect: 'none', pointerEvents: 'none',
               }}>&ldquo;</span>
               <div>
-                <div className="flex mb-4">
+                <div className="flex mb-5">
                   {'★★★★★'.split('').map((s, si) => (
-                    <span key={si} style={{ color: 'var(--accent)', fontSize: 16 }}>{s}</span>
+                    <span key={si} style={{ color: 'var(--accent)', fontSize: 18 }}>{s}</span>
                   ))}
                 </div>
-                <p style={{ fontSize: 18, lineHeight: 1.7, color: '#fff', fontStyle: 'italic', marginBottom: 28, position: 'relative', zIndex: 1 }}>
+                <p style={{ fontSize: 19, lineHeight: 1.7, color: '#fff', fontStyle: 'italic', marginBottom: 28, position: 'relative', zIndex: 1 }}>
                   &ldquo;{testimonials[0].text}&rdquo;
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>
                   {testimonials[0].initials}
                 </div>
                 <div>
@@ -874,35 +993,20 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
                   initial={{ opacity: 0, x: 24 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
                   transition={{ duration: 0.55, delay: i * 0.12, ease }}
                   style={{
-                    background: 'var(--surface)',
-                    border: '1px solid var(--border)',
+                    background: 'var(--surface)', border: '1px solid var(--border)',
                     borderRadius: 20, padding: 24, flex: 1,
-                    position: 'relative', overflow: 'hidden',
-                    transition: 'all 0.25s ease',
+                    position: 'relative', overflow: 'hidden', transition: 'all 0.25s ease',
                   }}
-                  onMouseEnter={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.transform = 'translateY(-4px)'
-                    el.style.boxShadow = '0 16px 40px rgba(0,0,0,0.08)'
-                    el.style.borderColor = 'rgba(255,107,53,0.25)'
-                  }}
-                  onMouseLeave={e => {
-                    const el = e.currentTarget as HTMLDivElement
-                    el.style.transform = 'translateY(0)'
-                    el.style.boxShadow = 'none'
-                    el.style.borderColor = 'var(--border)'
-                  }}
+                  whileHover={{ y: -4, boxShadow: '0 16px 40px rgba(0,0,0,0.08)' }}
                 >
                   <span style={{
-                    position: 'absolute', top: -10, left: 16,
-                    fontSize: 60, fontFamily: 'Georgia, serif',
-                    color: 'var(--accent)', opacity: 0.1, lineHeight: 1,
+                    position: 'absolute', top: -12, left: 16,
+                    fontSize: 70, fontFamily: 'Georgia, serif',
+                    color: 'var(--accent)', opacity: 0.08, lineHeight: 1,
                     userSelect: 'none', pointerEvents: 'none',
                   }}>&ldquo;</span>
                   <div className="flex mb-3">
-                    {'★★★★★'.split('').map((s, si) => (
-                      <span key={si} style={{ color: 'var(--accent)', fontSize: 12 }}>{s}</span>
-                    ))}
+                    {'★★★★★'.split('').map((s, si) => <span key={si} style={{ color: 'var(--accent)', fontSize: 13 }}>{s}</span>)}
                   </div>
                   <p className="text-sm leading-relaxed mb-5" style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
                     &ldquo;{t.text}&rdquo;
@@ -924,7 +1028,7 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────────────────── */}
-      <section id="faq" style={{ background: 'var(--bg)', padding: '96px 0' }}>
+      <section id="faq" style={{ background: 'var(--bg)', padding: '100px 0' }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-8">
           <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.6, ease }} className="text-center mb-16">
@@ -933,38 +1037,30 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
             </div>
             <h2 style={{
               fontFamily: 'var(--font-anton)',
-              fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)',
-              letterSpacing: '0.01em',
-              color: 'var(--text-primary)',
-              lineHeight: 1.0,
-            }}>
-              Preguntas frecuentes.
-            </h2>
+              fontSize: 'clamp(2.2rem, 5vw, 3.8rem)',
+              letterSpacing: '0.01em', color: 'var(--text-primary)', lineHeight: 1.0,
+            }}>Preguntas frecuentes.</h2>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.5, ease }}
-            style={{ borderTop: '1px solid var(--border)' }}>
-            {faqs.map((faq) => (
-              <FAQItem key={faq.q} q={faq.q} a={faq.a} />
-            ))}
+            transition={{ duration: 0.5, ease }} style={{ borderTop: '1px solid var(--border)' }}>
+            {faqs.map((faq) => <FAQItem key={faq.q} q={faq.q} a={faq.a} />)}
           </motion.div>
         </div>
       </section>
 
       {/* ── FINAL CTA ───────────────────────────────────────────────────────── */}
-      <section style={{ background: '#0E1116', padding: '120px 0', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: '#0E1116', padding: '140px 0', position: 'relative', overflow: 'hidden' }}>
+        {/* Dot grid */}
+        <div className="dot-grid" style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', opacity: 0.6,
+        }} />
         <div style={{
           position: 'absolute', top: '50%', left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: 700, height: 500,
-          background: 'radial-gradient(ellipse, rgba(255,107,53,0.16) 0%, transparent 65%)',
+          width: 800, height: 600,
+          background: 'radial-gradient(ellipse, rgba(255,107,53,0.14) 0%, transparent 65%)',
           pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 0, opacity: 0.03,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-          backgroundSize: '180px 180px', pointerEvents: 'none',
         }} />
 
         <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center" style={{ position: 'relative', zIndex: 1 }}>
@@ -977,24 +1073,22 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
           </motion.div>
 
           <motion.h2
-            initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.65, delay: 0.05, ease }}
+            initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.06, ease }}
             className="mb-6"
             style={{
               fontFamily: 'var(--font-anton)',
-              fontSize: 'clamp(3rem, 8vw, 7rem)',
-              letterSpacing: '0.01em',
-              color: '#fff',
-              lineHeight: 0.95,
+              fontSize: 'clamp(3rem, 9vw, 8rem)',
+              letterSpacing: '0.01em', color: '#fff', lineHeight: 0.92,
             }}
           >
             Tu carta, online.<br />
-            <span style={{ color: 'var(--accent)' }}>Hoy.</span>
+            <span className="gradient-text-animate">Hoy.</span>
           </motion.h2>
 
           <motion.p
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.55, delay: 0.12, ease }}
+            transition={{ duration: 0.55, delay: 0.14, ease }}
             className="mb-10"
             style={{ fontSize: 18, color: 'var(--dash-muted)', lineHeight: 1.6 }}
           >
@@ -1003,32 +1097,27 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
 
           <motion.div
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            transition={{ duration: 0.55, delay: 0.18, ease }}
+            transition={{ duration: 0.55, delay: 0.2, ease }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <motion.button
-              onClick={() => scrollTo('precios')}
+            <motion.button onClick={() => scrollTo('precios')}
               className="rounded-full font-bold text-white"
-              style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer', padding: '18px 48px', fontSize: 18 }}
-              whileHover={{ scale: 1.04, filter: 'brightness(1.1)', boxShadow: '0 8px 32px rgba(255,107,53,0.4)' }}
+              style={{ background: 'var(--accent)', border: 'none', cursor: 'pointer', padding: '18px 52px', fontSize: 18 }}
+              whileHover={{ scale: 1.05, filter: 'brightness(1.12)', boxShadow: '0 10px 40px rgba(255,107,53,0.45)' }}
+              whileTap={{ scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            >
-              Empezar gratis →
-            </motion.button>
-            <motion.a
-              href="/riqqsburgers"
+            >Empezar gratis →</motion.button>
+            <motion.a href="/riqqsburgers"
               className="rounded-full font-semibold"
-              style={{ border: '1.5px solid rgba(255,255,255,0.2)', color: '#fff', background: 'transparent', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '18px 40px', fontSize: 16 }}
-              whileHover={{ background: 'rgba(255,255,255,0.06)' }}
+              style={{ border: '1.5px solid rgba(255,255,255,0.18)', color: '#fff', background: 'transparent', cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '18px 40px', fontSize: 16 }}
+              whileHover={{ background: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.3)' }}
+              whileTap={{ scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            >
-              Ver demo →
-            </motion.a>
+            >Ver demo →</motion.a>
           </motion.div>
         </div>
       </section>
 
-      {/* Gradient separator */}
       <div style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,107,53,0.35), transparent)' }} />
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
@@ -1036,39 +1125,25 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
         <div className="max-w-6xl mx-auto px-5 sm:px-8">
           <div className="flex flex-col md:flex-row justify-between gap-10 mb-10">
             <div>
-              <div className="mb-3" style={{ color: 'var(--dash-text)' }}>
-                <TakefyyLogo size="md" />
-              </div>
-              <p className="text-sm max-w-xs" style={{ color: 'var(--dash-muted)', lineHeight: 1.6 }}>
-                Tu carta, online en minutos.
-              </p>
+              <div className="mb-3" style={{ color: 'var(--dash-text)' }}><TakefyyLogo size="md" /></div>
+              <p className="text-sm max-w-xs" style={{ color: 'var(--dash-muted)', lineHeight: 1.6 }}>Tu carta, online en minutos.</p>
               <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
                 <a href="https://instagram.com/takefyy" target="_blank" rel="noopener noreferrer"
                   style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
-                  Instagram
-                </a>
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>Instagram</a>
                 <a href="mailto:hola@takefyy.com"
                   style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, textDecoration: 'none', transition: 'color 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.8)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
-                  Contacto
-                </a>
+                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>Contacto</a>
               </div>
             </div>
             <div className="flex gap-12">
               <div>
                 <div className="text-xs font-semibold mb-4" style={{ color: 'var(--dash-muted)', letterSpacing: '0.1em' }}>PRODUCTO</div>
                 <div className="flex flex-col gap-3">
-                  {[
-                    { label: 'Funcionalidades', id: 'producto' },
-                    { label: 'Precios', id: 'precios' },
-                    { label: 'Clientes', id: 'clientes' },
-                    { label: 'FAQ', id: 'faq' },
-                  ].map(l => (
-                    <button key={l.label} onClick={() => scrollTo(l.id)}
-                      className="text-sm text-left"
+                  {[{ label: 'Funcionalidades', id: 'producto' }, { label: 'Precios', id: 'precios' }, { label: 'Clientes', id: 'clientes' }, { label: 'FAQ', id: 'faq' }].map(l => (
+                    <button key={l.label} onClick={() => scrollTo(l.id)} className="text-sm text-left"
                       style={{ color: 'var(--dash-muted)', background: 'none', border: 'none', cursor: 'pointer', transition: 'color 0.15s' }}
                       onMouseEnter={e => (e.currentTarget.style.color = 'var(--dash-text)')}
                       onMouseLeave={e => (e.currentTarget.style.color = 'var(--dash-muted)')}
@@ -1079,10 +1154,8 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               <div>
                 <div className="text-xs font-semibold mb-4" style={{ color: 'var(--dash-muted)', letterSpacing: '0.1em' }}>EMPRESA</div>
                 <div className="flex flex-col gap-3">
-                  <a href="https://instagram.com/takefyy" target="_blank" rel="noopener noreferrer"
-                    className="text-sm" style={{ color: 'var(--dash-muted)', textDecoration: 'none' }}>Instagram</a>
-                  <a href="mailto:hola@takefyy.com"
-                    className="text-sm" style={{ color: 'var(--dash-muted)', textDecoration: 'none' }}>Contacto</a>
+                  <a href="https://instagram.com/takefyy" target="_blank" rel="noopener noreferrer" className="text-sm" style={{ color: 'var(--dash-muted)', textDecoration: 'none' }}>Instagram</a>
+                  <a href="mailto:hola@takefyy.com" className="text-sm" style={{ color: 'var(--dash-muted)', textDecoration: 'none' }}>Contacto</a>
                 </div>
               </div>
             </div>
