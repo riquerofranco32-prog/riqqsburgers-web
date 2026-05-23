@@ -106,6 +106,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         background: 'var(--surface)',
         borderBottom: '1px solid var(--border)',
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        maxHeight: 64,
       }}>
         <div style={{
           display: 'flex',
@@ -163,7 +164,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
       {/* ── Categorías ──────────────────────────────────────────────────── */}
       <div style={{
         position: 'sticky',
-        top: 62,
+        top: 64,
         zIndex: 40,
         background: 'var(--bg)',
         borderBottom: '1px solid var(--border)',
@@ -176,6 +177,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             padding: '10px 16px',
             overflowX: 'auto',
             scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {restaurant.menu.categories.map(cat => {
@@ -326,6 +328,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                           justifyContent: 'center',
                           transition: 'transform 0.1s ease',
                           flexShrink: 0,
+                          WebkitTapHighlightColor: 'transparent',
                         }}
                         onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.88)')}
                         onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
@@ -395,49 +398,39 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
 
       {/* ── Cart bar ────────────────────────────────────────────────────── */}
       {totalItems > 0 && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 60,
-          padding: '12px 16px 20px',
-          background: 'linear-gradient(to top, var(--bg) 70%, transparent)',
-          pointerEvents: 'none',
-        }}>
-          <button
-            onClick={() => setCartOpen(true)}
-            style={{
-              width: '100%',
-              maxWidth: 480,
-              margin: '0 auto',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: accent,
-              color: 'white',
-              border: 'none',
-              borderRadius: 16,
-              padding: '14px 20px',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 15,
-              boxShadow: `0 8px 24px ${accent}50`,
-              pointerEvents: 'all',
-            } as React.CSSProperties}
-          >
-            <span style={{
-              background: 'rgba(255,255,255,0.25)',
-              borderRadius: 20,
-              padding: '2px 10px',
-              fontSize: 13,
-            }}>
-              {totalItems} {totalItems === 1 ? 'item' : 'items'}
-            </span>
-            <span>Ver pedido</span>
-            <span style={{ fontWeight: 800 }}>{fmt(totalPrice)}</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setCartOpen(true)}
+          style={{
+            position: 'fixed',
+            bottom: 16,
+            left: 16,
+            right: 16,
+            zIndex: 60,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'var(--accent)',
+            color: 'white',
+            border: 'none',
+            borderRadius: 16,
+            padding: '14px 20px',
+            cursor: 'pointer',
+            fontWeight: 700,
+            fontSize: 15,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            WebkitTapHighlightColor: 'transparent',
+          } as React.CSSProperties}
+        >
+          <span style={{
+            background: 'rgba(255,255,255,0.25)',
+            borderRadius: 20,
+            padding: '2px 10px',
+            fontSize: 13,
+          }}>
+            {totalItems} {totalItems === 1 ? 'item' : 'items'}
+          </span>
+          <span style={{ fontWeight: 800 }}>{fmt(totalPrice)}</span>
+        </button>
       )}
 
       {/* ── Cart drawer ─────────────────────────────────────────────────── */}
