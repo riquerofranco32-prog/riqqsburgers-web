@@ -13,10 +13,19 @@ function fmt(n: number) {
 }
 
 export default function CatalogClient({ restaurant }: { restaurant: Restaurant }) {
+  const CART_KEY = `cart_${restaurant.slug}`
+
   const [activeCategory, setActiveCategory] = useState(
     restaurant.menu.categories[0]?.id ?? ''
   )
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [animKey, setAnimKey] = useState(0)
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return []
+    try {
+      const saved = localStorage.getItem(`cart_${restaurant.slug}`)
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
   const [cartOpen, setCartOpen] = useState(false)
   const [checkoutOpen, setCheckoutOpen] = useState(false)
 
@@ -44,6 +53,10 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
   const getQty = (id: string) => cart.find(i => i.id === id)?.quantity ?? 0
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0)
   const totalPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0)
+
+  useEffect(() => {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(cart)) } catch {}
+  }, [cart, CART_KEY])
 
   useEffect(() => {
     if (!cartOpen) return
@@ -116,21 +129,29 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
           maxWidth: 640,
           margin: '0 auto',
         }}>
-          <div style={{
-            width: 42,
-            height: 42,
-            borderRadius: 12,
-            background: accent,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontWeight: 800,
-            fontSize: 18,
-            flexShrink: 0,
-          }}>
-            {restaurant.name.charAt(0).toUpperCase()}
-          </div>
+          {restaurant.logo ? (
+            <img
+              src={restaurant.logo}
+              alt={restaurant.name}
+              style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+            />
+          ) : (
+            <div style={{
+              width: 42,
+              height: 42,
+              borderRadius: 12,
+              background: accent,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 800,
+              fontSize: 18,
+              flexShrink: 0,
+            }}>
+              {restaurant.name.charAt(0).toUpperCase()}
+            </div>
+          )}
 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
@@ -185,7 +206,12 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             return (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => {
+                  if (cat.id !== activeCategory) {
+                    setActiveCategory(cat.id)
+                    setAnimKey(k => k + 1)
+                  }
+                }}
                 style={{
                   flexShrink: 0,
                   padding: '7px 14px',
@@ -216,7 +242,8 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         padding: '12px 12px 120px',
       }}>
         {currentCategory && currentCategory.items.length > 0 ? (
-          currentCategory.items.map(item => {
+          <div key={animKey} className="menu-grid-enter">
+          {currentCategory.items.map((item) => {
             const qty = getQty(item.id)
             const soldOut = item.badge === 'Agotado'
             const badgeInfo = item.badge ? badgeMap[item.badge] : null
@@ -387,7 +414,8 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                 </div>
               </div>
             )
-          })
+          })}
+          </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)' }}>
             <p style={{ fontSize: 32, marginBottom: 8 }}>{currentCategory?.emoji ?? '🍽️'}</p>
