@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { X, Minus, Plus, Trash2, Search } from 'lucide-react'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { X, Minus, Plus, Trash2, Search, ShoppingBag } from 'lucide-react'
 import type { Restaurant, MenuItem, RestaurantBrand } from '@/lib/getRestaurant'
 import CheckoutModal from '@/components/CheckoutModal'
 import InfoRotator from '@/components/menu/InfoRotator'
@@ -12,8 +12,32 @@ function fmt(n: number) {
   return '$' + n.toLocaleString('es-AR')
 }
 
+// Badge system
+const BADGE_META: Record<string, { bg: string; color: string; icon: string; label: string }> = {
+  'Popular':  { bg: '#fff3cd', color: '#92400e', icon: '🔥', label: 'Popular' },
+  'Nuevo':    { bg: '#dbeafe', color: '#1e40af', icon: '✨', label: 'Nuevo' },
+  'Promo':    { bg: '#fce7f3', color: '#9d174d', icon: '🏷️', label: 'Promo' },
+  'Agotado':  { bg: '#f3f4f6', color: '#6b7280', icon: '😴', label: 'Agotado' },
+}
+
+function Badge({ badge }: { badge: string }) {
+  const meta = BADGE_META[badge]
+  if (!meta) return null
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 3,
+      fontSize: 10, fontWeight: 700,
+      padding: '2px 7px', borderRadius: 6,
+      background: meta.bg, color: meta.color,
+    }}>
+      {meta.icon} {meta.label}
+    </span>
+  )
+}
+
 export default function CatalogClient({ restaurant }: { restaurant: Restaurant }) {
   const CART_KEY = `cart_${restaurant.slug}`
+  const productsRef = useRef<HTMLDivElement>(null)
 
   const [activeCategory, setActiveCategory] = useState(
     restaurant.menu.categories[0]?.id ?? ''
@@ -54,7 +78,8 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
 
   const getQty = (id: string) => cart.find(i => i.id === id)?.quantity ?? 0
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0)
-  const totalPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0)
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0)
+  const hasDelivery = restaurant.delivery_cost > 0
 
   useEffect(() => {
     try { localStorage.setItem(CART_KEY, JSON.stringify(cart)) } catch {}
@@ -71,6 +96,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     return () => window.removeEventListener('keydown', handler)
   }, [cartOpen, selectedItem])
 
+  // Apply brand CSS variables
   useEffect(() => {
     const b = restaurant.brand
     if (!b) return
@@ -96,39 +122,67 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
   const b: RestaurantBrand | null = restaurant.brand ?? null
   const accent = b?.accent ?? restaurant.accent_color
 
+  // Derived: light/dark text on accent background
+  function hexToLuma(hex: string) {
+    const c = hex.replace('#', '')
+    const r = parseInt(c.slice(0, 2), 16)
+    const g = parseInt(c.slice(2, 4), 16)
+    const bl = parseInt(c.slice(4, 6), 16)
+    return 0.299 * r + 0.587 * g + 0.114 * bl
+  }
+  const accentIsDark = hexToLuma(accent) < 140
+  const onAccent = accentIsDark ? '#fff' : '#111'
+
   const infoItems = [
+    restaurant.schedule  && { icon: '🕐', text: restaurant.schedule },
     restaurant.address   && { icon: '📍', text: restaurant.address },
     restaurant.phone     && { icon: '📞', text: restaurant.phone },
-    restaurant.schedule  && { icon: '🕐', text: restaurant.schedule },
     restaurant.instagram && { icon: '📸', text: `@${restaurant.instagram}` },
   ].filter(Boolean) as { icon: string; text: string }[]
-
-  const badgeMap: Record<string, { bg: string; color: string; label: string }> = {
-    'Popular': { bg: '#fef08a', color: '#854d0e', label: '🔥 Popular' },
-    'Nuevo':   { bg: '#bfdbfe', color: '#1e40af', label: '✨ Nuevo' },
-    'Promo':   { bg: '#fecaca', color: '#991b1b', label: '🏷️ Promo' },
-    'Agotado': { bg: '#e5e7eb', color: '#374151', label: '😴 Agotado' },
-  }
 
   const currentCategory = restaurant.menu.categories.find(c => c.id === activeCategory)
 
   const filteredProducts = searchQuery.trim()
     ? restaurant.menu.categories
         .flatMap(c => c.items)
-        .filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.description?.toLowerCase().includes(searchQuery.toLowerCase()))
     : currentCategory?.items ?? []
 
+  function changeCategory(catId: string) {
+    if (catId === activeCategory) return
+    setActiveCategory(catId)
+    setAnimKey(k => k + 1)
+    // Scroll to top of products area
+    productsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const SEARCH_HEIGHT = 60
-  const CATS_HEIGHT = 80
+  const BG = b?.bg ?? '#F4F4F4'
+  const SURFACE = b?.surface ?? '#FFFFFF'
+  const SURFACE2 = b?.surface2 ?? '#F0F0F0'
+  const BORDER = b?.border ?? '#E8E8E8'
+  const TEXT_PRIMARY = b?.text_primary ?? '#111111'
+  const TEXT_SECONDARY = b?.text_secondary ?? '#555555'
+  const TEXT_MUTED = '#999999'
 
   return (
     <div
       className="min-h-screen"
-      style={{ backgroundColor: '#F5F5F5', color: 'var(--text-primary)', '--accent': accent } as React.CSSProperties}
+      style={{
+        backgroundColor: BG,
+        color: TEXT_PRIMARY,
+        '--accent': accent,
+        '--surface': SURFACE,
+        '--surface-2': SURFACE2,
+        '--border': BORDER,
+        '--text-primary': TEXT_PRIMARY,
+        '--text-secondary': TEXT_SECONDARY,
+        '--text-muted': TEXT_MUTED,
+      } as React.CSSProperties}
     >
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+      <header style={{ position: 'relative', height: 220, overflow: 'hidden', flexShrink: 0 }}>
         {restaurant.banner_url ? (
           <>
             <img
@@ -138,116 +192,142 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             />
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.2))',
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.55) 100%)',
             }} />
           </>
         ) : (
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: accent,
-          }}>
-            {/* Grain overlay for solid bg */}
+          <div style={{ position: 'absolute', inset: 0, background: accent }}>
+            {/* Subtle grain */}
             <div style={{
-              position: 'absolute', inset: 0, opacity: 0.06,
+              position: 'absolute', inset: 0, opacity: 0.08,
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
               backgroundSize: '150px 150px',
             }} />
           </div>
         )}
 
-        {/* Content */}
+        {/* Status badge top-right */}
+        <div style={{ position: 'absolute', top: 14, right: 16, zIndex: 2 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+            background: restaurant.is_open ? 'rgba(22,163,74,0.88)' : 'rgba(220,38,38,0.88)',
+            color: '#fff', backdropFilter: 'blur(8px)',
+            letterSpacing: '0.02em',
+          }}>
+            <span style={{
+              width: 6, height: 6, borderRadius: '50%',
+              background: '#fff',
+              boxShadow: restaurant.is_open ? '0 0 0 2px rgba(255,255,255,0.4)' : undefined,
+              animation: restaurant.is_open ? 'pulse 2s ease-in-out infinite' : undefined,
+            }} />
+            {restaurant.is_open ? 'Abierto' : 'Cerrado'}
+          </span>
+        </div>
+
+        {/* Header content */}
         <div style={{
           position: 'relative', zIndex: 1,
           height: '100%', display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          padding: '0 20px',
+          alignItems: 'center', justifyContent: 'flex-end',
+          padding: '0 20px 20px',
           maxWidth: 640, margin: '0 auto',
         }}>
-          {/* Status badge top-right */}
-          <div style={{ position: 'absolute', top: 14, right: 16 }}>
-            <span style={{
-              padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-              background: restaurant.is_open ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)',
-              color: '#fff', backdropFilter: 'blur(6px)',
-            }}>
-              {restaurant.is_open ? '● Abierto' : '● Cerrado'}
-            </span>
-          </div>
-
           {/* Logo */}
           {restaurant.logo && (
             <div style={{
-              width: 56, height: 56, borderRadius: 16,
+              width: 60, height: 60, borderRadius: 18,
               overflow: 'hidden', marginBottom: 10,
-              border: '2px solid rgba(255,255,255,0.3)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+              border: '2.5px solid rgba(255,255,255,0.4)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+              flexShrink: 0,
             }}>
               <img src={restaurant.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           )}
 
           <h1 style={{
-            fontSize: 28, fontWeight: 800, color: '#fff',
-            textAlign: 'center', lineHeight: 1.1, marginBottom: 8,
-            textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+            fontSize: 26, fontWeight: 800, color: '#fff',
+            textAlign: 'center', lineHeight: 1.1, marginBottom: 4,
+            textShadow: '0 2px 10px rgba(0,0,0,0.35)',
+            fontFamily: b?.display_font ? `'${b.display_font}', sans-serif` : 'inherit',
           }}>
             {restaurant.name}
           </h1>
 
+          {restaurant.tagline && (
+            <p style={{
+              fontSize: 12, color: 'rgba(255,255,255,0.75)',
+              fontStyle: 'italic', marginBottom: 10, textAlign: 'center',
+              textShadow: '0 1px 4px rgba(0,0,0,0.2)',
+            }}>
+              {restaurant.tagline}
+            </p>
+          )}
+
           {infoItems.length > 0 && (
-            <div style={{ color: 'rgba(255,255,255,0.85)' }}>
-              <InfoRotator items={infoItems} accent="#fff" />
-            </div>
+            <InfoRotator items={infoItems} accent={accent} />
           )}
         </div>
       </header>
 
+      {/* Closed banner */}
+      {!restaurant.is_open && (
+        <div style={{
+          background: 'rgba(220,38,38,0.08)',
+          borderBottom: '1px solid rgba(220,38,38,0.15)',
+          padding: '10px 16px', textAlign: 'center',
+          fontSize: 13, color: '#dc2626', fontWeight: 600,
+        }}>
+          🔒 El restaurante está cerrado. Podés explorar la carta igualmente.
+        </div>
+      )}
+
       {/* ── Search bar ──────────────────────────────────────────────────────── */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 40,
-        background: '#F5F5F5',
-        padding: '10px 16px',
+        background: BG,
+        padding: '10px 16px 6px',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
       }}>
-        <div style={{
-          maxWidth: 640, margin: '0 auto', position: 'relative',
-        }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', position: 'relative' }}>
           <Search
-            size={16}
+            size={15}
             style={{
-              position: 'absolute', left: 16, top: '50%',
+              position: 'absolute', left: 14, top: '50%',
               transform: 'translateY(-50%)',
-              color: 'var(--text-muted)', pointerEvents: 'none',
+              color: TEXT_MUTED, pointerEvents: 'none',
             }}
           />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Buscar productos..."
+            placeholder="Buscar en el menú..."
             style={{
-              width: '100%',
-              borderRadius: 999,
-              border: '1px solid var(--border)',
-              padding: '12px 20px 12px 40px',
-              background: '#fff',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              fontSize: 14,
-              color: 'var(--text-primary)',
-              outline: 'none',
-              boxSizing: 'border-box',
+              width: '100%', borderRadius: 999,
+              border: `1.5px solid ${BORDER}`,
+              padding: '11px 36px 11px 36px',
+              background: SURFACE,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+              fontSize: 14, color: TEXT_PRIMARY,
+              outline: 'none', boxSizing: 'border-box',
               fontFamily: 'inherit',
+              transition: 'border-color 0.2s',
             }}
+            onFocus={e => (e.currentTarget.style.borderColor = accent)}
+            onBlur={e => (e.currentTarget.style.borderColor = BORDER)}
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
               style={{
-                position: 'absolute', right: 14, top: '50%',
+                position: 'absolute', right: 12, top: '50%',
                 transform: 'translateY(-50%)',
-                background: 'var(--border)', border: 'none',
-                width: 20, height: 20, borderRadius: '50%',
+                background: SURFACE2, border: 'none',
+                width: 22, height: 22, borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', color: 'var(--text-muted)',
+                cursor: 'pointer', color: TEXT_MUTED,
               }}
             >
               <X size={11} />
@@ -262,11 +342,10 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
           position: 'sticky',
           top: SEARCH_HEIGHT,
           zIndex: 39,
-          background: '#F5F5F5',
-          paddingBottom: 4,
+          background: BG,
+          paddingBottom: 2,
         }}>
           <div
-            className="categories-bar"
             style={{
               display: 'flex',
               gap: 8,
@@ -278,34 +357,44 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
           >
             {restaurant.menu.categories.map(cat => {
               const isActive = activeCategory === cat.id
+              const count = cat.items.length
               return (
                 <button
                   key={cat.id}
-                  onClick={() => {
-                    if (cat.id !== activeCategory) {
-                      setActiveCategory(cat.id)
-                      setAnimKey(k => k + 1)
-                    }
-                  }}
+                  onClick={() => changeCategory(cat.id)}
                   style={{
                     flexShrink: 0,
                     display: 'flex', flexDirection: 'column',
                     alignItems: 'center', gap: 3,
-                    padding: '10px 14px',
-                    borderRadius: 16,
-                    border: isActive ? 'none' : '1px solid var(--border)',
+                    padding: '9px 14px',
+                    borderRadius: 14,
+                    border: isActive ? 'none' : `1.5px solid ${BORDER}`,
                     fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    background: isActive ? accent : '#fff',
-                    color: isActive ? 'white' : 'var(--text-secondary)',
-                    boxShadow: isActive ? `0 4px 12px ${accent}40` : 'none',
+                    background: isActive ? accent : SURFACE,
+                    color: isActive ? onAccent : TEXT_SECONDARY,
+                    boxShadow: isActive ? `0 4px 16px ${accent}45` : '0 1px 3px rgba(0,0,0,0.06)',
                     WebkitTapHighlightColor: 'transparent',
-                    minWidth: 60,
+                    minWidth: 56,
+                    position: 'relative',
                   }}
                 >
-                  <span style={{ fontSize: 24, lineHeight: 1 }}>{cat.emoji}</span>
-                  <span style={{ fontSize: 11, whiteSpace: 'nowrap' }}>{cat.name}</span>
+                  <span style={{ fontSize: 22, lineHeight: 1 }}>{cat.emoji}</span>
+                  <span style={{ fontSize: 10, whiteSpace: 'nowrap' }}>{cat.name}</span>
+                  {count > 0 && (
+                    <span style={{
+                      position: 'absolute', top: -4, right: -4,
+                      fontSize: 9, fontWeight: 800,
+                      width: 16, height: 16, borderRadius: '50%',
+                      background: isActive ? 'rgba(255,255,255,0.3)' : SURFACE2,
+                      color: isActive ? onAccent : TEXT_MUTED,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: `1.5px solid ${isActive ? 'transparent' : BORDER}`,
+                    }}>
+                      {count}
+                    </span>
+                  )}
                 </button>
               )
             })}
@@ -314,15 +403,28 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
       )}
 
       {/* ── Productos ───────────────────────────────────────────────────────── */}
-      <div style={{
-        maxWidth: 640,
-        margin: '0 auto',
-        padding: '8px 12px 120px',
-      }}>
+      <div
+        ref={productsRef}
+        style={{
+          maxWidth: 640,
+          margin: '0 auto',
+          padding: '8px 12px 120px',
+        }}
+      >
+        {/* Search results label */}
         {searchQuery && (
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10, paddingLeft: 4 }}>
+          <p style={{ fontSize: 12, color: TEXT_MUTED, marginBottom: 10, paddingLeft: 4 }}>
             {filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''} para &ldquo;{searchQuery}&rdquo;
           </p>
+        )}
+
+        {/* Category title when not searching */}
+        {!searchQuery && currentCategory && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingLeft: 4 }}>
+            <span style={{ fontSize: 20 }}>{currentCategory.emoji}</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: TEXT_PRIMARY }}>{currentCategory.name}</span>
+            <span style={{ fontSize: 12, color: TEXT_MUTED }}>({currentCategory.items.length})</span>
+          </div>
         )}
 
         {filteredProducts.length > 0 ? (
@@ -330,7 +432,6 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             {filteredProducts.map((item) => {
               const qty = getQty(item.id)
               const soldOut = item.badge === 'Agotado'
-              const badgeInfo = item.badge ? badgeMap[item.badge] : null
 
               return (
                 <div
@@ -340,50 +441,42 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: 12,
-                    background: '#fff',
+                    background: SURFACE,
                     borderRadius: 16,
                     padding: 14,
                     marginBottom: 8,
                     opacity: soldOut ? 0.55 : 1,
                     boxShadow: qty > 0
-                      ? `0 2px 12px ${accent}25`
+                      ? `0 3px 16px ${accent}22`
                       : '0 1px 4px rgba(0,0,0,0.06)',
-                    border: `1px solid ${qty > 0 ? accent + '35' : 'transparent'}`,
+                    border: `1.5px solid ${qty > 0 ? accent + '30' : BORDER}`,
                     cursor: soldOut ? 'default' : 'pointer',
                     WebkitTapHighlightColor: 'transparent',
                     transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
                   }}
                 >
                   {/* Info (left) */}
-                  <div style={{ flex: 1, minWidth: 0, paddingRight: 4 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ marginBottom: 3 }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: TEXT_PRIMARY, lineHeight: 1.3 }}>
                         {item.name}
                       </span>
                     </div>
 
-                    {badgeInfo && (
-                      <span style={{
-                        display: 'inline-block',
-                        fontSize: 10, fontWeight: 700,
-                        padding: '2px 7px', borderRadius: 6,
-                        background: badgeInfo.bg, color: badgeInfo.color,
-                        marginBottom: 5,
-                      }}>
-                        {badgeInfo.label}
-                      </span>
+                    {item.badge && item.badge !== '' && (
+                      <div style={{ marginBottom: 5 }}>
+                        <Badge badge={item.badge} />
+                      </div>
                     )}
 
                     {item.description && (
                       <p style={{
-                        fontSize: 12,
-                        color: 'var(--text-muted)',
-                        margin: '0 0 8px',
+                        fontSize: 12, color: TEXT_SECONDARY,
+                        margin: '0 0 8px', lineHeight: 1.45,
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical' as React.CSSProperties['WebkitBoxOrient'],
                         overflow: 'hidden',
-                        lineHeight: 1.45,
                       }}>
                         {item.description}
                       </p>
@@ -394,21 +487,22 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                         {fmt(item.price)}
                       </span>
 
-                      {/* Qty stepper (inline, when > 0 and no image) */}
+                      {/* Inline stepper when no image */}
                       {!item.image && !soldOut && qty > 0 && (
                         <div
                           onClick={e => e.stopPropagation()}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 8,
-                            background: 'var(--surface-2)', borderRadius: 20, padding: '4px 8px',
+                            background: SURFACE2, borderRadius: 20, padding: '4px 8px',
+                            border: `1px solid ${BORDER}`,
                           }}
                         >
                           <button
                             onClick={() => removeItem(item)}
                             style={{
                               width: 26, height: 26, borderRadius: '50%',
-                              background: 'var(--border)', border: 'none',
-                              color: 'var(--text-primary)', fontSize: 18,
+                              background: BORDER, border: 'none',
+                              color: TEXT_PRIMARY, fontSize: 18,
                               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                           >−</button>
@@ -417,7 +511,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                             onClick={() => addItem(item)}
                             style={{
                               width: 26, height: 26, borderRadius: '50%',
-                              background: accent, border: 'none', color: 'white', fontSize: 18,
+                              background: accent, border: 'none', color: onAccent, fontSize: 18,
                               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
                             }}
                           >+</button>
@@ -426,7 +520,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                     </div>
                   </div>
 
-                  {/* Image (right) + add button */}
+                  {/* Image + add button (right) */}
                   <div style={{ position: 'relative', flexShrink: 0 }}>
                     {item.image ? (
                       <img
@@ -437,10 +531,13 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                     ) : (
                       <div style={{
                         width: 90, height: 90, borderRadius: 12,
-                        background: 'var(--surface-2)',
+                        background: `linear-gradient(135deg, ${accent}18, ${accent}08)`,
+                        border: `1.5px solid ${accent}18`,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 32,
-                      }}>🍽️</div>
+                        fontSize: 34,
+                      }}>
+                        {currentCategory?.emoji ?? '🍽️'}
+                      </div>
                     )}
 
                     {/* + button or qty stepper on image */}
@@ -449,48 +546,52 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                         <button
                           onClick={e => { e.stopPropagation(); addItem(item) }}
                           style={{
-                            position: 'absolute', bottom: -6, right: -6,
-                            width: 32, height: 32, borderRadius: '50%',
-                            background: accent, color: 'white',
-                            border: '2.5px solid #fff',
+                            position: 'absolute', bottom: -7, right: -7,
+                            width: 34, height: 34, borderRadius: '50%',
+                            background: accent, color: onAccent,
+                            border: `3px solid ${SURFACE}`,
                             fontSize: 22, fontWeight: 300,
                             cursor: 'pointer',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: `0 2px 8px ${accent}60`,
-                            transition: 'transform 0.1s ease',
+                            boxShadow: `0 3px 10px ${accent}55`,
+                            transition: 'transform 0.12s ease',
                             WebkitTapHighlightColor: 'transparent',
                           }}
                           onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.88)')}
                           onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
+                          onMouseDown={e => (e.currentTarget.style.transform = 'scale(0.92)')}
+                          onMouseUp={e => (e.currentTarget.style.transform = 'scale(1)')}
                         >+</button>
                       ) : (
                         <div
                           onClick={e => e.stopPropagation()}
                           style={{
-                            position: 'absolute', bottom: -10, right: -6,
+                            position: 'absolute', bottom: -11, right: -7,
                             display: 'flex', alignItems: 'center', gap: 4,
-                            background: '#fff',
+                            background: SURFACE,
                             borderRadius: 20, padding: '3px 6px',
-                            boxShadow: `0 2px 8px ${accent}50`,
-                            border: `1px solid ${accent}30`,
+                            boxShadow: `0 2px 10px ${accent}40`,
+                            border: `1.5px solid ${accent}30`,
                           }}
                         >
                           <button
                             onClick={() => removeItem(item)}
                             style={{
                               width: 24, height: 24, borderRadius: '50%',
-                              background: accent + '15', border: 'none',
+                              background: accent + '18', border: 'none',
                               color: accent, fontSize: 16,
                               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontWeight: 700,
                             }}
                           >−</button>
-                          <span style={{ fontWeight: 700, fontSize: 13, minWidth: 16, textAlign: 'center', color: 'var(--text-primary)' }}>{qty}</span>
+                          <span style={{ fontWeight: 800, fontSize: 13, minWidth: 16, textAlign: 'center', color: TEXT_PRIMARY }}>{qty}</span>
                           <button
                             onClick={() => addItem(item)}
                             style={{
                               width: 24, height: 24, borderRadius: '50%',
-                              background: accent, border: 'none', color: 'white', fontSize: 16,
+                              background: accent, border: 'none', color: onAccent, fontSize: 16,
                               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontWeight: 700,
                             }}
                           >+</button>
                         </div>
@@ -502,15 +603,23 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             })}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-            <p style={{ fontSize: 36, marginBottom: 12 }}>
+          <div style={{ textAlign: 'center', padding: '64px 0', color: TEXT_MUTED }}>
+            <div style={{
+              width: 72, height: 72, borderRadius: '50%',
+              background: SURFACE2, margin: '0 auto 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 32,
+            }}>
               {searchQuery ? '🔍' : (currentCategory?.emoji ?? '🍽️')}
-            </p>
-            <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 4, color: 'var(--text-secondary)' }}>
+            </div>
+            <p style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: TEXT_SECONDARY }}>
               {searchQuery ? 'Sin resultados' : 'Próximamente'}
             </p>
             <p style={{ fontSize: 13 }}>
-              {searchQuery ? `No hay productos que coincidan con "${searchQuery}"` : 'Productos en esta categoría próximamente'}
+              {searchQuery
+                ? `No encontramos productos para "${searchQuery}"`
+                : 'Estamos cargando esta categoría'
+              }
             </p>
           </div>
         )}
@@ -522,36 +631,32 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
           onClick={() => setCartOpen(true)}
           style={{
             position: 'fixed',
-            bottom: 16,
-            left: 16,
-            right: 16,
+            bottom: 16, left: 16, right: 16,
             zIndex: 60,
-            display: 'flex',
-            alignItems: 'center',
-            background: accent,
-            color: 'white',
-            border: 'none',
-            borderRadius: 16,
-            padding: '16px 20px',
+            display: 'flex', alignItems: 'center',
+            background: accent, color: onAccent,
+            border: 'none', borderRadius: 18,
+            padding: '15px 18px',
             cursor: 'pointer',
             boxShadow: `0 8px 32px ${accent}55`,
             WebkitTapHighlightColor: 'transparent',
-            maxWidth: 608,
-            margin: '0 auto',
+            maxWidth: 608, margin: '0 auto',
+            transition: 'transform 0.1s',
           } as React.CSSProperties}
+          onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.98)')}
+          onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
         >
-          {/* Left: count badge */}
+          {/* Count badge */}
           <span style={{
-            background: '#fff',
-            color: accent,
-            borderRadius: 20, padding: '2px 10px',
+            background: 'rgba(255,255,255,0.25)',
+            borderRadius: 20, padding: '3px 10px',
             fontSize: 13, fontWeight: 800,
-            minWidth: 28, textAlign: 'center',
+            minWidth: 32, textAlign: 'center',
           }}>
             {totalItems}
           </span>
 
-          {/* Center: label */}
+          {/* Label */}
           <span style={{
             flex: 1, textAlign: 'center',
             fontWeight: 700, fontSize: 15,
@@ -559,10 +664,17 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             Ver pedido
           </span>
 
-          {/* Right: price */}
-          <span style={{ fontWeight: 800, fontSize: 15 }}>
-            {fmt(totalPrice)}
-          </span>
+          {/* Price */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <span style={{ fontWeight: 800, fontSize: 15 }}>
+              {fmt(subtotal)}
+            </span>
+            {hasDelivery && (
+              <span style={{ fontSize: 10, opacity: 0.75, fontWeight: 500 }}>
+                + envío {fmt(restaurant.delivery_cost)}
+              </span>
+            )}
+          </div>
         </button>
       )}
 
@@ -577,95 +689,129 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
           <div
             className="fixed z-50 bottom-0 left-0 right-0
                        md:top-0 md:bottom-0 md:left-auto md:right-0 md:w-96
-                       flex flex-col max-h-[85vh] md:max-h-full
+                       flex flex-col max-h-[88vh] md:max-h-full
                        rounded-t-3xl md:rounded-none md:rounded-l-3xl
-                       shadow-2xl animate-slide-up md:animate-none"
+                       shadow-2xl"
             style={{
-              backgroundColor: 'var(--surface)',
-              borderTop: b ? `2px solid ${b.accent}` : undefined,
+              backgroundColor: SURFACE,
+              borderTop: `2px solid ${accent}`,
+              animation: 'slideUp 0.3s cubic-bezier(0.22,1,0.36,1)',
             }}
           >
-            <div className="flex justify-center pt-3 pb-1 md:hidden flex-shrink-0">
-              <div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--border)' }} />
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: BORDER }} />
             </div>
 
-            <div
-              className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0"
-              style={{ borderColor: 'var(--border)' }}
-            >
-              <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>Tu pedido</h2>
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 20px 16px',
+              borderBottom: `1px solid ${BORDER}`,
+              flexShrink: 0,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ShoppingBag size={18} style={{ color: accent }} />
+                <h2 style={{ fontWeight: 800, fontSize: 17, color: TEXT_PRIMARY }}>Tu pedido</h2>
+              </div>
               <button
                 onClick={() => setCartOpen(false)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-70 transition-opacity"
-                style={{ backgroundColor: 'var(--surface-2)', color: 'var(--text-secondary)' }}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: SURFACE2, border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: TEXT_SECONDARY,
+                }}
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
+            <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
               {cart.map(item => (
-                <div key={item.id} className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center text-lg"
-                    style={{ backgroundColor: 'var(--surface-2)' }}
-                  >
+                <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 42, height: 42, borderRadius: 12, overflow: 'hidden',
+                    flexShrink: 0, background: SURFACE2,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 18,
+                  }}>
                     {item.image
                       ? <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : '🍔'}
+                      : currentCategory?.emoji ?? '🍽️'
+                    }
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate leading-tight" style={{ color: 'var(--text-primary)' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: TEXT_PRIMARY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.name}
                     </p>
-                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    <p style={{ fontSize: 11, color: TEXT_MUTED }}>
                       {fmt(item.price)} c/u
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                     <button
                       onClick={() => item.quantity === 1 ? removeAll(item) : removeItem(item)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center active:scale-90 border"
-                      style={{ backgroundColor: 'var(--surface-2)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}
+                      style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: SURFACE2, border: `1px solid ${BORDER}`,
+                        color: TEXT_SECONDARY, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
                     >
-                      {item.quantity === 1 ? <Trash2 size={12} /> : <Minus size={12} />}
+                      {item.quantity === 1 ? <Trash2 size={11} /> : <Minus size={11} />}
                     </button>
-                    <span className="text-sm font-bold w-6 text-center tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                    <span style={{ fontSize: 14, fontWeight: 800, minWidth: 20, textAlign: 'center', color: TEXT_PRIMARY, fontVariantNumeric: 'tabular-nums' }}>
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => addItem(item)}
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-white active:scale-90"
-                      style={{ backgroundColor: accent }}
+                      style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: accent, border: 'none', color: onAccent,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
                     >
-                      <Plus size={12} />
+                      <Plus size={11} />
                     </button>
                   </div>
 
-                  <span className="text-sm font-bold w-16 text-right flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, minWidth: 64, textAlign: 'right', color: TEXT_PRIMARY }}>
                     {fmt(item.price * item.quantity)}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="border-t flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
-              <div className="px-5 py-4 flex justify-between items-center">
-                <span className="font-black text-xl" style={{ color: 'var(--text-primary)' }}>Total</span>
-                <span className="font-black text-xl" style={{ color: accent }}>{fmt(totalPrice)}</span>
+            {/* Totals */}
+            <div style={{ borderTop: `1px solid ${BORDER}`, flexShrink: 0, padding: '12px 20px' }}>
+              {hasDelivery && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, color: TEXT_MUTED }}>Envío</span>
+                  <span style={{ fontSize: 13, color: TEXT_SECONDARY }}>{fmt(restaurant.delivery_cost)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 800, fontSize: 18, color: TEXT_PRIMARY }}>Total</span>
+                <span style={{ fontWeight: 900, fontSize: 20, color: accent }}>
+                  {fmt(subtotal + (hasDelivery ? restaurant.delivery_cost : 0))}
+                </span>
               </div>
             </div>
 
-            <div
-              className="px-4 pt-3 flex-shrink-0 border-t"
-              style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', borderColor: 'var(--border)' }}
-            >
+            <div style={{
+              padding: `12px 16px max(16px, env(safe-area-inset-bottom))`,
+              borderTop: `1px solid ${BORDER}`, flexShrink: 0,
+            }}>
               <button
                 onClick={() => { setCartOpen(false); setCheckoutOpen(true) }}
-                className="w-full py-4 rounded-2xl font-bold text-lg text-white flex items-center justify-center gap-3 active:scale-[0.98] hover:brightness-110 transition-all"
-                style={{ backgroundColor: accent }}
+                style={{
+                  width: '100%', padding: '16px', borderRadius: 16,
+                  background: accent, color: onAccent,
+                  border: 'none', fontSize: 16, fontWeight: 800,
+                  cursor: 'pointer', letterSpacing: '0.01em',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}
               >
                 Hacer pedido →
               </button>
@@ -674,7 +820,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         </>
       )}
 
-      {/* ── Product detail bottom sheet ─────────────────────────────────────── */}
+      {/* ── Product detail sheet ─────────────────────────────────────────────── */}
       {selectedItem && (
         <>
           <div
@@ -682,20 +828,21 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             onClick={() => setSelectedItem(null)}
           />
           <div
-            className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up"
+            className="fixed bottom-0 left-0 right-0 z-50"
             style={{
-              background: 'var(--surface)',
+              background: SURFACE,
               borderRadius: '24px 24px 0 0',
-              maxHeight: '80vh',
+              maxHeight: '82vh',
               overflowY: 'auto',
               maxWidth: 640,
               margin: '0 auto',
-              boxShadow: '0 -8px 48px rgba(0,0,0,0.25)',
+              boxShadow: '0 -8px 48px rgba(0,0,0,0.2)',
               borderTop: `2px solid ${accent}`,
+              animation: 'slideUp 0.3s cubic-bezier(0.22,1,0.36,1)',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 0' }}>
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)' }} />
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: BORDER }} />
             </div>
 
             {selectedItem.image ? (
@@ -705,37 +852,35 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                 style={{ width: '100%', height: 220, objectFit: 'cover', marginTop: 12 }}
               />
             ) : (
-              <div style={{ width: '100%', height: 160, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56, marginTop: 12 }}>
-                🍽️
+              <div style={{
+                width: '100%', height: 150, marginTop: 12,
+                background: `linear-gradient(135deg, ${accent}20, ${accent}08)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 64,
+              }}>
+                {currentCategory?.emoji ?? '🍽️'}
               </div>
             )}
 
             <div style={{ padding: '20px 20px 32px' }}>
-              {selectedItem.badge && (() => {
-                const bInfo = badgeMap[selectedItem.badge ?? '']
-                return bInfo ? (
-                  <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: bInfo.bg, color: bInfo.color, marginBottom: 10 }}>
-                    {bInfo.label}
-                  </span>
-                ) : null
-              })()}
+              {selectedItem.badge && <div style={{ marginBottom: 10 }}><Badge badge={selectedItem.badge} /></div>}
 
-              <h2 style={{ fontWeight: 800, fontSize: 22, color: 'var(--text-primary)', marginBottom: 8, lineHeight: 1.2 }}>
+              <h2 style={{ fontWeight: 800, fontSize: 22, color: TEXT_PRIMARY, marginBottom: 8, lineHeight: 1.2 }}>
                 {selectedItem.name}
               </h2>
 
               {selectedItem.description && (
-                <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 16 }}>
+                <p style={{ fontSize: 14, color: TEXT_SECONDARY, lineHeight: 1.65, marginBottom: 16 }}>
                   {selectedItem.description}
                 </p>
               )}
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                <span style={{ fontWeight: 900, fontSize: 26, color: accent }}>
+                <span style={{ fontWeight: 900, fontSize: 28, color: accent }}>
                   {fmt(selectedItem.price)}
                 </span>
                 {getQty(selectedItem.id) > 0 && (
-                  <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: 12, color: TEXT_MUTED, background: SURFACE2, borderRadius: 8, padding: '4px 10px' }}>
                     En carrito: {getQty(selectedItem.id)}
                   </span>
                 )}
@@ -745,24 +890,35 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                 <button
                   onClick={() => { addItem(selectedItem); setSelectedItem(null) }}
                   style={{
-                    width: '100%', background: accent, color: 'white',
+                    width: '100%', background: accent, color: onAccent,
                     border: 'none', borderRadius: 14, padding: '16px',
                     fontSize: 16, fontWeight: 700, cursor: 'pointer',
                     WebkitTapHighlightColor: 'transparent',
+                    letterSpacing: '0.01em',
                   }}
                 >
                   Agregar al pedido →
                 </button>
               ) : (
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface-2)', borderRadius: 12, padding: '8px 12px', flex: 1, justifyContent: 'space-between' }}>
-                    <button onClick={() => removeItem(selectedItem)} style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--border)', border: 'none', color: 'var(--text-primary)', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                    <span style={{ fontWeight: 800, fontSize: 18, minWidth: 28, textAlign: 'center' }}>{getQty(selectedItem.id)}</span>
-                    <button onClick={() => addItem(selectedItem)} style={{ width: 36, height: 36, borderRadius: '50%', background: accent, border: 'none', color: 'white', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: SURFACE2, borderRadius: 12, padding: '8px 14px',
+                    flex: 1, justifyContent: 'space-between',
+                    border: `1px solid ${BORDER}`,
+                  }}>
+                    <button onClick={() => removeItem(selectedItem)} style={{ width: 36, height: 36, borderRadius: '50%', background: BORDER, border: 'none', color: TEXT_PRIMARY, fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>−</button>
+                    <span style={{ fontWeight: 800, fontSize: 18, minWidth: 28, textAlign: 'center', color: TEXT_PRIMARY }}>{getQty(selectedItem.id)}</span>
+                    <button onClick={() => addItem(selectedItem)} style={{ width: 36, height: 36, borderRadius: '50%', background: accent, border: 'none', color: onAccent, fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>+</button>
                   </div>
                   <button
                     onClick={() => setSelectedItem(null)}
-                    style={{ padding: '0 20px', height: 52, background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    style={{
+                      padding: '0 20px', height: 52,
+                      background: SURFACE2, border: `1px solid ${BORDER}`,
+                      borderRadius: 12, fontSize: 14, fontWeight: 600,
+                      color: TEXT_SECONDARY, cursor: 'pointer', whiteSpace: 'nowrap',
+                    }}
                   >
                     Listo ✓
                   </button>
@@ -788,6 +944,24 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
           primary_color: restaurant.primary_color,
         }}
       />
+
+      <style>{`
+        @keyframes slideUp {
+          from { transform: translateY(30px); opacity: 0.8; }
+          to   { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
+          50%       { box-shadow: 0 0 0 4px rgba(255,255,255,0); }
+        }
+        .menu-grid-enter > * {
+          animation: menuFadeIn 0.2s ease both;
+        }
+        @keyframes menuFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   )
 }
