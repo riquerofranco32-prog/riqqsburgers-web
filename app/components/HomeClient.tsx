@@ -728,35 +728,51 @@ export default function HomeClient({ restaurantCount }: { restaurantCount: numbe
               </p>
             </motion.div>
 
-            {/* Card 4 — wide */}
+            {/* Card 4 — wide: feature tags */}
             <motion.div
               className="md:col-span-2"
               initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ duration: 0.55, delay: 0.2, ease }}
               style={{
                 background: 'var(--surface)', borderRadius: 24,
-                padding: 32, border: '1px solid var(--border)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: 24, flexWrap: 'wrap',
+                padding: '28px 32px', border: '1px solid var(--border)',
               }}
             >
-              {[
-                { icon: '📷', text: 'Fotos y descripciones' },
-                { icon: '🏷️', text: 'Badges y promos' },
-                { icon: '🛒', text: 'Carrito integrado' },
-                { icon: '📊', text: 'Panel admin' },
-              ].map(item => (
-                <div key={item.text} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flex: '1 1 80px', textAlign: 'center' }}>
-                  <div style={{
-                    width: 52, height: 52, borderRadius: 16,
-                    background: 'rgba(255,107,53,0.08)',
-                    border: '1px solid rgba(255,107,53,0.15)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 22,
-                  }}>{item.icon}</div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>{item.text}</span>
-                </div>
-              ))}
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 18 }}>
+                Todo incluido
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {[
+                  'Fotos y descripciones',
+                  'Badges y promos',
+                  'Carrito integrado',
+                  'Panel admin',
+                  'URL propia',
+                  'Pedidos por WhatsApp',
+                  'Sin comisiones',
+                  'Soporte incluido',
+                ].map((feat, i) => (
+                  <motion.span
+                    key={feat}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: i * 0.05, ease }}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '7px 14px',
+                      borderRadius: 999,
+                      background: i < 4 ? 'rgba(255,107,53,0.08)' : 'var(--surface-2)',
+                      border: `1px solid ${i < 4 ? 'rgba(255,107,53,0.2)' : 'var(--border)'}`,
+                      fontSize: 13, fontWeight: 600,
+                      color: i < 4 ? 'var(--text-primary)' : 'var(--text-secondary)',
+                    }}
+                  >
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: i < 4 ? 'var(--accent)' : 'var(--text-muted)', flexShrink: 0, display: 'inline-block' }} />
+                    {feat}
+                  </motion.span>
+                ))}
+              </div>
             </motion.div>
 
           </div>
