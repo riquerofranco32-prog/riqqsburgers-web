@@ -18,9 +18,10 @@ function fallbackEmoji(categoryName: string | null): string {
 interface TopProductsListProps {
   products: TopProduct[]
   loading?: boolean
+  showRevenue?: boolean
 }
 
-export function TopProductsList({ products, loading = false }: TopProductsListProps) {
+export function TopProductsList({ products, loading = false, showRevenue = true }: TopProductsListProps) {
   if (loading) {
     return (
       <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
@@ -90,8 +91,10 @@ export function TopProductsList({ products, loading = false }: TopProductsListPr
 
               {/* Metrics */}
               <div className="text-right flex-shrink-0">
-                <p className="text-sm font-mono text-dash-text">{fmtARS(product.revenue)}</p>
-                <p className="text-[11px] text-dash-muted mt-0.5">{product.quantity} uds</p>
+                {showRevenue && (
+                  <p className="text-sm font-mono text-dash-text">{fmtARS(product.revenue)}</p>
+                )}
+                <p className={`text-[11px] text-dash-muted ${showRevenue ? 'mt-0.5' : ''}`}>{product.quantity} uds</p>
               </div>
             </div>
           )

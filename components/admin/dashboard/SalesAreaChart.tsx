@@ -28,9 +28,10 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 interface SalesAreaChartProps {
   data: DailyRevenue[]
   loading?: boolean
+  chartHeight?: number
 }
 
-export function SalesAreaChart({ data, loading = false }: SalesAreaChartProps) {
+export function SalesAreaChart({ data, loading = false, chartHeight = 280 }: SalesAreaChartProps) {
   if (loading) {
     return (
       <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
@@ -45,7 +46,7 @@ export function SalesAreaChart({ data, loading = false }: SalesAreaChartProps) {
       <p className="text-[11px] uppercase tracking-wider text-dash-muted font-medium mb-5">
         Ventas últimos 7 días
       </p>
-      <ResponsiveContainer width="100%" height={280}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <AreaChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="salesGradDash" x1="0" y1="0" x2="0" y2="1">

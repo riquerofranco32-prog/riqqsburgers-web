@@ -1,11 +1,15 @@
 'use client'
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { Search, SlidersHorizontal, Camera, Loader2, Check } from 'lucide-react'
 import { createSupabaseBrowser } from '@/lib/supabase'
 import { Toast } from '@/components/admin/Toast'
 import type { Tenant, Category, Product } from '@/types/supabase'
+
+function vibrate(pattern: number | number[]) {
+  if (typeof window !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(pattern)
+}
 
 // ── Image upload ──────────────────────────────────────────────────────────────
 
@@ -240,7 +244,8 @@ function ProductModal({
                 value={form.name}
                 onChange={e => set('name', e.target.value)}
                 placeholder="Ej: AMERICAN"
-                className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${nameError ? 'border-red-500' : 'border-zinc-700'}`}
+                style={{ fontSize: 16 }}
+                className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${nameError ? 'border-red-500' : 'border-zinc-700'}`}
               />
               {nameError && <p className="text-red-400 text-xs mt-1">{nameError}</p>}
             </div>
@@ -252,7 +257,8 @@ function ProductModal({
                 onChange={e => set('description', e.target.value)}
                 placeholder="Ingredientes o descripción"
                 rows={2}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors resize-none"
+                style={{ fontSize: 16 }}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors resize-none"
               />
             </div>
 
@@ -265,7 +271,8 @@ function ProductModal({
                   onChange={e => set('price', e.target.value)}
                   min={0}
                   placeholder="9500"
-                  className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${priceError ? 'border-red-500' : 'border-zinc-700'}`}
+                  style={{ fontSize: 16 }}
+                  className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${priceError ? 'border-red-500' : 'border-zinc-700'}`}
                 />
                 {priceError && <p className="text-red-400 text-xs mt-1">{priceError}</p>}
               </div>
@@ -274,7 +281,8 @@ function ProductModal({
                 <select
                   value={form.category_id}
                   onChange={e => set('category_id', e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-yellow-400 transition-colors"
+                  style={{ fontSize: 16 }}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white outline-none focus:border-yellow-400 transition-colors"
                 >
                   <option value="">Sin categoría</option>
                   {categories.map(c => (
@@ -290,7 +298,8 @@ function ProductModal({
                 value={form.badge}
                 onChange={e => set('badge', e.target.value)}
                 placeholder="🔥 Popular"
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                style={{ fontSize: 16 }}
+                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
               />
             </div>
 
@@ -312,7 +321,8 @@ function ProductModal({
                     value={form.image_url}
                     onChange={e => set('image_url', e.target.value)}
                     placeholder="O pegá una URL de imagen"
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white text-sm placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                    style={{ fontSize: 16 }}
+                    className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
                   />
                   {uploadError && <p className="text-red-400 text-xs">{uploadError}</p>}
                 </div>
@@ -335,6 +345,7 @@ function ProductModal({
           <button
             onClick={doSave}
             disabled={saving || uploading}
+            style={{ WebkitTapHighlightColor: 'transparent', userSelect: 'none' } as React.CSSProperties}
             className="w-full bg-yellow-400 text-black font-bold py-3.5 rounded-2xl hover:bg-amber-400 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {saving ? 'Guardando...' : product ? 'Guardar cambios' : 'Crear producto'}
@@ -361,6 +372,15 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortKey>('default')
   const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [showModal])
 
   const filtered = useMemo(() => {
     let list = filterCat === 'all' ? products : products.filter(p => p.category_id === filterCat)
@@ -408,8 +428,11 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
         .select()
         .single()
       if (!error && data) {
+        vibrate(40)
         setProducts(prev => prev.map(p => p.id === editProduct.id ? data : p))
         setToast('Producto actualizado')
+      } else {
+        vibrate([50, 30, 50])
       }
     } else {
       try {
@@ -420,10 +443,15 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
         })
         if (res.ok) {
           const data: Product = await res.json() as Product
+          vibrate(40)
           setProducts(prev => [...prev, data])
           setToast('Producto creado')
+        } else {
+          vibrate([50, 30, 50])
+          setToast('Error al crear producto')
         }
       } catch {
+        vibrate([50, 30, 50])
         setToast('Error al crear producto')
       }
     }
@@ -436,7 +464,7 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
 
   async function toggleAvailable(product: Product) {
     const newVal = !product.available
-    // Optimistic update
+    vibrate(40)
     setProducts(prev => prev.map(p => p.id === product.id ? { ...p, available: newVal } : p))
     try {
       const res = await fetch(`/api/products/${product.id}`, {
@@ -446,7 +474,7 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
       })
       if (!res.ok) throw new Error('Failed')
     } catch {
-      // Revert
+      vibrate([50, 30, 50])
       setProducts(prev => prev.map(p => p.id === product.id ? { ...p, available: product.available } : p))
     }
   }
@@ -471,7 +499,8 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
         </div>
         <button
           onClick={openNew}
-          className="bg-yellow-400 text-black text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-amber-400 transition-colors flex-shrink-0"
+          style={{ WebkitTapHighlightColor: 'transparent', userSelect: 'none' } as React.CSSProperties}
+          className="bg-yellow-400 text-black text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-amber-400 transition-colors flex-shrink-0 min-h-[44px]"
         >
           + Nuevo
         </button>
@@ -485,7 +514,8 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Buscar producto..."
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl pl-9 pr-4 py-2.5 text-white text-sm placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+            style={{ fontSize: 16 }}
+            className="w-full bg-zinc-900 border border-zinc-700 rounded-xl pl-9 pr-4 py-2.5 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
           />
         </div>
         <div className="relative flex-shrink-0">
@@ -564,16 +594,23 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
                   {cat && <p className="text-zinc-500 text-xs">{cat.emoji} {cat.name}</p>}
                 </div>
 
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => toggleAvailable(product)}
                     title={product.available ? 'Deshabilitar' : 'Habilitar'}
-                    className={`w-10 h-6 rounded-full transition-colors relative ${product.available ? 'bg-yellow-400' : 'bg-zinc-700'}`}
+                    style={{
+                      width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0,
+                      WebkitTapHighlightColor: 'transparent', userSelect: 'none',
+                    } as React.CSSProperties}
                   >
-                    <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${product.available ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    <div className={`w-10 h-6 rounded-full transition-colors relative ${product.available ? 'bg-yellow-400' : 'bg-zinc-700'}`}>
+                      <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${product.available ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                    </div>
                   </button>
                   <button
                     onClick={() => openEdit(product)}
+                    style={{ WebkitTapHighlightColor: 'transparent', userSelect: 'none' } as React.CSSProperties}
                     className="text-xs text-zinc-500 hover:text-white px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-all"
                   >
                     Editar

@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
 import { ShoppingCart, DollarSign, TrendingUp, Star } from 'lucide-react'
 import { KPICard } from '@/components/admin/dashboard/KPICard'
 import { SalesAreaChart } from '@/components/admin/dashboard/SalesAreaChart'
@@ -10,15 +10,20 @@ import { TopProductsList } from '@/components/admin/dashboard/TopProductsList'
 import type { Order } from '@/types/supabase'
 import type { DashboardKPIs, DailyRevenue, CategoryRevenue, TopProduct } from '@/types/dashboard'
 
-function fmtARS(n: number) {
-  return '$' + n.toLocaleString('es-AR')
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isMobile
 }
 
-function getGreeting(): string {
-  const h = new Date().getHours()
-  if (h >= 5 && h < 12) return 'Buen día'
-  if (h >= 12 && h < 20) return 'Buenas tardes'
-  return 'Buenas noches'
+function fmtARS(n: number) {
+  return '$' + n.toLocaleString('es-AR')
 }
 
 function getDateLabel(): string {
@@ -49,7 +54,7 @@ export default function AdminDashboard({
   recentOrders,
   topProducts,
 }: AdminDashboardProps) {
-  const greeting = getGreeting()
+  const isMobile = useIsMobile()
   const dateLabel = getDateLabel()
 
   return (
@@ -117,14 +122,14 @@ export default function AdminDashboard({
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
-        <SalesAreaChart data={salesData} />
-        <CategoryDonut data={categoryData} />
+        <SalesAreaChart data={salesData} chartHeight={isMobile ? 200 : 280} />
+        <CategoryDonut data={categoryData} compact={isMobile} />
       </div>
 
       {/* Tables */}
       <div className="grid md:grid-cols-2 gap-4">
-        <RecentOrdersTable orders={recentOrders} slug={slug} tenantId={tenantId} />
-        <TopProductsList products={topProducts} />
+        <RecentOrdersTable orders={recentOrders} slug={slug} tenantId={tenantId} maxRows={isMobile ? 5 : 10} />
+        <TopProductsList products={topProducts} showRevenue={!isMobile} />
       </div>
 
     </div>

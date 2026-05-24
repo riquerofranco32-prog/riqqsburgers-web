@@ -61,9 +61,10 @@ interface RecentOrdersTableProps {
   slug: string
   tenantId: string
   loading?: boolean
+  maxRows?: number
 }
 
-export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loading = false }: RecentOrdersTableProps) {
+export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loading = false, maxRows = 10 }: RecentOrdersTableProps) {
   const [orders, setOrders] = useState(initialOrders)
 
   useEffect(() => {
@@ -151,12 +152,12 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
             </tr>
           </thead>
           <tbody>
-            {orders.slice(0, 10).map((order, idx) => (
+            {orders.slice(0, maxRows).map((order, idx) => (
               <tr
                 key={order.id}
                 className="transition-colors duration-150"
                 style={{
-                  borderBottom: idx < Math.min(orders.length, 10) - 1 ? '1px solid var(--dash-border)' : undefined,
+                  borderBottom: idx < Math.min(orders.length, maxRows) - 1 ? '1px solid var(--dash-border)' : undefined,
                   cursor: 'default',
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = 'var(--dash-surface-2)')}
@@ -194,6 +195,17 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
           </tbody>
         </table>
       </div>
+
+      {orders.length > maxRows && (
+        <div style={{ borderTop: '1px solid var(--dash-border)', padding: '10px 20px' }}>
+          <Link
+            href={`/${slug}/admin/pedidos`}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 13, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}
+          >
+            Ver todos los pedidos <ArrowRight style={{ width: 14, height: 14 }} />
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

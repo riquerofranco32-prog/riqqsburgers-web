@@ -29,9 +29,10 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: { payl
 interface CategoryDonutProps {
   data: CategoryRevenue[]
   loading?: boolean
+  compact?: boolean
 }
 
-export function CategoryDonut({ data, loading = false }: CategoryDonutProps) {
+export function CategoryDonut({ data, loading = false, compact = false }: CategoryDonutProps) {
   if (loading) {
     return (
       <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
@@ -68,15 +69,15 @@ export function CategoryDonut({ data, loading = false }: CategoryDonutProps) {
       </p>
       <div className="flex items-center gap-5">
         {/* Donut */}
-        <div className="relative flex-shrink-0" style={{ width: 220, height: 220 }}>
+        <div className="relative flex-shrink-0" style={{ width: compact ? 160 : 220, height: compact ? 160 : 220 }}>
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={enriched}
                 cx="50%"
                 cy="50%"
-                innerRadius={70}
-                outerRadius={100}
+                innerRadius={compact ? 50 : 70}
+                outerRadius={compact ? 72 : 100}
                 dataKey="value"
                 strokeWidth={0}
                 paddingAngle={2}
