@@ -96,35 +96,10 @@ export default function CheckoutModal({ isOpen, onClose, cart, onClearCart, tena
     setError('')
 
     const ref = generateRef()
-    const supabase = createSupabaseBrowser()
 
-    const { error: dbError } = await supabase.from('orders').insert({
-      tenant_id: tenant.id,
-      order_ref: ref,
-      customer_name: `${form.name} ${form.lastname}`.trim(),
-      customer_phone: form.phone || null,
-      customer_address: form.delivery === 'delivery' ? form.address : null,
-      delivery_type: form.delivery === 'delivery' ? 'domicilio' : 'retiro',
-      payment_method: form.payment === 'transfer' ? 'transfer' : 'cash',
-      notes: form.notes || null,
-      items: cart.map(i => ({
-        product_id: i.id,
-        name: i.name,
-        price: i.price,
-        quantity: i.quantity,
-      })),
-      subtotal,
-      delivery_cost: deliveryCost,
-      total: grandTotal,
-      status: 'pending',
-    })
-
-    if (dbError) {
-      setError(`No se pudo guardar el pedido. Intentá de nuevo.`)
-      setLoading(false)
-      return
-    }
-
+    // Build WhatsApp message BEFORE any async operation so window.open
+    // is called synchronously from the click handler — browsers block
+    // popups opened after an await.
     const lines = [
       `🛒 *Nuevo pedido — ${tenant.name}*`,
       `📋 Ref: *${ref}*`,
@@ -148,6 +123,34 @@ export default function CheckoutModal({ isOpen, onClose, cart, onClearCart, tena
 
     const phone = tenant.whatsapp_number.replace(/\D/g, '')
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(lines)}`, '_blank')
+
+    // DB insert is a side-effect — runs after WhatsApp opens
+    const supabase = createSupabaseBrowser()
+    const { error: dbError } = await supabase.from('orders').insert({
+      tenant_id: tenant.id,
+      order_ref: ref,
+      customer_name: `${form.name} ${form.lastname}`.trim(),
+      customer_phone: form.phone || null,
+      customer_address: form.delivery === 'delivery' ? form.address : null,
+      delivery_type: form.delivery === 'delivery' ? 'domicilio' : 'retiro',
+      payment_method: form.payment === 'transfer' ? 'transfer' : 'cash',
+      notes: form.notes || null,
+      items: cart.map(i => ({
+        product_id: i.id,
+        name: i.name,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+      subtotal,
+      delivery_cost: deliveryCost,
+      total: grandTotal,
+      status: 'pending',
+    })
+
+    if (dbError) {
+      console.error('Order insert error:', dbError)
+      // WhatsApp already opened — show success anyway, log the error silently
+    }
 
     setOrderRef(ref)
     setDone(true)
