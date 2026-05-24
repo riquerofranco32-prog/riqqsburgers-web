@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { X, Minus, Plus, Trash2 } from 'lucide-react'
+import { X, Minus, Plus, Trash2, Search } from 'lucide-react'
 import type { Restaurant, MenuItem, RestaurantBrand } from '@/lib/getRestaurant'
 import CheckoutModal from '@/components/CheckoutModal'
 import InfoRotator from '@/components/menu/InfoRotator'
@@ -19,6 +19,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     restaurant.menu.categories[0]?.id ?? ''
   )
   const [animKey, setAnimKey] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null)
   const [cart, setCart] = useState<CartItem[]>(() => {
     if (typeof window === 'undefined') return []
@@ -92,7 +93,6 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     }
   }, [restaurant.brand])
 
-  const currentCategory = restaurant.menu.categories.find(c => c.id === activeCategory)
   const b: RestaurantBrand | null = restaurant.brand ?? null
   const accent = b?.accent ?? restaurant.accent_color
 
@@ -110,331 +110,413 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
     'Agotado': { bg: '#e5e7eb', color: '#374151', label: '😴 Agotado' },
   }
 
+  const currentCategory = restaurant.menu.categories.find(c => c.id === activeCategory)
+
+  const filteredProducts = searchQuery.trim()
+    ? restaurant.menu.categories
+        .flatMap(c => c.items)
+        .filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : currentCategory?.items ?? []
+
+  const SEARCH_HEIGHT = 60
+  const CATS_HEIGHT = 80
+
   return (
     <div
       className="min-h-screen"
-      style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)', '--accent': accent } as React.CSSProperties}
+      style={{ backgroundColor: '#F5F5F5', color: 'var(--text-primary)', '--accent': accent } as React.CSSProperties}
     >
 
-      {/* ── Header ──────────────────────────────────────────────────────── */}
-      <header style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-        background: 'var(--surface)',
-        borderBottom: '1px solid var(--border)',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        maxHeight: 64,
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          padding: '10px 16px',
-          maxWidth: 640,
-          margin: '0 auto',
-        }}>
-          {restaurant.logo ? (
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <header style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+        {restaurant.banner_url ? (
+          <>
             <img
-              src={restaurant.logo}
+              src={restaurant.banner_url}
               alt={restaurant.name}
-              style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
             />
-          ) : (
             <div style={{
-              width: 42,
-              height: 42,
-              borderRadius: 12,
-              background: accent,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 800,
-              fontSize: 18,
-              flexShrink: 0,
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.2))',
+            }} />
+          </>
+        ) : (
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: accent,
+          }}>
+            {/* Grain overlay for solid bg */}
+            <div style={{
+              position: 'absolute', inset: 0, opacity: 0.06,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+              backgroundSize: '150px 150px',
+            }} />
+          </div>
+        )}
+
+        {/* Content */}
+        <div style={{
+          position: 'relative', zIndex: 1,
+          height: '100%', display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '0 20px',
+          maxWidth: 640, margin: '0 auto',
+        }}>
+          {/* Status badge top-right */}
+          <div style={{ position: 'absolute', top: 14, right: 16 }}>
+            <span style={{
+              padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+              background: restaurant.is_open ? 'rgba(34,197,94,0.85)' : 'rgba(239,68,68,0.85)',
+              color: '#fff', backdropFilter: 'blur(6px)',
             }}>
-              {restaurant.name.charAt(0).toUpperCase()}
+              {restaurant.is_open ? '● Abierto' : '● Cerrado'}
+            </span>
+          </div>
+
+          {/* Logo */}
+          {restaurant.logo && (
+            <div style={{
+              width: 56, height: 56, borderRadius: 16,
+              overflow: 'hidden', marginBottom: 10,
+              border: '2px solid rgba(255,255,255,0.3)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            }}>
+              <img src={restaurant.logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
           )}
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontWeight: 700,
-              fontSize: 15,
-              color: 'var(--text-primary)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}>
-              {restaurant.name}
-            </div>
-            <InfoRotator items={infoItems} accent={accent} />
-          </div>
-
-          <div style={{
-            flexShrink: 0,
-            padding: '4px 10px',
-            borderRadius: 20,
-            fontSize: 11,
-            fontWeight: 700,
-            background: restaurant.is_open ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
-            color: restaurant.is_open ? '#22c55e' : '#ef4444',
-            border: `1px solid ${restaurant.is_open ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
+          <h1 style={{
+            fontSize: 28, fontWeight: 800, color: '#fff',
+            textAlign: 'center', lineHeight: 1.1, marginBottom: 8,
+            textShadow: '0 2px 8px rgba(0,0,0,0.3)',
           }}>
-            {restaurant.is_open ? 'Abierto' : 'Cerrado'}
-          </div>
+            {restaurant.name}
+          </h1>
+
+          {infoItems.length > 0 && (
+            <div style={{ color: 'rgba(255,255,255,0.85)' }}>
+              <InfoRotator items={infoItems} accent="#fff" />
+            </div>
+          )}
         </div>
       </header>
 
-      {/* ── Categorías ──────────────────────────────────────────────────── */}
+      {/* ── Search bar ──────────────────────────────────────────────────────── */}
       <div style={{
-        position: 'sticky',
-        top: 64,
-        zIndex: 40,
-        background: 'var(--bg)',
-        borderBottom: '1px solid var(--border)',
+        position: 'sticky', top: 0, zIndex: 40,
+        background: '#F5F5F5',
+        padding: '10px 16px',
       }}>
-        <div
-          className="categories-bar"
-          style={{
-            display: 'flex',
-            gap: 6,
-            padding: '10px 16px',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch',
-          }}
-        >
-          {restaurant.menu.categories.map(cat => {
-            const isActive = activeCategory === cat.id
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  if (cat.id !== activeCategory) {
-                    setActiveCategory(cat.id)
-                    setAnimKey(k => k + 1)
-                  }
-                }}
-                style={{
-                  flexShrink: 0,
-                  padding: '7px 14px',
-                  borderRadius: 20,
-                  border: 'none',
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: 13,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  background: isActive ? accent : 'var(--surface)',
-                  color: isActive ? 'white' : 'var(--text-secondary)',
-                  boxShadow: isActive ? `0 2px 8px ${accent}40` : '0 1px 3px rgba(0,0,0,0.06)',
-                  transform: isActive ? 'scale(1.05)' : 'scale(1)',
-                }}
-              >
-                {cat.emoji && <span style={{ marginRight: 4 }}>{cat.emoji}</span>}
-                {cat.name}
-              </button>
-            )
-          })}
+        <div style={{
+          maxWidth: 640, margin: '0 auto', position: 'relative',
+        }}>
+          <Search
+            size={16}
+            style={{
+              position: 'absolute', left: 16, top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'var(--text-muted)', pointerEvents: 'none',
+            }}
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Buscar productos..."
+            style={{
+              width: '100%',
+              borderRadius: 999,
+              border: '1px solid var(--border)',
+              padding: '12px 20px 12px 40px',
+              background: '#fff',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              fontSize: 14,
+              color: 'var(--text-primary)',
+              outline: 'none',
+              boxSizing: 'border-box',
+              fontFamily: 'inherit',
+            }}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute', right: 14, top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'var(--border)', border: 'none',
+                width: 20, height: 20, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: 'var(--text-muted)',
+              }}
+            >
+              <X size={11} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ── Productos ───────────────────────────────────────────────────── */}
+      {/* ── Categorías ──────────────────────────────────────────────────────── */}
+      {!searchQuery && (
+        <div style={{
+          position: 'sticky',
+          top: SEARCH_HEIGHT,
+          zIndex: 39,
+          background: '#F5F5F5',
+          paddingBottom: 4,
+        }}>
+          <div
+            className="categories-bar"
+            style={{
+              display: 'flex',
+              gap: 8,
+              padding: '8px 16px 10px',
+              overflowX: 'auto',
+              scrollbarWidth: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {restaurant.menu.categories.map(cat => {
+              const isActive = activeCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    if (cat.id !== activeCategory) {
+                      setActiveCategory(cat.id)
+                      setAnimKey(k => k + 1)
+                    }
+                  }}
+                  style={{
+                    flexShrink: 0,
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', gap: 3,
+                    padding: '10px 14px',
+                    borderRadius: 16,
+                    border: isActive ? 'none' : '1px solid var(--border)',
+                    fontWeight: isActive ? 700 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    background: isActive ? accent : '#fff',
+                    color: isActive ? 'white' : 'var(--text-secondary)',
+                    boxShadow: isActive ? `0 4px 12px ${accent}40` : 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    minWidth: 60,
+                  }}
+                >
+                  <span style={{ fontSize: 24, lineHeight: 1 }}>{cat.emoji}</span>
+                  <span style={{ fontSize: 11, whiteSpace: 'nowrap' }}>{cat.name}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Productos ───────────────────────────────────────────────────────── */}
       <div style={{
         maxWidth: 640,
         margin: '0 auto',
-        padding: '12px 12px 120px',
+        padding: '8px 12px 120px',
       }}>
-        {currentCategory && currentCategory.items.length > 0 ? (
-          <div key={animKey} className="menu-grid-enter">
-          {currentCategory.items.map((item) => {
-            const qty = getQty(item.id)
-            const soldOut = item.badge === 'Agotado'
-            const badgeInfo = item.badge ? badgeMap[item.badge] : null
+        {searchQuery && (
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10, paddingLeft: 4 }}>
+            {filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''} para &ldquo;{searchQuery}&rdquo;
+          </p>
+        )}
 
-            return (
-              <div
-                key={item.id}
-                onClick={() => !soldOut && setSelectedItem(item)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  background: 'var(--surface)',
-                  border: `1px solid ${qty > 0 ? accent + '40' : 'var(--border)'}`,
-                  borderRadius: 16,
-                  padding: '12px',
-                  marginBottom: 10,
-                  opacity: soldOut ? 0.5 : 1,
-                  transition: 'all 0.2s ease',
-                  boxShadow: qty > 0 ? `0 2px 12px ${accent}20` : 'none',
-                  cursor: soldOut ? 'default' : 'pointer',
-                  WebkitTapHighlightColor: 'transparent',
-                }}
-              >
-                {/* Imagen */}
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    style={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 12,
-                      objectFit: 'cover',
-                      flexShrink: 0,
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: 12,
-                    background: 'var(--surface-2)',
-                    flexShrink: 0,
+        {filteredProducts.length > 0 ? (
+          <div key={animKey} className={searchQuery ? '' : 'menu-grid-enter'}>
+            {filteredProducts.map((item) => {
+              const qty = getQty(item.id)
+              const soldOut = item.badge === 'Agotado'
+              const badgeInfo = item.badge ? badgeMap[item.badge] : null
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => !soldOut && setSelectedItem(item)}
+                  style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 28,
-                  }}>
-                    🍽️
-                  </div>
-                )}
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    background: '#fff',
+                    borderRadius: 16,
+                    padding: 14,
+                    marginBottom: 8,
+                    opacity: soldOut ? 0.55 : 1,
+                    boxShadow: qty > 0
+                      ? `0 2px 12px ${accent}25`
+                      : '0 1px 4px rgba(0,0,0,0.06)',
+                    border: `1px solid ${qty > 0 ? accent + '35' : 'transparent'}`,
+                    cursor: soldOut ? 'default' : 'pointer',
+                    WebkitTapHighlightColor: 'transparent',
+                    transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                  }}
+                >
+                  {/* Info (left) */}
+                  <div style={{ flex: 1, minWidth: 0, paddingRight: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 4 }}>
+                      <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', lineHeight: 1.3 }}>
+                        {item.name}
+                      </span>
+                    </div>
 
-                {/* Info */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', lineHeight: 1.3 }}>
-                      {item.name}
-                    </span>
                     {badgeInfo && (
                       <span style={{
-                        flexShrink: 0,
-                        fontSize: 10,
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: 6,
-                        background: badgeInfo.bg,
-                        color: badgeInfo.color,
+                        display: 'inline-block',
+                        fontSize: 10, fontWeight: 700,
+                        padding: '2px 7px', borderRadius: 6,
+                        background: badgeInfo.bg, color: badgeInfo.color,
+                        marginBottom: 5,
                       }}>
                         {badgeInfo.label}
                       </span>
                     )}
+
+                    {item.description && (
+                      <p style={{
+                        fontSize: 12,
+                        color: 'var(--text-muted)',
+                        margin: '0 0 8px',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical' as React.CSSProperties['WebkitBoxOrient'],
+                        overflow: 'hidden',
+                        lineHeight: 1.45,
+                      }}>
+                        {item.description}
+                      </p>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: 800, fontSize: 16, color: accent }}>
+                        {fmt(item.price)}
+                      </span>
+
+                      {/* Qty stepper (inline, when > 0 and no image) */}
+                      {!item.image && !soldOut && qty > 0 && (
+                        <div
+                          onClick={e => e.stopPropagation()}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 8,
+                            background: 'var(--surface-2)', borderRadius: 20, padding: '4px 8px',
+                          }}
+                        >
+                          <button
+                            onClick={() => removeItem(item)}
+                            style={{
+                              width: 26, height: 26, borderRadius: '50%',
+                              background: 'var(--border)', border: 'none',
+                              color: 'var(--text-primary)', fontSize: 18,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}
+                          >−</button>
+                          <span style={{ fontWeight: 700, fontSize: 14, minWidth: 18, textAlign: 'center' }}>{qty}</span>
+                          <button
+                            onClick={() => addItem(item)}
+                            style={{
+                              width: 26, height: 26, borderRadius: '50%',
+                              background: accent, border: 'none', color: 'white', fontSize: 18,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}
+                          >+</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {item.description && (
-                    <p style={{
-                      fontSize: 12,
-                      color: 'var(--text-muted)',
-                      margin: '2px 0 6px',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical' as React.CSSProperties['WebkitBoxOrient'],
-                      overflow: 'hidden',
-                      lineHeight: 1.4,
-                    }}>
-                      {item.description}
-                    </p>
-                  )}
-
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontWeight: 800, fontSize: 16, color: 'var(--text-primary)' }}>
-                      {fmt(item.price)}
-                    </span>
-
-                    {soldOut ? (
-                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No disponible</span>
-                    ) : qty === 0 ? (
-                      <button
-                        onClick={e => { e.stopPropagation(); addItem(item) }}
-                        style={{
-                          width: 36,
-                          height: 36,
-                          borderRadius: '50%',
-                          background: accent,
-                          color: 'white',
-                          border: 'none',
-                          fontSize: 22,
-                          fontWeight: 300,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'transform 0.1s ease',
-                          flexShrink: 0,
-                          WebkitTapHighlightColor: 'transparent',
-                        }}
-                        onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.88)')}
-                        onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
-                      >
-                        +
-                      </button>
+                  {/* Image (right) + add button */}
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        style={{ width: 90, height: 90, borderRadius: 12, objectFit: 'cover', display: 'block' }}
+                      />
                     ) : (
-                      <div
-                        onClick={e => e.stopPropagation()}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          background: 'var(--surface-2)',
-                          borderRadius: 20,
-                          padding: '4px 8px',
-                        }}>
+                      <div style={{
+                        width: 90, height: 90, borderRadius: 12,
+                        background: 'var(--surface-2)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 32,
+                      }}>🍽️</div>
+                    )}
+
+                    {/* + button or qty stepper on image */}
+                    {!soldOut && (
+                      qty === 0 ? (
                         <button
-                          onClick={() => removeItem(item)}
+                          onClick={e => { e.stopPropagation(); addItem(item) }}
                           style={{
-                            width: 28, height: 28,
-                            borderRadius: '50%',
-                            background: 'var(--border)',
-                            border: 'none',
-                            color: 'var(--text-primary)',
-                            fontSize: 18,
+                            position: 'absolute', bottom: -6, right: -6,
+                            width: 32, height: 32, borderRadius: '50%',
+                            background: accent, color: 'white',
+                            border: '2.5px solid #fff',
+                            fontSize: 22, fontWeight: 300,
                             cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: `0 2px 8px ${accent}60`,
+                            transition: 'transform 0.1s ease',
+                            WebkitTapHighlightColor: 'transparent',
+                          }}
+                          onTouchStart={e => (e.currentTarget.style.transform = 'scale(0.88)')}
+                          onTouchEnd={e => (e.currentTarget.style.transform = 'scale(1)')}
+                        >+</button>
+                      ) : (
+                        <div
+                          onClick={e => e.stopPropagation()}
+                          style={{
+                            position: 'absolute', bottom: -10, right: -6,
+                            display: 'flex', alignItems: 'center', gap: 4,
+                            background: '#fff',
+                            borderRadius: 20, padding: '3px 6px',
+                            boxShadow: `0 2px 8px ${accent}50`,
+                            border: `1px solid ${accent}30`,
                           }}
                         >
-                          −
-                        </button>
-                        <span style={{ fontWeight: 700, fontSize: 15, minWidth: 20, textAlign: 'center' }}>
-                          {qty}
-                        </span>
-                        <button
-                          onClick={() => addItem(item)}
-                          style={{
-                            width: 28, height: 28,
-                            borderRadius: '50%',
-                            background: accent,
-                            border: 'none',
-                            color: 'white',
-                            fontSize: 18,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          +
-                        </button>
-                      </div>
+                          <button
+                            onClick={() => removeItem(item)}
+                            style={{
+                              width: 24, height: 24, borderRadius: '50%',
+                              background: accent + '15', border: 'none',
+                              color: accent, fontSize: 16,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}
+                          >−</button>
+                          <span style={{ fontWeight: 700, fontSize: 13, minWidth: 16, textAlign: 'center', color: 'var(--text-primary)' }}>{qty}</span>
+                          <button
+                            onClick={() => addItem(item)}
+                            style={{
+                              width: 24, height: 24, borderRadius: '50%',
+                              background: accent, border: 'none', color: 'white', fontSize: 16,
+                              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}
+                          >+</button>
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '48px 0', color: 'var(--text-muted)' }}>
-            <p style={{ fontSize: 32, marginBottom: 8 }}>{currentCategory?.emoji ?? '🍽️'}</p>
-            <p style={{ fontSize: 14 }}>Próximamente en esta categoría</p>
+          <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+            <p style={{ fontSize: 36, marginBottom: 12 }}>
+              {searchQuery ? '🔍' : (currentCategory?.emoji ?? '🍽️')}
+            </p>
+            <p style={{ fontSize: 15, fontWeight: 600, marginBottom: 4, color: 'var(--text-secondary)' }}>
+              {searchQuery ? 'Sin resultados' : 'Próximamente'}
+            </p>
+            <p style={{ fontSize: 13 }}>
+              {searchQuery ? `No hay productos que coincidan con "${searchQuery}"` : 'Productos en esta categoría próximamente'}
+            </p>
           </div>
         )}
       </div>
 
-      {/* ── Cart bar ────────────────────────────────────────────────────── */}
+      {/* ── Cart bar ────────────────────────────────────────────────────────── */}
       {totalItems > 0 && !selectedItem && (
         <button
           onClick={() => setCartOpen(true)}
@@ -446,32 +528,45 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
             zIndex: 60,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            background: 'var(--accent)',
+            background: accent,
             color: 'white',
             border: 'none',
             borderRadius: 16,
-            padding: '14px 20px',
+            padding: '16px 20px',
             cursor: 'pointer',
-            fontWeight: 700,
-            fontSize: 15,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            boxShadow: `0 8px 32px ${accent}55`,
             WebkitTapHighlightColor: 'transparent',
+            maxWidth: 608,
+            margin: '0 auto',
           } as React.CSSProperties}
         >
+          {/* Left: count badge */}
           <span style={{
-            background: 'rgba(255,255,255,0.25)',
-            borderRadius: 20,
-            padding: '2px 10px',
-            fontSize: 13,
+            background: '#fff',
+            color: accent,
+            borderRadius: 20, padding: '2px 10px',
+            fontSize: 13, fontWeight: 800,
+            minWidth: 28, textAlign: 'center',
           }}>
-            {totalItems} {totalItems === 1 ? 'item' : 'items'}
+            {totalItems}
           </span>
-          <span style={{ fontWeight: 800 }}>{fmt(totalPrice)}</span>
+
+          {/* Center: label */}
+          <span style={{
+            flex: 1, textAlign: 'center',
+            fontWeight: 700, fontSize: 15,
+          }}>
+            Ver pedido
+          </span>
+
+          {/* Right: price */}
+          <span style={{ fontWeight: 800, fontSize: 15 }}>
+            {fmt(totalPrice)}
+          </span>
         </button>
       )}
 
-      {/* ── Cart drawer ─────────────────────────────────────────────────── */}
+      {/* ── Cart drawer ─────────────────────────────────────────────────────── */}
       {cartOpen && (
         <>
           <div
@@ -490,12 +585,10 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               borderTop: b ? `2px solid ${b.accent}` : undefined,
             }}
           >
-            {/* Handle mobile */}
             <div className="flex justify-center pt-3 pb-1 md:hidden flex-shrink-0">
               <div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--border)' }} />
             </div>
 
-            {/* Header */}
             <div
               className="flex items-center justify-between px-5 py-4 border-b flex-shrink-0"
               style={{ borderColor: 'var(--border)' }}
@@ -510,7 +603,6 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               </button>
             </div>
 
-            {/* Items */}
             <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3">
               {cart.map(item => (
                 <div key={item.id} className="flex items-center gap-3">
@@ -559,7 +651,6 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               ))}
             </div>
 
-            {/* Summary */}
             <div className="border-t flex-shrink-0" style={{ borderColor: 'var(--border)' }}>
               <div className="px-5 py-4 flex justify-between items-center">
                 <span className="font-black text-xl" style={{ color: 'var(--text-primary)' }}>Total</span>
@@ -567,7 +658,6 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               </div>
             </div>
 
-            {/* CTA */}
             <div
               className="px-4 pt-3 flex-shrink-0 border-t"
               style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', borderColor: 'var(--border)' }}
@@ -584,7 +674,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         </>
       )}
 
-      {/* ── Product detail bottom sheet ─────────────────────────────────── */}
+      {/* ── Product detail bottom sheet ─────────────────────────────────────── */}
       {selectedItem && (
         <>
           <div
@@ -604,12 +694,10 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               borderTop: `2px solid ${accent}`,
             }}
           >
-            {/* Handle */}
             <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 0' }}>
               <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--border)' }} />
             </div>
 
-            {/* Image */}
             {selectedItem.image ? (
               <img
                 src={selectedItem.image}
@@ -622,20 +710,12 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               </div>
             )}
 
-            {/* Info */}
             <div style={{ padding: '20px 20px 32px' }}>
-              {/* Badge */}
               {selectedItem.badge && (() => {
-                const badgeMap: Record<string, { bg: string; color: string; label: string }> = {
-                  'Popular': { bg: '#fef08a', color: '#854d0e', label: '🔥 Popular' },
-                  'Nuevo':   { bg: '#bfdbfe', color: '#1e40af', label: '✨ Nuevo' },
-                  'Promo':   { bg: '#fecaca', color: '#991b1b', label: '🏷️ Promo' },
-                  'Agotado': { bg: '#e5e7eb', color: '#374151', label: '😴 Agotado' },
-                }
-                const b = badgeMap[selectedItem.badge]
-                return b ? (
-                  <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: b.bg, color: b.color, marginBottom: 10 }}>
-                    {b.label}
+                const bInfo = badgeMap[selectedItem.badge ?? '']
+                return bInfo ? (
+                  <span style={{ display: 'inline-block', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: bInfo.bg, color: bInfo.color, marginBottom: 10 }}>
+                    {bInfo.label}
                   </span>
                 ) : null
               })()}
@@ -651,7 +731,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
               )}
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                <span style={{ fontWeight: 900, fontSize: 26, color: 'var(--text-primary)' }}>
+                <span style={{ fontWeight: 900, fontSize: 26, color: accent }}>
                   {fmt(selectedItem.price)}
                 </span>
                 {getQty(selectedItem.id) > 0 && (
@@ -661,20 +741,13 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
                 )}
               </div>
 
-              {/* Controls */}
               {getQty(selectedItem.id) === 0 ? (
                 <button
                   onClick={() => { addItem(selectedItem); setSelectedItem(null) }}
                   style={{
-                    width: '100%',
-                    background: accent,
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: 14,
-                    padding: '16px',
-                    fontSize: 16,
-                    fontWeight: 700,
-                    cursor: 'pointer',
+                    width: '100%', background: accent, color: 'white',
+                    border: 'none', borderRadius: 14, padding: '16px',
+                    fontSize: 16, fontWeight: 700, cursor: 'pointer',
                     WebkitTapHighlightColor: 'transparent',
                   }}
                 >
@@ -700,7 +773,7 @@ export default function CatalogClient({ restaurant }: { restaurant: Restaurant }
         </>
       )}
 
-      {/* ── Checkout modal ───────────────────────────────────────────────── */}
+      {/* ── Checkout modal ───────────────────────────────────────────────────── */}
       <CheckoutModal
         isOpen={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}

@@ -38,6 +38,7 @@ export interface Restaurant {
   phone: string
   instagram: string
   logo: string
+  banner_url: string
   accent_color: string
   primary_color: string
   delivery_cost: number
@@ -63,6 +64,7 @@ function mapToRestaurant(
     phone: tenant.whatsapp_number,
     instagram: tenant.instagram_handle ?? '',
     logo: tenant.logo_url ?? '',
+    banner_url: tenant.banner_url ?? '',
     accent_color: tenant.primary_color ?? '#FF6B35',
     primary_color: tenant.primary_color ?? '#FF6B35',
     delivery_cost: tenant.delivery_cost ?? 0,
