@@ -67,9 +67,15 @@ export function KPICard({ label, value, change, changeLabel, sub, icon: Icon, lo
             ? 'bg-red-400/10 text-red-400'
             : 'bg-dash-surface-2 text-dash-muted'
         }`}>
-          <span>{isPositive ? '↑' : '↓'} {isPositive ? '+' : ''}{change.toFixed(1)}%</span>
+          <span>
+            {isPositive ? '↑' : isNegative ? '↓' : ''}
+            {isPositive ? '+' : ''}
+            {(change as number).toFixed(1)}%
+          </span>
           {changeLabel && <span className="opacity-60 ml-0.5">{changeLabel}</span>}
         </div>
+      ) : change === null || change === undefined ? (
+        <p className="text-[11px] font-medium" style={{ color: 'var(--dash-muted)' }}>—</p>
       ) : sub ? (
         <p className="text-[11px] text-dash-muted/60 leading-none truncate">{sub}</p>
       ) : null}

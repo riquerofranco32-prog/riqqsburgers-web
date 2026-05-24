@@ -60,11 +60,13 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
                 fontWeight: isActive ? 600 : 400,
                 color: isActive ? 'var(--accent)' : 'var(--dash-muted)',
                 background: isActive ? 'var(--dash-surface-2)' : 'transparent',
-                borderLeft: isActive && !collapsed ? '2px solid var(--accent)' : '2px solid transparent',
+                borderLeft: isActive && !collapsed ? '3px solid var(--accent)' : '3px solid transparent',
                 textDecoration: 'none',
                 transition: 'all 0.15s',
                 whiteSpace: 'nowrap',
               }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'var(--dash-surface-2)'; e.currentTarget.style.color = 'var(--dash-text)' } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--dash-muted)' } }}
             >
               <span style={{ fontSize: 16 }}>{item.icon}</span>
               {!collapsed && item.label}
@@ -199,8 +201,8 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
           onClick={closeMobile}
           style={{
             position: 'fixed', inset: 0, zIndex: 65,
-            background: 'rgba(0,0,0,0.55)',
-            backdropFilter: 'blur(2px)',
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
           }}
         />
       )}
@@ -320,7 +322,7 @@ export default function AdminShell({ children, tenantName, slug }: AdminShellPro
                   fontSize: 15, fontWeight: isActive ? 600 : 400,
                   color: isActive ? 'var(--accent)' : 'var(--dash-muted)',
                   background: isActive ? 'var(--dash-surface-2)' : 'transparent',
-                  borderLeft: isActive ? '2px solid var(--accent)' : '2px solid transparent',
+                  borderLeft: isActive ? '3px solid var(--accent)' : '3px solid transparent',
                   textDecoration: 'none', transition: 'all 0.15s',
                 }}
               >

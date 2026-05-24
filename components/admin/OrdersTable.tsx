@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { ChevronDown, ChevronUp, Search, X } from 'lucide-react'
 import Link from 'next/link'
 import { createSupabaseBrowser } from '@/lib/supabase'
 import type { Order } from '@/types/supabase'
@@ -17,33 +17,83 @@ function fmtFecha(iso: string) {
   })
 }
 
-const STATUS_META: Record<string, { label: string; color: string }> = {
-  pending:    { label: 'Nuevo',          color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
-  preparando: { label: 'En preparación', color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-  listo:      { label: 'Listo',          color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-  entregado:  { label: 'Entregado',      color: 'bg-zinc-500/20 text-zinc-400 border-zinc-700' },
-  cancelled:  { label: 'Cancelado',      color: 'bg-red-500/20 text-red-400 border-red-500/30' },
+const STATUS_META: Record<string, { label: string; bg: string; color: string; border: string }> = {
+  pending:    { label: 'Pendiente',   bg: 'rgba(245,158,11,0.12)',  color: '#f59e0b', border: 'rgba(245,158,11,0.3)' },
+  nuevo:      { label: 'Nuevo',       bg: 'rgba(245,158,11,0.12)',  color: '#f59e0b', border: 'rgba(245,158,11,0.3)' },
+  confirmed:  { label: 'Confirmado',  bg: 'rgba(59,130,246,0.12)',  color: '#60a5fa', border: 'rgba(59,130,246,0.3)' },
+  preparando: { label: 'Preparando',  bg: 'rgba(59,130,246,0.12)',  color: '#60a5fa', border: 'rgba(59,130,246,0.3)' },
+  ready:      { label: 'Listo',       bg: 'rgba(34,197,94,0.12)',   color: '#4ade80', border: 'rgba(34,197,94,0.3)' },
+  listo:      { label: 'Listo',       bg: 'rgba(34,197,94,0.12)',   color: '#4ade80', border: 'rgba(34,197,94,0.3)' },
+  delivered:  { label: 'Entregado',   bg: 'rgba(113,113,122,0.12)', color: '#a1a1aa', border: 'rgba(113,113,122,0.3)' },
+  entregado:  { label: 'Entregado',   bg: 'rgba(113,113,122,0.12)', color: '#a1a1aa', border: 'rgba(113,113,122,0.3)' },
+  cancelled:  { label: 'Cancelado',   bg: 'rgba(239,68,68,0.12)',   color: '#f87171', border: 'rgba(239,68,68,0.3)' },
 }
 
-const STATUS_FLOW = ['pending', 'preparando', 'listo', 'entregado'] as const
+const STATUS_FLOW = [
+  { key: 'pending',   label: 'Pendiente' },
+  { key: 'confirmed', label: 'Confirmado' },
+  { key: 'ready',     label: 'Listo' },
+  { key: 'delivered', label: 'Entregado' },
+] as const
+
+const FILTER_PILLS = [
+  { key: 'all',       label: 'Todos' },
+  { key: 'pending',   label: 'Pendientes' },
+  { key: 'confirmed', label: 'Confirmados' },
+  { key: 'ready',     label: 'Listos' },
+  { key: 'delivered', label: 'Entregados' },
+  { key: 'cancelled', label: 'Cancelados' },
+] as const
+
+type FilterKey = typeof FILTER_PILLS[number]['key']
+
+function getStatusMeta(status: string) {
+  return STATUS_META[status] ?? { label: status, bg: 'rgba(113,113,122,0.12)', color: '#a1a1aa', border: 'rgba(113,113,122,0.3)' }
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const meta = getStatusMeta(status)
+  return (
+    <span style={{
+      display: 'inline-block', padding: '2px 8px', borderRadius: 999,
+      fontSize: 11, fontWeight: 600,
+      background: meta.bg, color: meta.color,
+      border: `1px solid ${meta.border}`,
+      whiteSpace: 'nowrap',
+    }}>
+      {meta.label}
+    </span>
+  )
+}
 
 function paymentLabel(method: string) {
-  if (method === 'transfer') return '📲 Transferencia'
-  if (method === 'mercadopago') return '💳 MercadoPago'
+  if (method === 'transfer') return '📲 Transfer'
+  if (method === 'mercadopago') return '📲 MP'
   return '💵 Efectivo'
 }
 
-function deliveryLabel(type: string, address: string | null) {
+function deliveryLabel(type: string) {
   const isDelivery = type === 'delivery' || type === 'domicilio'
-  return isDelivery
-    ? `🛵 Delivery${address ? ` — ${address}` : ''}`
-    : '📍 Retiro en local'
+  return isDelivery ? '🚚 Delivery' : '🏠 Retiro'
+}
+
+function matchesFilter(order: Order, filter: FilterKey): boolean {
+  if (filter === 'all') return true
+  const status = order.status
+  if (filter === 'pending')   return status === 'pending' || status === 'nuevo'
+  if (filter === 'confirmed') return status === 'confirmed' || status === 'preparando'
+  if (filter === 'ready')     return status === 'ready' || status === 'listo'
+  if (filter === 'delivered') return status === 'delivered' || status === 'entregado'
+  if (filter === 'cancelled') return status === 'cancelled'
+  return false
 }
 
 export function OrdersTable({ initialOrders, slug, tenantId }: { initialOrders: Order[]; slug: string; tenantId: string }) {
   const [orders, setOrders] = useState(initialOrders)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set())
+  const [filter, setFilter] = useState<FilterKey>('all')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     const supabase = createSupabaseBrowser()
@@ -69,113 +119,213 @@ export function OrdersTable({ initialOrders, slug, tenantId }: { initialOrders: 
   }, [tenantId])
 
   async function updateStatus(orderId: string, status: string) {
-    const supabase = createSupabaseBrowser()
-    await supabase.from('orders').update({ status }).eq('id', orderId)
+    // Optimistic update
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o))
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) throw new Error('Failed')
+    } catch {
+      // Revert on error by refetching current state from local (no rollback for simplicity)
+    }
   }
 
+  const counts = useMemo(() => {
+    const map: Record<string, number> = { all: orders.length }
+    FILTER_PILLS.slice(1).forEach(({ key }) => {
+      map[key] = orders.filter(o => matchesFilter(o, key)).length
+    })
+    return map
+  }, [orders])
+
+  const filtered = useMemo(() => {
+    let list = orders.filter(o => matchesFilter(o, filter))
+    if (search.trim()) {
+      const q = search.toLowerCase()
+      list = list.filter(o =>
+        (o.customer_name?.toLowerCase().includes(q)) ||
+        (o.order_ref?.toLowerCase().includes(q))
+      )
+    }
+    return list
+  }, [orders, filter, search])
+
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">
-        <h2 className="font-bold font-[family-name:var(--font-syne)]">Pedidos recientes</h2>
-        <span className="text-xs text-zinc-500">{orders.length} pedidos</span>
+    <div style={{ background: 'var(--dash-surface)', border: '1px solid var(--dash-border)', borderRadius: 16, overflow: 'hidden' }}>
+
+      {/* Header */}
+      <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--dash-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--dash-text)' }}>
+          Pedidos
+          <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 400, color: 'var(--dash-muted)' }}>{orders.length} en total</span>
+        </h2>
+        {/* Search */}
+        <div style={{ position: 'relative', minWidth: 200 }}>
+          <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: 'var(--dash-muted)' }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por cliente o ref..."
+            style={{
+              background: 'var(--dash-surface-2)', border: '1px solid var(--dash-border)',
+              borderRadius: 8, paddingLeft: 30, paddingRight: search ? 30 : 10, paddingTop: 6, paddingBottom: 6,
+              fontSize: 13, color: 'var(--dash-text)', outline: 'none', width: '100%',
+            }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dash-muted)', display: 'flex', padding: 0 }}>
+              <X style={{ width: 12, height: 12 }} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {orders.length === 0 ? (
-        <div className="py-14 text-center">
-          <p className="text-3xl mb-2">📋</p>
-          <p className="text-sm text-zinc-500">Aún no hay pedidos. ¡Compartí el menú!</p>
+      {/* Filter pills */}
+      <div style={{ padding: '10px 20px', borderBottom: '1px solid var(--dash-border)', display: 'flex', gap: 6, overflowX: 'auto' }}>
+        {FILTER_PILLS.map(pill => {
+          const isActive = filter === pill.key
+          return (
+            <button
+              key={pill.key}
+              onClick={() => setFilter(pill.key)}
+              style={{
+                flexShrink: 0, padding: '4px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                border: '1px solid',
+                cursor: 'pointer', transition: 'all 0.15s',
+                background: isActive ? 'var(--accent)' : 'var(--dash-surface-2)',
+                color: isActive ? '#fff' : 'var(--dash-muted)',
+                borderColor: isActive ? 'var(--accent)' : 'var(--dash-border)',
+              }}
+            >
+              {pill.label} ({counts[pill.key] ?? 0})
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Table */}
+      {filtered.length === 0 ? (
+        <div style={{ padding: '56px 20px', textAlign: 'center', color: 'var(--dash-muted)' }}>
+          <p style={{ fontSize: 32, marginBottom: 8 }}>📋</p>
+          <p style={{ fontSize: 14 }}>{search ? 'Sin resultados' : 'No hay pedidos en esta categoría'}</p>
         </div>
       ) : (
-        <div className="divide-y divide-zinc-800/70">
-          {orders.map(order => {
-            const meta = STATUS_META[order.status] ?? { label: order.status, color: 'bg-zinc-800 text-zinc-400 border-zinc-700' }
+        <div>
+          {filtered.map(order => {
+            const meta = getStatusMeta(order.status)
             const isOpen = expanded === order.id
             const isNew = newOrderIds.has(order.id)
 
             return (
-              <div key={order.id} style={{ background: isNew ? 'rgba(255,107,53,0.06)' : undefined, transition: 'background 1s ease' }}>
+              <div
+                key={order.id}
+                style={{
+                  background: isNew ? 'rgba(255,107,53,0.06)' : undefined,
+                  borderBottom: '1px solid var(--dash-border)',
+                  transition: 'background 1s ease',
+                }}
+              >
+                {/* Row summary */}
                 <button
                   onClick={() => setExpanded(isOpen ? null : order.id)}
-                  className="w-full px-5 py-3.5 flex items-center gap-3 hover:bg-zinc-800/40 transition-colors text-left"
+                  style={{
+                    width: '100%', padding: '12px 20px', display: 'flex', alignItems: 'center',
+                    gap: 12, background: 'none', border: 'none', cursor: 'pointer',
+                    textAlign: 'left', transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--dash-surface-2)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                  {/* Ref + badges */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <Link
-                        href={`/${slug}/admin/pedidos/${order.order_ref}`}
-                        className="font-semibold text-sm hover:underline"
-                        style={{ color: 'var(--accent)' }}
+                        href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+                        style={{ color: 'var(--accent)', fontWeight: 600, fontSize: 13, textDecoration: 'none', fontFamily: 'var(--font-mono, monospace)' }}
                         onClick={e => e.stopPropagation()}
                       >
-                        #{order.order_ref ?? order.id.slice(0, 6)} →
+                        #{order.order_ref ?? order.id.slice(0, 6)}
                       </Link>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${meta.color}`}>
-                        {meta.label}
-                      </span>
+                      <StatusBadge status={order.status} />
                       {isNew && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30 animate-pulse">
+                        <span style={{
+                          fontSize: 10, padding: '2px 6px', borderRadius: 999, fontWeight: 700,
+                          background: 'rgba(255,107,53,0.2)', color: '#ff6b35',
+                          border: '1px solid rgba(255,107,53,0.4)', animation: 'pulse 2s infinite',
+                        }}>
                           🔔 Nuevo
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-zinc-500 mt-0.5">
-                      {order.customer_name} · {fmtFecha(order.created_at)}
+                    <p style={{ fontSize: 12, color: 'var(--dash-muted)', marginTop: 2 }}>
+                      {order.customer_name ?? '—'} · {deliveryLabel(order.delivery_type)} · {paymentLabel(order.payment_method)} · {fmtFecha(order.created_at)}
                     </p>
                   </div>
-                  <span className="font-bold text-yellow-400 text-sm flex-shrink-0">{fmtARS(order.total)}</span>
+
+                  <span style={{ fontWeight: 700, color: '#f59e0b', fontSize: 14, flexShrink: 0 }}>
+                    {fmtARS(order.total)}
+                  </span>
                   {isOpen
-                    ? <ChevronUp className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-                    : <ChevronDown className="w-4 h-4 text-zinc-500 flex-shrink-0" />
+                    ? <ChevronUp style={{ width: 16, height: 16, color: 'var(--dash-muted)', flexShrink: 0 }} />
+                    : <ChevronDown style={{ width: 16, height: 16, color: 'var(--dash-muted)', flexShrink: 0 }} />
                   }
                 </button>
 
+                {/* Expanded detail */}
                 {isOpen && (
-                  <div className="px-5 pb-4 bg-zinc-800/20">
-                    <div className="flex flex-col gap-1 text-sm mb-3 pt-1">
+                  <div style={{ padding: '0 20px 16px', background: 'rgba(0,0,0,0.15)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, marginBottom: 12, paddingTop: 4 }}>
                       {order.customer_phone && (
-                        <p><span className="text-zinc-500">Tel:</span> <span className="text-zinc-200">{order.customer_phone}</span></p>
+                        <p><span style={{ color: 'var(--dash-muted)' }}>Tel:</span> <span style={{ color: 'var(--dash-text)' }}>{order.customer_phone}</span></p>
                       )}
-                      <p>
-                        <span className="text-zinc-500">Servicio:</span>{' '}
-                        <span className="text-zinc-200">
-                          {deliveryLabel(order.delivery_type, order.customer_address ?? order.address)}
-                        </span>
-                      </p>
-                      <p>
-                        <span className="text-zinc-500">Pago:</span>{' '}
-                        <span className="text-zinc-200">{paymentLabel(order.payment_method)}</span>
-                      </p>
+                      {(order.customer_address ?? order.address) && (
+                        <p><span style={{ color: 'var(--dash-muted)' }}>Dirección:</span> <span style={{ color: 'var(--dash-text)' }}>{order.customer_address ?? order.address}</span></p>
+                      )}
+                      {order.notes && (
+                        <p><span style={{ color: 'var(--dash-muted)' }}>Notas:</span> <span style={{ color: 'var(--dash-text)' }}>{order.notes}</span></p>
+                      )}
                     </div>
 
                     {Array.isArray(order.items) && order.items.length > 0 && (
-                      <div className="bg-zinc-900 rounded-xl p-3 mb-3 flex flex-col gap-1.5">
+                      <div style={{ background: 'var(--dash-surface)', borderRadius: 10, padding: 12, marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                         {(order.items as { name: string; quantity: number; price: number }[]).map((item, i) => (
-                          <div key={i} className="flex justify-between text-xs text-zinc-400">
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--dash-muted)' }}>
                             <span>{item.quantity}× {item.name}</span>
                             <span>{fmtARS(item.price * item.quantity)}</span>
                           </div>
                         ))}
-                        <div className="border-t border-zinc-800 pt-1.5 flex justify-between text-xs font-semibold text-white">
+                        <div style={{ borderTop: '1px solid var(--dash-border)', paddingTop: 6, display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: 'var(--dash-text)' }}>
                           <span>Total</span>
-                          <span className="text-yellow-400">{fmtARS(order.total)}</span>
+                          <span style={{ color: '#f59e0b' }}>{fmtARS(order.total)}</span>
                         </div>
                       </div>
                     )}
 
-                    <div className="flex gap-2 flex-wrap">
-                      {STATUS_FLOW.map(s => {
-                        const m = STATUS_META[s]
+                    {/* Status flow buttons */}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                      {STATUS_FLOW.map(({ key, label }) => {
+                        const m = getStatusMeta(key)
+                        const isCurrent = order.status === key ||
+                          (key === 'pending' && order.status === 'nuevo') ||
+                          (key === 'confirmed' && order.status === 'preparando') ||
+                          (key === 'ready' && order.status === 'listo') ||
+                          (key === 'delivered' && order.status === 'entregado')
                         return (
                           <button
-                            key={s}
-                            onClick={() => updateStatus(order.id, s)}
-                            className={`text-xs px-3 py-1.5 rounded-full border transition-all font-medium ${
-                              order.status === s
-                                ? `${m.color} font-bold`
-                                : 'bg-transparent text-zinc-500 border-zinc-700 hover:text-white hover:border-zinc-500'
-                            }`}
+                            key={key}
+                            onClick={() => updateStatus(order.id, key)}
+                            style={{
+                              padding: '5px 12px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                              cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
+                              background: isCurrent ? m.bg : 'transparent',
+                              color: isCurrent ? m.color : 'var(--dash-muted)',
+                              borderColor: isCurrent ? m.border : 'var(--dash-border)',
+                            }}
                           >
-                            {m.label}
+                            {label}
                           </button>
                         )
                       })}

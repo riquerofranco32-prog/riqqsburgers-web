@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ChevronDown, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { createSupabaseBrowser } from '@/lib/supabase'
@@ -15,85 +15,45 @@ function fmtHora(iso: string) {
   return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
 }
 
-type StatusOption = {
-  value: string
-  label: string
-  badge: string
+const STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
+  pending:    { label: 'Pendiente',   bg: 'rgba(245,158,11,0.12)',  color: '#f59e0b' },
+  nuevo:      { label: 'Nuevo',       bg: 'rgba(245,158,11,0.12)',  color: '#f59e0b' },
+  confirmed:  { label: 'Confirmado',  bg: 'rgba(59,130,246,0.12)',  color: '#60a5fa' },
+  preparando: { label: 'Preparando',  bg: 'rgba(59,130,246,0.12)',  color: '#60a5fa' },
+  ready:      { label: 'Listo',       bg: 'rgba(34,197,94,0.12)',   color: '#4ade80' },
+  listo:      { label: 'Listo',       bg: 'rgba(34,197,94,0.12)',   color: '#4ade80' },
+  delivered:  { label: 'Entregado',   bg: 'rgba(113,113,122,0.15)', color: '#a1a1aa' },
+  entregado:  { label: 'Entregado',   bg: 'rgba(113,113,122,0.15)', color: '#a1a1aa' },
+  cancelled:  { label: 'Cancelado',   bg: 'rgba(239,68,68,0.12)',   color: '#f87171' },
 }
 
-const STATUS_OPTIONS: StatusOption[] = [
-  { value: 'nuevo',      label: 'Nuevo',      badge: 'bg-yellow-500/20 text-yellow-400' },
-  { value: 'preparando', label: 'Preparando', badge: 'bg-blue-500/20 text-blue-400' },
-  { value: 'listo',      label: 'Listo',      badge: 'bg-green-500/20 text-green-400' },
-  { value: 'entregado',  label: 'Entregado',  badge: 'bg-green-500/20 text-green-400' },
-  { value: 'cancelled',  label: 'Cancelado',  badge: 'bg-red-500/20 text-red-400' },
-  // legacy compat
-  { value: 'pending',    label: 'Pendiente',  badge: 'bg-yellow-500/20 text-yellow-400' },
-  { value: 'confirmed',  label: 'Confirmado', badge: 'bg-blue-500/20 text-blue-400' },
-  { value: 'delivered',  label: 'Entregado',  badge: 'bg-green-500/20 text-green-400' },
-]
-
-function getStatusMeta(status: string): StatusOption {
-  return STATUS_OPTIONS.find(s => s.value === status) ?? {
-    value: status, label: status, badge: 'bg-dash-surface-2 text-dash-muted',
-  }
-}
-
-function StatusDropdown({ orderId, currentStatus }: { orderId: string; currentStatus: string }) {
-  const [open, setOpen] = useState(false)
-  const [status, setStatus] = useState(currentStatus)
-  const [busy, setBusy] = useState(false)
-  const meta = getStatusMeta(status)
-  const flowOptions = STATUS_OPTIONS.slice(0, 5)
-
-  async function handleChange(next: string) {
-    setOpen(false)
-    if (next === status) return
-    const prev = status
-    setStatus(next)
-    setBusy(true)
-    try {
-      const supabase = createSupabaseBrowser()
-      const { error } = await supabase.from('orders').update({ status: next }).eq('id', orderId)
-      if (error) throw error
-      toast.success('Estado actualizado')
-    } catch {
-      setStatus(prev)
-      toast.error('Error al actualizar')
-    } finally {
-      setBusy(false)
-    }
-  }
-
+function StatusBadge({ status }: { status: string }) {
+  const meta = STATUS_BADGE[status] ?? { label: status, bg: 'rgba(113,113,122,0.12)', color: '#a1a1aa' }
   return (
-    <div className="relative inline-block">
-      <button
-        onClick={() => setOpen(v => !v)}
-        disabled={busy}
-        className={`flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors duration-150 ${meta.badge} disabled:opacity-50 hover:opacity-80`}
-      >
-        {meta.label}
-        <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-8 z-20 bg-dash-surface-2 border border-dash-border rounded-xl shadow-2xl overflow-hidden min-w-[140px]">
-            {flowOptions.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => handleChange(opt.value)}
-                className={`w-full text-left px-3 py-2.5 text-xs font-medium transition-colors duration-150 hover:bg-dash-surface ${opt.value === status ? 'text-accent' : 'text-dash-text'}`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <span style={{
+      display: 'inline-block',
+      padding: '2px 8px',
+      borderRadius: 999,
+      fontSize: 11,
+      fontWeight: 600,
+      background: meta.bg,
+      color: meta.color,
+      whiteSpace: 'nowrap',
+    }}>
+      {meta.label}
+    </span>
   )
+}
+
+function deliveryLabel(type: string) {
+  const isDelivery = type === 'delivery' || type === 'domicilio'
+  return isDelivery ? '🚚 Delivery' : '🏠 Retiro'
+}
+
+function paymentLabel(method: string) {
+  if (method === 'mercadopago') return '📲 MP'
+  if (method === 'transfer') return '📲 Transfer'
+  return '💵 Efectivo'
 }
 
 interface RecentOrdersTableProps {
@@ -140,9 +100,7 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
         {[...Array(5)].map((_, i) => (
           <div key={i} className="px-5 py-3.5 border-b border-dash-border/40 flex items-center gap-4">
             <div className="h-2.5 w-14 bg-dash-surface-2 rounded animate-pulse" />
-            <div className="h-2.5 w-12 bg-dash-surface-2 rounded animate-pulse" />
             <div className="h-2.5 flex-1 bg-dash-surface-2 rounded animate-pulse" />
-            <div className="h-2.5 w-18 bg-dash-surface-2 rounded animate-pulse" />
             <div className="h-6 w-20 bg-dash-surface-2 rounded-full animate-pulse" />
           </div>
         ))}
@@ -177,13 +135,15 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px]">
+        <table className="w-full min-w-[620px]">
           <thead>
             <tr className="border-b border-dash-border/50">
-              {['#', 'Hora', 'Items', 'Total', 'Estado'].map((h, i) => (
+              {['#', 'Hora', 'Cliente', 'Tipo', 'Pago', 'Total', 'Estado'].map((h, i) => (
                 <th
                   key={h}
-                  className={`py-2.5 text-[11px] uppercase tracking-wider text-dash-muted font-medium ${i === 0 ? 'pl-5 pr-3 text-left' : i === 4 ? 'pl-3 pr-5 text-right' : 'px-3 text-left'} ${i === 3 ? 'text-right' : ''}`}
+                  className={`py-2.5 text-[11px] uppercase tracking-wider text-dash-muted font-medium
+                    ${i === 0 ? 'pl-5 pr-3 text-left' : i === 6 ? 'pl-3 pr-5 text-right' : 'px-3 text-left'}
+                    ${i === 5 ? 'text-right' : ''}`}
                 >
                   {h}
                 </th>
@@ -191,37 +151,46 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
             </tr>
           </thead>
           <tbody>
-            {orders.slice(0, 10).map((order, idx) => {
-              const items = order.items as { name: string; quantity: number }[]
-              const summary = items
-                .slice(0, 2)
-                .map(i => `${i.quantity}× ${i.name.split(' ')[0]}`)
-                .join(', ') + (items.length > 2 ? ` +${items.length - 2}` : '')
-
-              return (
-                <tr
-                  key={order.id}
-                  className="hover:bg-dash-surface-2/50 transition-colors duration-150"
-                  style={{ borderBottom: idx < orders.slice(0, 10).length - 1 ? '1px solid var(--dash-border)' : undefined }}
-                >
-                  <td className="pl-5 pr-3 py-3 text-xs font-mono text-dash-muted">
-                    {order.order_ref ?? order.id.slice(0, 8)}
-                  </td>
-                  <td className="px-3 py-3 text-xs text-dash-muted tabular-nums">
-                    {fmtHora(order.created_at)}
-                  </td>
-                  <td className="px-3 py-3 text-xs text-dash-text max-w-[200px] truncate">
-                    {summary}
-                  </td>
-                  <td className="px-3 py-3 text-xs font-mono text-right text-dash-text">
-                    {fmtARS(order.total)}
-                  </td>
-                  <td className="pl-3 pr-5 py-3 text-right">
-                    <StatusDropdown orderId={order.id} currentStatus={order.status} />
-                  </td>
-                </tr>
-              )
-            })}
+            {orders.slice(0, 10).map((order, idx) => (
+              <tr
+                key={order.id}
+                className="transition-colors duration-150"
+                style={{
+                  borderBottom: idx < Math.min(orders.length, 10) - 1 ? '1px solid var(--dash-border)' : undefined,
+                  cursor: 'default',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'var(--dash-surface-2)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              >
+                <td className="pl-5 pr-3 py-3 text-xs font-mono">
+                  <Link
+                    href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+                    style={{ color: 'var(--accent)', textDecoration: 'none' }}
+                    className="hover:underline"
+                  >
+                    #{order.order_ref ?? order.id.slice(0, 6)}
+                  </Link>
+                </td>
+                <td className="px-3 py-3 text-xs text-dash-muted tabular-nums">
+                  {fmtHora(order.created_at)}
+                </td>
+                <td className="px-3 py-3 text-xs text-dash-text max-w-[120px] truncate">
+                  {order.customer_name ?? '—'}
+                </td>
+                <td className="px-3 py-3 text-xs text-dash-muted whitespace-nowrap">
+                  {deliveryLabel(order.delivery_type)}
+                </td>
+                <td className="px-3 py-3 text-xs text-dash-muted whitespace-nowrap">
+                  {paymentLabel(order.payment_method)}
+                </td>
+                <td className="px-3 py-3 text-xs font-mono text-right text-dash-text">
+                  {fmtARS(order.total)}
+                </td>
+                <td className="pl-3 pr-5 py-3 text-right">
+                  <StatusBadge status={order.status} />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

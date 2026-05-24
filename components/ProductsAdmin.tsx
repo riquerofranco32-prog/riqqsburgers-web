@@ -412,14 +412,19 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
         setToast('Producto actualizado')
       }
     } else {
-      const { data, error } = await supabase
-        .from('products')
-        .insert({ ...payload, sort_order: products.length })
-        .select()
-        .single()
-      if (!error && data) {
-        setProducts(prev => [...prev, data])
-        setToast('Producto creado')
+      try {
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...payload, sort_order: products.length }),
+        })
+        if (res.ok) {
+          const data: Product = await res.json() as Product
+          setProducts(prev => [...prev, data])
+          setToast('Producto creado')
+        }
+      } catch {
+        setToast('Error al crear producto')
       }
     }
     setShowModal(false)
@@ -430,10 +435,20 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
   }
 
   async function toggleAvailable(product: Product) {
-    const supabase = createSupabaseBrowser()
     const newVal = !product.available
-    await supabase.from('products').update({ available: newVal }).eq('id', product.id)
+    // Optimistic update
     setProducts(prev => prev.map(p => p.id === product.id ? { ...p, available: newVal } : p))
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ available: newVal }),
+      })
+      if (!res.ok) throw new Error('Failed')
+    } catch {
+      // Revert
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, available: product.available } : p))
+    }
   }
 
   return (
@@ -535,6 +550,11 @@ export default function ProductsAdmin({ tenant, categories, initialProducts }: {
                     {product.badge && (
                       <span className="text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold">
                         {product.badge.replace(/^\S+\s/, '')}
+                      </span>
+                    )}
+                    {!product.available && (
+                      <span className="text-[10px] bg-zinc-700 text-zinc-400 px-1.5 py-0.5 rounded-full font-bold">
+                        Agotado
                       </span>
                     )}
                   </div>
