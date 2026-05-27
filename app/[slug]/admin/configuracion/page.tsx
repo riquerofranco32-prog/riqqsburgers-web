@@ -1,0 +1,62 @@
+import { createServerClient } from "@/lib/supabase";
+import type { Metadata } from "next";
+import type { Tenant } from "@/types/supabase";
+import RestaurantSettingsForm from "@/components/admin/RestaurantSettingsForm";
+
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Configuración" };
+
+export default async function ConfiguracionPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+
+  const db = createServerClient();
+  const { data: rawTenant } = await db
+    .from("tenants")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  const tenant = rawTenant as Tenant | null;
+
+  if (!tenant) {
+    return (
+      <div
+        style={{
+          padding: "40px 24px",
+          color: "var(--dash-muted)",
+          fontSize: 14,
+        }}
+      >
+        Restaurante no encontrado.
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "24px 24px 48px" }}>
+      <div style={{ marginBottom: 28 }}>
+        <h1
+          style={{
+            fontSize: "1.4rem",
+            fontWeight: 700,
+            color: "var(--dash-text)",
+            letterSpacing: "-0.02em",
+            marginBottom: 4,
+          }}
+        >
+          Configuración
+        </h1>
+        <p style={{ fontSize: 14, color: "var(--dash-muted)" }}>
+          Editá los datos de tu restaurante. Los cambios se aplican de
+          inmediato.
+        </p>
+      </div>
+
+      <RestaurantSettingsForm tenant={tenant} />
+    </div>
+  );
+}

@@ -1,0 +1,468 @@
+"use client";
+
+import { useState } from "react";
+import { toast } from "sonner";
+import type { Tenant } from "@/types/supabase";
+
+interface Props {
+  tenant: Tenant;
+}
+
+const inputStyle = {
+  width: "100%",
+  padding: "10px 14px",
+  borderRadius: 10,
+  fontSize: 14,
+  background: "var(--dash-surface-2)",
+  border: "1.5px solid var(--dash-border)",
+  color: "var(--dash-text)",
+  outline: "none",
+  boxSizing: "border-box" as const,
+  transition: "border-color 0.15s",
+  fontFamily: "var(--font-sans)",
+};
+
+const labelStyle = {
+  display: "block",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--dash-muted)",
+  marginBottom: 6,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.06em",
+};
+
+const sectionStyle = {
+  display: "flex",
+  flexDirection: "column" as const,
+  gap: 16,
+  padding: "20px",
+  background: "var(--dash-surface)",
+  border: "1px solid var(--dash-border)",
+  borderRadius: 12,
+};
+
+const sectionTitleStyle = {
+  fontSize: 13,
+  fontWeight: 700,
+  color: "var(--dash-text)",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.08em",
+  marginBottom: 4,
+};
+
+function ColorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [hex, setHex] = useState(value);
+
+  function handleColorPicker(v: string) {
+    setHex(v);
+    onChange(v);
+  }
+
+  function handleHexInput(v: string) {
+    setHex(v);
+    if (/^#[0-9A-Fa-f]{6}$/.test(v)) onChange(v);
+  }
+
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <input
+          type="color"
+          value={/^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "#000000"}
+          onChange={(e) => handleColorPicker(e.target.value)}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 10,
+            border: "1.5px solid var(--dash-border)",
+            background: "none",
+            cursor: "pointer",
+            padding: 2,
+            flexShrink: 0,
+          }}
+        />
+        <input
+          type="text"
+          value={hex}
+          onChange={(e) => handleHexInput(e.target.value)}
+          placeholder="#FF6B35"
+          maxLength={7}
+          style={{ ...inputStyle, fontFamily: "var(--font-mono)", width: 120 }}
+          onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
+          onBlur={(e) =>
+            (e.currentTarget.style.borderColor = "var(--dash-border)")
+          }
+        />
+      </div>
+    </div>
+  );
+}
+
+export default function RestaurantSettingsForm({ tenant }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    name: tenant.name ?? "",
+    tagline: tenant.tagline ?? "",
+    whatsapp_number: tenant.whatsapp_number ?? "",
+    instagram_handle: tenant.instagram_handle ?? "",
+    address: tenant.address ?? "",
+    schedule: tenant.schedule ?? "",
+    primary_color: tenant.primary_color ?? "#FF6B35",
+    secondary_color: tenant.secondary_color ?? "#2D1B0E",
+    background_color: tenant.background_color ?? "#FFFAF7",
+    logo_url: tenant.logo_url ?? "",
+    banner_url: tenant.banner_url ?? "",
+    is_open: tenant.is_open,
+  });
+
+  function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.name.trim()) {
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+    if (!form.whatsapp_number.trim()) {
+      toast.error("El número de WhatsApp es obligatorio");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/tenant/${tenant.slug}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      if (res.ok) {
+        toast.success("Cambios guardados");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "Error al guardar los cambios");
+      }
+    } catch {
+      toast.error("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 20,
+        maxWidth: 680,
+      }}
+    >
+      {/* Info básica */}
+      <div style={sectionStyle}>
+        <p style={sectionTitleStyle}>Info básica</p>
+
+        <div>
+          <label style={labelStyle}>Nombre del restaurante *</label>
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => set("name", e.target.value)}
+            placeholder="Ej: Riqq's Burgers"
+            required
+            style={inputStyle}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Tagline</label>
+          <input
+            type="text"
+            value={form.tagline}
+            onChange={(e) => set("tagline", e.target.value)}
+            placeholder="Ej: Amor a primera mordida"
+            style={inputStyle}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Número de WhatsApp *</label>
+          <input
+            type="text"
+            value={form.whatsapp_number}
+            onChange={(e) => set("whatsapp_number", e.target.value)}
+            placeholder="549261XXXXXXX"
+            required
+            style={inputStyle}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+          <p style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 4 }}>
+            Con código de país sin +. Ej: 549261XXXXXXX
+          </p>
+        </div>
+
+        {/* Toggle is_open */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "var(--dash-surface-2)",
+            border: "1px solid var(--dash-border)",
+            borderRadius: 10,
+            padding: "12px 14px",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 500,
+                color: "var(--dash-text)",
+              }}
+            >
+              Restaurante abierto
+            </div>
+            <div
+              style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: 2 }}
+            >
+              {form.is_open
+                ? "Visible y aceptando pedidos"
+                : "Aparece como cerrado en el menú"}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => set("is_open", !form.is_open)}
+            style={{
+              width: 48,
+              height: 26,
+              borderRadius: 13,
+              background: form.is_open ? "var(--accent)" : "var(--dash-border)",
+              border: "none",
+              cursor: "pointer",
+              position: "relative",
+              transition: "background 0.2s",
+              flexShrink: 0,
+            }}
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: 3,
+                left: form.is_open ? 26 : 4,
+                width: 20,
+                height: 20,
+                borderRadius: "50%",
+                background: "#fff",
+                transition: "left 0.2s",
+              }}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Presencia */}
+      <div style={sectionStyle}>
+        <p style={sectionTitleStyle}>Presencia</p>
+
+        <div>
+          <label style={labelStyle}>Instagram</label>
+          <div style={{ position: "relative" }}>
+            <span
+              style={{
+                position: "absolute",
+                left: 14,
+                top: "50%",
+                transform: "translateY(-50%)",
+                fontSize: 14,
+                color: "var(--dash-muted)",
+                pointerEvents: "none",
+              }}
+            >
+              @
+            </span>
+            <input
+              type="text"
+              value={form.instagram_handle}
+              onChange={(e) => set("instagram_handle", e.target.value)}
+              placeholder="mirestaurante"
+              style={{ ...inputStyle, paddingLeft: 30 }}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = "var(--accent)")
+              }
+              onBlur={(e) =>
+                (e.currentTarget.style.borderColor = "var(--dash-border)")
+              }
+            />
+          </div>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Dirección</label>
+          <input
+            type="text"
+            value={form.address}
+            onChange={(e) => set("address", e.target.value)}
+            placeholder="Ej: Av. San Martín 1234, Mendoza"
+            style={inputStyle}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>Horarios</label>
+          <textarea
+            value={form.schedule}
+            onChange={(e) => set("schedule", e.target.value)}
+            placeholder={"Ej: Lun-Vie 11:00–23:00\nSáb-Dom 12:00–00:00"}
+            rows={3}
+            style={{
+              ...inputStyle,
+              resize: "vertical",
+              minHeight: 80,
+              lineHeight: 1.5,
+            }}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+        </div>
+      </div>
+
+      {/* Visual */}
+      <div style={sectionStyle}>
+        <p style={sectionTitleStyle}>Visual</p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: 16,
+          }}
+        >
+          <ColorField
+            label="Color principal"
+            value={form.primary_color}
+            onChange={(v) => set("primary_color", v)}
+          />
+          <ColorField
+            label="Color secundario"
+            value={form.secondary_color}
+            onChange={(v) => set("secondary_color", v)}
+          />
+          <ColorField
+            label="Color de fondo"
+            value={form.background_color}
+            onChange={(v) => set("background_color", v)}
+          />
+        </div>
+      </div>
+
+      {/* Imágenes */}
+      <div style={sectionStyle}>
+        <p style={sectionTitleStyle}>Imágenes</p>
+
+        <div>
+          <label style={labelStyle}>URL del logo</label>
+          <input
+            type="url"
+            value={form.logo_url}
+            onChange={(e) => set("logo_url", e.target.value)}
+            placeholder="https://..."
+            style={inputStyle}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+        </div>
+
+        <div>
+          <label style={labelStyle}>URL del banner</label>
+          <input
+            type="url"
+            value={form.banner_url}
+            onChange={(e) => set("banner_url", e.target.value)}
+            placeholder="https://..."
+            style={inputStyle}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+        </div>
+      </div>
+
+      {/* Acciones */}
+      <div style={{ display: "flex", gap: 10 }}>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            padding: "11px 28px",
+            borderRadius: 10,
+            background: "var(--accent)",
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 14,
+            border: "none",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1,
+            transition: "filter 0.15s",
+            fontFamily: "var(--font-sans)",
+          }}
+          onMouseEnter={(e) => {
+            if (!loading) e.currentTarget.style.filter = "brightness(1.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = "";
+          }}
+        >
+          {loading ? "Guardando..." : "Guardar cambios"}
+        </button>
+      </div>
+    </form>
+  );
+}

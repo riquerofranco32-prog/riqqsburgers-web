@@ -1,0 +1,543 @@
+"use client";
+
+import type { PlanId, PlanLimits } from "@/lib/plans";
+import { PLANS } from "@/lib/plans";
+
+interface PlanCardProps {
+  currentPlan: PlanId;
+  productCount: number;
+  limits: PlanLimits;
+}
+
+const PLAN_COLORS: Record<
+  PlanId,
+  { bg: string; text: string; border: string }
+> = {
+  free: {
+    bg: "var(--dash-surface-2)",
+    text: "var(--dash-muted)",
+    border: "var(--dash-border)",
+  },
+  pro: {
+    bg: "rgba(255, 107, 53, 0.12)",
+    text: "var(--accent)",
+    border: "rgba(255, 107, 53, 0.35)",
+  },
+  premium: {
+    bg: "rgba(168, 85, 247, 0.12)",
+    text: "#a855f7",
+    border: "rgba(168, 85, 247, 0.35)",
+  },
+};
+
+const WHATSAPP_SUPPORT =
+  "https://wa.me/5491100000000?text=Hola%2C%20quiero%20actualizar%20mi%20plan%20en%20Takefyy";
+
+export default function PlanCard({
+  currentPlan,
+  productCount,
+  limits,
+}: PlanCardProps) {
+  const colors = PLAN_COLORS[currentPlan];
+  const isAtLimit =
+    limits.maxProducts !== null && productCount >= limits.maxProducts;
+  const nearLimit =
+    limits.maxProducts !== null &&
+    productCount >= Math.floor(limits.maxProducts * 0.8);
+
+  const usagePercent =
+    limits.maxProducts !== null
+      ? Math.min(100, Math.round((productCount / limits.maxProducts) * 100))
+      : null;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 24,
+        padding: "20px 20px 24px",
+        maxWidth: 760,
+      }}
+    >
+      {/* Free upsell banner */}
+      {currentPlan === "free" && (
+        <div
+          style={{
+            background: "rgba(255, 107, 53, 0.08)",
+            border: "1px solid rgba(255, 107, 53, 0.3)",
+            borderRadius: 12,
+            padding: "14px 16px",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 20, flexShrink: 0 }}>⚡</span>
+          <div>
+            <p
+              style={{
+                color: "var(--accent)",
+                fontWeight: 700,
+                fontSize: 14,
+                marginBottom: 4,
+              }}
+            >
+              Estás en el plan gratuito
+            </p>
+            <p
+              style={{
+                color: "var(--dash-muted)",
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              Pasá a Pro y desbloqueá hasta 50 productos, analytics y
+              personalización de marca.{" "}
+              <a
+                href={WHATSAPP_SUPPORT}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--accent)", fontWeight: 600 }}
+              >
+                Contactanos
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Current plan card */}
+      <div
+        style={{
+          background: "var(--dash-surface)",
+          border: `1px solid ${colors.border}`,
+          borderRadius: 16,
+          padding: "20px 20px",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+            marginBottom: 20,
+          }}
+        >
+          <div>
+            <p
+              style={{
+                color: "var(--dash-muted)",
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                marginBottom: 6,
+              }}
+            >
+              Tu plan actual
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <h2
+                style={{
+                  color: "var(--dash-text)",
+                  fontSize: 22,
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {limits.label}
+              </h2>
+              <span
+                style={{
+                  background: colors.bg,
+                  color: colors.text,
+                  border: `1px solid ${colors.border}`,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: 999,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                {currentPlan}
+              </span>
+            </div>
+            <p
+              style={{ color: "var(--dash-muted)", fontSize: 13, marginTop: 4 }}
+            >
+              {limits.description}
+            </p>
+          </div>
+
+          {currentPlan !== "premium" && (
+            <a
+              href={WHATSAPP_SUPPORT}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: "#25D366",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 13,
+                padding: "10px 18px",
+                borderRadius: 10,
+                textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: 16 }}>💬</span>
+              Actualizar plan
+            </a>
+          )}
+        </div>
+
+        {/* Features */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            borderTop: "1px solid var(--dash-border)",
+            paddingTop: 16,
+          }}
+        >
+          <Feature
+            label="Productos"
+            value={
+              limits.maxProducts === null
+                ? "Ilimitados"
+                : `Hasta ${limits.maxProducts}`
+            }
+            enabled
+          />
+          <Feature
+            label="Analytics"
+            value={limits.analyticsEnabled ? "Incluido" : "No incluido"}
+            enabled={limits.analyticsEnabled}
+          />
+          <Feature
+            label="Branding personalizado"
+            value={limits.customBranding ? "Incluido" : "No incluido"}
+            enabled={limits.customBranding}
+          />
+        </div>
+
+        {/* Usage bar */}
+        {limits.maxProducts !== null && (
+          <div
+            style={{
+              marginTop: 20,
+              background: "var(--dash-surface-2)",
+              borderRadius: 10,
+              padding: "12px 14px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 8,
+              }}
+            >
+              <span style={{ color: "var(--dash-muted)", fontSize: 12 }}>
+                Uso de productos
+              </span>
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: isAtLimit
+                    ? "#f87171"
+                    : nearLimit
+                      ? "#fb923c"
+                      : "var(--dash-text)",
+                }}
+              >
+                {productCount} / {limits.maxProducts}
+              </span>
+            </div>
+            <div
+              style={{
+                height: 6,
+                background: "var(--dash-border)",
+                borderRadius: 999,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${usagePercent}%`,
+                  borderRadius: 999,
+                  background: isAtLimit
+                    ? "#f87171"
+                    : nearLimit
+                      ? "#fb923c"
+                      : "var(--accent)",
+                  transition: "width 0.4s ease",
+                }}
+              />
+            </div>
+            {isAtLimit && (
+              <p
+                style={{
+                  color: "#f87171",
+                  fontSize: 12,
+                  marginTop: 8,
+                  fontWeight: 600,
+                }}
+              >
+                Límite alcanzado — actualizá tu plan para agregar más productos
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Plan comparison table */}
+      <div>
+        <h3
+          style={{
+            color: "var(--dash-text)",
+            fontSize: 15,
+            fontWeight: 700,
+            marginBottom: 14,
+          }}
+        >
+          Comparativa de planes
+        </h3>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 12,
+          }}
+        >
+          {(["free", "pro", "premium"] as PlanId[]).map((planId) => {
+            const plan = PLANS[planId];
+            const isCurrent = planId === currentPlan;
+            const planColor = PLAN_COLORS[planId];
+            return (
+              <div
+                key={planId}
+                style={{
+                  background: isCurrent ? planColor.bg : "var(--dash-surface)",
+                  border: `1px solid ${isCurrent ? planColor.border : "var(--dash-border)"}`,
+                  borderRadius: 14,
+                  padding: "16px 14px",
+                  position: "relative",
+                }}
+              >
+                {isCurrent && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: -10,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      background: planColor.bg,
+                      border: `1px solid ${planColor.border}`,
+                      color: planColor.text,
+                      fontSize: 10,
+                      fontWeight: 800,
+                      padding: "2px 10px",
+                      borderRadius: 999,
+                      whiteSpace: "nowrap",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Actual
+                  </span>
+                )}
+
+                <p
+                  style={{
+                    color: isCurrent ? planColor.text : "var(--dash-text)",
+                    fontWeight: 800,
+                    fontSize: 16,
+                    marginBottom: 4,
+                  }}
+                >
+                  {plan.label}
+                </p>
+                <p
+                  style={{
+                    color: "var(--dash-muted)",
+                    fontSize: 20,
+                    fontWeight: 700,
+                    marginBottom: 14,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {plan.priceArs === 0 ? (
+                    "Gratis"
+                  ) : (
+                    <>
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>
+                        ARS{" "}
+                      </span>
+                      {plan.priceArs.toLocaleString("es-AR")}
+                      <span style={{ fontSize: 12, fontWeight: 400 }}>
+                        /mes
+                      </span>
+                    </>
+                  )}
+                </p>
+
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 7 }}
+                >
+                  <PlanFeatureRow
+                    label={
+                      plan.maxProducts === null
+                        ? "Productos ilimitados"
+                        : `Hasta ${plan.maxProducts} productos`
+                    }
+                    enabled
+                  />
+                  <PlanFeatureRow
+                    label="Analytics"
+                    enabled={plan.analyticsEnabled}
+                  />
+                  <PlanFeatureRow
+                    label="Branding propio"
+                    enabled={plan.customBranding}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* CTA footer */}
+      {currentPlan !== "premium" && (
+        <div
+          style={{
+            background: "var(--dash-surface)",
+            border: "1px solid var(--dash-border)",
+            borderRadius: 12,
+            padding: "16px 18px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
+          <div>
+            <p
+              style={{
+                color: "var(--dash-text)",
+                fontWeight: 700,
+                fontSize: 14,
+              }}
+            >
+              ¿Querés más funciones?
+            </p>
+            <p
+              style={{ color: "var(--dash-muted)", fontSize: 13, marginTop: 2 }}
+            >
+              Contactanos por WhatsApp y te asesoramos sobre el plan que mejor
+              se adapta a tu negocio.
+            </p>
+          </div>
+          <a
+            href={WHATSAPP_SUPPORT}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: "#25D366",
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: 13,
+              padding: "10px 20px",
+              borderRadius: 10,
+              textDecoration: "none",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontSize: 16 }}>💬</span>
+            Contactar soporte
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Feature({
+  label,
+  value,
+  enabled,
+}: {
+  label: string;
+  value: string;
+  enabled: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 8,
+      }}
+    >
+      <span style={{ color: "var(--dash-muted)", fontSize: 13 }}>{label}</span>
+      <span
+        style={{
+          color: enabled ? "var(--dash-text)" : "var(--dash-muted)",
+          fontSize: 13,
+          fontWeight: enabled ? 600 : 400,
+          opacity: enabled ? 1 : 0.5,
+        }}
+      >
+        {enabled ? "✓ " : "✗ "}
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function PlanFeatureRow({
+  label,
+  enabled,
+}: {
+  label: string;
+  enabled: boolean;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+      <span
+        style={{
+          fontSize: 11,
+          color: enabled ? "#4ade80" : "var(--dash-border)",
+          flexShrink: 0,
+        }}
+      >
+        {enabled ? "●" : "○"}
+      </span>
+      <span
+        style={{
+          fontSize: 12,
+          color: enabled ? "var(--dash-text)" : "var(--dash-muted)",
+          opacity: enabled ? 1 : 0.5,
+        }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
