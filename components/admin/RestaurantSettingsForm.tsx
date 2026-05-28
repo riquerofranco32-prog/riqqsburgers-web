@@ -117,6 +117,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     instagram_handle: tenant.instagram_handle ?? "",
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
+    delivery_cost: tenant.delivery_cost ?? 0,
     primary_color: tenant.primary_color ?? "#FF6B35",
     secondary_color: tenant.secondary_color ?? "#2D1B0E",
     background_color: tenant.background_color ?? "#FFFAF7",
@@ -228,6 +229,28 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
           />
           <p style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 4 }}>
             Con código de país sin +. Ej: 549261XXXXXXX
+          </p>
+        </div>
+
+        <div>
+          <label style={labelStyle}>Costo de envío (delivery)</label>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={form.delivery_cost}
+            onChange={(e) => set("delivery_cost", Number(e.target.value))}
+            placeholder="0"
+            style={inputStyle}
+            onFocus={(e) =>
+              (e.currentTarget.style.borderColor = "var(--accent)")
+            }
+            onBlur={(e) =>
+              (e.currentTarget.style.borderColor = "var(--dash-border)")
+            }
+          />
+          <p style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 4 }}>
+            En pesos ARS. Poné 0 para delivery gratuito.
           </p>
         </div>
 

@@ -14,6 +14,7 @@ const ALLOWED_FIELDS = [
   "address",
   "schedule",
   "whatsapp_number",
+  "delivery_cost",
   "is_open",
 ] as const;
 
