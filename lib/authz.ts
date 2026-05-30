@@ -41,26 +41,17 @@ export async function assertTenantAdmin(
 
   const supabase = await createAuthClient();
 
-  const { data: tenant } = await supabase
+  // Single JOIN: tenant lookup + membership check in one round-trip
+  const { data } = await supabase
     .from("tenants")
-    .select("id")
+    .select("id, tenant_users!inner(role)")
     .eq("slug", slug)
+    .eq("tenant_users.user_id", user.id)
     .maybeSingle();
 
-  if (!tenant) {
-    throw NextResponse.json({ error: "Tenant no encontrado" }, { status: 404 });
-  }
-
-  const { data: membership } = await supabase
-    .from("tenant_users")
-    .select("role")
-    .eq("user_id", user.id)
-    .eq("tenant_id", tenant.id)
-    .maybeSingle();
-
-  if (!membership) {
+  if (!data) {
     throw NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  return { user, tenantId: tenant.id };
+  return { user, tenantId: data.id };
 }

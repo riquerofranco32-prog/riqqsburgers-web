@@ -72,10 +72,12 @@ function ProductImageCell({
       const {
         data: { publicUrl },
       } = supabase.storage.from("product-images").getPublicUrl(path);
-      await supabase
-        .from("products")
-        .update({ image_url: publicUrl })
-        .eq("id", product.id);
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_url: publicUrl }),
+      });
+      if (!res.ok) throw new Error("update failed");
       onUploaded(product.id, publicUrl);
       setState("success");
       setTimeout(() => setState("idle"), 2000);
@@ -504,9 +506,7 @@ export default function ProductsAdmin({
   }
 
   async function handleSave(form: ProductForm) {
-    const supabase = createSupabaseBrowser();
-    const payload = {
-      slug: tenant.slug,
+    const fields = {
       name: form.name.trim(),
       description: form.description.trim() || null,
       price: parseInt(form.price, 10),
@@ -517,27 +517,39 @@ export default function ProductsAdmin({
     };
 
     if (editProduct) {
-      const { data, error } = await supabase
-        .from("products")
-        .update(payload)
-        .eq("id", editProduct.id)
-        .select()
-        .single();
-      if (!error && data) {
-        vibrate(40);
-        setProducts((prev) =>
-          prev.map((p) => (p.id === editProduct.id ? data : p)),
-        );
-        setToast("Producto actualizado");
-      } else {
+      // Edit via the authz'd API route (service role) — keeps writes
+      // consistent with create/toggle and avoids RLS/anon-key pitfalls.
+      try {
+        const res = await fetch(`/api/products/${editProduct.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(fields),
+        });
+        if (res.ok) {
+          vibrate(40);
+          const updated: Product = { ...editProduct, ...fields };
+          setProducts((prev) =>
+            prev.map((p) => (p.id === editProduct.id ? updated : p)),
+          );
+          setToast("Producto actualizado");
+        } else {
+          vibrate([50, 30, 50]);
+          setToast("Error al actualizar producto");
+        }
+      } catch {
         vibrate([50, 30, 50]);
+        setToast("Error al actualizar producto");
       }
     } else {
       try {
         const res = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...payload, sort_order: products.length }),
+          body: JSON.stringify({
+            ...fields,
+            slug: tenant.slug,
+            sort_order: products.length,
+          }),
         });
         if (res.ok) {
           const data: Product = (await res.json()) as Product;
