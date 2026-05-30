@@ -147,14 +147,15 @@ export default function CheckoutModal({
       form.delivery === "delivery" ? "Delivery" : "Retiro en local";
     const paymentLabel = form.payment === "cash" ? "Efectivo" : "Transferencia";
 
-    // Unicode escapes keep emojis encoding-safe through any formatter/CRLF pass
+    // prettier-ignore
+    // String.fromCodePoint: runtime generation from ASCII hex — formatter-proof
     const E = {
-      wave: "👋", // 👋
-      calendar: "🗓", // 🗓
-      clock: "⏰", // ⏰
-      memo: "📝", // 📝
-      dollar: "💲", // 💲
-      point: "👆", // 👆
+      wave:     String.fromCodePoint(0x1F44B), // 👋
+      calendar: String.fromCodePoint(0x1F5D3), // 🗓
+      clock:    String.fromCodePoint(0x23F0),  // ⏰
+      memo:     String.fromCodePoint(0x1F4DD), // 📝
+      dollar:   String.fromCodePoint(0x1F4B2), // 💲
+      point:    String.fromCodePoint(0x1F446), // 👆
     };
 
     const catalogUrl = `${window.location.origin}/${tenant.slug}`;
