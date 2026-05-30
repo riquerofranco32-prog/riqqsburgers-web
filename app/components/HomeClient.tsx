@@ -656,6 +656,10 @@ export default function HomeClient({
                   border: "none",
                   cursor: "pointer",
                   transition: "color 0.15s",
+                  padding: "12px 8px",
+                  minHeight: 44,
+                  display: "flex",
+                  alignItems: "center",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.color = "var(--dash-text)")
@@ -673,7 +677,14 @@ export default function HomeClient({
             <Link
               href="/login"
               className="hidden md:block text-sm font-medium"
-              style={{ color: "var(--dash-muted)", transition: "color 0.15s" }}
+              style={{
+                color: "var(--dash-muted)",
+                transition: "color 0.15s",
+                padding: "12px 8px",
+                minHeight: 44,
+                display: "flex",
+                alignItems: "center",
+              }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.color = "var(--dash-text)")
               }
