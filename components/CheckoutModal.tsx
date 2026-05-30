@@ -131,30 +131,52 @@ export default function CheckoutModal({
     // Build WhatsApp message BEFORE any async operation so window.open
     // is called synchronously from the click handler — browsers block
     // popups opened after an await.
+    const now = new Date();
+    const fecha = now.toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+    const hora = now.toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const fmt = (n: number) =>
+      "$ " + n.toLocaleString("es-AR", { minimumFractionDigits: 2 });
+    const serviceLabel =
+      form.delivery === "delivery" ? "Delivery" : "Retiro en local";
+    const paymentLabel = form.payment === "cash" ? "Efectivo" : "Transferencia";
+
     const lines = [
-      `🛒 *Nuevo pedido — ${tenant.name}*`,
-      `📋 Ref: *${tempRef}*`,
+      `👋 Vengo de https://takefyy.com/${tenant.slug}`,
+      tempRef,
+      `🗓️ ${fecha} ⏰ ${hora}`,
       ``,
-      `👤 *Cliente*`,
+      `Tipo de servicio: ${serviceLabel}`,
+      ``,
       `Nombre: ${form.name} ${form.lastname}`,
-      form.phone ? `Tel: ${form.phone}` : null,
+      form.phone ? `Teléfono: ${form.phone}` : null,
+      form.delivery === "delivery" && form.address
+        ? `Dirección: ${form.address}`
+        : null,
+      form.notes ? `Notas: ${form.notes}` : null,
       ``,
-      `📦 *Pedido*`,
+      `📝 Productos`,
       ...cart.map(
         (i) =>
-          `• ${i.name} x${i.quantity} — $${(i.price * i.quantity).toLocaleString("es-AR")}`,
+          `X${i.quantity} ${i.name.toUpperCase()}  ${fmt(i.price * i.quantity)}`,
       ),
       ``,
-      form.delivery === "delivery"
-        ? `🚚 *Delivery* a: ${form.address}`
-        : `🏠 *Retira en local*`,
-      `💳 Pago: ${form.payment === "cash" ? "Efectivo" : "Transferencia"}`,
-      deliveryCost > 0
-        ? `🛵 Envío: $${deliveryCost.toLocaleString("es-AR")}`
-        : null,
+      `Subtotal: ${fmt(subtotal)}`,
+      deliveryCost > 0 ? `Entrega: ${fmt(deliveryCost)}` : null,
+      `Total: ${fmt(grandTotal)}`,
       ``,
-      `💰 *Total: $${grandTotal.toLocaleString("es-AR")}*`,
-      form.notes ? `\n📝 Nota: ${form.notes}` : null,
+      `💲 Pago`,
+      `Estado del pago: No pagado`,
+      `Total a pagar: ${fmt(grandTotal)}`,
+      paymentLabel,
+      ``,
+      `👆 Envíanos este mensaje. En cuanto lo recibamos estaremos atendiéndote.`,
     ]
       .filter(Boolean)
       .join("\n");
