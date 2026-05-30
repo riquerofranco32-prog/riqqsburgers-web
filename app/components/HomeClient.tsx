@@ -2171,6 +2171,11 @@ export default function HomeClient({
                         if (!plan.featured)
                           e.currentTarget.style.color = "var(--accent)";
                       }}
+                      onClick={() => {
+                        if (plan.cta === "Contactar →") {
+                          window.open("https://wa.me/542994247985", "_blank");
+                        }
+                      }}
                     >
                       {plan.cta}
                     </button>
@@ -2637,7 +2642,9 @@ export default function HomeClient({
                   Instagram
                 </a>
                 <a
-                  href="mailto:hola@takefyy.com"
+                  href="https://wa.me/542994247985"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{
                     color: "rgba(255,255,255,0.4)",
                     fontSize: 13,
@@ -2714,7 +2721,9 @@ export default function HomeClient({
                     Instagram
                   </a>
                   <a
-                    href="mailto:hola@takefyy.com"
+                    href="https://wa.me/542994247985"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm"
                     style={{
                       color: "var(--dash-muted)",

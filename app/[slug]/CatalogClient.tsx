@@ -1863,7 +1863,9 @@ export default function CatalogClient({
         }}
       />
 
-      <style>{`
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes sheetUp {
           from { transform: translateY(40px); opacity: 0.7; }
           to   { transform: translateY(0);    opacity: 1;   }
@@ -1895,7 +1897,9 @@ export default function CatalogClient({
           to   { opacity: 1; transform: translateY(0); }
         }
         * { -webkit-tap-highlight-color: transparent; }
-      `}</style>
+      `,
+        }}
+      />
     </div>
   );
 }
