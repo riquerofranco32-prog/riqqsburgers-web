@@ -442,10 +442,10 @@ export default function CatalogClient({
           {item.description && (
             <p
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 color: TEXT2,
                 margin: "0 0 8px",
-                lineHeight: 1.45,
+                lineHeight: 1.5,
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient:
