@@ -695,7 +695,15 @@ export default function HomeClient({
               Iniciar sesión
             </Link>
             <motion.button
-              onClick={() => scrollTo("precios")}
+              onClick={() =>
+                window.open(
+                  "https://wa.me/542994247985?text=" +
+                    encodeURIComponent(
+                      "Hola! Me interesa Takefyy para mi negocio 🚀",
+                    ),
+                  "_blank",
+                )
+              }
               className="px-5 py-2 rounded-full text-sm font-semibold text-white"
               style={{
                 background: "var(--accent)",
@@ -782,8 +790,15 @@ export default function HomeClient({
                   animate={{ opacity: 1 }}
                   transition={{ delay: navLinks.length * 0.06, duration: 0.25 }}
                 >
-                  <Link
-                    href="/login"
+                  <a
+                    href={
+                      "https://wa.me/542994247985?text=" +
+                      encodeURIComponent(
+                        "Hola! Me interesa Takefyy para mi negocio 🚀",
+                      )
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
                       display: "block",
                       marginTop: 32,
@@ -798,7 +813,7 @@ export default function HomeClient({
                     }}
                   >
                     Empezar gratis →
-                  </Link>
+                  </a>
                 </motion.div>
               </div>
             </motion.div>
@@ -949,7 +964,15 @@ export default function HomeClient({
                 className="flex flex-wrap gap-3 mb-12"
               >
                 <motion.button
-                  onClick={() => scrollTo("precios")}
+                  onClick={() =>
+                    window.open(
+                      "https://wa.me/542994247985?text=" +
+                        encodeURIComponent(
+                          "Hola! Me interesa Takefyy para mi negocio 🚀",
+                        ),
+                      "_blank",
+                    )
+                  }
                   className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
                   style={{
                     background: "var(--accent)",
@@ -2172,11 +2195,13 @@ export default function HomeClient({
                           e.currentTarget.style.color = "var(--accent)";
                       }}
                       onClick={() => {
-                        if (plan.cta === "Contactar →") {
-                          window.open("https://wa.me/542994247985", "_blank");
-                        } else {
-                          window.location.href = "/login";
-                        }
+                        window.open(
+                          "https://wa.me/542994247985?text=" +
+                            encodeURIComponent(
+                              "Hola! Me interesa Takefyy para mi negocio 🚀",
+                            ),
+                          "_blank",
+                        );
                       }}
                     >
                       {plan.cta}
@@ -2552,7 +2577,15 @@ export default function HomeClient({
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <motion.button
-              onClick={() => scrollTo("precios")}
+              onClick={() =>
+                window.open(
+                  "https://wa.me/542994247985?text=" +
+                    encodeURIComponent(
+                      "Hola! Me interesa Takefyy para mi negocio 🚀",
+                    ),
+                  "_blank",
+                )
+              }
               className="rounded-full font-bold text-white"
               style={{
                 background: "var(--accent)",
