@@ -147,10 +147,22 @@ export default function CheckoutModal({
       form.delivery === "delivery" ? "Delivery" : "Retiro en local";
     const paymentLabel = form.payment === "cash" ? "Efectivo" : "Transferencia";
 
+    // Unicode escapes keep emojis encoding-safe through any formatter/CRLF pass
+    const E = {
+      wave: "👋", // 👋
+      calendar: "🗓", // 🗓
+      clock: "⏰", // ⏰
+      memo: "📝", // 📝
+      dollar: "💲", // 💲
+      point: "👆", // 👆
+    };
+
+    const catalogUrl = `${window.location.origin}/${tenant.slug}`;
+
     const lines = [
-      `👋 Vengo de https://takefyy.com/${tenant.slug}`,
+      `${E.wave} Vengo de ${catalogUrl}`,
       tempRef,
-      `🗓️ ${fecha} ⏰ ${hora}`,
+      `${E.calendar} ${fecha} ${E.clock} ${hora}`,
       ``,
       `Tipo de servicio: ${serviceLabel}`,
       ``,
@@ -161,7 +173,7 @@ export default function CheckoutModal({
         : null,
       form.notes ? `Notas: ${form.notes}` : null,
       ``,
-      `📝 Productos`,
+      `${E.memo} Productos`,
       ...cart.map(
         (i) =>
           `X${i.quantity} ${i.name.toUpperCase()}  ${fmt(i.price * i.quantity)}`,
@@ -171,12 +183,12 @@ export default function CheckoutModal({
       deliveryCost > 0 ? `Entrega: ${fmt(deliveryCost)}` : null,
       `Total: ${fmt(grandTotal)}`,
       ``,
-      `💲 Pago`,
+      `${E.dollar} Pago`,
       `Estado del pago: No pagado`,
       `Total a pagar: ${fmt(grandTotal)}`,
       paymentLabel,
       ``,
-      `👆 Envíanos este mensaje. En cuanto lo recibamos estaremos atendiéndote.`,
+      `${E.point} Envíanos este mensaje. En cuanto lo recibamos estaremos atendiéndote.`,
     ]
       .filter(Boolean)
       .join("\n");
