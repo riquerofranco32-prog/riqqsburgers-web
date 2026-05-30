@@ -75,3 +75,48 @@ export async function PATCH(
   revalidatePath(`/${slug}`);
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+
+  const supabase = createServerClient();
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("tenant_id, tenants(slug)")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!product) {
+    return NextResponse.json(
+      { error: "Producto no encontrado" },
+      { status: 404 },
+    );
+  }
+
+  const slug = (product.tenants as unknown as { slug: string } | null)?.slug;
+  if (!slug) {
+    return NextResponse.json(
+      { error: "Tenant no encontrado" },
+      { status: 404 },
+    );
+  }
+
+  try {
+    await assertTenantAdmin(slug);
+  } catch (res) {
+    if (res instanceof NextResponse) return res;
+    throw res;
+  }
+
+  const { error } = await supabase.from("products").delete().eq("id", id);
+
+  if (error)
+    return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidatePath(`/${slug}`);
+  return NextResponse.json({ ok: true });
+}

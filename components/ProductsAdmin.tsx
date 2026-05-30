@@ -458,6 +458,7 @@ export default function ProductsAdmin({
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("default");
   const [toast, setToast] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (showModal) {
@@ -566,6 +567,32 @@ export default function ProductsAdmin({
       }
     }
     setShowModal(false);
+  }
+
+  async function handleDelete(product: Product) {
+    if (
+      !confirm(`¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`)
+    )
+      return;
+    setDeletingId(product.id);
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        vibrate(40);
+        setProducts((prev) => prev.filter((p) => p.id !== product.id));
+        setToast("Producto eliminado");
+      } else {
+        vibrate([50, 30, 50]);
+        setToast("Error al eliminar producto");
+      }
+    } catch {
+      vibrate([50, 30, 50]);
+      setToast("Error al eliminar producto");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   function handleImageUploaded(productId: string, url: string) {
@@ -785,6 +812,20 @@ export default function ProductsAdmin({
                     className="text-xs text-zinc-500 hover:text-white px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-all"
                   >
                     Editar
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product)}
+                    disabled={deletingId === product.id}
+                    title="Eliminar"
+                    style={
+                      {
+                        WebkitTapHighlightColor: "transparent",
+                        userSelect: "none",
+                      } as React.CSSProperties
+                    }
+                    className="text-xs text-zinc-600 hover:text-red-400 px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-all disabled:opacity-40"
+                  >
+                    {deletingId === product.id ? "…" : "🗑"}
                   </button>
                 </div>
               </div>
