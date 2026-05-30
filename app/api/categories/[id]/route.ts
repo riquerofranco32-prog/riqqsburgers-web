@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 
@@ -63,6 +64,8 @@ export async function PATCH(
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidatePath(`/${slug}`);
   return NextResponse.json({ ok: true });
 }
 
@@ -122,5 +125,7 @@ export async function DELETE(
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidatePath(`/${slug}`);
   return NextResponse.json({ ok: true });
 }

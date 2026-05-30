@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { canAddProduct } from "@/lib/subscriptions";
@@ -72,5 +73,7 @@ export async function POST(req: NextRequest) {
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  revalidatePath(`/${body.slug}`);
   return NextResponse.json(data, { status: 201 });
 }
