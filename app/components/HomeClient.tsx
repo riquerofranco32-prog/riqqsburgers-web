@@ -895,7 +895,7 @@ export default function HomeClient({
               </motion.div>
 
               {/* Anton headline */}
-              <div
+              <h1
                 className="mb-7"
                 style={{
                   fontFamily: "var(--font-anton)",
@@ -903,14 +903,20 @@ export default function HomeClient({
                   lineHeight: 0.93,
                   letterSpacing: "0.01em",
                   color: "#fff",
+                  fontWeight: 400,
+                  margin: "0 0 1.75rem",
                 }}
               >
-                <motion.div {...fadeUp(0.08)}>Tu carta,</motion.div>
-                <motion.div {...fadeUp(0.16)}>
+                <motion.span style={{ display: "block" }} {...fadeUp(0.08)}>
+                  Tu carta,
+                </motion.span>
+                <motion.span style={{ display: "block" }} {...fadeUp(0.16)}>
                   <span className="gradient-text-animate">online</span>
-                </motion.div>
-                <motion.div {...fadeUp(0.24)}>en minutos.</motion.div>
-              </div>
+                </motion.span>
+                <motion.span style={{ display: "block" }} {...fadeUp(0.24)}>
+                  en minutos.
+                </motion.span>
+              </h1>
 
               <motion.p
                 {...fadeUp(0.34)}
