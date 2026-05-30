@@ -2174,6 +2174,8 @@ export default function HomeClient({
                       onClick={() => {
                         if (plan.cta === "Contactar →") {
                           window.open("https://wa.me/542994247985", "_blank");
+                        } else {
+                          window.location.href = "/login";
                         }
                       }}
                     >
