@@ -9,6 +9,19 @@ import {
   useSpring,
 } from "framer-motion";
 import Link from "next/link";
+import {
+  ShoppingCart,
+  CheckCircle,
+  Star,
+  Utensils,
+  UtensilsCrossed,
+  Package,
+  ChefHat,
+  Snowflake,
+  Fish,
+  Wine,
+  Truck,
+} from "lucide-react";
 import TakefyyLogo from "@/components/TakefyyLogo";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -535,7 +548,7 @@ function FloatToast({
   delay = 0,
   style,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   sub: string;
   color?: string;
@@ -564,7 +577,7 @@ function FloatToast({
         ...style,
       }}
     >
-      <span style={{ fontSize: 18 }}>{icon}</span>
+      <span style={{ display: "flex", alignItems: "center" }}>{icon}</span>
       <div>
         <div style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>
           {title}
@@ -916,7 +929,7 @@ export default function HomeClient({
                       animation: "pulse-dot 2s ease-in-out infinite",
                     }}
                   />
-                  Hecho para hamburgueserías, pizzerías y dark kitchens 🇦🇷
+                  Hecho para hamburgueserías, pizzerías y dark kitchens
                 </span>
               </motion.div>
 
@@ -1061,7 +1074,7 @@ export default function HomeClient({
             >
               {/* Toasts - desktop only */}
               <FloatToast
-                icon="🛒"
+                icon={<ShoppingCart size={18} color="rgba(255,107,53,0.9)" />}
                 title="Nuevo pedido"
                 sub="$4.200 · BBQ Doble x2"
                 color="rgba(255,107,53,0.25)"
@@ -1069,7 +1082,7 @@ export default function HomeClient({
                 style={{ top: "10%", right: -16 }}
               />
               <FloatToast
-                icon="✅"
+                icon={<CheckCircle size={18} color="rgba(34,197,94,0.9)" />}
                 title="Pedido confirmado"
                 sub="Retiro en 20 min"
                 color="rgba(34,197,94,0.25)"
@@ -1077,7 +1090,7 @@ export default function HomeClient({
                 style={{ bottom: "22%", left: -20 }}
               />
               <FloatToast
-                icon="⭐"
+                icon={<Star size={18} color="rgba(234,179,8,0.9)" />}
                 title="Nueva reseña"
                 sub="Martina · 5 estrellas"
                 color="rgba(234,179,8,0.25)"
@@ -1262,17 +1275,17 @@ export default function HomeClient({
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
             {[
-              { emoji: "🍔", label: "Hamburguesería" },
-              { emoji: "🍕", label: "Pizzería" },
-              { emoji: "📦", label: "Dark Kitchen" },
-              { emoji: "🍗", label: "Rotisería" },
-              { emoji: "🍦", label: "Heladería" },
-              { emoji: "🍱", label: "Sushi" },
-              { emoji: "🍺", label: "Bar / Restó" },
-              { emoji: "🚐", label: "Food Truck" },
-            ].map((item, i) => (
+              { Icon: Utensils, label: "Hamburguesería" },
+              { Icon: UtensilsCrossed, label: "Pizzería" },
+              { Icon: Package, label: "Dark Kitchen" },
+              { Icon: ChefHat, label: "Rotisería" },
+              { Icon: Snowflake, label: "Heladería" },
+              { Icon: Fish, label: "Sushi" },
+              { Icon: Wine, label: "Bar / Restó" },
+              { Icon: Truck, label: "Food Truck" },
+            ].map(({ Icon, label }, i) => (
               <motion.div
-                key={item.label}
+                key={label}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -1289,7 +1302,7 @@ export default function HomeClient({
                   gap: 10,
                 }}
               >
-                <span style={{ fontSize: 32 }}>{item.emoji}</span>
+                <Icon size={28} color="rgba(255,107,53,0.75)" />
                 <span
                   style={{
                     fontSize: 13,
@@ -1298,7 +1311,7 @@ export default function HomeClient({
                     lineHeight: 1.3,
                   }}
                 >
-                  {item.label}
+                  {label}
                 </span>
               </motion.div>
             ))}
@@ -2778,7 +2791,7 @@ export default function HomeClient({
             }}
           >
             <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 12 }}>
-              © 2026 Takefyy · Hecho en Argentina 🇦🇷 · Franco Riquero
+              © 2026 Takefyy · Hecho en Argentina · Franco Riquero
             </p>
           </div>
         </div>

@@ -7,6 +7,7 @@ export interface CheckoutCartItem {
   name: string;
   price: number;
   quantity: number;
+  notes?: string;
 }
 
 interface CheckoutModalProps {
@@ -175,10 +176,10 @@ export default function CheckoutModal({
       form.notes ? `Notas: ${form.notes}` : null,
       ``,
       `${E.memo} Productos`,
-      ...cart.map(
-        (i) =>
-          `X${i.quantity} ${i.name.toUpperCase()}  ${fmt(i.price * i.quantity)}`,
-      ),
+      ...cart.flatMap((i) => [
+        `X${i.quantity} ${i.name.toUpperCase()}  ${fmt(i.price * i.quantity)}`,
+        ...(i.notes ? [`   → ${i.notes}`] : []),
+      ]),
       ``,
       `Subtotal: ${fmt(subtotal)}`,
       deliveryCost > 0 ? `Entrega: ${fmt(deliveryCost)}` : null,

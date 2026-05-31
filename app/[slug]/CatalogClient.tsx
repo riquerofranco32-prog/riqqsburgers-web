@@ -10,7 +10,7 @@ import type {
 import CheckoutModal from "@/components/CheckoutModal";
 import InfoRotator from "@/components/menu/InfoRotator";
 
-type CartItem = MenuItem & { quantity: number };
+type CartItem = MenuItem & { quantity: number; notes?: string };
 
 function fmt(n: number) {
   return "$" + n.toLocaleString("es-AR");
@@ -116,6 +116,7 @@ export default function CatalogClient({
     key: number;
   } | null>(null);
   const [cartBounce, setCartBounce] = useState(false);
+  const [itemNotesDraft, setItemNotesDraft] = useState("");
   const prevTotal = useRef(0);
 
   // ── Cart helpers ──────────────────────────────────────────────────────────
@@ -150,10 +151,38 @@ export default function CatalogClient({
     setCart((prev) => prev.filter((i) => i.id !== item.id));
   }, []);
 
+  const addItemWithNotes = useCallback((item: MenuItem, notes?: string) => {
+    vibrate(45);
+    setCart((prev) => {
+      const found = prev.find((i) => i.id === item.id);
+      if (found)
+        return prev.map((i) =>
+          i.id === item.id
+            ? { ...i, quantity: i.quantity + 1, notes: notes ?? i.notes }
+            : i,
+        );
+      return [...prev, { ...item, quantity: 1, notes }];
+    });
+    setAddedToast({ name: item.name, key: Date.now() });
+  }, []);
+
+  const updateNotes = useCallback((itemId: string, notes: string) => {
+    setCart((prev) => prev.map((i) => (i.id === itemId ? { ...i, notes } : i)));
+  }, []);
+
   const getQty = (id: string) => cart.find((i) => i.id === id)?.quantity ?? 0;
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
   const hasDelivery = restaurant.delivery_cost > 0;
+
+  // ── Sync notes draft when selected item changes ───────────────────────────
+
+  useEffect(() => {
+    if (!selectedItem) return;
+    const existing = cart.find((i) => i.id === selectedItem.id);
+    setItemNotesDraft(existing?.notes ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedItem?.id]);
 
   // ── Toast auto-hide ───────────────────────────────────────────────────────
 
@@ -703,7 +732,7 @@ export default function CatalogClient({
       <header
         style={{
           position: "relative",
-          height: 220,
+          height: 280,
           overflow: "hidden",
           flexShrink: 0,
         }}
@@ -719,6 +748,8 @@ export default function CatalogClient({
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
+                animation: "bannerKenBurns 10s ease-in-out infinite alternate",
+                transformOrigin: "center center",
               }}
             />
             <div
@@ -797,14 +828,15 @@ export default function CatalogClient({
           {restaurant.logo && (
             <div
               style={{
-                width: 60,
-                height: 60,
-                borderRadius: 18,
+                width: 76,
+                height: 76,
+                borderRadius: 22,
                 overflow: "hidden",
                 marginBottom: 10,
-                border: "2.5px solid rgba(255,255,255,0.4)",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+                border: "3px solid rgba(255,255,255,0.5)",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
                 flexShrink: 0,
+                animation: "logoAppear 0.6s cubic-bezier(0.22,1,0.36,1) both",
               }}
             >
               <img
@@ -1400,6 +1432,18 @@ export default function CatalogClient({
                       >
                         {item.name}
                       </p>
+                      {item.notes && (
+                        <p
+                          style={{
+                            fontSize: 11,
+                            color: TEXTM,
+                            marginTop: 1,
+                            fontStyle: "italic",
+                          }}
+                        >
+                          {item.notes}
+                        </p>
+                      )}
                       <p style={{ fontSize: 11, color: TEXTM }}>
                         {fmt(item.price)} c/u
                       </p>
@@ -1699,7 +1743,7 @@ export default function CatalogClient({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      marginBottom: 24,
+                      marginBottom: 20,
                     }}
                   >
                     <span
@@ -1722,10 +1766,60 @@ export default function CatalogClient({
                     )}
                   </div>
 
+                  {/* Notes field */}
+                  <div style={{ marginBottom: 20 }}>
+                    <label
+                      style={{
+                        fontSize: 11,
+                        color: TEXTM,
+                        fontWeight: 700,
+                        display: "block",
+                        marginBottom: 6,
+                        letterSpacing: "0.07em",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Aclaraciones
+                    </label>
+                    <textarea
+                      value={itemNotesDraft}
+                      onChange={(e) => {
+                        setItemNotesDraft(e.target.value);
+                        if (qty > 0)
+                          updateNotes(selectedItem.id, e.target.value);
+                      }}
+                      placeholder="Ej: sin bacon, sin aderezos..."
+                      rows={2}
+                      style={{
+                        width: "100%",
+                        borderRadius: 10,
+                        border: `1.5px solid ${BORDER}`,
+                        padding: "10px 12px",
+                        fontSize: 14,
+                        color: TEXT1,
+                        background: SURFACE2,
+                        resize: "none",
+                        outline: "none",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "border-color 0.2s",
+                      }}
+                      onFocus={(e) =>
+                        (e.currentTarget.style.borderColor = accent)
+                      }
+                      onBlur={(e) =>
+                        (e.currentTarget.style.borderColor = BORDER)
+                      }
+                    />
+                  </div>
+
                   {qty === 0 ? (
                     <button
                       onClick={() => {
-                        addItem(selectedItem);
+                        addItemWithNotes(
+                          selectedItem,
+                          itemNotesDraft || undefined,
+                        );
                         setSelectedItem(null);
                       }}
                       style={{
@@ -1851,6 +1945,7 @@ export default function CatalogClient({
           name: i.name,
           price: i.price,
           quantity: i.quantity,
+          notes: i.notes,
         }))}
         onClearCart={() => setCart([])}
         tenant={{
@@ -1866,6 +1961,14 @@ export default function CatalogClient({
       <style
         dangerouslySetInnerHTML={{
           __html: `
+        @keyframes bannerKenBurns {
+          from { transform: scale(1) translateX(0); }
+          to   { transform: scale(1.07) translateX(-1%); }
+        }
+        @keyframes logoAppear {
+          from { transform: scale(0.8) translateY(8px); opacity: 0; }
+          to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
         @keyframes sheetUp {
           from { transform: translateY(40px); opacity: 0.7; }
           to   { transform: translateY(0);    opacity: 1;   }
