@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 
@@ -66,5 +67,6 @@ export async function PATCH(
       { status: 404 },
     );
 
+  revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ tenant: data });
 }

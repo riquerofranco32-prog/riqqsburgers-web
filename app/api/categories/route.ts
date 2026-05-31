@@ -49,6 +49,6 @@ export async function POST(req: NextRequest) {
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  revalidatePath(`/${body.slug}`);
+  revalidatePath(`/${body.slug}`, "layout");
   return NextResponse.json(data, { status: 201 });
 }

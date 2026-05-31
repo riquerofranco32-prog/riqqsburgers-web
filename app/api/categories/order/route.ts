@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 
@@ -40,5 +41,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: failed.error.message }, { status: 500 });
   }
 
+  revalidatePath(`/${body.slug}`, "layout");
   return NextResponse.json({ ok: true });
 }

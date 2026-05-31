@@ -65,7 +65,7 @@ export async function PATCH(
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  revalidatePath(`/${slug}`);
+  revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ ok: true });
 }
 
@@ -126,6 +126,6 @@ export async function DELETE(
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  revalidatePath(`/${slug}`);
+  revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ ok: true });
 }

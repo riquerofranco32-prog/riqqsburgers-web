@@ -174,8 +174,10 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
           ? "Logo subido correctamente"
           : "Banner subido correctamente",
       );
-    } catch {
-      toast.error("Error al subir la imagen. Intentá de nuevo.");
+    } catch (err) {
+      console.error("[uploadRestaurantImage] error:", err);
+      const msg = err instanceof Error ? err.message : "Error desconocido";
+      toast.error(`Error al subir la imagen: ${msg}`);
     } finally {
       setUploadingField(null);
       // Reset input para permitir re-seleccionar el mismo archivo

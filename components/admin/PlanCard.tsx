@@ -31,7 +31,7 @@ const PLAN_COLORS: Record<
 };
 
 const WHATSAPP_SUPPORT =
-  "https://wa.me/5491100000000?text=Hola%2C%20quiero%20actualizar%20mi%20plan%20en%20Takefyy";
+  "https://wa.me/542994247985?text=Hola%2C%20quiero%20actualizar%20mi%20plan%20en%20Takefyy";
 
 export default function PlanCard({
   currentPlan,
