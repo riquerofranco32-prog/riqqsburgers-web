@@ -2019,37 +2019,53 @@ export default function CatalogClient({
             zIndex: 30,
             display: "flex",
             alignItems: "center",
-            gap: 5,
-            background: "rgba(0,0,0,0.52)",
-            backdropFilter: "blur(10px)",
+            gap: 6,
+            background: "rgba(14,17,22,0.78)",
+            backdropFilter: "blur(12px)",
             borderRadius: 20,
-            padding: "5px 10px 5px 8px",
+            padding: "5px 11px 5px 6px",
             border: "1px solid rgba(255,255,255,0.1)",
             textDecoration: "none",
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          <span
+          <img
+            src="/takefyy-logo.png"
+            alt="Takefyy"
             style={{
-              fontSize: 9,
-              color: "rgba(255,255,255,0.6)",
-              fontWeight: 600,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
+              width: 18,
+              height: 18,
+              borderRadius: 5,
+              objectFit: "cover",
+              flexShrink: 0,
             }}
+          />
+          <div
+            style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}
           >
-            Powered by
-          </span>
-          <span
-            style={{
-              fontSize: 11,
-              color: "#fff",
-              fontWeight: 800,
-              letterSpacing: "0.02em",
-            }}
-          >
-            Takefyy
-          </span>
+            <span
+              style={{
+                fontSize: 8,
+                color: "rgba(255,255,255,0.5)",
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              Powered by
+            </span>
+            <span
+              style={{
+                fontSize: 11,
+                color: "#fff",
+                fontWeight: 800,
+                letterSpacing: "0.02em",
+                marginTop: 1,
+              }}
+            >
+              Takefyy
+            </span>
+          </div>
         </a>
       )}
 
