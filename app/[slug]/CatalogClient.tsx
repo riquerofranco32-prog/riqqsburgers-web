@@ -729,169 +729,201 @@ export default function CatalogClient({
       }
     >
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div>
-        {/* Banner */}
-        <div style={{ position: "relative", height: 190, overflow: "hidden" }}>
-          {restaurant.banner_url ? (
-            <>
-              <img
-                src={restaurant.banner_url}
-                alt={restaurant.name}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  background:
-                    "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.65) 100%)",
-                }}
-              />
-            </>
-          ) : (
+      <header
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          minHeight: 260,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "36px 20px 28px",
+        }}
+      >
+        {/* Background: banner o gradiente de color del negocio */}
+        {restaurant.banner_url ? (
+          <>
+            <img
+              src={restaurant.banner_url}
+              alt=""
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                zIndex: 0,
+              }}
+            />
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                background: `linear-gradient(145deg, ${accent}ee, ${accent}99)`,
+                background: `linear-gradient(160deg, ${accent}cc 0%, rgba(0,0,0,0.55) 100%)`,
+                zIndex: 1,
               }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  opacity: 0.08,
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                  backgroundSize: "200px",
-                }}
-              />
-            </div>
-          )}
-
-          {/* Status badge */}
-          <div style={{ position: "absolute", top: 14, right: 16, zIndex: 2 }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                padding: "5px 12px",
-                borderRadius: 20,
-                fontSize: 11,
-                fontWeight: 700,
-                background: restaurant.is_open
-                  ? "rgba(22,163,74,0.88)"
-                  : "rgba(220,38,38,0.88)",
-                color: "#fff",
-                backdropFilter: "blur(8px)",
-                letterSpacing: "0.02em",
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#fff",
-                  display: "inline-block",
-                  animation: restaurant.is_open
-                    ? "blink 2s ease-in-out infinite"
-                    : undefined,
-                }}
-              />
-              {restaurant.is_open ? "Abierto" : "Cerrado"}
-            </span>
-          </div>
-        </div>
-
-        {/* Content section con logo overlapping */}
-        <div style={{ position: "relative", background: BG }}>
-          {restaurant.logo && (
+            />
+          </>
+        ) : (
+          <>
             <div
               style={{
                 position: "absolute",
-                top: -44,
+                inset: 0,
+                background: `linear-gradient(145deg, ${accent} 0%, ${accent}99 60%, ${accent}55 100%)`,
+                zIndex: 0,
+              }}
+            />
+            {/* Grain texture */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 1,
+                opacity: 0.06,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                backgroundSize: "180px",
+              }}
+            />
+            {/* Glow spot */}
+            <div
+              style={{
+                position: "absolute",
+                top: "50%",
                 left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 10,
+                transform: "translate(-50%, -50%)",
+                width: "70%",
+                paddingTop: "70%",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.08)",
+                filter: "blur(40px)",
+                zIndex: 1,
+                pointerEvents: "none",
+              }}
+            />
+          </>
+        )}
+
+        {/* Status badge */}
+        <div
+          style={{
+            position: "absolute",
+            top: 14,
+            right: 16,
+            zIndex: 10,
+          }}
+        >
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "5px 12px",
+              borderRadius: 20,
+              fontSize: 11,
+              fontWeight: 700,
+              background: restaurant.is_open
+                ? "rgba(22,163,74,0.9)"
+                : "rgba(220,38,38,0.9)",
+              color: "#fff",
+              backdropFilter: "blur(8px)",
+              letterSpacing: "0.02em",
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#fff",
+                display: "inline-block",
+                animation: restaurant.is_open
+                  ? "blink 2s ease-in-out infinite"
+                  : undefined,
+              }}
+            />
+            {restaurant.is_open ? "Abierto" : "Cerrado"}
+          </span>
+        </div>
+
+        {/* Content: logo + nombre + ticker */}
+        <div
+          style={{
+            position: "relative",
+            zIndex: 5,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 0,
+            maxWidth: 640,
+            width: "100%",
+          }}
+        >
+          {/* Logo grande */}
+          {restaurant.logo && (
+            <div
+              style={{
+                width: 110,
+                height: 110,
+                borderRadius: 28,
+                overflow: "hidden",
+                border: "3px solid rgba(255,255,255,0.5)",
+                boxShadow:
+                  "0 12px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)",
+                marginBottom: 14,
+                flexShrink: 0,
               }}
             >
-              <div
-                style={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: 22,
-                  overflow: "hidden",
-                  border: `4px solid ${BG}`,
-                  boxShadow:
-                    "0 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.15)",
-                }}
-              >
-                <img
-                  src={restaurant.logo}
-                  alt=""
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              </div>
+              <img
+                src={restaurant.logo}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
             </div>
           )}
 
-          {/* Info section */}
-          <div
+          <h1
             style={{
-              paddingTop: restaurant.logo ? 54 : 20,
-              paddingBottom: 16,
-              paddingLeft: 16,
-              paddingRight: 16,
+              fontSize: 26,
+              fontWeight: 800,
+              color: "#fff",
               textAlign: "center",
-              borderBottom: `1px solid ${BORDER}`,
-              maxWidth: 640,
-              margin: "0 auto",
+              lineHeight: 1.15,
+              marginBottom: restaurant.tagline ? 5 : 12,
+              textShadow: "0 2px 12px rgba(0,0,0,0.35)",
+              fontFamily: b?.display_font
+                ? `'${b.display_font}', sans-serif`
+                : "inherit",
             }}
           >
-            <h1
+            {restaurant.name}
+          </h1>
+
+          {restaurant.tagline && (
+            <p
               style={{
-                fontSize: 22,
-                fontWeight: 800,
-                color: TEXT1,
-                lineHeight: 1.2,
-                marginBottom: restaurant.tagline ? 4 : 8,
-                fontFamily: b?.display_font
-                  ? `'${b.display_font}', sans-serif`
-                  : "inherit",
+                fontSize: 12,
+                color: "rgba(255,255,255,0.78)",
+                fontStyle: "italic",
+                textAlign: "center",
+                marginBottom: 12,
               }}
             >
-              {restaurant.name}
-            </h1>
-            {restaurant.tagline && (
-              <p
-                style={{
-                  fontSize: 12,
-                  color: TEXT2,
-                  fontStyle: "italic",
-                  marginBottom: 10,
-                }}
-              >
-                {restaurant.tagline}
-              </p>
-            )}
-            {infoItems.length > 0 && (
-              <InfoRotator
-                items={infoItems}
-                accent={accent}
-                textColor={TEXT2}
-                maskColor={BG}
-              />
-            )}
-          </div>
+              {restaurant.tagline}
+            </p>
+          )}
+
+          {infoItems.length > 0 && (
+            <InfoRotator
+              items={infoItems}
+              accent={accent}
+              textColor="rgba(255,255,255,0.88)"
+              maskColor="transparent"
+            />
+          )}
         </div>
-      </div>
+      </header>
 
       {/* Closed notice */}
       {!restaurant.is_open && (
