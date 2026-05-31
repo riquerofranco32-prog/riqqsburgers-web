@@ -2009,7 +2009,7 @@ export default function CatalogClient({
       {/* ── Powered by Takefyy ───────────────────────────────────────────────── */}
       {totalItems === 0 && (
         <a
-          href="https://takefyy.com"
+          href="https://takefyy.vercel.app/"
           target="_blank"
           rel="noopener noreferrer"
           style={{
