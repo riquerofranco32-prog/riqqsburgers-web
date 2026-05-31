@@ -1659,29 +1659,47 @@ export default function CatalogClient({
                 flexShrink: 0,
               }}
             >
-              <button
-                onClick={() => {
-                  setCartOpen(false);
-                  setCheckoutOpen(true);
-                }}
-                style={{
-                  width: "100%",
-                  padding: "16px",
-                  borderRadius: 16,
-                  background: accent,
-                  color: onAccent,
-                  border: "none",
-                  fontSize: 16,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  letterSpacing: "0.01em",
-                  WebkitTapHighlightColor: "transparent",
-                }}
-                onTouchStart={(e) => (e.currentTarget.style.opacity = "0.88")}
-                onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                Hacer pedido →
-              </button>
+              {!restaurant.is_open ? (
+                <div
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    borderRadius: 16,
+                    background: "rgba(239,68,68,0.12)",
+                    border: "1px solid rgba(239,68,68,0.35)",
+                    color: "#f87171",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    textAlign: "center",
+                  }}
+                >
+                  🚫 El local está cerrado — no acepta pedidos ahora
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setCartOpen(false);
+                    setCheckoutOpen(true);
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    borderRadius: 16,
+                    background: accent,
+                    color: onAccent,
+                    border: "none",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    letterSpacing: "0.01em",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                  onTouchStart={(e) => (e.currentTarget.style.opacity = "0.88")}
+                  onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
+                >
+                  Hacer pedido →
+                </button>
+              )}
             </div>
           </div>
         </>

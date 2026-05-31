@@ -93,7 +93,9 @@ export async function GET(
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const orders = (rawOrders ?? []) as Order[];
+  const orders = (rawOrders ?? []).filter(
+    (o) => o.status !== "cancelled",
+  ) as Order[];
   const revenue = orders.reduce((s, o) => s + o.total, 0);
   const orderCount = orders.length;
   const avgTicket = orderCount > 0 ? Math.round(revenue / orderCount) : 0;

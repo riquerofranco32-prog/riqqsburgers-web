@@ -328,6 +328,33 @@ function MobileOrderCard({
             </button>
           );
         })}
+        {order.status !== "cancelled" &&
+          order.status !== "delivered" &&
+          order.status !== "entregado" && (
+            <button
+              onClick={() => {
+                vibrate([40, 30, 40]);
+                onUpdateStatus(order.id, "cancelled");
+              }}
+              style={{
+                flexShrink: 0,
+                padding: "6px 14px",
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                border: "1px solid rgba(239,68,68,0.4)",
+                background: "rgba(239,68,68,0.08)",
+                color: "#f87171",
+                minHeight: 34,
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              }}
+            >
+              ✕ Cancelar
+            </button>
+          )}
       </div>
     </div>
   );
@@ -856,6 +883,31 @@ export function OrdersTable({
                           </button>
                         );
                       })}
+                      {order.status !== "cancelled" &&
+                        order.status !== "delivered" &&
+                        order.status !== "entregado" && (
+                          <button
+                            onClick={() => {
+                              vibrate([40, 30, 40]);
+                              updateStatus(order.id, "cancelled");
+                            }}
+                            style={{
+                              padding: "5px 12px",
+                              borderRadius: 999,
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                              border: "1px solid rgba(239,68,68,0.4)",
+                              background: "rgba(239,68,68,0.08)",
+                              color: "#f87171",
+                              WebkitTapHighlightColor: "transparent",
+                              userSelect: "none",
+                            }}
+                          >
+                            ✕ Cancelar
+                          </button>
+                        )}
                     </div>
                   </div>
                 )}

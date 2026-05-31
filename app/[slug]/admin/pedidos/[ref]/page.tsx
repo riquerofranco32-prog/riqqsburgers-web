@@ -52,9 +52,10 @@ export default async function OrderTicketPage({
         minHeight: "100vh",
       }}
     >
-      {/* Acciones — client component con onClick */}
       <TicketActions
         slug={slug}
+        orderId={order.id}
+        currentStatus={order.status}
         isDelivery={isDelivery}
         deliveryData={
           isDelivery
@@ -78,6 +79,7 @@ export default async function OrderTicketPage({
 
       {/* TICKET DEL RESTAURANTE */}
       <div id="restaurant-ticket" style={{ fontFamily: "monospace" }}>
+        {/* Header restaurante */}
         <div
           style={{
             textAlign: "center",
@@ -86,7 +88,7 @@ export default async function OrderTicketPage({
             marginBottom: 12,
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 700 }}>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>
             {tenant?.name ?? slug.toUpperCase()}
           </div>
           {tenant?.address && (
@@ -97,15 +99,19 @@ export default async function OrderTicketPage({
           </div>
         </div>
 
+        {/* Número de pedido */}
         <div style={{ textAlign: "center", marginBottom: 12 }}>
-          <div style={{ fontSize: 12 }}>PEDIDO</div>
+          <div style={{ fontSize: 11, letterSpacing: "0.1em", color: "#555" }}>
+            PEDIDO
+          </div>
           <div
-            style={{ fontSize: 32, fontWeight: 800, letterSpacing: "0.15em" }}
+            style={{ fontSize: 36, fontWeight: 800, letterSpacing: "0.15em" }}
           >
             #{order.order_ref}
           </div>
         </div>
 
+        {/* Cliente */}
         <div
           style={{
             borderBottom: "1px dashed #000",
@@ -113,17 +119,28 @@ export default async function OrderTicketPage({
             marginBottom: 10,
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              marginBottom: 4,
+              letterSpacing: "0.1em",
+              color: "#555",
+            }}
+          >
             CLIENTE
           </div>
           {order.customer_name && (
-            <div style={{ fontSize: 14 }}>{order.customer_name}</div>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>
+              {order.customer_name}
+            </div>
           )}
           {order.customer_phone && (
-            <div style={{ fontSize: 12 }}>{order.customer_phone}</div>
+            <div style={{ fontSize: 14 }}>{order.customer_phone}</div>
           )}
         </div>
 
+        {/* Items */}
         <div
           style={{
             borderBottom: "1px dashed #000",
@@ -131,7 +148,15 @@ export default async function OrderTicketPage({
             marginBottom: 10,
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 6 }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              marginBottom: 8,
+              letterSpacing: "0.1em",
+              color: "#555",
+            }}
+          >
             ITEMS
           </div>
           {items.map((item, i) => (
@@ -140,8 +165,12 @@ export default async function OrderTicketPage({
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                fontSize: 13,
-                marginBottom: 3,
+                fontSize: 16,
+                fontWeight: 600,
+                marginBottom: 8,
+                paddingBottom: 8,
+                borderBottom:
+                  i < items.length - 1 ? "1px solid #e5e5e5" : "none",
               }}
             >
               <span>
@@ -154,6 +183,7 @@ export default async function OrderTicketPage({
           ))}
         </div>
 
+        {/* Entrega y pago */}
         <div
           style={{
             borderBottom: "1px dashed #000",
@@ -165,74 +195,122 @@ export default async function OrderTicketPage({
             style={{
               display: "flex",
               justifyContent: "space-between",
-              fontSize: 12,
+              fontSize: 13,
               marginBottom: 4,
             }}
           >
-            <span>ENTREGA</span>
-            <span>{isDelivery ? "🚚 DELIVERY" : "🏠 RETIRA EN LOCAL"}</span>
+            <span style={{ fontWeight: 700 }}>ENTREGA</span>
+            <span>{isDelivery ? "DELIVERY" : "RETIRA EN LOCAL"}</span>
           </div>
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
-              fontSize: 12,
+              fontSize: 13,
             }}
           >
-            <span>PAGO</span>
+            <span style={{ fontWeight: 700 }}>PAGO</span>
             <span>
-              {order.payment_method === "cash"
-                ? "💵 EFECTIVO"
-                : "📲 TRANSFERENCIA"}
+              {order.payment_method === "cash" ? "EFECTIVO" : "TRANSFERENCIA"}
             </span>
           </div>
           {isDelivery && order.customer_address && (
             <div
               style={{
-                fontSize: 12,
+                fontSize: 13,
                 marginTop: 8,
-                padding: "6px 8px",
+                padding: "8px 10px",
                 background: "#f5f5f5",
                 borderRadius: 4,
+                fontWeight: 600,
               }}
             >
-              📍 {order.customer_address}
+              {order.customer_address}
             </div>
           )}
         </div>
 
+        {/* Notas — destacadas */}
         {order.notes && (
           <div
             style={{
               borderBottom: "1px dashed #000",
               paddingBottom: 10,
               marginBottom: 10,
-              fontSize: 12,
+              padding: "10px 12px",
+              background: "#fff9c4",
+              border: "2px solid #f0c040",
+              borderRadius: 6,
             }}
           >
-            <span style={{ fontWeight: 700 }}>NOTA: </span>
-            {order.notes}
+            <div
+              style={{
+                fontWeight: 800,
+                fontSize: 11,
+                marginBottom: 4,
+                letterSpacing: "0.08em",
+              }}
+            >
+              *** NOTA DEL CLIENTE ***
+            </div>
+            <div style={{ fontSize: 15 }}>{order.notes}</div>
           </div>
         )}
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: 20,
-            fontWeight: 800,
-            marginTop: 4,
-          }}
-        >
-          <span>TOTAL</span>
-          <span>${order.total.toLocaleString("es-AR")}</span>
+        {/* Totales */}
+        <div style={{ marginTop: 4 }}>
+          {isDelivery && (order.delivery_cost ?? 0) > 0 && (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  marginBottom: 4,
+                  color: "#555",
+                }}
+              >
+                <span>Subtotal</span>
+                <span>
+                  ${(order.subtotal ?? order.total).toLocaleString("es-AR")}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: 13,
+                  marginBottom: 8,
+                  color: "#555",
+                }}
+              >
+                <span>Envío</span>
+                <span>
+                  ${(order.delivery_cost ?? 0).toLocaleString("es-AR")}
+                </span>
+              </div>
+            </>
+          )}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 22,
+              fontWeight: 800,
+            }}
+          >
+            <span>TOTAL</span>
+            <span>${order.total.toLocaleString("es-AR")}</span>
+          </div>
         </div>
       </div>
 
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          body { margin: 0; }
+          header, aside, nav { display: none !important; }
+          body { margin: 0; background: white !important; color: black !important; }
+          @page { margin: 8mm; size: auto; }
         }
       `}</style>
     </div>

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 function escapeHtml(str: string): string {
   return str
@@ -13,6 +15,8 @@ function escapeHtml(str: string): string {
 
 interface TicketActionsProps {
   slug: string;
+  orderId: string;
+  currentStatus: string;
   isDelivery: boolean;
   deliveryData?: {
     orderRef: string;
@@ -29,11 +33,34 @@ interface TicketActionsProps {
 
 export default function TicketActions({
   slug,
+  orderId,
+  currentStatus,
   isDelivery,
   deliveryData,
 }: TicketActionsProps) {
+  const router = useRouter();
+  const [cancelling, setCancelling] = useState(false);
+
   function handlePrint() {
     window.print();
+  }
+
+  async function handleCancel() {
+    if (!confirm("¿Cancelar este pedido? No se podrá revertir.")) return;
+    setCancelling(true);
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled" }),
+      });
+      if (!res.ok) throw new Error("Error al cancelar");
+      router.refresh();
+    } catch {
+      alert("No se pudo cancelar. Intentá de nuevo.");
+    } finally {
+      setCancelling(false);
+    }
   }
 
   function handleDeliverySlip() {
@@ -44,7 +71,7 @@ export default function TicketActions({
     const itemsHtml = deliveryData.items
       .map(
         (item) =>
-          `<div style="font-size:14px;margin-bottom:4px">• ${escapeHtml(String(item.quantity))}x ${escapeHtml(item.name)}</div>`,
+          `<div style="font-size:15px;margin-bottom:6px">• ${escapeHtml(String(item.quantity))}x ${escapeHtml(item.name)}</div>`,
       )
       .join("");
 
@@ -54,7 +81,7 @@ export default function TicketActions({
         : "YA PAGO (Transferencia)";
 
     const notesHtml = deliveryData.notes
-      ? `<div style="background:#fff9c4;padding:12px;border-radius:8px;font-size:13px"><strong>NOTA:</strong> ${escapeHtml(deliveryData.notes)}</div>`
+      ? `<div style="background:#fff9c4;padding:12px;border-radius:8px;font-size:14px;border:2px solid #f0c040"><strong>*** NOTA: ***</strong> ${escapeHtml(deliveryData.notes)}</div>`
       : "";
 
     const html = `<html><head><style>body{font-family:sans-serif;padding:20px}@media print{.no-print{display:none}}</style></head><body>
@@ -84,15 +111,21 @@ export default function TicketActions({
     w.print();
   }
 
+  const isCancellable =
+    currentStatus !== "cancelled" &&
+    currentStatus !== "delivered" &&
+    currentStatus !== "entregado";
+
   return (
     <div
-      style={{ display: "flex", gap: 10, marginBottom: 24 }}
+      style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}
       className="no-print"
     >
       <button
         onClick={handlePrint}
         style={{
           flex: 1,
+          minWidth: 120,
           padding: "10px",
           background: "#111",
           color: "white",
@@ -103,13 +136,14 @@ export default function TicketActions({
           fontSize: 14,
         }}
       >
-        🖨️ Imprimir ticket
+        Imprimir ticket
       </button>
       {isDelivery && (
         <button
           onClick={handleDeliverySlip}
           style={{
             flex: 1,
+            minWidth: 120,
             padding: "10px",
             background: "#FF6B35",
             color: "white",
@@ -120,7 +154,28 @@ export default function TicketActions({
             fontSize: 14,
           }}
         >
-          🛵 Hoja repartidor
+          Hoja repartidor
+        </button>
+      )}
+      {isCancellable && (
+        <button
+          onClick={handleCancel}
+          disabled={cancelling}
+          style={{
+            flex: 1,
+            minWidth: 120,
+            padding: "10px",
+            background: "rgba(239,68,68,0.1)",
+            color: "#f87171",
+            border: "1px solid rgba(239,68,68,0.4)",
+            borderRadius: 8,
+            cursor: cancelling ? "not-allowed" : "pointer",
+            fontWeight: 600,
+            fontSize: 14,
+            opacity: cancelling ? 0.7 : 1,
+          }}
+        >
+          {cancelling ? "Cancelando..." : "✕ Cancelar pedido"}
         </button>
       )}
       <Link
