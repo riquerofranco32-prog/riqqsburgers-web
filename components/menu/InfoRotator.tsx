@@ -8,9 +8,13 @@ interface InfoItem {
 export default function InfoRotator({
   items,
   accent = "#FF6B35",
+  textColor = "var(--text-secondary, #6B5B4E)",
+  maskColor = "var(--bg, #FFFAF7)",
 }: {
   items: InfoItem[];
   accent?: string;
+  textColor?: string;
+  maskColor?: string;
 }) {
   if (!items.length) return null;
   if (items.length === 1) {
@@ -21,9 +25,8 @@ export default function InfoRotator({
           alignItems: "center",
           gap: 5,
           fontSize: 12,
-          color: "rgba(255,255,255,0.85)",
+          color: textColor,
           fontWeight: 500,
-          textShadow: "0 1px 4px rgba(0,0,0,0.3)",
         }}
       >
         <span style={{ fontSize: 13 }}>{items[0].icon}</span>
@@ -34,10 +37,10 @@ export default function InfoRotator({
 
   // Duplicate for seamless loop: animate translateX 0 → -50%
   const doubled = [...items, ...items];
-  const duration = Math.max(items.length * 3, 8);
+  const duration = Math.max(items.length * 2, 6);
 
   return (
-    <div style={{ position: "relative", maxWidth: 280, overflow: "hidden" }}>
+    <div style={{ position: "relative", maxWidth: 320, overflow: "hidden" }}>
       <style>{`
         @keyframes infoTicker {
           from { transform: translateX(0); }
@@ -54,7 +57,7 @@ export default function InfoRotator({
           bottom: 0,
           width: 22,
           zIndex: 1,
-          background: "linear-gradient(to right, rgba(0,0,0,0.5), transparent)",
+          background: `linear-gradient(to right, ${maskColor}, transparent)`,
           pointerEvents: "none",
         }}
       />
@@ -67,7 +70,7 @@ export default function InfoRotator({
           bottom: 0,
           width: 22,
           zIndex: 1,
-          background: "linear-gradient(to left, rgba(0,0,0,0.5), transparent)",
+          background: `linear-gradient(to left, ${maskColor}, transparent)`,
           pointerEvents: "none",
         }}
       />
@@ -88,16 +91,15 @@ export default function InfoRotator({
               gap: 5,
               whiteSpace: "nowrap",
               fontSize: 12,
-              color: "rgba(255,255,255,0.88)",
+              color: textColor,
               fontWeight: 500,
               letterSpacing: "0.01em",
-              textShadow: "0 1px 4px rgba(0,0,0,0.3)",
               padding: "0 14px",
             }}
           >
             <span style={{ fontSize: 13 }}>{item.icon}</span>
             <span>{item.text}</span>
-            <span style={{ opacity: 0.35, fontSize: 8, marginLeft: 8 }}>◆</span>
+            <span style={{ opacity: 0.4, fontSize: 10, marginLeft: 8 }}>·</span>
           </span>
         ))}
       </div>

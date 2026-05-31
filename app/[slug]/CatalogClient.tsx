@@ -729,137 +729,108 @@ export default function CatalogClient({
       }
     >
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header
-        style={{
-          position: "relative",
-          height: 320,
-          overflow: "hidden",
-          flexShrink: 0,
-        }}
-      >
-        {restaurant.banner_url ? (
-          <>
-            <img
-              src={restaurant.banner_url}
-              alt={restaurant.name}
-              style={{
-                position: "absolute",
-                inset: "-10%",
-                width: "120%",
-                height: "120%",
-                objectFit: "cover",
-                animation: "bannerKenBurns 12s ease-in-out infinite alternate",
-                transformOrigin: "center center",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.75) 100%)",
-              }}
-            />
-          </>
-        ) : (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: `linear-gradient(145deg, ${accent}, ${accent}bb)`,
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                opacity: 0.08,
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                backgroundSize: "200px",
-              }}
-            />
-          </div>
-        )}
-
-        {/* Status badge */}
-        <div style={{ position: "absolute", top: 14, right: 16, zIndex: 2 }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "5px 12px",
-              borderRadius: 20,
-              fontSize: 11,
-              fontWeight: 700,
-              background: restaurant.is_open
-                ? "rgba(22,163,74,0.88)"
-                : "rgba(220,38,38,0.88)",
-              color: "#fff",
-              backdropFilter: "blur(8px)",
-              letterSpacing: "0.02em",
-            }}
-          >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#fff",
-                display: "inline-block",
-                animation: restaurant.is_open
-                  ? "blink 2s ease-in-out infinite"
-                  : undefined,
-              }}
-            />
-            {restaurant.is_open ? "Abierto" : "Cerrado"}
-          </span>
-        </div>
-
-        {/* Header content */}
-        <div
-          style={{
-            position: "relative",
-            zIndex: 1,
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            padding: "0 20px 22px",
-            maxWidth: 640,
-            margin: "0 auto",
-          }}
-        >
-          {restaurant.logo && (
-            <div
-              style={{
-                position: "relative",
-                marginBottom: 12,
-                flexShrink: 0,
-                animation: "logoAppear 0.7s cubic-bezier(0.22,1,0.36,1) both",
-              }}
-            >
-              {/* Glow ring */}
-              <div
+      <div>
+        {/* Banner */}
+        <div style={{ position: "relative", height: 190, overflow: "hidden" }}>
+          {restaurant.banner_url ? (
+            <>
+              <img
+                src={restaurant.banner_url}
+                alt={restaurant.name}
                 style={{
                   position: "absolute",
-                  inset: -4,
-                  borderRadius: 28,
-                  animation: "logoGlow 3s ease-in-out infinite",
-                  zIndex: 0,
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
                 }}
               />
               <div
                 style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: 24,
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.65) 100%)",
+                }}
+              />
+            </>
+          ) : (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: `linear-gradient(145deg, ${accent}ee, ${accent}99)`,
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  opacity: 0.08,
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                  backgroundSize: "200px",
+                }}
+              />
+            </div>
+          )}
+
+          {/* Status badge */}
+          <div style={{ position: "absolute", top: 14, right: 16, zIndex: 2 }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "5px 12px",
+                borderRadius: 20,
+                fontSize: 11,
+                fontWeight: 700,
+                background: restaurant.is_open
+                  ? "rgba(22,163,74,0.88)"
+                  : "rgba(220,38,38,0.88)",
+                color: "#fff",
+                backdropFilter: "blur(8px)",
+                letterSpacing: "0.02em",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  display: "inline-block",
+                  animation: restaurant.is_open
+                    ? "blink 2s ease-in-out infinite"
+                    : undefined,
+                }}
+              />
+              {restaurant.is_open ? "Abierto" : "Cerrado"}
+            </span>
+          </div>
+        </div>
+
+        {/* Content section con logo overlapping */}
+        <div style={{ position: "relative", background: BG }}>
+          {restaurant.logo && (
+            <div
+              style={{
+                position: "absolute",
+                top: -44,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 10,
+              }}
+            >
+              <div
+                style={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: 22,
                   overflow: "hidden",
-                  border: "3px solid rgba(255,255,255,0.55)",
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
-                  position: "relative",
-                  zIndex: 1,
+                  border: `4px solid ${BG}`,
+                  boxShadow:
+                    "0 8px 32px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.15)",
                 }}
               >
                 <img
@@ -870,40 +841,57 @@ export default function CatalogClient({
               </div>
             </div>
           )}
-          <h1
+
+          {/* Info section */}
+          <div
             style={{
-              fontSize: 28,
-              fontWeight: 800,
-              color: "#fff",
+              paddingTop: restaurant.logo ? 54 : 20,
+              paddingBottom: 16,
+              paddingLeft: 16,
+              paddingRight: 16,
               textAlign: "center",
-              lineHeight: 1.1,
-              marginBottom: 4,
-              textShadow: "0 2px 16px rgba(0,0,0,0.5)",
-              fontFamily: b?.display_font
-                ? `'${b.display_font}', sans-serif`
-                : "inherit",
+              borderBottom: `1px solid ${BORDER}`,
+              maxWidth: 640,
+              margin: "0 auto",
             }}
           >
-            {restaurant.name}
-          </h1>
-          {restaurant.tagline && (
-            <p
+            <h1
               style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,0.8)",
-                fontStyle: "italic",
-                marginBottom: 10,
-                textAlign: "center",
+                fontSize: 22,
+                fontWeight: 800,
+                color: TEXT1,
+                lineHeight: 1.2,
+                marginBottom: restaurant.tagline ? 4 : 8,
+                fontFamily: b?.display_font
+                  ? `'${b.display_font}', sans-serif`
+                  : "inherit",
               }}
             >
-              {restaurant.tagline}
-            </p>
-          )}
-          {infoItems.length > 0 && (
-            <InfoRotator items={infoItems} accent={accent} />
-          )}
+              {restaurant.name}
+            </h1>
+            {restaurant.tagline && (
+              <p
+                style={{
+                  fontSize: 12,
+                  color: TEXT2,
+                  fontStyle: "italic",
+                  marginBottom: 10,
+                }}
+              >
+                {restaurant.tagline}
+              </p>
+            )}
+            {infoItems.length > 0 && (
+              <InfoRotator
+                items={infoItems}
+                accent={accent}
+                textColor={TEXT2}
+                maskColor={BG}
+              />
+            )}
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* Closed notice */}
       {!restaurant.is_open && (
@@ -1960,6 +1948,53 @@ export default function CatalogClient({
           );
         })()}
 
+      {/* ── Powered by Takefyy ───────────────────────────────────────────────── */}
+      {totalItems === 0 && (
+        <a
+          href="https://takefyy.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: "fixed",
+            bottom: "max(12px, env(safe-area-inset-bottom, 12px))",
+            right: 12,
+            zIndex: 30,
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            background: "rgba(0,0,0,0.52)",
+            backdropFilter: "blur(10px)",
+            borderRadius: 20,
+            padding: "5px 10px 5px 8px",
+            border: "1px solid rgba(255,255,255,0.1)",
+            textDecoration: "none",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 9,
+              color: "rgba(255,255,255,0.6)",
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+            }}
+          >
+            Powered by
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              color: "#fff",
+              fontWeight: 800,
+              letterSpacing: "0.02em",
+            }}
+          >
+            Takefyy
+          </span>
+        </a>
+      )}
+
       {/* ── Checkout ─────────────────────────────────────────────────────────── */}
       <CheckoutModal
         isOpen={checkoutOpen}
@@ -1985,18 +2020,6 @@ export default function CatalogClient({
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        @keyframes bannerKenBurns {
-          from { transform: scale(1) translate(0, 0); }
-          to   { transform: scale(1.08) translate(-2%, -1%); }
-        }
-        @keyframes logoAppear {
-          from { transform: scale(0.72) translateY(12px); opacity: 0; }
-          to   { transform: scale(1) translateY(0); opacity: 1; }
-        }
-        @keyframes logoGlow {
-          0%, 100% { box-shadow: 0 0 0 0 ${accent}00; }
-          50% { box-shadow: 0 0 0 7px ${accent}55, 0 0 28px ${accent}33; }
-        }
         @keyframes sheetUp {
           from { transform: translateY(40px); opacity: 0.7; }
           to   { transform: translateY(0);    opacity: 1;   }
