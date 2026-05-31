@@ -38,6 +38,12 @@ const BADGE_META: Record<
   Nuevo: { bg: "#dbeafe", color: "#1e40af", icon: "✨", label: "Nuevo" },
   Promo: { bg: "#fce7f3", color: "#9d174d", icon: "🏷️", label: "Promo" },
   Agotado: { bg: "#f3f4f6", color: "#6b7280", icon: "😴", label: "Agotado" },
+  "Más pedido": {
+    bg: "#fef9c3",
+    color: "#854d0e",
+    icon: "⭐",
+    label: "Más pedido",
+  },
 };
 
 function Badge({ badge }: { badge: string }) {
@@ -403,6 +409,7 @@ export default function CatalogClient({
     BORDER,
     TEXT1,
     TEXT2,
+    idx,
   }: {
     item: MenuItem;
     catEmoji: string;
@@ -413,300 +420,308 @@ export default function CatalogClient({
     BORDER: string;
     TEXT1: string;
     TEXT2: string;
+    idx?: number;
   }) {
     const qty = getQty(item.id);
     const soldOut = item.badge === "Agotado";
 
     return (
       <div
-        onClick={() => !soldOut && setSelectedItem(item)}
         style={{
-          display: "flex",
-          alignItems: "flex-start",
-          gap: 12,
-          background: SURFACE,
-          borderRadius: 16,
-          padding: 14,
-          marginBottom: 8,
-          opacity: soldOut ? 0.55 : 1,
-          boxShadow:
-            qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 4px rgba(0,0,0,0.06)",
-          border: `1.5px solid ${qty > 0 ? accent + "30" : BORDER}`,
-          cursor: soldOut ? "default" : "pointer",
-          WebkitTapHighlightColor: "transparent",
-          transition: "box-shadow 0.2s, border-color 0.2s",
-          userSelect: "none",
-        }}
-        onTouchStart={(e) => {
-          if (!soldOut) e.currentTarget.style.transform = "scale(0.985)";
-        }}
-        onTouchEnd={(e) => {
-          e.currentTarget.style.transform = "";
-        }}
-        onTouchCancel={(e) => {
-          e.currentTarget.style.transform = "";
+          animation: `cardFadeIn 0.32s cubic-bezier(0.22,1,0.36,1) both`,
+          animationDelay: `${Math.min((idx ?? 0) * 0.05, 0.4)}s`,
         }}
       >
-        {/* Left: text */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: 15,
-              color: TEXT1,
-              lineHeight: 1.3,
-              display: "block",
-              marginBottom: 3,
-            }}
-          >
-            {item.name}
-          </span>
-
-          {item.badge && item.badge !== "" && (
-            <div style={{ marginBottom: 5 }}>
-              <Badge badge={item.badge} />
-            </div>
-          )}
-
-          {item.description && (
-            <p
+        <div
+          onClick={() => !soldOut && setSelectedItem(item)}
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+            background: SURFACE,
+            borderRadius: 16,
+            padding: 14,
+            marginBottom: 8,
+            opacity: soldOut ? 0.55 : 1,
+            boxShadow:
+              qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 4px rgba(0,0,0,0.06)",
+            border: `1.5px solid ${qty > 0 ? accent + "30" : BORDER}`,
+            cursor: soldOut ? "default" : "pointer",
+            WebkitTapHighlightColor: "transparent",
+            transition: "box-shadow 0.2s, border-color 0.2s",
+            userSelect: "none",
+          }}
+          onTouchStart={(e) => {
+            if (!soldOut) e.currentTarget.style.transform = "scale(0.985)";
+          }}
+          onTouchEnd={(e) => {
+            e.currentTarget.style.transform = "";
+          }}
+          onTouchCancel={(e) => {
+            e.currentTarget.style.transform = "";
+          }}
+        >
+          {/* Left: text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <span
               style={{
-                fontSize: 13,
-                color: TEXT2,
-                margin: "0 0 8px",
-                lineHeight: 1.5,
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient:
-                  "vertical" as React.CSSProperties["WebkitBoxOrient"],
-                overflow: "hidden",
+                fontWeight: 700,
+                fontSize: 15,
+                color: TEXT1,
+                lineHeight: 1.3,
+                display: "block",
+                marginBottom: 3,
               }}
             >
-              {item.description}
-            </p>
-          )}
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span style={{ fontWeight: 800, fontSize: 16, color: accent }}>
-              {fmt(item.price)}
+              {item.name}
             </span>
 
-            {/* Inline stepper when no image */}
-            {!item.image && !soldOut && qty > 0 && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: SURFACE2,
-                  borderRadius: 20,
-                  padding: "4px 8px",
-                  border: `1px solid ${BORDER}`,
-                }}
-              >
-                <button
-                  onClick={() => removeItem(item)}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: BORDER,
-                    border: "none",
-                    color: TEXT1,
-                    fontSize: 18,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                  }}
-                >
-                  −
-                </button>
-                <span
-                  style={{
-                    fontWeight: 700,
-                    fontSize: 14,
-                    minWidth: 18,
-                    textAlign: "center",
-                    color: TEXT1,
-                  }}
-                >
-                  {qty}
-                </span>
-                <button
-                  onClick={() => addItem(item)}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: "50%",
-                    background: accent,
-                    border: "none",
-                    color: onAccent,
-                    fontSize: 18,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                  }}
-                >
-                  +
-                </button>
+            {item.badge && item.badge !== "" && (
+              <div style={{ marginBottom: 5 }}>
+                <Badge badge={item.badge} />
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Right: image + button */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          {item.image ? (
-            <img
-              src={item.image}
-              alt={item.name}
-              style={{
-                width: 90,
-                height: 90,
-                borderRadius: 12,
-                objectFit: "cover",
-                display: "block",
-              }}
-            />
-          ) : (
+            {item.description && (
+              <p
+                style={{
+                  fontSize: 13,
+                  color: TEXT2,
+                  margin: "0 0 8px",
+                  lineHeight: 1.5,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient:
+                    "vertical" as React.CSSProperties["WebkitBoxOrient"],
+                  overflow: "hidden",
+                }}
+              >
+                {item.description}
+              </p>
+            )}
+
             <div
               style={{
-                width: 90,
-                height: 90,
-                borderRadius: 12,
-                background: `linear-gradient(135deg, ${accent}18, ${accent}06)`,
-                border: `1.5px solid ${accent}15`,
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                fontSize: 34,
+                justifyContent: "space-between",
               }}
             >
-              {catEmoji}
-            </div>
-          )}
+              <span style={{ fontWeight: 800, fontSize: 16, color: accent }}>
+                {fmt(item.price)}
+              </span>
 
-          {!soldOut &&
-            (qty === 0 ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addItem(item);
-                }}
+              {/* Inline stepper when no image */}
+              {!item.image && !soldOut && qty > 0 && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: SURFACE2,
+                    borderRadius: 20,
+                    padding: "4px 8px",
+                    border: `1px solid ${BORDER}`,
+                  }}
+                >
+                  <button
+                    onClick={() => removeItem(item)}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: BORDER,
+                      border: "none",
+                      color: TEXT1,
+                      fontSize: 18,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}
+                  >
+                    −
+                  </button>
+                  <span
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 14,
+                      minWidth: 18,
+                      textAlign: "center",
+                      color: TEXT1,
+                    }}
+                  >
+                    {qty}
+                  </span>
+                  <button
+                    onClick={() => addItem(item)}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: accent,
+                      border: "none",
+                      color: onAccent,
+                      fontSize: 18,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: image + button */}
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
                 style={{
-                  position: "absolute",
-                  bottom: -7,
-                  right: -7,
-                  width: 34,
-                  height: 34,
-                  borderRadius: "50%",
-                  background: accent,
-                  color: onAccent,
-                  border: `3px solid ${SURFACE}`,
-                  fontSize: 22,
-                  fontWeight: 300,
-                  cursor: "pointer",
+                  width: 90,
+                  height: 90,
+                  borderRadius: 12,
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 90,
+                  height: 90,
+                  borderRadius: 12,
+                  background: `linear-gradient(135deg, ${accent}18, ${accent}06)`,
+                  border: `1.5px solid ${accent}15`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  boxShadow: `0 3px 10px ${accent}55`,
-                  transition: "transform 0.1s",
-                  WebkitTapHighlightColor: "transparent",
-                }}
-                onTouchStart={(e) =>
-                  (e.currentTarget.style.transform = "scale(0.86)")
-                }
-                onTouchEnd={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
-                }
-                onMouseDown={(e) =>
-                  (e.currentTarget.style.transform = "scale(0.9)")
-                }
-                onMouseUp={(e) =>
-                  (e.currentTarget.style.transform = "scale(1)")
-                }
-              >
-                +
-              </button>
-            ) : (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  position: "absolute",
-                  bottom: -11,
-                  right: -7,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  background: SURFACE,
-                  borderRadius: 20,
-                  padding: "3px 6px",
-                  boxShadow: `0 2px 10px ${accent}40`,
-                  border: `1.5px solid ${accent}30`,
+                  fontSize: 34,
                 }}
               >
+                {catEmoji}
+              </div>
+            )}
+
+            {!soldOut &&
+              (qty === 0 ? (
                 <button
-                  onClick={() => removeItem(item)}
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: "50%",
-                    background: accent + "18",
-                    border: "none",
-                    color: accent,
-                    fontSize: 16,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    addItem(item);
                   }}
-                >
-                  −
-                </button>
-                <span
                   style={{
-                    fontWeight: 800,
-                    fontSize: 13,
-                    minWidth: 16,
-                    textAlign: "center",
-                    color: TEXT1,
-                  }}
-                >
-                  {qty}
-                </span>
-                <button
-                  onClick={() => addItem(item)}
-                  style={{
-                    width: 24,
-                    height: 24,
+                    position: "absolute",
+                    bottom: -7,
+                    right: -7,
+                    width: 34,
+                    height: 34,
                     borderRadius: "50%",
                     background: accent,
-                    border: "none",
                     color: onAccent,
-                    fontSize: 16,
+                    border: `3px solid ${SURFACE}`,
+                    fontSize: 22,
+                    fontWeight: 300,
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontWeight: 700,
+                    boxShadow: `0 3px 10px ${accent}55`,
+                    transition: "transform 0.1s",
+                    WebkitTapHighlightColor: "transparent",
                   }}
+                  onTouchStart={(e) =>
+                    (e.currentTarget.style.transform = "scale(0.86)")
+                  }
+                  onTouchEnd={(e) =>
+                    (e.currentTarget.style.transform = "scale(1)")
+                  }
+                  onMouseDown={(e) =>
+                    (e.currentTarget.style.transform = "scale(0.9)")
+                  }
+                  onMouseUp={(e) =>
+                    (e.currentTarget.style.transform = "scale(1)")
+                  }
                 >
                   +
                 </button>
-              </div>
-            ))}
+              ) : (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    position: "absolute",
+                    bottom: -11,
+                    right: -7,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: SURFACE,
+                    borderRadius: 20,
+                    padding: "3px 6px",
+                    boxShadow: `0 2px 10px ${accent}40`,
+                    border: `1.5px solid ${accent}30`,
+                  }}
+                >
+                  <button
+                    onClick={() => removeItem(item)}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      background: accent + "18",
+                      border: "none",
+                      color: accent,
+                      fontSize: 16,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}
+                  >
+                    −
+                  </button>
+                  <span
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 13,
+                      minWidth: 16,
+                      textAlign: "center",
+                      color: TEXT1,
+                    }}
+                  >
+                    {qty}
+                  </span>
+                  <button
+                    onClick={() => addItem(item)}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      background: accent,
+                      border: "none",
+                      color: onAccent,
+                      fontSize: 16,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              ))}
+          </div>
         </div>
       </div>
     );
@@ -1110,6 +1125,7 @@ export default function CatalogClient({
                 color: TEXTM,
                 marginBottom: 10,
                 paddingLeft: 4,
+                animation: "fadeIn 0.2s ease both",
               }}
             >
               {searchResults.length} resultado
@@ -1117,7 +1133,7 @@ export default function CatalogClient({
               &rdquo;
             </p>
             {searchResults.length > 0 ? (
-              searchResults.map((item) => (
+              searchResults.map((item, idx) => (
                 <ProductCard
                   key={item.id}
                   item={item}
@@ -1132,6 +1148,7 @@ export default function CatalogClient({
                   BORDER={BORDER}
                   TEXT1={TEXT1}
                   TEXT2={TEXT2}
+                  idx={idx}
                 />
               ))
             ) : (
@@ -1171,7 +1188,7 @@ export default function CatalogClient({
           </>
         ) : (
           /* ── All categories (scroll-based) ── */
-          restaurant.menu.categories.map((cat) => (
+          restaurant.menu.categories.map((cat, catIndex) => (
             <div
               key={cat.id}
               ref={(el) => {
@@ -1185,6 +1202,8 @@ export default function CatalogClient({
                   alignItems: "center",
                   gap: 10,
                   padding: "16px 4px 10px",
+                  animation: "catHeaderIn 0.28s ease both",
+                  animationDelay: `${catIndex * 0.06}s`,
                 }}
               >
                 <span style={{ fontSize: 22 }}>{cat.emoji}</span>
@@ -1205,7 +1224,7 @@ export default function CatalogClient({
               </div>
 
               {cat.items.length > 0 ? (
-                cat.items.map((item) => (
+                cat.items.map((item, idx) => (
                   <ProductCard
                     key={item.id}
                     item={item}
@@ -1217,6 +1236,7 @@ export default function CatalogClient({
                     BORDER={BORDER}
                     TEXT1={TEXT1}
                     TEXT2={TEXT2}
+                    idx={idx}
                   />
                 ))
               ) : (
@@ -1425,7 +1445,7 @@ export default function CatalogClient({
                 WebkitOverflowScrolling: "touch",
               }}
             >
-              {cart.map((item) => {
+              {cart.map((item, index) => {
                 const catEmoji =
                   restaurant.menu.categories.find((c) =>
                     c.items.some((i) => i.id === item.id),
@@ -1433,7 +1453,13 @@ export default function CatalogClient({
                 return (
                   <div
                     key={item.id}
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      animation: `cardFadeIn 0.22s ease both`,
+                      animationDelay: `${index * 0.04}s`,
+                    }}
                   >
                     <div
                       style={{
@@ -2081,6 +2107,18 @@ export default function CatalogClient({
         @keyframes menuFadeIn {
           from { opacity: 0; transform: translateY(6px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes cardFadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes catHeaderIn {
+          from { opacity: 0; transform: translateX(-8px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
         * { -webkit-tap-highlight-color: transparent; }
       `,

@@ -6,6 +6,7 @@ import {
   getTenantProducts,
   getTenantCategories,
 } from "./tenants";
+import { createServerClient } from "./supabase";
 import type { Tenant, Category, Product } from "@/types/supabase";
 
 export interface RestaurantBrand {
@@ -56,10 +57,41 @@ export interface Restaurant {
   };
 }
 
+async function getTopProductId(tenantId: string): Promise<string | null> {
+  const supabase = createServerClient();
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("items")
+    .eq("tenant_id", tenantId)
+    .not("items", "is", null);
+
+  if (!orders || orders.length === 0) return null;
+
+  const counts: Record<string, number> = {};
+  for (const order of orders) {
+    const items = order.items as Array<{
+      product_id: string;
+      quantity: number;
+    }> | null;
+    if (!Array.isArray(items)) continue;
+    for (const item of items) {
+      if (item.product_id) {
+        counts[item.product_id] =
+          (counts[item.product_id] ?? 0) + item.quantity;
+      }
+    }
+  }
+
+  const entries = Object.entries(counts);
+  if (entries.length === 0) return null;
+  return entries.sort((a, b) => b[1] - a[1])[0][0];
+}
+
 function mapToRestaurant(
   tenant: Tenant,
   categories: Category[],
   products: Product[],
+  topProductId?: string | null,
 ): Restaurant {
   return {
     id: tenant.id,
@@ -93,7 +125,10 @@ function mapToRestaurant(
               description: p.description ?? "",
               price: p.price,
               image: p.image_url ?? "",
-              badge: p.badge ?? null,
+              badge:
+                topProductId && p.id === topProductId && p.badge !== "Agotado"
+                  ? "Más pedido"
+                  : (p.badge ?? null),
             })),
         }));
         const uncategorized = products
@@ -109,7 +144,10 @@ function mapToRestaurant(
             description: p.description ?? "",
             price: p.price,
             image: p.image_url ?? "",
-            badge: p.badge ?? null,
+            badge:
+              topProductId && p.id === topProductId && p.badge !== "Agotado"
+                ? "Más pedido"
+                : (p.badge ?? null),
           }));
         if (uncategorized.length > 0) {
           mapped.push({
@@ -130,11 +168,12 @@ export async function getRestaurant(slug: string): Promise<Restaurant | null> {
   try {
     const tenant = await getActiveTenant(slug);
     if (tenant) {
-      const [categories, products] = await Promise.all([
+      const [categories, products, topProductId] = await Promise.all([
         getTenantCategories(tenant.id),
         getTenantProducts(tenant.id),
+        getTopProductId(tenant.id),
       ]);
-      return mapToRestaurant(tenant, categories, products);
+      return mapToRestaurant(tenant, categories, products, topProductId);
     }
   } catch {}
 
