@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
+import { createSupabaseBrowser } from "@/lib/supabase";
 import type { Tenant } from "@/types/supabase";
 
 interface Props {
@@ -108,8 +110,35 @@ function ColorField({
   );
 }
 
+type UploadField = "logo_url" | "banner_url";
+
+async function uploadRestaurantImage(
+  file: File,
+  tenantSlug: string,
+  field: UploadField,
+): Promise<string> {
+  const supabase = createSupabaseBrowser();
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const bucket = "restaurant-logos";
+  const path = `${tenantSlug}/${field}.${ext}`;
+  const { error } = await supabase.storage
+    .from(bucket)
+    .upload(path, file, { upsert: true });
+  if (error) throw error;
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(bucket).getPublicUrl(path);
+  return publicUrl;
+}
+
 export default function RestaurantSettingsForm({ tenant }: Props) {
   const [loading, setLoading] = useState(false);
+  const [uploadingField, setUploadingField] = useState<UploadField | null>(
+    null,
+  );
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
   const [form, setForm] = useState({
     name: tenant.name ?? "",
     tagline: tenant.tagline ?? "",
@@ -128,6 +157,30 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function handleImageUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: UploadField,
+  ) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingField(field);
+    try {
+      const url = await uploadRestaurantImage(file, tenant.slug, field);
+      set(field, url);
+      toast.success(
+        field === "logo_url"
+          ? "Logo subido correctamente"
+          : "Banner subido correctamente",
+      );
+    } catch {
+      toast.error("Error al subir la imagen. Intentá de nuevo.");
+    } finally {
+      setUploadingField(null);
+      // Reset input para permitir re-seleccionar el mismo archivo
+      e.target.value = "";
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -423,38 +476,173 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
       <div style={sectionStyle}>
         <p style={sectionTitleStyle}>Imágenes</p>
 
+        {/* Logo */}
         <div>
-          <label style={labelStyle}>URL del logo</label>
+          <label style={labelStyle}>Logo</label>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            {/* Preview */}
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              disabled={uploadingField === "logo_url"}
+              title="Clic para subir logo"
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: 12,
+                border: "1.5px dashed var(--dash-border)",
+                background: "var(--dash-surface-2)",
+                overflow: "hidden",
+                cursor:
+                  uploadingField === "logo_url" ? "not-allowed" : "pointer",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+              }}
+            >
+              {form.logo_url ? (
+                <Image
+                  src={form.logo_url}
+                  alt="Logo preview"
+                  fill
+                  style={{ objectFit: "cover" }}
+                  unoptimized
+                />
+              ) : (
+                <span style={{ fontSize: 24, lineHeight: 1 }}>🖼️</span>
+              )}
+            </button>
+
+            {/* URL + upload button */}
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingField === "logo_url"}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: 8,
+                  border: "1.5px dashed var(--dash-border)",
+                  background: "var(--dash-surface-2)",
+                  color:
+                    uploadingField === "logo_url"
+                      ? "var(--dash-muted)"
+                      : "var(--dash-text)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor:
+                    uploadingField === "logo_url" ? "not-allowed" : "pointer",
+                  fontFamily: "var(--font-sans)",
+                  textAlign: "left" as const,
+                }}
+              >
+                {uploadingField === "logo_url"
+                  ? "Subiendo..."
+                  : "📁 Subir desde archivo"}
+              </button>
+              <input
+                type="url"
+                value={form.logo_url}
+                onChange={(e) => set("logo_url", e.target.value)}
+                placeholder="O pegá una URL de imagen"
+                style={inputStyle}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--accent)")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--dash-border)")
+                }
+              />
+            </div>
+          </div>
           <input
-            type="url"
-            value={form.logo_url}
-            onChange={(e) => set("logo_url", e.target.value)}
-            placeholder="https://..."
-            style={inputStyle}
-            onFocus={(e) =>
-              (e.currentTarget.style.borderColor = "var(--accent)")
-            }
-            onBlur={(e) =>
-              (e.currentTarget.style.borderColor = "var(--dash-border)")
-            }
+            ref={logoInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleImageUpload(e, "logo_url")}
+            style={{ display: "none" }}
           />
         </div>
 
+        {/* Banner */}
         <div>
-          <label style={labelStyle}>URL del banner</label>
-          <input
-            type="url"
-            value={form.banner_url}
-            onChange={(e) => set("banner_url", e.target.value)}
-            placeholder="https://..."
-            style={inputStyle}
-            onFocus={(e) =>
-              (e.currentTarget.style.borderColor = "var(--accent)")
-            }
-            onBlur={(e) =>
-              (e.currentTarget.style.borderColor = "var(--dash-border)")
-            }
-          />
+          <label style={labelStyle}>Banner</label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {form.banner_url && (
+              <div
+                style={{
+                  width: "100%",
+                  height: 80,
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  border: "1px solid var(--dash-border)",
+                  position: "relative",
+                }}
+              >
+                <Image
+                  src={form.banner_url}
+                  alt="Banner preview"
+                  fill
+                  style={{ objectFit: "cover" }}
+                  unoptimized
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => bannerInputRef.current?.click()}
+              disabled={uploadingField === "banner_url"}
+              style={{
+                padding: "9px 16px",
+                borderRadius: 8,
+                border: "1.5px dashed var(--dash-border)",
+                background: "var(--dash-surface-2)",
+                color:
+                  uploadingField === "banner_url"
+                    ? "var(--dash-muted)"
+                    : "var(--dash-text)",
+                fontSize: 13,
+                fontWeight: 500,
+                cursor:
+                  uploadingField === "banner_url" ? "not-allowed" : "pointer",
+                fontFamily: "var(--font-sans)",
+                textAlign: "left" as const,
+              }}
+            >
+              {uploadingField === "banner_url"
+                ? "Subiendo..."
+                : "📁 Subir banner desde archivo"}
+            </button>
+            <input
+              type="url"
+              value={form.banner_url}
+              onChange={(e) => set("banner_url", e.target.value)}
+              placeholder="O pegá una URL de banner"
+              style={inputStyle}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = "var(--accent)")
+              }
+              onBlur={(e) =>
+                (e.currentTarget.style.borderColor = "var(--dash-border)")
+              }
+            />
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleImageUpload(e, "banner_url")}
+              style={{ display: "none" }}
+            />
+          </div>
         </div>
       </div>
 
