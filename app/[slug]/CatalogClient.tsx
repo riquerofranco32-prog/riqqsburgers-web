@@ -732,7 +732,7 @@ export default function CatalogClient({
       <header
         style={{
           position: "relative",
-          height: 280,
+          height: 320,
           overflow: "hidden",
           flexShrink: 0,
         }}
@@ -744,11 +744,11 @@ export default function CatalogClient({
               alt={restaurant.name}
               style={{
                 position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
+                inset: "-10%",
+                width: "120%",
+                height: "120%",
                 objectFit: "cover",
-                animation: "bannerKenBurns 10s ease-in-out infinite alternate",
+                animation: "bannerKenBurns 12s ease-in-out infinite alternate",
                 transformOrigin: "center center",
               }}
             />
@@ -757,19 +757,25 @@ export default function CatalogClient({
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.6) 100%)",
+                  "linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.75) 100%)",
               }}
             />
           </>
         ) : (
-          <div style={{ position: "absolute", inset: 0, background: accent }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(145deg, ${accent}, ${accent}bb)`,
+            }}
+          >
             <div
               style={{
                 position: "absolute",
                 inset: 0,
-                opacity: 0.07,
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                backgroundSize: "150px",
+                opacity: 0.08,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                backgroundSize: "200px",
               }}
             />
           </div>
@@ -820,7 +826,7 @@ export default function CatalogClient({
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "flex-end",
-            padding: "0 20px 20px",
+            padding: "0 20px 22px",
             maxWidth: 640,
             margin: "0 auto",
           }}
@@ -828,33 +834,51 @@ export default function CatalogClient({
           {restaurant.logo && (
             <div
               style={{
-                width: 76,
-                height: 76,
-                borderRadius: 22,
-                overflow: "hidden",
-                marginBottom: 10,
-                border: "3px solid rgba(255,255,255,0.5)",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.35)",
+                position: "relative",
+                marginBottom: 12,
                 flexShrink: 0,
-                animation: "logoAppear 0.6s cubic-bezier(0.22,1,0.36,1) both",
+                animation: "logoAppear 0.7s cubic-bezier(0.22,1,0.36,1) both",
               }}
             >
-              <img
-                src={restaurant.logo}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              {/* Glow ring */}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: -4,
+                  borderRadius: 28,
+                  animation: "logoGlow 3s ease-in-out infinite",
+                  zIndex: 0,
+                }}
               />
+              <div
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: 24,
+                  overflow: "hidden",
+                  border: "3px solid rgba(255,255,255,0.55)",
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                <img
+                  src={restaurant.logo}
+                  alt=""
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              </div>
             </div>
           )}
           <h1
             style={{
-              fontSize: 26,
+              fontSize: 28,
               fontWeight: 800,
               color: "#fff",
               textAlign: "center",
               lineHeight: 1.1,
               marginBottom: 4,
-              textShadow: "0 2px 10px rgba(0,0,0,0.35)",
+              textShadow: "0 2px 16px rgba(0,0,0,0.5)",
               fontFamily: b?.display_font
                 ? `'${b.display_font}', sans-serif`
                 : "inherit",
@@ -866,7 +890,7 @@ export default function CatalogClient({
             <p
               style={{
                 fontSize: 12,
-                color: "rgba(255,255,255,0.75)",
+                color: "rgba(255,255,255,0.8)",
                 fontStyle: "italic",
                 marginBottom: 10,
                 textAlign: "center",
@@ -1962,12 +1986,16 @@ export default function CatalogClient({
         dangerouslySetInnerHTML={{
           __html: `
         @keyframes bannerKenBurns {
-          from { transform: scale(1) translateX(0); }
-          to   { transform: scale(1.07) translateX(-1%); }
+          from { transform: scale(1) translate(0, 0); }
+          to   { transform: scale(1.08) translate(-2%, -1%); }
         }
         @keyframes logoAppear {
-          from { transform: scale(0.8) translateY(8px); opacity: 0; }
+          from { transform: scale(0.72) translateY(12px); opacity: 0; }
           to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes logoGlow {
+          0%, 100% { box-shadow: 0 0 0 0 ${accent}00; }
+          50% { box-shadow: 0 0 0 7px ${accent}55, 0 0 28px ${accent}33; }
         }
         @keyframes sheetUp {
           from { transform: translateY(40px); opacity: 0.7; }
