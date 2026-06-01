@@ -307,11 +307,21 @@ export default async function OrderTicketPage({
 
       <style>{`
         @media print {
-          .no-print { display: none !important; }
-          header, aside, nav { display: none !important; }
-          .admin-shell-main { margin-left: 0 !important; padding-top: 0 !important; }
-          body { margin: 0; background: white !important; color: black !important; }
-          @page { margin: 8mm; size: auto; }
+          /* Ocultar todo el body y mostrar solo el ticket */
+          body * { visibility: hidden !important; }
+          #restaurant-ticket, #restaurant-ticket * { visibility: visible !important; }
+          #restaurant-ticket {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 16px !important;
+            background: white !important;
+            color: black !important;
+          }
+          body { margin: 0; background: white !important; }
+          @page { margin: 6mm; size: auto; }
         }
       `}</style>
     </div>
