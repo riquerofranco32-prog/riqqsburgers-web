@@ -4,6 +4,7 @@ import { createServerClient } from "@/lib/supabase";
 interface OrderItem {
   product_id: string;
   quantity: number;
+  selected_extra?: { name: string } | null;
 }
 
 interface CreateOrderBody {
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
 
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id, name, price, available")
+    .select("id, name, price, available, extras")
     .eq("tenant_id", tenant_id)
     .in("id", productIds);
 
@@ -116,7 +117,13 @@ export async function POST(req: NextRequest) {
   // Calcular totales server-side con precios reales de la DB
   const subtotal = items.reduce((sum, item) => {
     const product = productMap.get(item.product_id)!;
-    return sum + product.price * item.quantity;
+    const productExtras =
+      (product.extras as Array<{ name: string; price: number }>) ?? [];
+    const extraPrice = item.selected_extra
+      ? (productExtras.find((e) => e.name === item.selected_extra!.name)
+          ?.price ?? 0)
+      : 0;
+    return sum + (product.price + extraPrice) * item.quantity;
   }, 0);
 
   const deliveryCost =
@@ -126,11 +133,19 @@ export async function POST(req: NextRequest) {
   // Armar los items enriquecidos con nombre y precio real
   const enrichedItems = items.map((item) => {
     const product = productMap.get(item.product_id)!;
+    const productExtras =
+      (product.extras as Array<{ name: string; price: number }>) ?? [];
+    const extraDef = item.selected_extra
+      ? productExtras.find((e) => e.name === item.selected_extra!.name)
+      : null;
     return {
       product_id: item.product_id,
       name: product.name,
       price: product.price,
       quantity: item.quantity,
+      ...(extraDef
+        ? { selected_extra: { name: extraDef.name, price: extraDef.price } }
+        : {}),
     };
   });
 

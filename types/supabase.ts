@@ -56,6 +56,7 @@ export interface Product {
   available: boolean;
   sort_order: number;
   created_at: string;
+  extras: Array<{ name: string; price: number }>;
 }
 
 export interface Order {
@@ -82,6 +83,7 @@ export interface OrderItem {
   name: string;
   price: number;
   quantity: number;
+  extras?: Array<{ name: string; price: number; qty: number }>;
 }
 
 export interface TenantUser {

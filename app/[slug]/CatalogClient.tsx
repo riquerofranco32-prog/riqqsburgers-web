@@ -10,7 +10,12 @@ import type {
 import CheckoutModal from "@/components/CheckoutModal";
 import InfoRotator from "@/components/menu/InfoRotator";
 
-type CartItem = MenuItem & { quantity: number; notes?: string };
+type SelectedExtra = { name: string; price: number };
+type CartItem = MenuItem & {
+  quantity: number;
+  notes?: string;
+  selectedExtra?: SelectedExtra;
+};
 
 function fmt(n: number) {
   return "$" + n.toLocaleString("es-AR");
@@ -123,6 +128,8 @@ export default function CatalogClient({
   } | null>(null);
   const [cartBounce, setCartBounce] = useState(false);
   const [itemNotesDraft, setItemNotesDraft] = useState("");
+  const [selectedExtraDraft, setSelectedExtraDraft] =
+    useState<SelectedExtra | null>(null);
   const prevTotal = useRef(0);
 
   // ── Cart helpers ──────────────────────────────────────────────────────────
@@ -157,20 +164,28 @@ export default function CatalogClient({
     setCart((prev) => prev.filter((i) => i.id !== item.id));
   }, []);
 
-  const addItemWithNotes = useCallback((item: MenuItem, notes?: string) => {
-    vibrate(45);
-    setCart((prev) => {
-      const found = prev.find((i) => i.id === item.id);
-      if (found)
-        return prev.map((i) =>
-          i.id === item.id
-            ? { ...i, quantity: i.quantity + 1, notes: notes ?? i.notes }
-            : i,
-        );
-      return [...prev, { ...item, quantity: 1, notes }];
-    });
-    setAddedToast({ name: item.name, key: Date.now() });
-  }, []);
+  const addItemWithNotes = useCallback(
+    (item: MenuItem, notes?: string, selectedExtra?: SelectedExtra) => {
+      vibrate(45);
+      setCart((prev) => {
+        const found = prev.find((i) => i.id === item.id);
+        if (found)
+          return prev.map((i) =>
+            i.id === item.id
+              ? {
+                  ...i,
+                  quantity: i.quantity + 1,
+                  notes: notes ?? i.notes,
+                  selectedExtra: selectedExtra ?? i.selectedExtra,
+                }
+              : i,
+          );
+        return [...prev, { ...item, quantity: 1, notes, selectedExtra }];
+      });
+      setAddedToast({ name: item.name, key: Date.now() });
+    },
+    [],
+  );
 
   const updateNotes = useCallback((itemId: string, notes: string) => {
     setCart((prev) => prev.map((i) => (i.id === itemId ? { ...i, notes } : i)));
@@ -178,7 +193,10 @@ export default function CatalogClient({
 
   const getQty = (id: string) => cart.find((i) => i.id === id)?.quantity ?? 0;
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const subtotal = cart.reduce(
+    (s, i) => s + (i.price + (i.selectedExtra?.price ?? 0)) * i.quantity,
+    0,
+  );
   const hasDelivery = restaurant.delivery_cost > 0;
 
   // ── Sync notes draft when selected item changes ───────────────────────────
@@ -187,6 +205,7 @@ export default function CatalogClient({
     if (!selectedItem) return;
     const existing = cart.find((i) => i.id === selectedItem.id);
     setItemNotesDraft(existing?.notes ?? "");
+    setSelectedExtraDraft(existing?.selectedExtra ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedItem?.id]);
 
@@ -1502,6 +1521,12 @@ export default function CatalogClient({
                       >
                         {item.name}
                       </p>
+                      {item.selectedExtra && (
+                        <p style={{ fontSize: 11, color: TEXTM, marginTop: 2 }}>
+                          {item.selectedExtra.name} (+
+                          {fmt(item.selectedExtra.price)})
+                        </p>
+                      )}
                       {item.notes && (
                         <p
                           style={{
@@ -1515,7 +1540,7 @@ export default function CatalogClient({
                         </p>
                       )}
                       <p style={{ fontSize: 11, color: TEXTM }}>
-                        {fmt(item.price)} c/u
+                        {fmt(item.price + (item.selectedExtra?.price ?? 0))} c/u
                       </p>
                     </div>
                     <div
@@ -1591,7 +1616,10 @@ export default function CatalogClient({
                         color: TEXT1,
                       }}
                     >
-                      {fmt(item.price * item.quantity)}
+                      {fmt(
+                        (item.price + (item.selectedExtra?.price ?? 0)) *
+                          item.quantity,
+                      )}
                     </span>
                   </div>
                 );
@@ -1709,6 +1737,8 @@ export default function CatalogClient({
       {selectedItem &&
         (() => {
           const qty = getQty(selectedItem.id);
+          const extraPrice = selectedExtraDraft?.price ?? 0;
+          const totalPriceDisplay = selectedItem.price + extraPrice;
           const catEmoji =
             restaurant.menu.categories.find((c) =>
               c.items.some((i) => i.id === selectedItem.id),
@@ -1837,7 +1867,7 @@ export default function CatalogClient({
                     <span
                       style={{ fontWeight: 900, fontSize: 28, color: accent }}
                     >
-                      {fmt(selectedItem.price)}
+                      {fmt(totalPriceDisplay)}
                     </span>
                     {qty > 0 && (
                       <span
@@ -1853,6 +1883,83 @@ export default function CatalogClient({
                       </span>
                     )}
                   </div>
+
+                  {/* Extras — opciones de tamaño */}
+                  {selectedItem.extras && selectedItem.extras.length > 0 && (
+                    <div style={{ marginBottom: 20 }}>
+                      <label
+                        style={{
+                          fontSize: 11,
+                          color: TEXTM,
+                          fontWeight: 700,
+                          display: "block",
+                          marginBottom: 10,
+                          letterSpacing: "0.07em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Tamaño
+                      </label>
+                      <div
+                        style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
+                      >
+                        {/* Opción Simple = precio base */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedExtraDraft(null)}
+                          style={{
+                            padding: "8px 18px",
+                            borderRadius: 999,
+                            border: "1.5px solid",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            background:
+                              selectedExtraDraft === null
+                                ? accent
+                                : "transparent",
+                            color:
+                              selectedExtraDraft === null ? onAccent : TEXT2,
+                            borderColor:
+                              selectedExtraDraft === null ? accent : BORDER,
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          Simple
+                        </button>
+                        {selectedItem.extras.map((extra) => {
+                          const isSelected =
+                            selectedExtraDraft?.name === extra.name;
+                          return (
+                            <button
+                              type="button"
+                              key={extra.name}
+                              onClick={() =>
+                                setSelectedExtraDraft(isSelected ? null : extra)
+                              }
+                              style={{
+                                padding: "8px 18px",
+                                borderRadius: 999,
+                                border: "1.5px solid",
+                                fontSize: 14,
+                                fontWeight: 600,
+                                cursor: "pointer",
+                                background: isSelected ? accent : "transparent",
+                                color: isSelected ? onAccent : TEXT2,
+                                borderColor: isSelected ? accent : BORDER,
+                                transition: "all 0.15s",
+                              }}
+                            >
+                              {extra.name}{" "}
+                              <span style={{ opacity: 0.8, fontSize: 12 }}>
+                                +{fmt(extra.price)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Notes field */}
                   <div style={{ marginBottom: 20 }}>
@@ -1907,6 +2014,7 @@ export default function CatalogClient({
                         addItemWithNotes(
                           selectedItem,
                           itemNotesDraft || undefined,
+                          selectedExtraDraft ?? undefined,
                         );
                         setSelectedItem(null);
                       }}
@@ -2097,6 +2205,7 @@ export default function CatalogClient({
           price: i.price,
           quantity: i.quantity,
           notes: i.notes,
+          selectedExtra: i.selectedExtra,
         }))}
         onClearCart={() => setCart([])}
         tenant={{

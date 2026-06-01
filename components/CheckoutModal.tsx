@@ -8,6 +8,7 @@ export interface CheckoutCartItem {
   price: number;
   quantity: number;
   notes?: string;
+  selectedExtra?: { name: string; price: number };
 }
 
 interface CheckoutModalProps {
@@ -44,7 +45,10 @@ export default function CheckoutModal({
   tenant,
 }: CheckoutModalProps) {
   const accent = tenant.primary_color || "#FF6B35";
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const subtotal = cart.reduce(
+    (s, i) => s + (i.price + (i.selectedExtra?.price ?? 0)) * i.quantity,
+    0,
+  );
 
   const [loading, setLoading] = useState(false);
   const [orderRef, setOrderRef] = useState("");
@@ -176,10 +180,13 @@ export default function CheckoutModal({
       form.notes ? `Notas: ${form.notes}` : null,
       ``,
       `${E.memo} Productos`,
-      ...cart.flatMap((i) => [
-        `X${i.quantity} ${i.name.toUpperCase()}  ${fmt(i.price * i.quantity)}`,
-        ...(i.notes ? [`   → ${i.notes}`] : []),
-      ]),
+      ...cart.flatMap((i) => {
+        const total = (i.price + (i.selectedExtra?.price ?? 0)) * i.quantity;
+        return [
+          `X${i.quantity} ${i.name.toUpperCase()}${i.selectedExtra ? ` (${i.selectedExtra.name})` : ""}  ${fmt(total)}`,
+          ...(i.notes ? [`   → ${i.notes}`] : []),
+        ];
+      }),
       ``,
       `Subtotal: ${fmt(subtotal)}`,
       deliveryCost > 0 ? `Entrega: ${fmt(deliveryCost)}` : null,
@@ -209,7 +216,13 @@ export default function CheckoutModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tenant_id: tenant.id,
-          items: cart.map((i) => ({ product_id: i.id, quantity: i.quantity })),
+          items: cart.map((i) => ({
+            product_id: i.id,
+            quantity: i.quantity,
+            selected_extra: i.selectedExtra
+              ? { name: i.selectedExtra.name }
+              : null,
+          })),
           delivery_type: form.delivery,
           payment_method: form.payment,
           customer_name: `${form.name} ${form.lastname}`.trim(),
@@ -666,10 +679,16 @@ export default function CheckoutModal({
                     }}
                   >
                     <span>
-                      {i.name} ×{i.quantity}
+                      {i.name}
+                      {i.selectedExtra ? ` (${i.selectedExtra.name})` : ""} ×
+                      {i.quantity}
                     </span>
                     <span>
-                      ${(i.price * i.quantity).toLocaleString("es-AR")}
+                      $
+                      {(
+                        (i.price + (i.selectedExtra?.price ?? 0)) *
+                        i.quantity
+                      ).toLocaleString("es-AR")}
                     </span>
                   </div>
                 ))}

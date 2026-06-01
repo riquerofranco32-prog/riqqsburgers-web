@@ -12,6 +12,7 @@ const ALLOWED_FIELDS = [
   "available",
   "sort_order",
   "category_id",
+  "extras",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];

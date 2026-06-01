@@ -155,6 +155,7 @@ interface ProductForm {
   badge: string;
   image_url: string;
   available: boolean;
+  extras: Array<{ name: string; price: string }>;
 }
 
 const emptyForm: ProductForm = {
@@ -165,6 +166,7 @@ const emptyForm: ProductForm = {
   badge: "",
   image_url: "",
   available: true,
+  extras: [],
 };
 
 // ── Product Modal ─────────────────────────────────────────────────────────────
@@ -192,6 +194,12 @@ function ProductModal({
           badge: product.badge ?? "",
           image_url: product.image_url ?? "",
           available: product.available,
+          extras: (product.extras ?? []).map(
+            (e: { name: string; price: number }) => ({
+              name: e.name,
+              price: String(e.price),
+            }),
+          ),
         }
       : emptyForm,
   );
@@ -407,6 +415,79 @@ function ProductModal({
               </div>
               <span className="text-sm text-white">Disponible</span>
             </label>
+
+            {/* Opciones de tamaño */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                  Opciones de tamaño
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      extras: [...f.extras, { name: "", price: "" }],
+                    }))
+                  }
+                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                >
+                  + Agregar
+                </button>
+              </div>
+              <p className="text-xs text-zinc-600 mb-2">
+                El precio base es &quot;Simple&quot;. Agregá &quot;Doble&quot;,
+                &quot;Triple&quot;, etc. con su precio adicional.
+              </p>
+              <div className="flex flex-col gap-2">
+                {form.extras.map((extra, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      value={extra.name}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          extras: f.extras.map((ex, idx) =>
+                            idx === i ? { ...ex, name: e.target.value } : ex,
+                          ),
+                        }))
+                      }
+                      placeholder="Ej: Doble"
+                      style={{ fontSize: 16 }}
+                      className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                    />
+                    <input
+                      type="number"
+                      value={extra.price}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          extras: f.extras.map((ex, idx) =>
+                            idx === i ? { ...ex, price: e.target.value } : ex,
+                          ),
+                        }))
+                      }
+                      placeholder="$+ precio"
+                      min={0}
+                      style={{ fontSize: 16 }}
+                      className="w-28 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          extras: f.extras.filter((_, idx) => idx !== i),
+                        }))
+                      }
+                      className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </form>
 
@@ -515,6 +596,15 @@ export default function ProductsAdmin({
       badge: form.badge.trim() || null,
       image_url: form.image_url.trim() || null,
       available: form.available,
+      extras: form.extras
+        .filter(
+          (e) =>
+            e.name.trim() &&
+            e.price !== "" &&
+            !isNaN(Number(e.price)) &&
+            Number(e.price) >= 0,
+        )
+        .map((e) => ({ name: e.name.trim(), price: Number(e.price) })),
     };
 
     if (editProduct) {

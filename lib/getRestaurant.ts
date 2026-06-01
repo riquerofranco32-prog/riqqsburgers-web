@@ -27,6 +27,7 @@ export interface MenuItem {
   price: number;
   image: string;
   badge: string | null;
+  extras: Array<{ name: string; price: number }>;
 }
 
 export interface MenuCategory {
@@ -129,6 +130,8 @@ function mapToRestaurant(
                 topProductId && p.id === topProductId && p.badge !== "Agotado"
                   ? "Más pedido"
                   : (p.badge ?? null),
+              extras:
+                (p.extras as Array<{ name: string; price: number }>) ?? [],
             })),
         }));
         const uncategorized = products
@@ -148,6 +151,7 @@ function mapToRestaurant(
               topProductId && p.id === topProductId && p.badge !== "Agotado"
                 ? "Más pedido"
                 : (p.badge ?? null),
+            extras: (p.extras as Array<{ name: string; price: number }>) ?? [],
           }));
         if (uncategorized.length > 0) {
           mapped.push({

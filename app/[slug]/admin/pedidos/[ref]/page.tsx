@@ -159,28 +159,56 @@ export default async function OrderTicketPage({
           >
             ITEMS
           </div>
-          {items.map((item, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 16,
-                fontWeight: 600,
-                marginBottom: 8,
-                paddingBottom: 8,
-                borderBottom:
-                  i < items.length - 1 ? "1px solid #e5e5e5" : "none",
-              }}
-            >
-              <span>
-                {item.quantity}x {item.name}
-              </span>
-              <span>
-                ${(item.price * item.quantity).toLocaleString("es-AR")}
-              </span>
-            </div>
-          ))}
+          {items.map((item, i) => {
+            const itemWithExtra = item as OrderItem & {
+              selected_extra?: { name: string; price: number };
+            };
+            const extraPrice = itemWithExtra.selected_extra?.price ?? 0;
+            return (
+              <div
+                key={i}
+                style={{
+                  marginBottom: 8,
+                  paddingBottom: 8,
+                  borderBottom:
+                    i < items.length - 1 ? "1px solid #e5e5e5" : "none",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: 16,
+                    fontWeight: 600,
+                  }}
+                >
+                  <span>
+                    {item.quantity}x {item.name}
+                  </span>
+                  <span>
+                    $
+                    {((item.price + extraPrice) * item.quantity).toLocaleString(
+                      "es-AR",
+                    )}
+                  </span>
+                </div>
+                {itemWithExtra.selected_extra && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#555",
+                      marginTop: 2,
+                      marginLeft: 8,
+                    }}
+                  >
+                    + {itemWithExtra.selected_extra.name}
+                    {itemWithExtra.selected_extra.price > 0 &&
+                      ` (+$${itemWithExtra.selected_extra.price.toLocaleString("es-AR")})`}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Entrega y pago */}

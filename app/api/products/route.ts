@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     image_url?: string | null;
     available?: boolean;
     sort_order?: number;
+    extras?: Array<{ name: string; price: number }>;
   };
 
   if (!body.slug || !body.name || body.price === undefined) {
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
       image_url: body.image_url ?? null,
       available: body.available ?? true,
       sort_order: body.sort_order ?? 0,
+      extras: body.extras ?? [],
     })
     .select()
     .single();
