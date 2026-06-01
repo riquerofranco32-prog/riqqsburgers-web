@@ -42,7 +42,20 @@ export default function TicketActions({
   const [cancelling, setCancelling] = useState(false);
 
   function handlePrint() {
-    window.print();
+    const el = document.getElementById("restaurant-ticket");
+    if (!el) return;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+      body { font-family: monospace; margin: 0; padding: 16px; background: white; color: black; }
+      @page { margin: 6mm; size: auto; }
+    </style></head><body>${el.innerHTML}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => {
+      w.print();
+      w.close();
+    }, 150);
   }
 
   async function handleCancel() {
