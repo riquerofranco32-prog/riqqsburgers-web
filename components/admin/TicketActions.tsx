@@ -118,22 +118,26 @@ export default function TicketActions({
 
   return (
     <div
-      style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        marginBottom: 24,
+      }}
       className="no-print"
     >
       <button
         onClick={handlePrint}
         style={{
-          flex: 1,
-          minWidth: 120,
-          padding: "10px",
+          width: "100%",
+          padding: "12px",
           background: "#111",
           color: "white",
           border: "none",
           borderRadius: 8,
           cursor: "pointer",
           fontWeight: 600,
-          fontSize: 14,
+          fontSize: 15,
         }}
       >
         Imprimir ticket
@@ -142,16 +146,15 @@ export default function TicketActions({
         <button
           onClick={handleDeliverySlip}
           style={{
-            flex: 1,
-            minWidth: 120,
-            padding: "10px",
+            width: "100%",
+            padding: "12px",
             background: "#FF6B35",
             color: "white",
             border: "none",
             borderRadius: 8,
             cursor: "pointer",
             fontWeight: 600,
-            fontSize: 14,
+            fontSize: 15,
           }}
         >
           Hoja repartidor
@@ -162,16 +165,15 @@ export default function TicketActions({
           onClick={handleCancel}
           disabled={cancelling}
           style={{
-            flex: 1,
-            minWidth: 120,
-            padding: "10px",
+            width: "100%",
+            padding: "12px",
             background: "rgba(239,68,68,0.1)",
             color: "#f87171",
             border: "1px solid rgba(239,68,68,0.4)",
             borderRadius: 8,
             cursor: cancelling ? "not-allowed" : "pointer",
             fontWeight: 600,
-            fontSize: 14,
+            fontSize: 15,
             opacity: cancelling ? 0.7 : 1,
           }}
         >
@@ -181,18 +183,21 @@ export default function TicketActions({
       <Link
         href={`/${slug}/admin/pedidos`}
         style={{
-          padding: "10px 14px",
+          width: "100%",
+          padding: "12px",
           background: "#f3f3f3",
           color: "#333",
           borderRadius: 8,
           textDecoration: "none",
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: 600,
           display: "flex",
           alignItems: "center",
+          justifyContent: "center",
+          boxSizing: "border-box",
         }}
       >
-        ← Volver
+        ← Volver a pedidos
       </Link>
     </div>
   );
