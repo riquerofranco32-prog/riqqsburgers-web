@@ -351,18 +351,43 @@ export default function CheckoutModal({
                 marginBottom: 8,
               }}
             >
-              ¡Pedido enviado!
+              ¡Casi listo!
             </h2>
+            <div
+              style={{
+                background: "rgba(37,211,102,0.12)",
+                border: "1.5px solid rgba(37,211,102,0.4)",
+                borderRadius: 12,
+                padding: "14px 16px",
+                marginBottom: 20,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
+                textAlign: "left",
+              }}
+            >
+              <span style={{ fontSize: 22, flexShrink: 0 }}>📲</span>
+              <p
+                style={{
+                  color: "var(--text-primary)",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  lineHeight: 1.45,
+                  margin: 0,
+                }}
+              >
+                Abrí WhatsApp y enviá el mensaje para completar tu pedido.
+              </p>
+            </div>
             <p
               style={{
                 color: "var(--text-secondary)",
-                fontSize: 14,
+                fontSize: 13,
                 marginBottom: 24,
                 lineHeight: 1.5,
               }}
             >
-              Se abrió WhatsApp con tu pedido. Guardá el código para hacer el
-              seguimiento.
+              Guardá el código para hacer el seguimiento.
             </p>
             <div
               style={{
