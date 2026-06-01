@@ -298,12 +298,10 @@ export default function AdminShell({
         {/* Takefyy logo — right */}
         <div
           style={{
-            width: 44,
-            height: 44,
+            flexShrink: 0,
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
+            paddingRight: 8,
           }}
         >
           <TakefyyLogo size="sm" />

@@ -309,6 +309,7 @@ export default async function OrderTicketPage({
         @media print {
           .no-print { display: none !important; }
           header, aside, nav { display: none !important; }
+          .admin-shell-main { margin-left: 0 !important; padding-top: 0 !important; }
           body { margin: 0; background: white !important; color: black !important; }
           @page { margin: 8mm; size: auto; }
         }
