@@ -17,6 +17,7 @@ const ALLOWED_FIELDS = [
   "whatsapp_number",
   "delivery_cost",
   "is_open",
+  "hero_video_url",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -42,6 +43,20 @@ export async function PATCH(
       body[f],
     ]),
   );
+
+  const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
+  for (const colorField of [
+    "primary_color",
+    "secondary_color",
+    "background_color",
+  ] as const) {
+    if (colorField in patch && !HEX_COLOR.test(patch[colorField] as string)) {
+      return NextResponse.json(
+        { error: `Color inválido: ${colorField}` },
+        { status: 400 },
+      );
+    }
+  }
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json(

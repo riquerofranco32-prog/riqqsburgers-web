@@ -5,6 +5,7 @@ export interface Tenant {
   tagline: string | null;
   logo_url: string | null;
   banner_url: string | null;
+  hero_video_url: string | null;
   whatsapp_number: string;
   mp_link: string | null;
   delivery_cost: number;

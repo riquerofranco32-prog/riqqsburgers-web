@@ -13,6 +13,13 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  if (body.order.length > 100) {
+    return NextResponse.json(
+      { error: "Demasiadas categorías en el reordenamiento" },
+      { status: 400 },
+    );
+  }
+
   let tenantId: string;
   try {
     const result = await assertTenantAdmin(body.slug);
@@ -38,7 +45,11 @@ export async function PATCH(req: NextRequest) {
 
   const failed = results.find((r) => r.error);
   if (failed?.error) {
-    return NextResponse.json({ error: failed.error.message }, { status: 500 });
+    console.error("[categories/order] update error:", failed.error);
+    return NextResponse.json(
+      { error: "Error al guardar el orden" },
+      { status: 500 },
+    );
   }
 
   revalidatePath(`/${body.slug}`, "layout");

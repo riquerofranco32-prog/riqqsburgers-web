@@ -92,6 +92,12 @@ const STATUS_META: Record<
     color: "#a1a1aa",
     border: "rgba(113,113,122,0.3)",
   },
+  preparing: {
+    label: "Preparando",
+    bg: "rgba(59,130,246,0.12)",
+    color: "#60a5fa",
+    border: "rgba(59,130,246,0.3)",
+  },
   cancelled: {
     label: "Cancelado",
     bg: "rgba(239,68,68,0.12)",

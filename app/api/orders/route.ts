@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 
@@ -20,10 +21,8 @@ interface CreateOrderBody {
 
 function generateRef(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return Array.from(
-    { length: 6 },
-    () => chars[Math.floor(Math.random() * chars.length)],
-  ).join("");
+  const bytes = randomBytes(6);
+  return Array.from(bytes, (b: number) => chars[b % chars.length]).join("");
 }
 
 export async function POST(req: NextRequest) {
@@ -48,6 +47,53 @@ export async function POST(req: NextRequest) {
       { error: "Faltan campos requeridos" },
       { status: 400 },
     );
+  }
+
+  const MAX_ITEMS = 50;
+  const MAX_QUANTITY_PER_ITEM = 99;
+  const MAX_NAME = 100;
+  const MAX_PHONE = 30;
+  const MAX_ADDRESS = 200;
+  const MAX_NOTES = 500;
+
+  if (customer_name.trim().length > MAX_NAME) {
+    return NextResponse.json(
+      { error: "Nombre demasiado largo" },
+      { status: 400 },
+    );
+  }
+  if (body.customer_phone && body.customer_phone.length > MAX_PHONE) {
+    return NextResponse.json(
+      { error: "Teléfono demasiado largo" },
+      { status: 400 },
+    );
+  }
+  if (body.customer_address && body.customer_address.length > MAX_ADDRESS) {
+    return NextResponse.json(
+      { error: "Dirección demasiado larga" },
+      { status: 400 },
+    );
+  }
+  if (body.notes && body.notes.length > MAX_NOTES) {
+    return NextResponse.json(
+      { error: "Nota demasiado larga (máx. 500 caracteres)" },
+      { status: 400 },
+    );
+  }
+
+  if (items.length > MAX_ITEMS) {
+    return NextResponse.json(
+      { error: "Demasiados items en el pedido" },
+      { status: 400 },
+    );
+  }
+  for (const item of items) {
+    if (item.quantity > MAX_QUANTITY_PER_ITEM) {
+      return NextResponse.json(
+        { error: "Cantidad máxima por producto: 99" },
+        { status: 400 },
+      );
+    }
   }
 
   const supabase = createServerClient();

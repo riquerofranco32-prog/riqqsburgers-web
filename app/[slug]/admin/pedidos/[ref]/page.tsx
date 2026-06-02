@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import TicketActions from "@/components/admin/TicketActions";
+import PrintButton from "@/components/admin/PrintButton";
 import type { OrderItem } from "@/types/supabase";
 
 export const dynamic = "force-dynamic";
@@ -45,13 +46,44 @@ export default async function OrderTicketPage({
       style={{
         maxWidth: 420,
         margin: "0 auto",
-        padding: "24px 20px",
+        padding: "24px 20px 96px",
         fontFamily: "system-ui, sans-serif",
         background: "white",
         color: "#000",
         minHeight: "100vh",
+        overflowY: "auto",
       }}
     >
+      {/* Header fijo con ref + botón imprimir */}
+      <div
+        className="no-print"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 11,
+              color: "#999",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+            }}
+          >
+            Pedido
+          </div>
+          <div
+            style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.1em" }}
+          >
+            #{order.order_ref}
+          </div>
+        </div>
+        <PrintButton />
+      </div>
+
       <TicketActions
         slug={slug}
         orderId={order.id}
@@ -78,7 +110,7 @@ export default async function OrderTicketPage({
       />
 
       {/* TICKET DEL RESTAURANTE */}
-      <div id="restaurant-ticket" style={{ fontFamily: "monospace" }}>
+      <div id="comanda-print" style={{ fontFamily: "monospace" }}>
         {/* Header restaurante */}
         <div
           style={{
@@ -331,14 +363,18 @@ export default async function OrderTicketPage({
             <span>${order.total.toLocaleString("es-AR")}</span>
           </div>
         </div>
+
+        <div style={{ marginTop: 20 }}>
+          <PrintButton label="Imprimir comanda" fullWidth />
+        </div>
       </div>
 
       <style>{`
         @media print {
-          /* Ocultar todo el body y mostrar solo el ticket */
           body * { visibility: hidden !important; }
-          #restaurant-ticket, #restaurant-ticket * { visibility: visible !important; }
-          #restaurant-ticket {
+          #comanda-print, #comanda-print * { visibility: visible !important; }
+          .print\\:hidden { display: none !important; }
+          #comanda-print {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;

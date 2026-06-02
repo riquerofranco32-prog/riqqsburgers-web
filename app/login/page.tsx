@@ -48,7 +48,8 @@ export default function LoginPage() {
         .maybeSingle();
 
       if (tuError) {
-        setError(`Error de permisos: ${tuError.message}`);
+        console.error("[login] tenant_users error:", tuError);
+        setError("Error al verificar permisos. Intentá de nuevo.");
         setLoading(false);
         return;
       }

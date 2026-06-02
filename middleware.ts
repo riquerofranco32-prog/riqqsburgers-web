@@ -38,5 +38,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: "/api/orders",
+  matcher: ["/api/orders", "/api/admin/:path*", "/api/products/:path*"],
 };

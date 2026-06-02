@@ -46,6 +46,7 @@ export interface Restaurant {
   instagram: string;
   logo: string;
   banner_url: string;
+  hero_video_url: string | null;
   accent_color: string;
   primary_color: string;
   delivery_cost: number;
@@ -103,6 +104,7 @@ function mapToRestaurant(
     instagram: tenant.instagram_handle ?? "",
     logo: tenant.logo_url ?? "",
     banner_url: tenant.banner_url ?? "",
+    hero_video_url: tenant.hero_video_url ?? null,
     accent_color: tenant.primary_color ?? "#FF6B35",
     primary_color: tenant.primary_color ?? "#FF6B35",
     delivery_cost: tenant.delivery_cost ?? 0,
@@ -183,6 +185,7 @@ export async function getRestaurant(slug: string): Promise<Restaurant | null> {
 
   // 2. JSON local (fallback para dev)
   try {
+    if (!/^[a-z0-9-]+$/.test(slug)) return null;
     const filePath = path.join(
       process.cwd(),
       "data",

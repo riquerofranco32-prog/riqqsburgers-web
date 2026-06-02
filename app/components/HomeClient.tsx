@@ -9,6 +9,7 @@ import {
   useSpring,
 } from "framer-motion";
 import Link from "next/link";
+import HeroShader from "@/components/HeroShader";
 import {
   ShoppingCart,
   CheckCircle,
@@ -277,45 +278,46 @@ const testimonials = [
 
 const plans = [
   {
-    name: "Free",
+    name: "Starter",
     price: "Gratis",
     period: "para siempre",
-    desc: "Para arrancar y probar sin riesgo",
+    desc: "Para arrancar sin riesgo",
     features: [
-      "Hasta 10 productos",
+      "Menú digital completo",
+      "Productos y categorías ilimitados",
       "Pedidos por WhatsApp",
-      "Panel admin básico",
-      "URL propia",
+      "Link y código QR",
+      "Panel admin incluido",
     ],
     cta: "Empezar gratis →",
     featured: false,
   },
   {
     name: "Pro",
-    price: "$4.999",
+    price: "$17.000",
     period: "/mes",
-    desc: "Para negocios en crecimiento",
+    desc: "Para negocios que quieren crecer",
     features: [
-      "Hasta 50 productos",
-      "Analytics de ventas",
-      "Colores y logo personalizados",
-      "Soporte prioritario",
-      "Sin comisiones",
+      "Todo lo del plan Starter",
+      "URL en takefyy.com/tu-local",
+      "Sin logo de Takefyy",
+      "Colores personalizados",
+      "Estadísticas de ventas",
+      "Sin comisiones por pedido",
     ],
     cta: "Empezar gratis →",
     featured: true,
   },
   {
-    name: "Premium",
-    price: "$9.999",
+    name: "Growth",
+    price: "$27.000",
     period: "/mes",
     desc: "Para locales con alto volumen",
     features: [
-      "Productos ilimitados",
-      "Todo el plan Pro",
+      "Todo lo del plan Pro",
       "Reportes avanzados",
-      "Múltiples admins",
-      "Soporte directo",
+      "Múltiples administradores",
+      "Soporte prioritario directo",
     ],
     cta: "Contactar →",
     featured: false,
@@ -333,7 +335,7 @@ const faqs = [
   },
   {
     q: "¿Puedo personalizar los colores y logo?",
-    a: "Sí. Cada restaurante tiene su propia paleta de colores, logo e información de contacto. Tu menú va a tener tu identidad.",
+    a: "Sí, en los planes Pro y Growth. Podés cargar tu logo, elegir tus colores y tu menú va a tener tu identidad. En el plan Starter el menú funciona con la estética estándar de Takefyy.",
   },
   {
     q: "¿Hay comisión por pedido?",
@@ -848,29 +850,8 @@ export default function HomeClient({
           paddingTop: 64,
         }}
       >
-        {/* Dot grid */}
-        <div
-          className="dot-grid"
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 0,
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Grain */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 0,
-            opacity: 0.025,
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-            backgroundSize: "180px 180px",
-            pointerEvents: "none",
-          }}
-        />
+        {/* Shader background */}
+        <HeroShader />
 
         {/* Mouse-tracking glow */}
         <div
@@ -1805,7 +1786,7 @@ export default function HomeClient({
                 lineHeight: 1.0,
               }}
             >
-              Todo incluido. Un precio. Sin sorpresas.
+              Todo incluido. Sin comisiones. Sin sorpresas.
             </h2>
           </motion.div>
 
@@ -2034,7 +2015,7 @@ export default function HomeClient({
                 lineHeight: 1.0,
               }}
             >
-              Un precio. Sin sorpresas.
+              Tres planes. Sin sorpresas.
             </h2>
           </motion.div>
 

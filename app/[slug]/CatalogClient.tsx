@@ -1,7 +1,22 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { X, Minus, Plus, Trash2, Search, ShoppingBag } from "lucide-react";
+import { useState, useCallback, useEffect, useRef, Fragment } from "react";
+import {
+  X,
+  Minus,
+  Plus,
+  Trash2,
+  Search,
+  ShoppingCart,
+  Flame,
+  Sparkles,
+  Tag,
+  XCircle,
+  Star,
+  UtensilsCrossed,
+  CheckCircle2,
+  type LucideIcon,
+} from "lucide-react";
 import type {
   Restaurant,
   MenuItem,
@@ -9,6 +24,8 @@ import type {
 } from "@/lib/getRestaurant";
 import CheckoutModal from "@/components/CheckoutModal";
 import InfoRotator from "@/components/menu/InfoRotator";
+import MenuHeroShader from "@/components/menu/MenuHeroShader";
+import MenuBackground from "@/components/menu/MenuBackground";
 
 type SelectedExtra = { name: string; price: number };
 type CartItem = MenuItem & {
@@ -35,24 +52,25 @@ function hexToLuma(hex: string) {
   return 0.299 * r + 0.587 * g + 0.114 * b;
 }
 
-const BADGE_META: Record<
-  string,
-  { bg: string; color: string; icon: string; label: string }
-> = {
-  Popular: { bg: "#fff3cd", color: "#92400e", icon: "🔥", label: "Popular" },
-  Nuevo: { bg: "#dbeafe", color: "#1e40af", icon: "✨", label: "Nuevo" },
-  Promo: { bg: "#fce7f3", color: "#9d174d", icon: "🏷️", label: "Promo" },
-  Agotado: { bg: "#f3f4f6", color: "#6b7280", icon: "😴", label: "Agotado" },
-  "Más pedido": {
-    bg: "#fef9c3",
-    color: "#854d0e",
-    icon: "⭐",
-    label: "Más pedido",
-  },
+const BADGE_META: Record<string, { color: string; label: string }> = {
+  Popular: { color: "#EA580C", label: "Popular" },
+  Nuevo: { color: "#2563EB", label: "Nuevo" },
+  Promo: { color: "#DC2626", label: "Promo" },
+  Agotado: { color: "#6B7280", label: "Agotado" },
+  "Más pedido": { color: "#B45309", label: "Más pedido" },
+};
+
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  Popular: Flame,
+  Nuevo: Sparkles,
+  Promo: Tag,
+  Agotado: XCircle,
+  "Más pedido": Star,
 };
 
 function Badge({ badge }: { badge: string }) {
   const meta = BADGE_META[badge];
+  const Icon = BADGE_ICONS[badge];
   if (!meta) return null;
   return (
     <span
@@ -61,14 +79,16 @@ function Badge({ badge }: { badge: string }) {
         alignItems: "center",
         gap: 3,
         fontSize: 10,
-        fontWeight: 700,
-        padding: "2px 7px",
-        borderRadius: 6,
-        background: meta.bg,
+        fontWeight: 600,
+        padding: "2px 8px",
+        borderRadius: 999,
+        background: meta.color + "18",
         color: meta.color,
+        border: `1px solid ${meta.color}30`,
       }}
     >
-      {meta.icon} {meta.label}
+      {Icon && <Icon size={9} strokeWidth={2.5} />}
+      {meta.label}
     </span>
   );
 }
@@ -96,7 +116,8 @@ function AddedToast({ visible, name }: { visible: boolean; name: string }) {
         boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
       }}
     >
-      ✓ {name ? name.split(" ")[0] : "Producto"} agregado
+      <CheckCircle2 size={13} strokeWidth={2.5} style={{ marginRight: 4 }} />
+      {name ? name.split(" ")[0] : "Producto"} agregado
     </div>
   );
 }
@@ -111,6 +132,9 @@ export default function CatalogClient({
   const catBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const catSectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const isScrollingToCat = useRef(false);
+  const heroRef = useRef<HTMLElement>(null);
+  const heroRafRef = useRef<number>(0);
+  const glowRef = useRef<HTMLDivElement>(null);
   const STICKY_OFFSET = 150; // search + cat bar height approx
 
   const [activeCategory, setActiveCategory] = useState(
@@ -382,6 +406,18 @@ export default function CatalogClient({
     }
   }
 
+  function handleHeroMouseMove(e: React.MouseEvent<HTMLElement>) {
+    cancelAnimationFrame(heroRafRef.current);
+    heroRafRef.current = requestAnimationFrame(() => {
+      const rect = heroRef.current?.getBoundingClientRect();
+      if (!rect || !glowRef.current) return;
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
+      glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
+    });
+  }
+
   const b: RestaurantBrand | null = restaurant.brand ?? null;
   const accent = b?.accent ?? restaurant.accent_color;
   const onAccent = hexToLuma(accent) < 140 ? "#fff" : "#111";
@@ -618,15 +654,18 @@ export default function CatalogClient({
                   width: 90,
                   height: 90,
                   borderRadius: 12,
-                  background: `linear-gradient(135deg, ${accent}18, ${accent}06)`,
-                  border: `1.5px solid ${accent}15`,
+                  background: SURFACE2,
+                  border: `1px solid ${BORDER}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 34,
                 }}
               >
-                {catEmoji}
+                <UtensilsCrossed
+                  size={26}
+                  strokeWidth={1.5}
+                  color={accent + "70"}
+                />
               </div>
             )}
 
@@ -762,891 +801,981 @@ export default function CatalogClient({
         } as React.CSSProperties
       }
     >
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          minHeight: 260,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "36px 20px 28px",
-        }}
-      >
-        {/* Background: banner o gradiente de color del negocio */}
-        {restaurant.banner_url ? (
-          <>
-            <img
-              src={restaurant.banner_url}
-              alt=""
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                zIndex: 0,
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: `linear-gradient(160deg, ${accent}cc 0%, rgba(0,0,0,0.55) 100%)`,
-                zIndex: 1,
-              }}
-            />
-          </>
-        ) : (
-          <>
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: `linear-gradient(145deg, ${accent} 0%, ${accent}99 60%, ${accent}55 100%)`,
-                zIndex: 0,
-              }}
-            />
-            {/* Grain texture */}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 1,
-                opacity: 0.06,
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                backgroundSize: "180px",
-              }}
-            />
-            {/* Glow spot */}
-            <div
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "70%",
-                paddingTop: "70%",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.08)",
-                filter: "blur(40px)",
-                zIndex: 1,
-                pointerEvents: "none",
-              }}
-            />
-          </>
-        )}
-
-        {/* Status badge */}
-        <div
+      <MenuBackground accentColor={accent} />
+      <div style={{ position: "relative", zIndex: 2 }}>
+        {/* ── Header ──────────────────────────────────────────────────────────── */}
+        <header
+          ref={heroRef}
+          onMouseMove={handleHeroMouseMove}
           style={{
-            position: "absolute",
-            top: 14,
-            right: 16,
-            zIndex: 10,
+            position: "relative",
+            overflow: "hidden",
+            minHeight: 260,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "36px 20px 28px",
           }}
         >
-          <span
+          {/* Background: video > banner > gradiente de color */}
+          {restaurant.hero_video_url ? (
+            <>
+              <video
+                src={restaurant.hero_video_url}
+                autoPlay
+                muted
+                loop
+                playsInline
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.50)",
+                  zIndex: 1,
+                }}
+              />
+            </>
+          ) : restaurant.banner_url ? (
+            <>
+              <img
+                src={restaurant.banner_url}
+                alt=""
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  zIndex: 0,
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: `linear-gradient(160deg, ${accent}cc 0%, rgba(0,0,0,0.55) 100%)`,
+                  zIndex: 1,
+                }}
+              />
+            </>
+          ) : (
+            <>
+              {/* Shader animado con el color del restaurante */}
+              <MenuHeroShader accent={accent} />
+            </>
+          )}
+
+          {/* Mouse-tracking glow — DOM directo, sin re-render */}
+          <div
+            ref={glowRef}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "5px 12px",
-              borderRadius: 20,
-              fontSize: 11,
-              fontWeight: 700,
-              background: restaurant.is_open
-                ? "rgba(22,163,74,0.9)"
-                : "rgba(220,38,38,0.9)",
-              color: "#fff",
-              backdropFilter: "blur(8px)",
-              letterSpacing: "0.02em",
+              position: "absolute",
+              width: 600,
+              height: 600,
+              borderRadius: "50%",
+              pointerEvents: "none",
+              zIndex: 3,
+              left: "calc(50% - 300px)",
+              top: "calc(50% - 300px)",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.16) 0%, transparent 65%)",
+              transition: "left 0.55s ease, top 0.55s ease",
+            }}
+          />
+          {/* Static ambient glow — visible on mobile */}
+          <div
+            style={{
+              position: "absolute",
+              width: 460,
+              height: 460,
+              borderRadius: "50%",
+              pointerEvents: "none",
+              zIndex: 3,
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.13) 0%, transparent 60%)",
+            }}
+          />
+
+          {/* Orbiting glow A — primary white */}
+          <div
+            style={{
+              position: "absolute",
+              width: 360,
+              height: 360,
+              borderRadius: "50%",
+              pointerEvents: "none",
+              zIndex: 4,
+              left: "50%",
+              top: "50%",
+              marginLeft: -180,
+              marginTop: -180,
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 60%)",
+              animation: "glowOrbit 7s ease-in-out infinite",
+            }}
+          />
+
+          {/* Orbiting glow B — offset phase, accent-tinted */}
+          <div
+            style={{
+              position: "absolute",
+              width: 280,
+              height: 280,
+              borderRadius: "50%",
+              pointerEvents: "none",
+              zIndex: 4,
+              left: "50%",
+              top: "50%",
+              marginLeft: -140,
+              marginTop: -140,
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 60%)",
+              animation: "glowOrbit 11s ease-in-out infinite reverse",
+            }}
+          />
+
+          {/* Status badge */}
+          <div
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 16,
+              zIndex: 10,
             }}
           >
             <span
               style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#fff",
-                display: "inline-block",
-                animation: restaurant.is_open
-                  ? "blink 2s ease-in-out infinite"
-                  : undefined,
-              }}
-            />
-            {restaurant.is_open ? "Abierto" : "Cerrado"}
-          </span>
-        </div>
-
-        {/* Content: logo + nombre + ticker */}
-        <div
-          style={{
-            position: "relative",
-            zIndex: 5,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 0,
-            maxWidth: 640,
-            width: "100%",
-          }}
-        >
-          {/* Logo grande */}
-          {restaurant.logo && (
-            <div
-              style={{
-                width: 110,
-                height: 110,
-                borderRadius: 28,
-                overflow: "hidden",
-                border: "3px solid rgba(255,255,255,0.5)",
-                boxShadow:
-                  "0 12px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)",
-                marginBottom: 14,
-                flexShrink: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "5px 12px",
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 600,
+                background: restaurant.is_open
+                  ? "rgba(22,163,74,0.85)"
+                  : "rgba(100,100,100,0.75)",
+                color: "#fff",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                letterSpacing: "0.02em",
               }}
             >
-              <img
-                src={restaurant.logo}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
-            </div>
-          )}
+              {restaurant.is_open ? (
+                <CheckCircle2 size={11} strokeWidth={2.5} />
+              ) : (
+                <XCircle size={11} strokeWidth={2.5} />
+              )}
+              {restaurant.is_open ? "Abierto" : "Cerrado"}
+            </span>
+          </div>
 
-          <h1
+          {/* Content: logo + nombre + ticker */}
+          <div
             style={{
-              fontSize: 26,
-              fontWeight: 800,
-              color: "#fff",
-              textAlign: "center",
-              lineHeight: 1.15,
-              marginBottom: restaurant.tagline ? 5 : 12,
-              textShadow: "0 2px 12px rgba(0,0,0,0.35)",
-              fontFamily: b?.display_font
-                ? `'${b.display_font}', sans-serif`
-                : "inherit",
+              position: "relative",
+              zIndex: 5,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 0,
+              maxWidth: 640,
+              width: "100%",
             }}
           >
-            {restaurant.name}
-          </h1>
-
-          {restaurant.tagline && (
-            <p
-              style={{
-                fontSize: 12,
-                color: "rgba(255,255,255,0.78)",
-                fontStyle: "italic",
-                textAlign: "center",
-                marginBottom: 12,
-              }}
-            >
-              {restaurant.tagline}
-            </p>
-          )}
-
-          {infoItems.length > 0 && (
-            <InfoRotator
-              items={infoItems}
-              accent={accent}
-              textColor="rgba(255,255,255,0.88)"
-              maskColor="transparent"
-            />
-          )}
-        </div>
-      </header>
-
-      {/* Closed notice */}
-      {!restaurant.is_open && (
-        <div
-          style={{
-            background: "rgba(220,38,38,0.07)",
-            borderBottom: "1px solid rgba(220,38,38,0.12)",
-            padding: "9px 16px",
-            textAlign: "center",
-            fontSize: 13,
-            color: "#dc2626",
-            fontWeight: 600,
-          }}
-        >
-          🔒 Cerrado por ahora. Podés explorar la carta igual.
-        </div>
-      )}
-
-      {/* ── Sticky: Search + Categories ──────────────────────────────────────── */}
-      <div
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 40,
-          background: BG,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
-        }}
-      >
-        {/* Search */}
-        <div style={{ padding: "10px 16px 6px" }}>
-          <div
-            style={{ maxWidth: 640, margin: "0 auto", position: "relative" }}
-          >
-            <Search
-              size={15}
-              style={{
-                position: "absolute",
-                left: 14,
-                top: "50%",
-                transform: "translateY(-50%)",
-                color: TEXTM,
-                pointerEvents: "none",
-              }}
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar en el menú..."
-              style={{
-                width: "100%",
-                borderRadius: 999,
-                border: `1.5px solid ${BORDER}`,
-                padding: "11px 36px 11px 36px",
-                background: SURFACE,
-                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-                fontSize: 14,
-                color: TEXT1,
-                outline: "none",
-                boxSizing: "border-box",
-                fontFamily: "inherit",
-                transition: "border-color 0.2s",
-              }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = accent)}
-              onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
+            {/* Logo flotante */}
+            {restaurant.logo && (
+              <div
                 style={{
-                  position: "absolute",
-                  right: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: SURFACE2,
-                  border: "none",
-                  width: 22,
-                  height: 22,
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  color: TEXTM,
+                  position: "relative",
+                  marginBottom: 14,
+                  animation:
+                    "heroFadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.05s both",
                 }}
               >
-                <X size={11} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Category pills */}
-        {!searchQuery && (
-          <div
-            ref={catBarRef}
-            style={{
-              display: "flex",
-              gap: 8,
-              padding: "4px 16px 10px",
-              overflowX: "auto",
-              scrollbarWidth: "none",
-              WebkitOverflowScrolling: "touch",
-            }}
-          >
-            {restaurant.menu.categories.map((cat) => {
-              const isActive = activeCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  ref={(el) => {
-                    catBtnRefs.current[cat.id] = el;
-                  }}
-                  onClick={() => scrollToCategory(cat.id)}
+                {/* Halo pulsante detrás del logo */}
+                <div
                   style={{
+                    position: "absolute",
+                    inset: -14,
+                    borderRadius: 42,
+                    background: "rgba(255,255,255,0.15)",
+                    filter: "blur(18px)",
+                    animation: "logoPulse 3s ease-in-out infinite",
+                    pointerEvents: "none",
+                  }}
+                />
+                <div
+                  style={{
+                    width: 110,
+                    height: 110,
+                    borderRadius: 28,
+                    overflow: "hidden",
+                    border: "3px solid rgba(255,255,255,0.5)",
+                    boxShadow:
+                      "0 16px 56px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.12)",
                     flexShrink: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 3,
-                    padding: "8px 14px",
-                    borderRadius: 14,
-                    border: isActive ? "none" : `1.5px solid ${BORDER}`,
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    background: isActive ? accent : SURFACE,
-                    color: isActive ? onAccent : TEXT2,
-                    boxShadow: isActive
-                      ? `0 4px 16px ${accent}45`
-                      : "0 1px 3px rgba(0,0,0,0.05)",
-                    WebkitTapHighlightColor: "transparent",
-                    minWidth: 56,
+                    animation: "logoFloat 4.5s ease-in-out infinite",
                     position: "relative",
                   }}
                 >
-                  <span style={{ fontSize: 22, lineHeight: 1 }}>
-                    {cat.emoji}
-                  </span>
-                  <span style={{ fontSize: 10, whiteSpace: "nowrap" }}>
-                    {cat.name}
-                  </span>
-                  {cat.items.length > 0 && (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: -4,
-                        right: -4,
-                        fontSize: 9,
-                        fontWeight: 800,
-                        width: 16,
-                        height: 16,
-                        borderRadius: "50%",
-                        background: isActive
-                          ? "rgba(255,255,255,0.28)"
-                          : SURFACE2,
-                        color: isActive ? onAccent : TEXTM,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        border: `1.5px solid ${isActive ? "transparent" : BORDER}`,
-                      }}
-                    >
-                      {cat.items.length}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  <img
+                    src={restaurant.logo}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
-      {/* ── Products ─────────────────────────────────────────────────────────── */}
-      <div
-        style={{ maxWidth: 640, margin: "0 auto", padding: "8px 12px 120px" }}
-      >
-        {/* ── Search results ── */}
-        {searchQuery ? (
-          <>
-            <p
+            <h1
               style={{
-                fontSize: 12,
-                color: TEXTM,
-                marginBottom: 10,
-                paddingLeft: 4,
-                animation: "fadeIn 0.2s ease both",
+                fontSize: 30,
+                fontWeight: 800,
+                color: "#fff",
+                textAlign: "center",
+                lineHeight: 1.1,
+                marginBottom: restaurant.tagline ? 6 : 14,
+                textShadow: "0 2px 20px rgba(0,0,0,0.45)",
+                fontFamily: b?.display_font
+                  ? `'${b.display_font}', serif`
+                  : "var(--font-playfair, 'Playfair Display', serif)",
+                letterSpacing: "-0.01em",
+                animation:
+                  "heroFadeUp 0.55s cubic-bezier(0.22,1,0.36,1) 0.22s both",
               }}
             >
-              {searchResults.length} resultado
-              {searchResults.length !== 1 ? "s" : ""} para &ldquo;{searchQuery}
-              &rdquo;
-            </p>
-            {searchResults.length > 0 ? (
-              searchResults.map((item, idx) => (
-                <ProductCard
-                  key={item.id}
-                  item={item}
-                  catEmoji={
-                    (item as typeof item & { _catEmoji: string })._catEmoji ??
-                    "🍽️"
-                  }
-                  accent={accent}
-                  onAccent={onAccent}
-                  SURFACE={SURFACE}
-                  SURFACE2={SURFACE2}
-                  BORDER={BORDER}
-                  TEXT1={TEXT1}
-                  TEXT2={TEXT2}
-                  idx={idx}
-                />
-              ))
-            ) : (
-              <div
-                style={{ textAlign: "center", padding: "64px 0", color: TEXTM }}
+              {restaurant.name}
+            </h1>
+
+            {restaurant.tagline && (
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "rgba(255,255,255,0.78)",
+                  fontStyle: "italic",
+                  textAlign: "center",
+                  marginBottom: 12,
+                  animation:
+                    "heroFadeUp 0.55s cubic-bezier(0.22,1,0.36,1) 0.36s both",
+                }}
               >
-                <div
+                {restaurant.tagline}
+              </p>
+            )}
+
+            {infoItems.length > 0 && (
+              <div
+                style={{
+                  animation:
+                    "heroFadeUp 0.55s cubic-bezier(0.22,1,0.36,1) 0.48s both",
+                }}
+              >
+                <InfoRotator
+                  items={infoItems}
+                  accent={accent}
+                  textColor="rgba(255,255,255,0.88)"
+                  maskColor="transparent"
+                />
+              </div>
+            )}
+          </div>
+        </header>
+
+        {/* Closed notice */}
+        {!restaurant.is_open && (
+          <div
+            style={{
+              background: "rgba(220,38,38,0.07)",
+              borderBottom: "1px solid rgba(220,38,38,0.12)",
+              padding: "9px 16px",
+              textAlign: "center",
+              fontSize: 13,
+              color: "#dc2626",
+              fontWeight: 600,
+            }}
+          >
+            Cerrado por ahora. Podés explorar la carta igual.
+          </div>
+        )}
+
+        {/* ── Sticky: Search + Categories ──────────────────────────────────────── */}
+        <div
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 40,
+            background: BG,
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            boxShadow: `0 1px 0 ${BORDER}`,
+          }}
+        >
+          {/* Search */}
+          <div style={{ padding: "10px 16px 6px" }}>
+            <div
+              style={{ maxWidth: 640, margin: "0 auto", position: "relative" }}
+            >
+              <Search
+                size={15}
+                style={{
+                  position: "absolute",
+                  left: 14,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: TEXTM,
+                  pointerEvents: "none",
+                }}
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar en el menú..."
+                style={{
+                  width: "100%",
+                  borderRadius: 999,
+                  border: `1.5px solid ${BORDER}`,
+                  padding: "11px 36px 11px 36px",
+                  background: SURFACE,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                  fontSize: 14,
+                  color: TEXT1,
+                  outline: "none",
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  transition: "border-color 0.2s",
+                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = accent)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
                   style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: "50%",
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
                     background: SURFACE2,
-                    margin: "0 auto 16px",
+                    border: "none",
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 32,
+                    cursor: "pointer",
+                    color: TEXTM,
                   }}
                 >
-                  🔍
-                </div>
-                <p
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 700,
-                    color: TEXT2,
-                    marginBottom: 6,
-                  }}
-                >
-                  Sin resultados
-                </p>
-                <p style={{ fontSize: 13 }}>
-                  No encontramos &ldquo;{searchQuery}&rdquo; en el menú
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          /* ── All categories (scroll-based) ── */
-          restaurant.menu.categories.map((cat, catIndex) => (
+                  <X size={11} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Category pills */}
+          {!searchQuery && (
             <div
-              key={cat.id}
-              ref={(el) => {
-                catSectionRefs.current[cat.id] = el;
+              ref={catBarRef}
+              style={{
+                display: "flex",
+                gap: 6,
+                padding: "6px 16px 10px",
+                overflowX: "auto",
+                scrollbarWidth: "none",
+                WebkitOverflowScrolling: "touch",
               }}
             >
-              {/* Category section header */}
-              <div
+              {restaurant.menu.categories.map((cat) => {
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    ref={(el) => {
+                      catBtnRefs.current[cat.id] = el;
+                    }}
+                    onClick={() => scrollToCategory(cat.id)}
+                    style={{
+                      flexShrink: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "7px 15px",
+                      borderRadius: 999,
+                      border: "none",
+                      fontWeight: isActive ? 600 : 500,
+                      fontSize: 13,
+                      cursor: "pointer",
+                      transition: "all 0.18s ease",
+                      background: isActive ? accent : SURFACE2,
+                      color: isActive ? onAccent : TEXT2,
+                      WebkitTapHighlightColor: "transparent",
+                      letterSpacing: "-0.01em",
+                      fontFamily: "var(--font-dm, var(--font-sans, inherit))",
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── Products ─────────────────────────────────────────────────────────── */}
+        <div
+          style={{ maxWidth: 640, margin: "0 auto", padding: "8px 12px 120px" }}
+        >
+          {/* ── Search results ── */}
+          {searchQuery ? (
+            <>
+              <p
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "16px 4px 10px",
-                  animation: "catHeaderIn 0.28s ease both",
-                  animationDelay: `${catIndex * 0.06}s`,
+                  fontSize: 12,
+                  color: TEXTM,
+                  marginBottom: 10,
+                  paddingLeft: 4,
+                  animation: "fadeIn 0.2s ease both",
                 }}
               >
-                <span style={{ fontSize: 22 }}>{cat.emoji}</span>
-                <span style={{ fontSize: 17, fontWeight: 800, color: TEXT1 }}>
-                  {cat.name}
-                </span>
-                <div
-                  style={{
-                    flex: 1,
-                    height: 1,
-                    background: BORDER,
-                    marginLeft: 4,
-                  }}
-                />
-                <span style={{ fontSize: 11, color: TEXTM }}>
-                  {cat.items.length}
-                </span>
-              </div>
-
-              {cat.items.length > 0 ? (
-                cat.items.map((item, idx) => (
-                  <ProductCard
-                    key={item.id}
-                    item={item}
-                    catEmoji={cat.emoji}
-                    accent={accent}
-                    onAccent={onAccent}
-                    SURFACE={SURFACE}
-                    SURFACE2={SURFACE2}
-                    BORDER={BORDER}
-                    TEXT1={TEXT1}
-                    TEXT2={TEXT2}
-                    idx={idx}
-                  />
+                {searchResults.length} resultado
+                {searchResults.length !== 1 ? "s" : ""} para &ldquo;
+                {searchQuery}
+                &rdquo;
+              </p>
+              {searchResults.length > 0 ? (
+                searchResults.map((item, idx) => (
+                  <Fragment key={item.id}>
+                    {ProductCard({
+                      item,
+                      catEmoji:
+                        (item as typeof item & { _catEmoji: string })
+                          ._catEmoji ?? "🍽️",
+                      accent,
+                      onAccent,
+                      SURFACE,
+                      SURFACE2,
+                      BORDER,
+                      TEXT1,
+                      TEXT2,
+                      idx,
+                    })}
+                  </Fragment>
                 ))
               ) : (
                 <div
                   style={{
                     textAlign: "center",
-                    padding: "32px 0",
+                    padding: "64px 0",
                     color: TEXTM,
                   }}
                 >
-                  <p style={{ fontSize: 13 }}>Próximamente</p>
+                  <div
+                    style={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: "50%",
+                      background: SURFACE2,
+                      margin: "0 auto 14px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Search size={24} strokeWidth={1.5} color={TEXTM} />
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: TEXT2,
+                      marginBottom: 6,
+                    }}
+                  >
+                    Sin resultados
+                  </p>
+                  <p style={{ fontSize: 13 }}>
+                    No encontramos &ldquo;{searchQuery}&rdquo; en el menú
+                  </p>
                 </div>
               )}
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* ── Toast ────────────────────────────────────────────────────────────── */}
-      <AddedToast visible={!!addedToast} name={addedToast?.name ?? ""} />
-
-      {/* ── Cart bar ─────────────────────────────────────────────────────────── */}
-      {totalItems > 0 && !selectedItem && !cartOpen && (
-        <button
-          onClick={() => {
-            vibrate(50);
-            setCartOpen(true);
-          }}
-          style={
-            {
-              position: "fixed",
-              bottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
-              left: 16,
-              right: 16,
-              zIndex: 60,
-              display: "flex",
-              alignItems: "center",
-              background: accent,
-              color: onAccent,
-              border: "none",
-              borderRadius: 18,
-              padding: "15px 18px",
-              cursor: "pointer",
-              boxShadow: `0 8px 32px ${accent}55`,
-              WebkitTapHighlightColor: "transparent",
-              maxWidth: 608,
-              marginLeft: "auto",
-              marginRight: "auto",
-              animation: cartBounce
-                ? "cartPop 0.35s cubic-bezier(0.36,0.07,0.19,0.97)"
-                : "cartEnter 0.3s cubic-bezier(0.22,1,0.36,1)",
-            } as React.CSSProperties
-          }
-        >
-          <span
-            style={{
-              background: "rgba(255,255,255,0.25)",
-              borderRadius: 20,
-              padding: "3px 10px",
-              fontSize: 13,
-              fontWeight: 800,
-              minWidth: 32,
-              textAlign: "center",
-              animation: cartBounce ? "badgePop 0.35s ease" : undefined,
-            }}
-          >
-            {totalItems}
-          </span>
-          <span
-            style={{
-              flex: 1,
-              textAlign: "center",
-              fontWeight: 700,
-              fontSize: 15,
-            }}
-          >
-            Ver pedido
-          </span>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-end",
-            }}
-          >
-            <span style={{ fontWeight: 800, fontSize: 15 }}>
-              {fmt(subtotal)}
-            </span>
-            {hasDelivery && (
-              <span style={{ fontSize: 10, opacity: 0.75 }}>
-                + envío {fmt(restaurant.delivery_cost)}
-              </span>
-            )}
-          </div>
-        </button>
-      )}
-
-      {/* ── Cart drawer ──────────────────────────────────────────────────────── */}
-      {cartOpen && (
-        <>
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 40,
-              background: "rgba(0,0,0,0.45)",
-              backdropFilter: "blur(4px)",
-            }}
-            onClick={() => setCartOpen(false)}
-          />
-          <div
-            onTouchStart={onDrawerTouchStart}
-            onTouchEnd={onDrawerTouchEnd}
-            style={{
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              zIndex: 50,
-              display: "flex",
-              flexDirection: "column",
-              maxHeight: "88dvh",
-              borderRadius: "24px 24px 0 0",
-              background: SURFACE,
-              borderTop: `2px solid ${accent}`,
-              boxShadow: "0 -8px 48px rgba(0,0,0,0.2)",
-              animation: "sheetUp 0.32s cubic-bezier(0.22,1,0.36,1)",
-            }}
-          >
-            {/* Drag handle */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                padding: "12px 0 4px",
-                cursor: "grab",
-              }}
-            >
+            </>
+          ) : (
+            /* ── All categories (scroll-based) ── */
+            restaurant.menu.categories.map((cat, catIndex) => (
               <div
-                style={{
-                  width: 36,
-                  height: 4,
-                  borderRadius: 2,
-                  background: BORDER,
+                key={cat.id}
+                ref={(el) => {
+                  catSectionRefs.current[cat.id] = el;
                 }}
-              />
-            </div>
+              >
+                {/* Category section header */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "24px 4px 10px",
+                    animation: "catHeaderIn 0.28s ease both",
+                    animationDelay: `${catIndex * 0.06}s`,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 3,
+                      height: 14,
+                      borderRadius: 2,
+                      background: accent,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: TEXT2,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      fontFamily: "var(--font-dm, var(--font-sans, inherit))",
+                    }}
+                  >
+                    {cat.name}
+                  </span>
+                  <div style={{ flex: 1, height: 1, background: BORDER }} />
+                  <span style={{ fontSize: 11, color: TEXTM }}>
+                    {cat.items.length}
+                  </span>
+                </div>
 
-            {/* Title */}
+                {cat.items.length > 0 ? (
+                  cat.items.map((item, idx) => (
+                    <Fragment key={item.id}>
+                      {ProductCard({
+                        item,
+                        catEmoji: cat.emoji,
+                        accent,
+                        onAccent,
+                        SURFACE,
+                        SURFACE2,
+                        BORDER,
+                        TEXT1,
+                        TEXT2,
+                        idx,
+                      })}
+                    </Fragment>
+                  ))
+                ) : (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "32px 0",
+                      color: TEXTM,
+                    }}
+                  >
+                    <p style={{ fontSize: 13 }}>Próximamente</p>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* ── Toast ────────────────────────────────────────────────────────────── */}
+        <AddedToast visible={!!addedToast} name={addedToast?.name ?? ""} />
+
+        {/* ── Cart bar ─────────────────────────────────────────────────────────── */}
+        {totalItems > 0 && !selectedItem && !cartOpen && (
+          <button
+            onClick={() => {
+              vibrate(50);
+              setCartOpen(true);
+            }}
+            style={
+              {
+                position: "fixed",
+                bottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
+                left: 16,
+                right: 16,
+                zIndex: 60,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: accent,
+                color: onAccent,
+                border: "none",
+                borderRadius: 16,
+                padding: "14px 18px",
+                cursor: "pointer",
+                boxShadow: `0 6px 28px ${accent}50`,
+                WebkitTapHighlightColor: "transparent",
+                maxWidth: 608,
+                marginLeft: "auto",
+                marginRight: "auto",
+                animation: cartBounce
+                  ? "cartPop 0.35s cubic-bezier(0.36,0.07,0.19,0.97)"
+                  : "cartEnter 0.3s cubic-bezier(0.22,1,0.36,1)",
+              } as React.CSSProperties
+            }
+          >
+            {/* Icon + count */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 20px 14px",
-                borderBottom: `1px solid ${BORDER}`,
+                gap: 6,
+                background: "rgba(255,255,255,0.2)",
+                borderRadius: 10,
+                padding: "5px 10px",
                 flexShrink: 0,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <ShoppingBag size={18} style={{ color: accent }} />
-                <span style={{ fontWeight: 800, fontSize: 17, color: TEXT1 }}>
-                  Tu pedido
-                </span>
-                <span
-                  style={{
-                    background: accent,
-                    color: onAccent,
-                    borderRadius: 20,
-                    padding: "1px 8px",
-                    fontSize: 12,
-                    fontWeight: 800,
-                  }}
-                >
-                  {totalItems}
-                </span>
-              </div>
-              <button
-                onClick={() => setCartOpen(false)}
+              <ShoppingCart
+                size={16}
+                strokeWidth={2}
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  background: SURFACE2,
-                  border: "none",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: TEXT2,
+                  animation: cartBounce ? "badgePop 0.35s ease" : undefined,
                 }}
-              >
-                <X size={16} />
-              </button>
+              />
+              <span style={{ fontSize: 13, fontWeight: 700 }}>
+                {totalItems}
+              </span>
             </div>
-
-            {/* Items */}
-            <div
+            {/* Label */}
+            <span
               style={{
                 flex: 1,
-                overflowY: "auto",
-                padding: "12px 16px",
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-                WebkitOverflowScrolling: "touch",
+                textAlign: "center",
+                fontWeight: 600,
+                fontSize: 15,
+                letterSpacing: "-0.01em",
               }}
             >
-              {cart.map((item, index) => {
-                const catEmoji =
-                  restaurant.menu.categories.find((c) =>
-                    c.items.some((i) => i.id === item.id),
-                  )?.emoji ?? "🍽️";
-                return (
-                  <div
-                    key={item.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      animation: `cardFadeIn 0.22s ease both`,
-                      animationDelay: `${index * 0.04}s`,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        overflow: "hidden",
-                        flexShrink: 0,
-                        background: SURFACE2,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 20,
-                      }}
-                    >
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        catEmoji
-                      )}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: TEXT1,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {item.name}
-                      </p>
-                      {item.selectedExtra && (
-                        <p style={{ fontSize: 11, color: TEXTM, marginTop: 2 }}>
-                          {item.selectedExtra.name} (+
-                          {fmt(item.selectedExtra.price)})
-                        </p>
-                      )}
-                      {item.notes && (
-                        <p
-                          style={{
-                            fontSize: 11,
-                            color: TEXTM,
-                            marginTop: 1,
-                            fontStyle: "italic",
-                          }}
-                        >
-                          {item.notes}
-                        </p>
-                      )}
-                      <p style={{ fontSize: 11, color: TEXTM }}>
-                        {fmt(item.price + (item.selectedExtra?.price ?? 0))} c/u
-                      </p>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        flexShrink: 0,
-                      }}
-                    >
-                      <button
-                        onClick={() =>
-                          item.quantity === 1
-                            ? removeAll(item)
-                            : removeItem(item)
-                        }
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: "50%",
-                          background: SURFACE2,
-                          border: `1px solid ${BORDER}`,
-                          color: TEXT2,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          WebkitTapHighlightColor: "transparent",
-                        }}
-                      >
-                        {item.quantity === 1 ? (
-                          <Trash2 size={11} />
-                        ) : (
-                          <Minus size={11} />
-                        )}
-                      </button>
-                      <span
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 800,
-                          minWidth: 20,
-                          textAlign: "center",
-                          color: TEXT1,
-                        }}
-                      >
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() => addItem(item)}
-                        style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: "50%",
-                          background: accent,
-                          border: "none",
-                          color: onAccent,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          WebkitTapHighlightColor: "transparent",
-                        }}
-                      >
-                        <Plus size={11} />
-                      </button>
-                    </div>
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 700,
-                        minWidth: 60,
-                        textAlign: "right",
-                        color: TEXT1,
-                      }}
-                    >
-                      {fmt(
-                        (item.price + (item.selectedExtra?.price ?? 0)) *
-                          item.quantity,
-                      )}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Totals */}
+              Ver pedido
+            </span>
+            {/* Price */}
             <div
               style={{
-                borderTop: `1px solid ${BORDER}`,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
                 flexShrink: 0,
-                padding: "12px 20px",
               }}
             >
+              <span style={{ fontWeight: 800, fontSize: 15 }}>
+                {fmt(subtotal)}
+              </span>
+              {hasDelivery && (
+                <span style={{ fontSize: 10, opacity: 0.7 }}>
+                  + envío {fmt(restaurant.delivery_cost)}
+                </span>
+              )}
+            </div>
+          </button>
+        )}
+
+        {/* ── Cart drawer ──────────────────────────────────────────────────────── */}
+        {cartOpen && (
+          <>
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 40,
+                background: "rgba(0,0,0,0.45)",
+                backdropFilter: "blur(4px)",
+              }}
+              onClick={() => setCartOpen(false)}
+            />
+            <div
+              onTouchStart={onDrawerTouchStart}
+              onTouchEnd={onDrawerTouchEnd}
+              style={{
+                position: "fixed",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 50,
+                display: "flex",
+                flexDirection: "column",
+                maxHeight: "88dvh",
+                borderRadius: "24px 24px 0 0",
+                background: SURFACE,
+                borderTop: `2px solid ${accent}`,
+                boxShadow: "0 -8px 48px rgba(0,0,0,0.2)",
+                animation: "sheetUp 0.32s cubic-bezier(0.22,1,0.36,1)",
+              }}
+            >
+              {/* Drag handle */}
               <div
                 style={{
                   display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: 4,
+                  justifyContent: "center",
+                  padding: "12px 0 4px",
+                  cursor: "grab",
                 }}
               >
-                <span style={{ fontSize: 13, color: TEXTM }}>Subtotal</span>
-                <span style={{ fontSize: 13, color: TEXT2, fontWeight: 600 }}>
-                  {fmt(subtotal)}
-                </span>
+                <div
+                  style={{
+                    width: 36,
+                    height: 4,
+                    borderRadius: 2,
+                    background: BORDER,
+                  }}
+                />
               </div>
-              {hasDelivery && (
+
+              {/* Title */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 20px 14px",
+                  borderBottom: `1px solid ${BORDER}`,
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <ShoppingCart size={18} style={{ color: accent }} />
+                  <span style={{ fontWeight: 800, fontSize: 17, color: TEXT1 }}>
+                    Tu pedido
+                  </span>
+                  <span
+                    style={{
+                      background: accent,
+                      color: onAccent,
+                      borderRadius: 20,
+                      padding: "1px 8px",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {totalItems}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setCartOpen(false)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: SURFACE2,
+                    border: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: TEXT2,
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Items */}
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  padding: "12px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {cart.map((item, index) => {
+                  const catEmoji =
+                    restaurant.menu.categories.find((c) =>
+                      c.items.some((i) => i.id === item.id),
+                    )?.emoji ?? "🍽️";
+                  return (
+                    <div
+                      key={item.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        animation: `cardFadeIn 0.22s ease both`,
+                        animationDelay: `${index * 0.04}s`,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 12,
+                          overflow: "hidden",
+                          flexShrink: 0,
+                          background: SURFACE2,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 20,
+                        }}
+                      >
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
+                          catEmoji
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: TEXT1,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.name}
+                        </p>
+                        {item.selectedExtra && (
+                          <p
+                            style={{ fontSize: 11, color: TEXTM, marginTop: 2 }}
+                          >
+                            {item.selectedExtra.name} (+
+                            {fmt(item.selectedExtra.price)})
+                          </p>
+                        )}
+                        {item.notes && (
+                          <p
+                            style={{
+                              fontSize: 11,
+                              color: TEXTM,
+                              marginTop: 1,
+                              fontStyle: "italic",
+                            }}
+                          >
+                            {item.notes}
+                          </p>
+                        )}
+                        <p style={{ fontSize: 11, color: TEXTM }}>
+                          {fmt(item.price + (item.selectedExtra?.price ?? 0))}{" "}
+                          c/u
+                        </p>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <button
+                          onClick={() =>
+                            item.quantity === 1
+                              ? removeAll(item)
+                              : removeItem(item)
+                          }
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: SURFACE2,
+                            border: `1px solid ${BORDER}`,
+                            color: TEXT2,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            WebkitTapHighlightColor: "transparent",
+                          }}
+                        >
+                          {item.quantity === 1 ? (
+                            <Trash2 size={11} />
+                          ) : (
+                            <Minus size={11} />
+                          )}
+                        </button>
+                        <span
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 800,
+                            minWidth: 20,
+                            textAlign: "center",
+                            color: TEXT1,
+                          }}
+                        >
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => addItem(item)}
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: accent,
+                            border: "none",
+                            color: onAccent,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            WebkitTapHighlightColor: "transparent",
+                          }}
+                        >
+                          <Plus size={11} />
+                        </button>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 700,
+                          minWidth: 60,
+                          textAlign: "right",
+                          color: TEXT1,
+                        }}
+                      >
+                        {fmt(
+                          (item.price + (item.selectedExtra?.price ?? 0)) *
+                            item.quantity,
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Totals */}
+              <div
+                style={{
+                  borderTop: `1px solid ${BORDER}`,
+                  flexShrink: 0,
+                  padding: "12px 20px",
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
@@ -1654,238 +1783,337 @@ export default function CatalogClient({
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ fontSize: 13, color: TEXTM }}>Envío</span>
-                  <span style={{ fontSize: 13, color: TEXT2 }}>
-                    {fmt(restaurant.delivery_cost)}
+                  <span style={{ fontSize: 13, color: TEXTM }}>Subtotal</span>
+                  <span style={{ fontSize: 13, color: TEXT2, fontWeight: 600 }}>
+                    {fmt(subtotal)}
                   </span>
                 </div>
-              )}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingTop: 8,
-                  borderTop: `1px solid ${BORDER}`,
-                  marginTop: 4,
-                }}
-              >
-                <span style={{ fontWeight: 800, fontSize: 18, color: TEXT1 }}>
-                  Total
-                </span>
-                <span style={{ fontWeight: 900, fontSize: 20, color: accent }}>
-                  {fmt(subtotal + (hasDelivery ? restaurant.delivery_cost : 0))}
-                </span>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <div
-              style={{
-                padding: `12px 16px`,
-                paddingBottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
-                flexShrink: 0,
-              }}
-            >
-              {!restaurant.is_open ? (
-                <div
-                  style={{
-                    width: "100%",
-                    padding: "16px",
-                    borderRadius: 16,
-                    background: "rgba(239,68,68,0.12)",
-                    border: "1px solid rgba(239,68,68,0.35)",
-                    color: "#f87171",
-                    fontSize: 15,
-                    fontWeight: 700,
-                    textAlign: "center",
-                  }}
-                >
-                  🚫 El local está cerrado — no acepta pedidos ahora
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setCartOpen(false);
-                    setCheckoutOpen(true);
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: "16px",
-                    borderRadius: 16,
-                    background: accent,
-                    color: onAccent,
-                    border: "none",
-                    fontSize: 16,
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    letterSpacing: "0.01em",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                  onTouchStart={(e) => (e.currentTarget.style.opacity = "0.88")}
-                  onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
-                >
-                  Hacer pedido →
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ── Product detail sheet ─────────────────────────────────────────────── */}
-      {selectedItem &&
-        (() => {
-          const qty = getQty(selectedItem.id);
-          const extraPrice = selectedExtraDraft?.price ?? 0;
-          const totalPriceDisplay = selectedItem.price + extraPrice;
-          const catEmoji =
-            restaurant.menu.categories.find((c) =>
-              c.items.some((i) => i.id === selectedItem.id),
-            )?.emoji ?? "🍽️";
-          return (
-            <>
-              <div
-                style={{
-                  position: "fixed",
-                  inset: 0,
-                  zIndex: 40,
-                  background: "rgba(0,0,0,0.45)",
-                  backdropFilter: "blur(4px)",
-                }}
-                onClick={() => setSelectedItem(null)}
-              />
-              <div
-                style={{
-                  position: "fixed",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  zIndex: 50,
-                  background: SURFACE,
-                  borderRadius: "24px 24px 0 0",
-                  maxHeight: "84dvh",
-                  overflowY: "auto",
-                  maxWidth: 640,
-                  margin: "0 auto",
-                  boxShadow: "0 -8px 48px rgba(0,0,0,0.2)",
-                  borderTop: `2px solid ${accent}`,
-                  animation: "sheetUp 0.3s cubic-bezier(0.22,1,0.36,1)",
-                  WebkitOverflowScrolling: "touch",
-                }}
-              >
+                {hasDelivery && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <span style={{ fontSize: 13, color: TEXTM }}>Envío</span>
+                    <span style={{ fontSize: 13, color: TEXT2 }}>
+                      {fmt(restaurant.delivery_cost)}
+                    </span>
+                  </div>
+                )}
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "center",
-                    padding: "12px 0 0",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingTop: 8,
+                    borderTop: `1px solid ${BORDER}`,
+                    marginTop: 4,
                   }}
                 >
-                  <div
-                    style={{
-                      width: 36,
-                      height: 4,
-                      borderRadius: 2,
-                      background: BORDER,
-                    }}
-                  />
+                  <span style={{ fontWeight: 800, fontSize: 18, color: TEXT1 }}>
+                    Total
+                  </span>
+                  <span
+                    style={{ fontWeight: 900, fontSize: 20, color: accent }}
+                  >
+                    {fmt(
+                      subtotal + (hasDelivery ? restaurant.delivery_cost : 0),
+                    )}
+                  </span>
                 </div>
+              </div>
 
-                {selectedItem.image ? (
-                  <img
-                    src={selectedItem.image}
-                    alt={selectedItem.name}
-                    style={{
-                      width: "100%",
-                      height: 220,
-                      objectFit: "cover",
-                      marginTop: 10,
-                    }}
-                  />
-                ) : (
+              {/* CTA */}
+              <div
+                style={{
+                  padding: `12px 16px`,
+                  paddingBottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
+                  flexShrink: 0,
+                }}
+              >
+                {!restaurant.is_open ? (
                   <div
                     style={{
                       width: "100%",
-                      height: 140,
-                      marginTop: 10,
-                      background: `linear-gradient(135deg, ${accent}18, ${accent}06)`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 60,
+                      padding: "16px",
+                      borderRadius: 16,
+                      background: "rgba(239,68,68,0.12)",
+                      border: "1px solid rgba(239,68,68,0.35)",
+                      color: "#f87171",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      textAlign: "center",
                     }}
                   >
-                    {catEmoji}
+                    🚫 El local está cerrado — no acepta pedidos ahora
                   </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setCartOpen(false);
+                      setCheckoutOpen(true);
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "16px",
+                      borderRadius: 16,
+                      background: accent,
+                      color: onAccent,
+                      border: "none",
+                      fontSize: 16,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      letterSpacing: "0.01em",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                    onTouchStart={(e) =>
+                      (e.currentTarget.style.opacity = "0.88")
+                    }
+                    onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
+                  >
+                    Hacer pedido →
+                  </button>
                 )}
+              </div>
+            </div>
+          </>
+        )}
 
+        {/* ── Product detail sheet ─────────────────────────────────────────────── */}
+        {selectedItem &&
+          (() => {
+            const qty = getQty(selectedItem.id);
+            const extraPrice = selectedExtraDraft?.price ?? 0;
+            const totalPriceDisplay = selectedItem.price + extraPrice;
+            const catEmoji =
+              restaurant.menu.categories.find((c) =>
+                c.items.some((i) => i.id === selectedItem.id),
+              )?.emoji ?? "🍽️";
+            return (
+              <>
                 <div
                   style={{
-                    padding: "20px 20px",
-                    paddingBottom: `max(28px, env(safe-area-inset-bottom, 28px))`,
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 40,
+                    background: "rgba(0,0,0,0.45)",
+                    backdropFilter: "blur(4px)",
+                  }}
+                  onClick={() => setSelectedItem(null)}
+                />
+                <div
+                  style={{
+                    position: "fixed",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 50,
+                    background: SURFACE,
+                    borderRadius: "24px 24px 0 0",
+                    maxHeight: "84dvh",
+                    overflowY: "auto",
+                    maxWidth: 640,
+                    margin: "0 auto",
+                    boxShadow: "0 -8px 48px rgba(0,0,0,0.2)",
+                    borderTop: `2px solid ${accent}`,
+                    animation: "sheetUp 0.3s cubic-bezier(0.22,1,0.36,1)",
+                    WebkitOverflowScrolling: "touch",
                   }}
                 >
-                  {selectedItem.badge && (
-                    <div style={{ marginBottom: 10 }}>
-                      <Badge badge={selectedItem.badge} />
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      padding: "12px 0 0",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 36,
+                        height: 4,
+                        borderRadius: 2,
+                        background: BORDER,
+                      }}
+                    />
+                  </div>
+
+                  {selectedItem.image ? (
+                    <img
+                      src={selectedItem.image}
+                      alt={selectedItem.name}
+                      style={{
+                        width: "100%",
+                        height: 220,
+                        objectFit: "cover",
+                        marginTop: 10,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: 140,
+                        marginTop: 10,
+                        background: `linear-gradient(135deg, ${accent}18, ${accent}06)`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 60,
+                      }}
+                    >
+                      {catEmoji}
                     </div>
                   )}
 
-                  <h2
-                    style={{
-                      fontWeight: 800,
-                      fontSize: 22,
-                      color: TEXT1,
-                      marginBottom: 8,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {selectedItem.name}
-                  </h2>
-
-                  {selectedItem.description && (
-                    <p
-                      style={{
-                        fontSize: 14,
-                        color: TEXT2,
-                        lineHeight: 1.65,
-                        marginBottom: 16,
-                      }}
-                    >
-                      {selectedItem.description}
-                    </p>
-                  )}
-
                   <div
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: 20,
+                      padding: "20px 20px",
+                      paddingBottom: `max(28px, env(safe-area-inset-bottom, 28px))`,
                     }}
                   >
-                    <span
-                      style={{ fontWeight: 900, fontSize: 28, color: accent }}
+                    {selectedItem.badge && (
+                      <div style={{ marginBottom: 10 }}>
+                        <Badge badge={selectedItem.badge} />
+                      </div>
+                    )}
+
+                    <h2
+                      style={{
+                        fontWeight: 800,
+                        fontSize: 22,
+                        color: TEXT1,
+                        marginBottom: 8,
+                        lineHeight: 1.2,
+                      }}
                     >
-                      {fmt(totalPriceDisplay)}
-                    </span>
-                    {qty > 0 && (
-                      <span
+                      {selectedItem.name}
+                    </h2>
+
+                    {selectedItem.description && (
+                      <p
                         style={{
-                          fontSize: 12,
-                          color: TEXTM,
-                          background: SURFACE2,
-                          borderRadius: 8,
-                          padding: "4px 10px",
+                          fontSize: 14,
+                          color: TEXT2,
+                          lineHeight: 1.65,
+                          marginBottom: 16,
                         }}
                       >
-                        En carrito: {qty}
-                      </span>
+                        {selectedItem.description}
+                      </p>
                     )}
-                  </div>
 
-                  {/* Extras — opciones de tamaño */}
-                  {selectedItem.extras && selectedItem.extras.length > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: 20,
+                      }}
+                    >
+                      <span
+                        style={{ fontWeight: 900, fontSize: 28, color: accent }}
+                      >
+                        {fmt(totalPriceDisplay)}
+                      </span>
+                      {qty > 0 && (
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: TEXTM,
+                            background: SURFACE2,
+                            borderRadius: 8,
+                            padding: "4px 10px",
+                          }}
+                        >
+                          En carrito: {qty}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Extras — opciones de tamaño */}
+                    {selectedItem.extras && selectedItem.extras.length > 0 && (
+                      <div style={{ marginBottom: 20 }}>
+                        <label
+                          style={{
+                            fontSize: 11,
+                            color: TEXTM,
+                            fontWeight: 700,
+                            display: "block",
+                            marginBottom: 10,
+                            letterSpacing: "0.07em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          Tamaño
+                        </label>
+                        <div
+                          style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
+                        >
+                          {/* Opción Simple = precio base */}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedExtraDraft(null)}
+                            style={{
+                              padding: "8px 18px",
+                              borderRadius: 999,
+                              border: "1.5px solid",
+                              fontSize: 14,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              background:
+                                selectedExtraDraft === null
+                                  ? accent
+                                  : "transparent",
+                              color:
+                                selectedExtraDraft === null ? onAccent : TEXT2,
+                              borderColor:
+                                selectedExtraDraft === null ? accent : BORDER,
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            Simple
+                          </button>
+                          {selectedItem.extras.map((extra) => {
+                            const isSelected =
+                              selectedExtraDraft?.name === extra.name;
+                            return (
+                              <button
+                                type="button"
+                                key={extra.name}
+                                onClick={() =>
+                                  setSelectedExtraDraft(
+                                    isSelected ? null : extra,
+                                  )
+                                }
+                                style={{
+                                  padding: "8px 18px",
+                                  borderRadius: 999,
+                                  border: "1.5px solid",
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  cursor: "pointer",
+                                  background: isSelected
+                                    ? accent
+                                    : "transparent",
+                                  color: isSelected ? onAccent : TEXT2,
+                                  borderColor: isSelected ? accent : BORDER,
+                                  transition: "all 0.15s",
+                                }}
+                              >
+                                {extra.name}{" "}
+                                <span style={{ opacity: 0.8, fontSize: 12 }}>
+                                  +{fmt(extra.price)}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notes field */}
                     <div style={{ marginBottom: 20 }}>
                       <label
                         style={{
@@ -1893,334 +2121,419 @@ export default function CatalogClient({
                           color: TEXTM,
                           fontWeight: 700,
                           display: "block",
-                          marginBottom: 10,
+                          marginBottom: 6,
                           letterSpacing: "0.07em",
                           textTransform: "uppercase",
                         }}
                       >
-                        Tamaño
+                        Aclaraciones
                       </label>
-                      <div
-                        style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
-                      >
-                        {/* Opción Simple = precio base */}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedExtraDraft(null)}
-                          style={{
-                            padding: "8px 18px",
-                            borderRadius: 999,
-                            border: "1.5px solid",
-                            fontSize: 14,
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            background:
-                              selectedExtraDraft === null
-                                ? accent
-                                : "transparent",
-                            color:
-                              selectedExtraDraft === null ? onAccent : TEXT2,
-                            borderColor:
-                              selectedExtraDraft === null ? accent : BORDER,
-                            transition: "all 0.15s",
-                          }}
-                        >
-                          Simple
-                        </button>
-                        {selectedItem.extras.map((extra) => {
-                          const isSelected =
-                            selectedExtraDraft?.name === extra.name;
-                          return (
-                            <button
-                              type="button"
-                              key={extra.name}
-                              onClick={() =>
-                                setSelectedExtraDraft(isSelected ? null : extra)
-                              }
-                              style={{
-                                padding: "8px 18px",
-                                borderRadius: 999,
-                                border: "1.5px solid",
-                                fontSize: 14,
-                                fontWeight: 600,
-                                cursor: "pointer",
-                                background: isSelected ? accent : "transparent",
-                                color: isSelected ? onAccent : TEXT2,
-                                borderColor: isSelected ? accent : BORDER,
-                                transition: "all 0.15s",
-                              }}
-                            >
-                              {extra.name}{" "}
-                              <span style={{ opacity: 0.8, fontSize: 12 }}>
-                                +{fmt(extra.price)}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <textarea
+                        value={itemNotesDraft}
+                        onChange={(e) => {
+                          setItemNotesDraft(e.target.value);
+                          if (qty > 0)
+                            updateNotes(selectedItem.id, e.target.value);
+                        }}
+                        placeholder="Ej: sin bacon, sin aderezos..."
+                        rows={2}
+                        style={{
+                          width: "100%",
+                          borderRadius: 10,
+                          border: `1.5px solid ${BORDER}`,
+                          padding: "10px 12px",
+                          fontSize: 14,
+                          color: TEXT1,
+                          background: SURFACE2,
+                          resize: "none",
+                          outline: "none",
+                          fontFamily: "inherit",
+                          boxSizing: "border-box",
+                          transition: "border-color 0.2s",
+                        }}
+                        onFocus={(e) =>
+                          (e.currentTarget.style.borderColor = accent)
+                        }
+                        onBlur={(e) =>
+                          (e.currentTarget.style.borderColor = BORDER)
+                        }
+                      />
                     </div>
-                  )}
 
-                  {/* Notes field */}
-                  <div style={{ marginBottom: 20 }}>
-                    <label
-                      style={{
-                        fontSize: 11,
-                        color: TEXTM,
-                        fontWeight: 700,
-                        display: "block",
-                        marginBottom: 6,
-                        letterSpacing: "0.07em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Aclaraciones
-                    </label>
-                    <textarea
-                      value={itemNotesDraft}
-                      onChange={(e) => {
-                        setItemNotesDraft(e.target.value);
-                        if (qty > 0)
-                          updateNotes(selectedItem.id, e.target.value);
-                      }}
-                      placeholder="Ej: sin bacon, sin aderezos..."
-                      rows={2}
-                      style={{
-                        width: "100%",
-                        borderRadius: 10,
-                        border: `1.5px solid ${BORDER}`,
-                        padding: "10px 12px",
-                        fontSize: 14,
-                        color: TEXT1,
-                        background: SURFACE2,
-                        resize: "none",
-                        outline: "none",
-                        fontFamily: "inherit",
-                        boxSizing: "border-box",
-                        transition: "border-color 0.2s",
-                      }}
-                      onFocus={(e) =>
-                        (e.currentTarget.style.borderColor = accent)
-                      }
-                      onBlur={(e) =>
-                        (e.currentTarget.style.borderColor = BORDER)
-                      }
-                    />
-                  </div>
-
-                  {qty === 0 ? (
-                    <button
-                      onClick={() => {
-                        addItemWithNotes(
-                          selectedItem,
-                          itemNotesDraft || undefined,
-                          selectedExtraDraft ?? undefined,
-                        );
-                        setSelectedItem(null);
-                      }}
-                      style={{
-                        width: "100%",
-                        background: accent,
-                        color: onAccent,
-                        border: "none",
-                        borderRadius: 14,
-                        padding: "16px",
-                        fontSize: 16,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        WebkitTapHighlightColor: "transparent",
-                      }}
-                      onTouchStart={(e) =>
-                        (e.currentTarget.style.opacity = "0.88")
-                      }
-                      onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
-                    >
-                      Agregar al pedido →
-                    </button>
-                  ) : (
-                    <div
-                      style={{ display: "flex", gap: 12, alignItems: "center" }}
-                    >
+                    {qty === 0 ? (
+                      <button
+                        onClick={() => {
+                          addItemWithNotes(
+                            selectedItem,
+                            itemNotesDraft || undefined,
+                            selectedExtraDraft ?? undefined,
+                          );
+                          setSelectedItem(null);
+                        }}
+                        style={{
+                          width: "100%",
+                          background: accent,
+                          color: onAccent,
+                          border: "none",
+                          borderRadius: 14,
+                          padding: "16px",
+                          fontSize: 16,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          WebkitTapHighlightColor: "transparent",
+                        }}
+                        onTouchStart={(e) =>
+                          (e.currentTarget.style.opacity = "0.88")
+                        }
+                        onTouchEnd={(e) =>
+                          (e.currentTarget.style.opacity = "1")
+                        }
+                      >
+                        Agregar al pedido →
+                      </button>
+                    ) : (
                       <div
                         style={{
                           display: "flex",
-                          alignItems: "center",
                           gap: 12,
-                          background: SURFACE2,
-                          borderRadius: 12,
-                          padding: "8px 14px",
-                          flex: 1,
-                          justifyContent: "space-between",
-                          border: `1px solid ${BORDER}`,
+                          alignItems: "center",
                         }}
                       >
-                        <button
-                          onClick={() => removeItem(selectedItem)}
+                        <div
                           style={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: "50%",
-                            background: BORDER,
-                            border: "none",
-                            color: TEXT1,
-                            fontSize: 22,
-                            cursor: "pointer",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            fontWeight: 700,
+                            gap: 12,
+                            background: SURFACE2,
+                            borderRadius: 12,
+                            padding: "8px 14px",
+                            flex: 1,
+                            justifyContent: "space-between",
+                            border: `1px solid ${BORDER}`,
+                          }}
+                        >
+                          <button
+                            onClick={() => removeItem(selectedItem)}
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: "50%",
+                              background: BORDER,
+                              border: "none",
+                              color: TEXT1,
+                              fontSize: 22,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: 700,
+                              WebkitTapHighlightColor: "transparent",
+                            }}
+                          >
+                            −
+                          </button>
+                          <span
+                            style={{
+                              fontWeight: 800,
+                              fontSize: 18,
+                              minWidth: 28,
+                              textAlign: "center",
+                              color: TEXT1,
+                            }}
+                          >
+                            {qty}
+                          </span>
+                          <button
+                            onClick={() => addItem(selectedItem)}
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: "50%",
+                              background: accent,
+                              border: "none",
+                              color: onAccent,
+                              fontSize: 22,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: 700,
+                              WebkitTapHighlightColor: "transparent",
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setSelectedItem(null)}
+                          style={{
+                            padding: "0 20px",
+                            height: 54,
+                            background: SURFACE2,
+                            border: `1px solid ${BORDER}`,
+                            borderRadius: 12,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: TEXT2,
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
                             WebkitTapHighlightColor: "transparent",
                           }}
                         >
-                          −
-                        </button>
-                        <span
-                          style={{
-                            fontWeight: 800,
-                            fontSize: 18,
-                            minWidth: 28,
-                            textAlign: "center",
-                            color: TEXT1,
-                          }}
-                        >
-                          {qty}
-                        </span>
-                        <button
-                          onClick={() => addItem(selectedItem)}
-                          style={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: "50%",
-                            background: accent,
-                            border: "none",
-                            color: onAccent,
-                            fontSize: 22,
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontWeight: 700,
-                            WebkitTapHighlightColor: "transparent",
-                          }}
-                        >
-                          +
+                          Listo ✓
                         </button>
                       </div>
-                      <button
-                        onClick={() => setSelectedItem(null)}
-                        style={{
-                          padding: "0 20px",
-                          height: 54,
-                          background: SURFACE2,
-                          border: `1px solid ${BORDER}`,
-                          borderRadius: 12,
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: TEXT2,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                          WebkitTapHighlightColor: "transparent",
-                        }}
-                      >
-                        Listo ✓
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            </>
-          );
-        })()}
+              </>
+            );
+          })()}
 
-      {/* ── Powered by Takefyy ───────────────────────────────────────────────── */}
-      {totalItems === 0 && (
-        <a
-          href="https://takefyy.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            position: "fixed",
-            bottom: "max(12px, env(safe-area-inset-bottom, 12px))",
-            right: 12,
-            zIndex: 30,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            background: "rgba(14,17,22,0.78)",
-            backdropFilter: "blur(12px)",
-            borderRadius: 20,
-            padding: "5px 11px 5px 6px",
-            border: "1px solid rgba(255,255,255,0.1)",
-            textDecoration: "none",
-            WebkitTapHighlightColor: "transparent",
-          }}
-        >
-          <img
-            src="/takefyy-logo.png"
-            alt="Takefyy"
+        {/* ── Powered by Takefyy ───────────────────────────────────────────────── */}
+        {totalItems === 0 && (
+          <a
+            href="https://takefyy.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
-              width: 18,
-              height: 18,
-              borderRadius: 5,
-              objectFit: "cover",
-              flexShrink: 0,
+              position: "fixed",
+              bottom: "max(12px, env(safe-area-inset-bottom, 12px))",
+              right: 12,
+              zIndex: 30,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "rgba(14,17,22,0.78)",
+              backdropFilter: "blur(12px)",
+              borderRadius: 20,
+              padding: "5px 11px 5px 6px",
+              border: "1px solid rgba(255,255,255,0.1)",
+              textDecoration: "none",
+              WebkitTapHighlightColor: "transparent",
             }}
-          />
-          <div
-            style={{ display: "flex", flexDirection: "column", lineHeight: 1 }}
           >
-            <span
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 57.5 62.5"
+              fill="none"
+              aria-hidden="true"
+              style={{ flexShrink: 0 }}
+            >
+              <rect
+                x="0"
+                y="0"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="12.5"
+                y="0"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="25"
+                y="0"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="37.5"
+                y="0"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="50"
+                y="0"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="0"
+                y="12.5"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="12.5"
+                y="12.5"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="25"
+                y="12.5"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="37.5"
+                y="12.5"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="50"
+                y="12.5"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="25"
+                y="25"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="37.5"
+                y="25"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="25"
+                y="37.5"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="37.5"
+                y="37.5"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="12.5"
+                y="50"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="#FF6B35"
+              />
+              <rect
+                x="25"
+                y="50"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+              <rect
+                x="37.5"
+                y="50"
+                width="10"
+                height="10"
+                rx="2"
+                ry="2"
+                fill="white"
+              />
+            </svg>
+            <div
               style={{
-                fontSize: 8,
-                color: "rgba(255,255,255,0.5)",
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
+                display: "flex",
+                flexDirection: "column",
+                lineHeight: 1,
               }}
             >
-              Powered by
-            </span>
-            <span
-              style={{
-                fontSize: 11,
-                color: "#fff",
-                fontWeight: 800,
-                letterSpacing: "0.02em",
-                marginTop: 1,
-              }}
-            >
-              Takefyy
-            </span>
-          </div>
-        </a>
-      )}
+              <span
+                style={{
+                  fontSize: 8,
+                  color: "rgba(255,255,255,0.5)",
+                  fontWeight: 600,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Hecho con
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: "#fff",
+                  fontWeight: 800,
+                  letterSpacing: "0.02em",
+                  marginTop: 1,
+                }}
+              >
+                takef<span style={{ color: "#FF6B35" }}>yy</span>
+              </span>
+            </div>
+          </a>
+        )}
 
-      {/* ── Checkout ─────────────────────────────────────────────────────────── */}
-      <CheckoutModal
-        isOpen={checkoutOpen}
-        onClose={() => setCheckoutOpen(false)}
-        cart={cart.map((i) => ({
-          id: i.id,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-          notes: i.notes,
-          selectedExtra: i.selectedExtra,
-        }))}
-        onClearCart={() => setCart([])}
-        tenant={{
-          id: restaurant.id,
-          name: restaurant.name,
-          slug: restaurant.slug,
-          whatsapp_number: restaurant.phone,
-          delivery_cost: restaurant.delivery_cost,
-          primary_color: restaurant.primary_color,
-        }}
-      />
+        {/* ── Checkout ─────────────────────────────────────────────────────────── */}
+        <CheckoutModal
+          isOpen={checkoutOpen}
+          onClose={() => setCheckoutOpen(false)}
+          cart={cart.map((i) => ({
+            id: i.id,
+            name: i.name,
+            price: i.price,
+            quantity: i.quantity,
+            notes: i.notes,
+            selectedExtra: i.selectedExtra,
+          }))}
+          onClearCart={() => setCart([])}
+          tenant={{
+            id: restaurant.id,
+            name: restaurant.name,
+            slug: restaurant.slug,
+            whatsapp_number: restaurant.phone,
+            delivery_cost: restaurant.delivery_cost,
+            primary_color: restaurant.primary_color,
+          }}
+        />
 
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
         @keyframes sheetUp {
           from { transform: translateY(40px); opacity: 0.7; }
           to   { transform: translateY(0);    opacity: 1;   }
@@ -2263,10 +2576,41 @@ export default function CatalogClient({
           from { opacity: 0; }
           to   { opacity: 1; }
         }
+        @keyframes heroFadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes logoFloat {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-12px); }
+        }
+        @keyframes logoPulse {
+          0%, 100% { opacity: 0.5; transform: scale(1); }
+          50%       { opacity: 1;   transform: scale(1.18); }
+        }
+        @keyframes heroOrb1 {
+          0%, 100% { transform: translate(0px, 0px); }
+          33%       { transform: translate(22px, -28px); }
+          66%       { transform: translate(-14px, 18px); }
+        }
+        @keyframes heroOrb2 {
+          0%, 100% { transform: translate(0px, 0px); }
+          40%       { transform: translate(-26px, -14px); }
+          70%       { transform: translate(18px, 26px); }
+        }
+        @keyframes glowOrbit {
+          0%   { transform: translate(0%,   0%);   }
+          20%  { transform: translate(40%,  -25%); }
+          40%  { transform: translate(25%,  35%);  }
+          60%  { transform: translate(-35%, 20%);  }
+          80%  { transform: translate(-20%, -30%); }
+          100% { transform: translate(0%,   0%);   }
+        }
         * { -webkit-tap-highlight-color: transparent; }
       `,
-        }}
-      />
+          }}
+        />
+      </div>
     </div>
   );
 }

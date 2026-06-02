@@ -486,7 +486,7 @@ export default function NewRestaurantPage() {
           <div>
             <label style={labelStyle}>Contraseña del dueño *</label>
             <input
-              type="text"
+              type="password"
               value={form.owner_password}
               onChange={(e) =>
                 setForm((f) => ({ ...f, owner_password: e.target.value }))

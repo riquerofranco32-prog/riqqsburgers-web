@@ -52,7 +52,7 @@ export async function PATCH(
     .eq("tenant_id", order.tenant_id)
     .maybeSingle();
 
-  if (!membership) {
+  if (!membership || !["admin", "superadmin"].includes(membership.role)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 

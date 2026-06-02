@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -26,6 +26,166 @@ function vibrate(pattern: number | number[]) {
     navigator.vibrate(pattern);
 }
 
+interface DesktopNavLinksProps {
+  slug: string;
+  collapsed: boolean;
+  pathname: string;
+  onLogout: () => void;
+}
+
+function DesktopNavLinks({
+  slug,
+  collapsed,
+  pathname,
+  onLogout,
+}: DesktopNavLinksProps) {
+  return (
+    <>
+      <nav
+        style={{
+          flex: 1,
+          padding: "12px 8px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
+        {NAV_ITEMS.map((item) => {
+          const href = `/${slug}/admin${item.href}`;
+          const isActive =
+            item.href === ""
+              ? pathname === `/${slug}/admin`
+              : pathname.startsWith(href);
+          return (
+            <Link
+              key={item.href}
+              href={href}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: collapsed ? "10px 0" : "10px 12px",
+                justifyContent: collapsed ? "center" : "flex-start",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: isActive ? 600 : 400,
+                color: isActive ? "var(--accent)" : "var(--dash-muted)",
+                background: isActive ? "var(--dash-surface-2)" : "transparent",
+                borderLeft:
+                  isActive && !collapsed
+                    ? "3px solid var(--accent)"
+                    : "3px solid transparent",
+                textDecoration: "none",
+                transition: "all 0.15s",
+                whiteSpace: "nowrap",
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = "var(--dash-surface-2)";
+                  e.currentTarget.style.color = "var(--dash-text)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "var(--dash-muted)";
+                }
+              }}
+            >
+              <span style={{ fontSize: 16 }}>{item.icon}</span>
+              {!collapsed && item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div
+        style={{
+          padding: "12px 8px",
+          borderTop: "1px solid var(--dash-border)",
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        }}
+      >
+        <Link
+          href="/admin"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: collapsed ? "10px 0" : "10px 12px",
+            justifyContent: collapsed ? "center" : "flex-start",
+            borderRadius: 8,
+            fontSize: 13,
+            color: "var(--accent)",
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+            opacity: 0.8,
+            transition: "opacity 0.15s",
+            WebkitTapHighlightColor: "transparent",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.8")}
+        >
+          <span style={{ fontSize: 14 }}>⬡</span>
+          {!collapsed && "← Panel Takefyy"}
+        </Link>
+        <Link
+          href={`/${slug}`}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: collapsed ? "10px 0" : "10px 12px",
+            justifyContent: collapsed ? "center" : "flex-start",
+            borderRadius: 8,
+            fontSize: 13,
+            color: "var(--dash-muted)",
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+            transition: "color 0.15s",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          <span>↗</span>
+          {!collapsed && "Ver menú"}
+        </Link>
+        <button
+          onClick={onLogout}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: collapsed ? "10px 0" : "10px 12px",
+            justifyContent: collapsed ? "center" : "flex-start",
+            width: "100%",
+            background: "none",
+            border: "none",
+            borderRadius: 8,
+            fontSize: 13,
+            color: "var(--dash-muted)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            transition: "color 0.15s",
+            WebkitTapHighlightColor: "transparent",
+            userSelect: "none",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.color = "var(--dash-muted)")
+          }
+        >
+          <span>⏻</span>
+          {!collapsed && "Cerrar sesión"}
+        </button>
+      </div>
+    </>
+  );
+}
+
 export default function AdminShell({
   children,
   tenantName,
@@ -36,6 +196,14 @@ export default function AdminShell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const swipeStartX = useRef<number | null>(null);
+
+  // Lock body scroll while mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   async function handleLogout() {
     const supabase = createSupabaseBrowser();
@@ -61,157 +229,6 @@ export default function AdminShell({
     }
   }
 
-  // ── Desktop sidebar links (shared) ──────────────────────────────────────────
-  function DesktopNavLinks() {
-    return (
-      <>
-        <nav
-          style={{
-            flex: 1,
-            padding: "12px 8px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
-        >
-          {NAV_ITEMS.map((item) => {
-            const href = `/${slug}/admin${item.href}`;
-            const isActive =
-              item.href === ""
-                ? pathname === `/${slug}/admin`
-                : pathname.startsWith(href);
-            return (
-              <Link
-                key={item.href}
-                href={href}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: collapsed ? "10px 0" : "10px 12px",
-                  justifyContent: collapsed ? "center" : "flex-start",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  fontWeight: isActive ? 600 : 400,
-                  color: isActive ? "var(--accent)" : "var(--dash-muted)",
-                  background: isActive
-                    ? "var(--dash-surface-2)"
-                    : "transparent",
-                  borderLeft:
-                    isActive && !collapsed
-                      ? "3px solid var(--accent)"
-                      : "3px solid transparent",
-                  textDecoration: "none",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
-                  WebkitTapHighlightColor: "transparent",
-                  userSelect: "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = "var(--dash-surface-2)";
-                    e.currentTarget.style.color = "var(--dash-text)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = "var(--dash-muted)";
-                  }
-                }}
-              >
-                <span style={{ fontSize: 16 }}>{item.icon}</span>
-                {!collapsed && item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div
-          style={{
-            padding: "12px 8px",
-            borderTop: "1px solid var(--dash-border)",
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
-        >
-          <Link
-            href="/admin"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: collapsed ? "10px 0" : "10px 12px",
-              justifyContent: collapsed ? "center" : "flex-start",
-              borderRadius: 8,
-              fontSize: 13,
-              color: "var(--accent)",
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-              opacity: 0.8,
-              transition: "opacity 0.15s",
-              WebkitTapHighlightColor: "transparent",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.8")}
-          >
-            <span style={{ fontSize: 14 }}>⬡</span>
-            {!collapsed && "← Panel Takefyy"}
-          </Link>
-          <Link
-            href={`/${slug}`}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: collapsed ? "10px 0" : "10px 12px",
-              justifyContent: collapsed ? "center" : "flex-start",
-              borderRadius: 8,
-              fontSize: 13,
-              color: "var(--dash-muted)",
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-              transition: "color 0.15s",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <span>↗</span>
-            {!collapsed && "Ver menú"}
-          </Link>
-          <button
-            onClick={handleLogout}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: collapsed ? "10px 0" : "10px 12px",
-              justifyContent: collapsed ? "center" : "flex-start",
-              width: "100%",
-              background: "none",
-              border: "none",
-              borderRadius: 8,
-              fontSize: 13,
-              color: "var(--dash-muted)",
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              transition: "color 0.15s",
-              WebkitTapHighlightColor: "transparent",
-              userSelect: "none",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.color = "var(--dash-muted)")
-            }
-          >
-            <span>⏻</span>
-            {!collapsed && "Cerrar sesión"}
-          </button>
-        </div>
-      </>
-    );
-  }
-
   return (
     <div
       style={{
@@ -223,7 +240,7 @@ export default function AdminShell({
     >
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────────────── */}
       <header
-        className="md:hidden"
+        className="lg:hidden"
         style={{
           position: "fixed",
           top: 0,
@@ -239,6 +256,9 @@ export default function AdminShell({
           paddingTop: "env(safe-area-inset-top, 0px)",
           zIndex: 60,
           minHeight: 56,
+          opacity: mobileOpen ? 0 : 1,
+          pointerEvents: mobileOpen ? "none" : "auto",
+          transition: "opacity 0.2s ease",
         }}
       >
         {/* Hamburger — 44×44 touch target */}
@@ -311,7 +331,7 @@ export default function AdminShell({
       {/* ── MOBILE OVERLAY ──────────────────────────────────────────────────── */}
       {mobileOpen && (
         <div
-          className="md:hidden"
+          className="lg:hidden"
           onClick={closeMobile}
           style={{
             position: "fixed",
@@ -325,7 +345,7 @@ export default function AdminShell({
 
       {/* ── MOBILE DRAWER ───────────────────────────────────────────────────── */}
       <aside
-        className="md:hidden"
+        className="lg:hidden"
         onTouchStart={onDrawerTouchStart}
         onTouchEnd={onDrawerTouchEnd}
         style={{
@@ -344,6 +364,7 @@ export default function AdminShell({
           overflowY: "auto",
           paddingTop: "env(safe-area-inset-top, 0px)",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          pointerEvents: mobileOpen ? "auto" : "none",
         }}
       >
         {/* Logo header */}
@@ -538,7 +559,7 @@ export default function AdminShell({
 
       {/* ── DESKTOP SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
-        className="hidden md:flex"
+        className="hidden lg:flex"
         style={{
           width: collapsed ? 64 : 240,
           minHeight: "100vh",
@@ -617,7 +638,12 @@ export default function AdminShell({
           </div>
         )}
 
-        <DesktopNavLinks />
+        <DesktopNavLinks
+          slug={slug}
+          collapsed={collapsed}
+          pathname={pathname}
+          onLogout={handleLogout}
+        />
       </aside>
 
       {/* ── MAIN ────────────────────────────────────────────────────────────── */}
@@ -628,7 +654,7 @@ export default function AdminShell({
           background: var(--dash-bg);
           padding-top: calc(56px + env(safe-area-inset-top, 0px));
         }
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
           .admin-shell-main {
             padding-top: 0;
             margin-left: ${collapsed ? 64 : 240}px;

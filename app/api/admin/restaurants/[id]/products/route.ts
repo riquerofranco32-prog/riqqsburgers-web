@@ -33,9 +33,25 @@ export async function POST(
   const { id } = await params;
   const body = await req.json();
   const supabase = createServerClient();
+
+  const ALLOWED_FIELDS = [
+    "name",
+    "description",
+    "price",
+    "category_id",
+    "badge",
+    "image_url",
+    "available",
+    "sort_order",
+    "extras",
+  ] as const;
+  const patch = Object.fromEntries(
+    ALLOWED_FIELDS.filter((f) => f in body).map((f) => [f, body[f]]),
+  );
+
   const { data, error } = await supabase
     .from("products")
-    .insert({ ...body, tenant_id: id })
+    .insert({ ...patch, tenant_id: id })
     .select()
     .single();
   if (error)

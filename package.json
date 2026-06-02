@@ -15,12 +15,14 @@
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
     "mercadopago": "^3.0.0",
-    "next": "14.2.5",
+    "next": "^14.2.35",
     "react": "^18",
     "react-dom": "^18",
     "react-is": "^19.2.6",
     "recharts": "^3.8.1",
-    "sonner": "^2.0.7"
+    "shaders": "^2.5.128",
+    "sonner": "^2.0.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@fontsource/syne": "^5.2.7",

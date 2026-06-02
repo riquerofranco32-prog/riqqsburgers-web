@@ -9,7 +9,6 @@ import {
   Loader2,
   Check,
 } from "lucide-react";
-import { createSupabaseBrowser } from "@/lib/supabase";
 import { Toast } from "@/components/admin/Toast";
 import type { Tenant, Category, Product } from "@/types/supabase";
 
@@ -20,18 +19,25 @@ function vibrate(pattern: number | number[]) {
 
 // ── Image upload ──────────────────────────────────────────────────────────────
 
-async function uploadImage(file: File, tenantSlug: string): Promise<string> {
-  const supabase = createSupabaseBrowser();
-  const ext = file.name.split(".").pop();
-  const path = `${tenantSlug}/${Date.now()}.${ext}`;
-  const { error } = await supabase.storage
-    .from("product-images")
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from("product-images").getPublicUrl(path);
-  return publicUrl;
+async function uploadImage(
+  file: File,
+  tenantSlug: string,
+  productId?: string,
+): Promise<string> {
+  const id = productId ?? `temp-${Date.now()}`;
+  const form = new FormData();
+  form.append("file", file);
+  form.append("slug", tenantSlug);
+  const res = await fetch(`/api/products/${id}/upload`, {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error ?? "Error al subir imagen");
+  }
+  const { url } = (await res.json()) as { url: string };
+  return url;
 }
 
 // ── Inline image cell ─────────────────────────────────────────────────────────
@@ -62,16 +68,7 @@ function ProductImageCell({
     setPreview(localUrl);
     setState("uploading");
     try {
-      const supabase = createSupabaseBrowser();
-      const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${tenantSlug}/${product.id}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(path, file, { upsert: true });
-      if (uploadError) throw uploadError;
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("product-images").getPublicUrl(path);
+      const publicUrl = await uploadImage(file, tenantSlug, product.id);
       const res = await fetch(`/api/products/${product.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -89,17 +86,24 @@ function ProductImageCell({
 
   return (
     <div className="relative w-14 h-14 flex-shrink-0 group/img">
-      <div className="w-14 h-14 rounded-xl overflow-hidden bg-zinc-800">
+      <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-zinc-800">
         {displayUrl ? (
           <Image
             src={displayUrl}
             alt={product.name}
-            width={56}
-            height={56}
-            className="object-cover w-full h-full"
+            fill
+            className="object-cover object-center"
             unoptimized
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = "none";
+              const parent = e.currentTarget.parentElement;
+              if (parent) {
+                parent.setAttribute("data-error", "1");
+              }
+            }}
           />
-        ) : (
+        ) : null}
+        {!displayUrl && (
           <div className="w-full h-full flex items-center justify-center text-2xl">
             {categoryEmoji}
           </div>
@@ -647,6 +651,7 @@ export default function ProductsAdmin({
           vibrate(40);
           setProducts((prev) => [...prev, data]);
           setToast("Producto creado");
+          setShowModal(false);
         } else {
           vibrate([50, 30, 50]);
           setToast("Error al crear producto");
@@ -656,7 +661,6 @@ export default function ProductsAdmin({
         setToast("Error al crear producto");
       }
     }
-    setShowModal(false);
   }
 
   async function handleDelete(product: Product) {

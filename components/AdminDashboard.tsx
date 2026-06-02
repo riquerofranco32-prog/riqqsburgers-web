@@ -7,6 +7,7 @@ import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
 import { CategoryDonut } from "@/components/admin/dashboard/CategoryDonut";
 import { RecentOrdersTable } from "@/components/admin/dashboard/RecentOrdersTable";
 import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
+import ExportReportButton from "@/components/admin/ExportReportButton";
 import type { Order } from "@/types/supabase";
 import type {
   DashboardKPIs,
@@ -291,6 +292,9 @@ export default function AdminDashboard({
         />
         <TopProductsList products={topProducts} showRevenue={!isMobile} />
       </div>
+
+      {/* Reportes */}
+      <ExportReportButton slug={slug} />
     </div>
   );
 }

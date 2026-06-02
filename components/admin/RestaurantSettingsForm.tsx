@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { createSupabaseBrowser } from "@/lib/supabase";
 import type { Tenant } from "@/types/supabase";
 
 interface Props {
@@ -117,18 +116,22 @@ async function uploadRestaurantImage(
   tenantSlug: string,
   field: UploadField,
 ): Promise<string> {
-  const supabase = createSupabaseBrowser();
-  const ext = file.name.split(".").pop() ?? "jpg";
-  const bucket = "restaurant-logos";
-  const path = `${tenantSlug}/${field}.${ext}`;
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
-  const {
-    data: { publicUrl },
-  } = supabase.storage.from(bucket).getPublicUrl(path);
-  return publicUrl;
+  const body = new FormData();
+  body.append("file", file);
+  body.append("field", field);
+
+  const res = await fetch(`/api/tenant/${tenantSlug}/upload`, {
+    method: "POST",
+    body,
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error ?? `Error ${res.status}`);
+  }
+
+  const { url } = await res.json();
+  return url;
 }
 
 export default function RestaurantSettingsForm({ tenant }: Props) {
@@ -152,6 +155,8 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     background_color: tenant.background_color ?? "#FFFAF7",
     logo_url: tenant.logo_url ?? "",
     banner_url: tenant.banner_url ?? "",
+    hero_video_url:
+      (tenant as { hero_video_url?: string | null }).hero_video_url ?? "",
     is_open: tenant.is_open,
   });
 
@@ -646,6 +651,30 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
             />
           </div>
         </div>
+      </div>
+
+      {/* Video del hero */}
+      <div>
+        <label style={labelStyle}>Video del hero (URL)</label>
+        <input
+          type="url"
+          value={form.hero_video_url}
+          onChange={(e) => set("hero_video_url", e.target.value)}
+          placeholder="https://... .mp4"
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            borderRadius: 8,
+            border: "1px solid var(--dash-border)",
+            background: "var(--dash-surface-2)",
+            color: "var(--dash-text)",
+            fontSize: 13,
+            boxSizing: "border-box",
+          }}
+        />
+        <p style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 4 }}>
+          Si se define, reemplaza al banner. Usá una URL directa a un .mp4.
+        </p>
       </div>
 
       {/* Acciones */}
