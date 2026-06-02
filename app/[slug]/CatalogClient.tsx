@@ -2508,220 +2508,56 @@ export default function CatalogClient({
 
         {/* ── Powered by Takefyy ───────────────────────────────────────────────── */}
         {totalItems === 0 && (
-          <a
-            href="https://takefyy.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
+          <div
             style={{
-              position: "fixed",
-              bottom: "max(12px, env(safe-area-inset-bottom, 12px))",
-              right: 12,
-              zIndex: 30,
+              textAlign: "center",
+              padding: "32px 0 48px",
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              gap: 6,
-              background: "rgba(14,17,22,0.78)",
-              backdropFilter: "blur(12px)",
-              borderRadius: 20,
-              padding: "5px 11px 5px 6px",
-              border: "1px solid rgba(255,255,255,0.1)",
-              textDecoration: "none",
-              WebkitTapHighlightColor: "transparent",
+              gap: 8,
             }}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 57.5 62.5"
-              fill="none"
-              aria-hidden="true"
-              style={{ flexShrink: 0 }}
-            >
-              <rect
-                x="0"
-                y="0"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="12.5"
-                y="0"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="25"
-                y="0"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="37.5"
-                y="0"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="50"
-                y="0"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="0"
-                y="12.5"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="12.5"
-                y="12.5"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="25"
-                y="12.5"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="37.5"
-                y="12.5"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="50"
-                y="12.5"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="25"
-                y="25"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="37.5"
-                y="25"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="25"
-                y="37.5"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="37.5"
-                y="37.5"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="12.5"
-                y="50"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="#FF6B35"
-              />
-              <rect
-                x="25"
-                y="50"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-              <rect
-                x="37.5"
-                y="50"
-                width="10"
-                height="10"
-                rx="2"
-                ry="2"
-                fill="white"
-              />
-            </svg>
-            <div
+            <a
+              href="https://takefyy.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{
-                display: "flex",
-                flexDirection: "column",
-                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 16px",
+                borderRadius: 999,
+                border: `1px solid ${BORDER}`,
+                background: SURFACE,
+                textDecoration: "none",
+                transition: "all 0.2s",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = accent + "60";
+                e.currentTarget.style.boxShadow = `0 2px 12px ${accent}20`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = BORDER;
+                e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.05)";
               }}
             >
-              <span
-                style={{
-                  fontSize: 8,
-                  color: "rgba(255,255,255,0.5)",
-                  fontWeight: 600,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Hecho con
+              <span style={{ fontSize: 11, color: TEXTM, fontWeight: 500 }}>
+                Menú digital por
               </span>
               <span
                 style={{
-                  fontSize: 11,
-                  color: "#fff",
+                  fontSize: 12,
                   fontWeight: 800,
-                  letterSpacing: "0.02em",
-                  marginTop: 1,
+                  color: accent,
+                  letterSpacing: "-0.02em",
                 }}
               >
-                takef<span style={{ color: "#FF6B35" }}>yy</span>
+                Takefyy
               </span>
-            </div>
-          </a>
+            </a>
+          </div>
         )}
 
         {/* ── Checkout ─────────────────────────────────────────────────────────── */}

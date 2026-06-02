@@ -31,7 +31,11 @@ function useIsMobile() {
 }
 
 function fmtARS(n: number) {
-  return "$" + n.toLocaleString("es-AR");
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(n);
 }
 
 function getDateLabel(): string {
@@ -142,89 +146,92 @@ export default function AdminDashboard({
       {/* Header */}
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 4,
-          paddingBottom: 24,
+          padding: "24px 24px 20px",
           borderBottom: "1px solid var(--dash-border)",
-          gap: 12,
-          flexWrap: "wrap",
+          display: "flex",
+          flexDirection: isMobile ? "column" : "row",
+          alignItems: isMobile ? "flex-start" : "center",
+          justifyContent: "space-between",
+          gap: 16,
+          margin: "0 -16px",
         }}
       >
         <div>
           <h1
             style={{
-              color: "var(--dash-text)",
-              fontSize: 22,
-              fontWeight: 700,
+              fontSize: isMobile ? 20 : 24,
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              background:
+                "linear-gradient(135deg, var(--dash-text), var(--dash-muted))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
               marginBottom: 4,
             }}
           >
             {tenantName}
           </h1>
-          <p style={{ color: "var(--dash-muted)", fontSize: 14 }}>
-            Panel de administración
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--dash-muted)",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#4ade80",
+                boxShadow: "0 0 6px #4ade8088",
+                animation: "pulse-dot 2s ease-in-out infinite",
+              }}
+            />
+            {dateLabel}
           </p>
         </div>
 
-        {/* Controles derechos: selector de rango + fecha */}
+        {/* Range selector */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: 10,
-            flexWrap: "wrap",
+            gap: 4,
+            background: "var(--dash-surface-2)",
+            borderRadius: 10,
+            padding: 4,
+            border: "1px solid var(--dash-border)",
           }}
         >
-          {/* Range selector */}
-          <div
-            style={{
-              display: "flex",
-              background: "var(--dash-surface-2)",
-              border: "1px solid var(--dash-border)",
-              borderRadius: 10,
-              padding: 3,
-              gap: 2,
-            }}
-          >
-            {RANGES.map((r) => (
-              <button
-                key={r}
-                onClick={() => handleRangeChange(r)}
-                style={{
-                  padding: "5px 12px",
-                  borderRadius: 7,
-                  fontSize: 13,
-                  fontWeight: range === r ? 600 : 400,
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "background 0.15s, color 0.15s",
-                  background:
-                    range === r ? "var(--dash-surface)" : "transparent",
-                  color: range === r ? "var(--dash-text)" : "var(--dash-muted)",
-                  boxShadow:
-                    range === r ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                }}
-              >
-                {RANGE_LABELS[r]}
-              </button>
-            ))}
-          </div>
-
-          {/* Fecha actual */}
-          <div
-            style={{
-              padding: "6px 14px",
-              background: "var(--dash-surface-2)",
-              borderRadius: 8,
-              border: "1px solid var(--dash-border)",
-              color: "var(--dash-muted)",
-              fontSize: 13,
-            }}
-          >
-            {dateLabel}
-          </div>
+          {RANGES.map((r) => (
+            <button
+              key={r}
+              onClick={() => handleRangeChange(r)}
+              style={{
+                padding: "6px 14px",
+                borderRadius: 7,
+                border: "none",
+                fontSize: 12,
+                fontWeight: range === r ? 700 : 500,
+                cursor: "pointer",
+                transition: "all 0.15s",
+                background:
+                  range === r
+                    ? "linear-gradient(135deg, var(--accent), #ff8c5a)"
+                    : "transparent",
+                color: range === r ? "#fff" : "var(--dash-muted)",
+                boxShadow:
+                  range === r ? "0 2px 8px rgba(255,107,53,0.3)" : "none",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              {RANGE_LABELS[r]}
+            </button>
+          ))}
         </div>
       </div>
 

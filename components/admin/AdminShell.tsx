@@ -3,6 +3,20 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Package,
+  Tag,
+  Settings,
+  Crown,
+  ExternalLink,
+  LogOut,
+  ArrowLeftFromLine,
+  ChevronLeft,
+  ChevronRight,
+  type LucideIcon,
+} from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import TakefyyLogo from "@/components/TakefyyLogo";
 
@@ -12,13 +26,13 @@ interface AdminShellProps {
   slug: string;
 }
 
-const NAV_ITEMS = [
-  { href: "", label: "Dashboard", icon: "◈" },
-  { href: "/pedidos", label: "Pedidos", icon: "◫" },
-  { href: "/productos", label: "Productos", icon: "▦" },
-  { href: "/categorias", label: "Categorías", icon: "▤" },
-  { href: "/configuracion", label: "Configuración", icon: "⚙" },
-  { href: "/plan", label: "Mi Plan", icon: "✦" },
+const NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
+  { href: "", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
+  { href: "/productos", label: "Productos", icon: Package },
+  { href: "/categorias", label: "Categorías", icon: Tag },
+  { href: "/configuracion", label: "Configuración", icon: Settings },
+  { href: "/plan", label: "Mi Plan", icon: Crown },
 ];
 
 function vibrate(pattern: number | number[]) {
@@ -66,20 +80,21 @@ function DesktopNavLinks({
                 gap: 10,
                 padding: collapsed ? "10px 0" : "10px 12px",
                 justifyContent: collapsed ? "center" : "flex-start",
-                borderRadius: 8,
+                borderRadius: 10,
                 fontSize: 14,
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? "var(--accent)" : "var(--dash-muted)",
-                background: isActive ? "var(--dash-surface-2)" : "transparent",
-                borderLeft:
-                  isActive && !collapsed
-                    ? "3px solid var(--accent)"
-                    : "3px solid transparent",
+                color: isActive ? "#fff" : "var(--dash-muted)",
+                background: isActive
+                  ? `linear-gradient(135deg, var(--accent), #ff8c5a)`
+                  : "transparent",
                 textDecoration: "none",
                 transition: "all 0.15s",
                 whiteSpace: "nowrap",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
+                boxShadow: isActive
+                  ? `0 4px 12px rgba(255,107,53,0.3)`
+                  : "none",
               }}
               onMouseEnter={(e) => {
                 if (!isActive) {
@@ -94,7 +109,7 @@ function DesktopNavLinks({
                 }
               }}
             >
-              <span style={{ fontSize: 16 }}>{item.icon}</span>
+              <item.icon size={16} strokeWidth={1.8} />
               {!collapsed && item.label}
             </Link>
           );
@@ -130,8 +145,8 @@ function DesktopNavLinks({
           onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.8")}
         >
-          <span style={{ fontSize: 14 }}>⬡</span>
-          {!collapsed && "← Panel Takefyy"}
+          <ArrowLeftFromLine size={14} strokeWidth={1.8} />
+          {!collapsed && "Panel Takefyy"}
         </Link>
         <Link
           href={`/${slug}`}
@@ -150,7 +165,7 @@ function DesktopNavLinks({
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          <span>↗</span>
+          <ExternalLink size={14} strokeWidth={1.8} />
           {!collapsed && "Ver menú"}
         </Link>
         <button
@@ -178,7 +193,7 @@ function DesktopNavLinks({
             (e.currentTarget.style.color = "var(--dash-muted)")
           }
         >
-          <span>⏻</span>
+          <LogOut size={14} strokeWidth={1.8} />
           {!collapsed && "Cerrar sesión"}
         </button>
       </div>
@@ -463,22 +478,24 @@ export default function AdminShell({
                   borderRadius: 10,
                   fontSize: 16,
                   fontWeight: isActive ? 700 : 500,
-                  color: isActive ? "var(--accent)" : "var(--dash-text)",
+                  color: isActive ? "#fff" : "var(--dash-text)",
                   background: isActive
-                    ? "var(--dash-surface-2)"
+                    ? `linear-gradient(135deg, var(--accent), #ff8c5a)`
                     : "transparent",
-                  borderLeft: isActive
-                    ? "3px solid var(--accent)"
-                    : "3px solid transparent",
                   textDecoration: "none",
                   transition: "all 0.15s",
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
+                  boxShadow: isActive
+                    ? `0 4px 12px rgba(255,107,53,0.3)`
+                    : "none",
                 }}
               >
-                <span style={{ fontSize: 20, width: 24, textAlign: "center" }}>
-                  {item.icon}
-                </span>
+                <item.icon
+                  size={20}
+                  strokeWidth={1.8}
+                  style={{ flexShrink: 0 }}
+                />
                 {item.label}
               </Link>
             );
@@ -512,7 +529,8 @@ export default function AdminShell({
               WebkitTapHighlightColor: "transparent",
             }}
           >
-            <span style={{ fontSize: 18 }}>⬡</span> ← Panel Takefyy
+            <ArrowLeftFromLine size={14} strokeWidth={1.8} />
+            Panel Takefyy
           </Link>
           <Link
             href={`/${slug}`}
@@ -530,7 +548,8 @@ export default function AdminShell({
               WebkitTapHighlightColor: "transparent",
             }}
           >
-            <span style={{ fontSize: 18 }}>↗</span> Ver menú
+            <ExternalLink size={14} strokeWidth={1.8} />
+            Ver menú
           </Link>
           <button
             onClick={handleLogout}
@@ -552,7 +571,8 @@ export default function AdminShell({
               userSelect: "none",
             }}
           >
-            <span style={{ fontSize: 18 }}>⏻</span> Cerrar sesión
+            <LogOut size={14} strokeWidth={1.8} />
+            Cerrar sesión
           </button>
         </div>
       </aside>
@@ -600,7 +620,11 @@ export default function AdminShell({
               alignItems: "center",
             }}
           >
-            {collapsed ? "→" : "←"}
+            {collapsed ? (
+              <ChevronRight size={16} strokeWidth={2} />
+            ) : (
+              <ChevronLeft size={16} strokeWidth={2} />
+            )}
           </button>
         </div>
 
@@ -608,33 +632,64 @@ export default function AdminShell({
         {!collapsed && (
           <div
             style={{
-              padding: "12px 16px",
+              padding: "10px 16px 14px",
               borderBottom: "1px solid var(--dash-border)",
             }}
           >
-            <p
+            <div
               style={{
-                color: "var(--dash-muted)",
-                fontSize: 10,
-                textTransform: "uppercase",
-                letterSpacing: "0.1em",
-                marginBottom: 2,
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                background: "var(--dash-surface-2)",
+                borderRadius: 10,
+                padding: "10px 12px",
+                border: "1px solid var(--dash-border)",
               }}
             >
-              Restaurante
-            </p>
-            <p
-              style={{
-                color: "var(--dash-text)",
-                fontSize: 14,
-                fontWeight: 600,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {tenantName}
-            </p>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: "linear-gradient(135deg, var(--accent), #ff8c5a)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: "#fff",
+                  flexShrink: 0,
+                }}
+              >
+                {tenantName.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <p
+                  style={{
+                    color: "var(--dash-muted)",
+                    fontSize: 9,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                    marginBottom: 1,
+                  }}
+                >
+                  Restaurante
+                </p>
+                <p
+                  style={{
+                    color: "var(--dash-text)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {tenantName}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
