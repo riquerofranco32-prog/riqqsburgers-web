@@ -35,7 +35,11 @@ type CartItem = MenuItem & {
 };
 
 function fmt(n: number) {
-  return "$" + n.toLocaleString("es-AR");
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 0,
+  }).format(n);
 }
 
 function vibrate(ms = 40) {
@@ -543,15 +547,23 @@ export default function CatalogClient({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 38,
-                  color: accent + "80",
+                  background: `linear-gradient(135deg, ${accent}20, ${accent}08)`,
+                  position: "relative",
                 }}
               >
-                <UtensilsCrossed
-                  size={32}
-                  strokeWidth={1.5}
-                  color={accent + "60"}
-                />
+                <span
+                  style={{
+                    fontSize: 36,
+                    fontWeight: 900,
+                    color: accent + "50",
+                    fontFamily:
+                      "var(--font-playfair, 'Playfair Display', serif)",
+                    lineHeight: 1,
+                    userSelect: "none",
+                  }}
+                >
+                  {item.name.charAt(0).toUpperCase()}
+                </span>
               </div>
             )}
 
@@ -1189,6 +1201,9 @@ export default function CatalogClient({
                       fontFamily: "var(--font-dm, var(--font-sans, inherit))",
                     }}
                   >
+                    {cat.emoji && (
+                      <span style={{ fontSize: 14 }}>{cat.emoji}</span>
+                    )}
                     {cat.name}
                   </button>
                 );
@@ -1472,35 +1487,52 @@ export default function CatalogClient({
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
-                    padding: "24px 4px 10px",
+                    gap: 10,
+                    padding: "28px 4px 12px",
                     animation: "catHeaderIn 0.28s ease both",
                     animationDelay: `${catIndex * 0.06}s`,
                   }}
                 >
+                  {cat.emoji && (
+                    <span
+                      style={{
+                        fontSize: 22,
+                        lineHeight: 1,
+                        filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.1))",
+                      }}
+                    >
+                      {cat.emoji}
+                    </span>
+                  )}
+                  <span
+                    style={{
+                      fontSize: 17,
+                      fontWeight: 800,
+                      color: TEXT1,
+                      letterSpacing: "-0.02em",
+                      fontFamily:
+                        "var(--font-playfair, 'Playfair Display', serif)",
+                    }}
+                  >
+                    {cat.name}
+                  </span>
                   <div
                     style={{
-                      width: 3,
-                      height: 14,
-                      borderRadius: 2,
-                      background: accent,
-                      flexShrink: 0,
+                      flex: 1,
+                      height: 1,
+                      background: `linear-gradient(to right, ${BORDER}, transparent)`,
                     }}
                   />
                   <span
                     style={{
                       fontSize: 11,
-                      fontWeight: 700,
-                      color: TEXT2,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                      fontFamily: "var(--font-dm, var(--font-sans, inherit))",
+                      color: TEXTM,
+                      background: SURFACE2,
+                      borderRadius: 999,
+                      padding: "2px 8px",
+                      fontWeight: 600,
                     }}
                   >
-                    {cat.name}
-                  </span>
-                  <div style={{ flex: 1, height: 1, background: BORDER }} />
-                  <span style={{ fontSize: 11, color: TEXTM }}>
                     {cat.items.length}
                   </span>
                 </div>
@@ -1615,9 +1647,16 @@ export default function CatalogClient({
                 fontWeight: 600,
                 fontSize: 15,
                 letterSpacing: "-0.01em",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: 180,
               }}
             >
-              Ver pedido
+              {totalItems === 1
+                ? (cart[0]?.name?.split(" ").slice(0, 3).join(" ") ??
+                  "Ver pedido")
+                : `${totalItems} ítems`}
             </span>
             {/* Price */}
             <div
@@ -2073,8 +2112,9 @@ export default function CatalogClient({
                   <div
                     style={{
                       display: "flex",
-                      justifyContent: "center",
-                      padding: "12px 0 0",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "12px 16px 0",
                     }}
                   >
                     <div
@@ -2083,8 +2123,36 @@ export default function CatalogClient({
                         height: 4,
                         borderRadius: 2,
                         background: BORDER,
+                        margin: "0 auto",
                       }}
                     />
+                    <button
+                      onClick={() => setSelectedItem(null)}
+                      style={{
+                        position: "absolute",
+                        top: 14,
+                        right: 16,
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        background: SURFACE2,
+                        border: `1px solid ${BORDER}`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        color: TEXT2,
+                        WebkitTapHighlightColor: "transparent",
+                      }}
+                      onTouchStart={(e) =>
+                        (e.currentTarget.style.background = BORDER)
+                      }
+                      onTouchEnd={(e) =>
+                        (e.currentTarget.style.background = SURFACE2)
+                      }
+                    >
+                      <X size={15} strokeWidth={2.5} />
+                    </button>
                   </div>
 
                   {selectedItem.image ? (
