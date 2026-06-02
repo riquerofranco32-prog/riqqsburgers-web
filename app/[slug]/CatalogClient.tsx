@@ -454,6 +454,8 @@ export default function CatalogClient({
 
   // ── Product card ─────────────────────────────────────────────────────────
 
+  // ── Product card ─────────────────────────────────────────────────────────
+
   function ProductCard({
     item,
     catEmoji,
@@ -484,30 +486,26 @@ export default function CatalogClient({
       <div
         style={{
           animation: `cardFadeIn 0.32s cubic-bezier(0.22,1,0.36,1) both`,
-          animationDelay: `${Math.min((idx ?? 0) * 0.05, 0.4)}s`,
+          animationDelay: `${Math.min((idx ?? 0) * 0.04, 0.3)}s`,
         }}
       >
         <div
           onClick={() => !soldOut && setSelectedItem(item)}
           style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 12,
             background: SURFACE,
             borderRadius: 16,
-            padding: 14,
-            marginBottom: 8,
-            opacity: soldOut ? 0.55 : 1,
-            boxShadow:
-              qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 4px rgba(0,0,0,0.06)",
             border: `1.5px solid ${qty > 0 ? accent + "30" : BORDER}`,
+            overflow: "hidden",
             cursor: soldOut ? "default" : "pointer",
-            WebkitTapHighlightColor: "transparent",
+            opacity: soldOut ? 0.6 : 1,
+            boxShadow:
+              qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 6px rgba(0,0,0,0.07)",
             transition: "box-shadow 0.2s, border-color 0.2s",
             userSelect: "none",
+            WebkitTapHighlightColor: "transparent",
           }}
           onTouchStart={(e) => {
-            if (!soldOut) e.currentTarget.style.transform = "scale(0.985)";
+            if (!soldOut) e.currentTarget.style.transform = "scale(0.97)";
           }}
           onTouchEnd={(e) => {
             e.currentTarget.style.transform = "";
@@ -516,12 +514,199 @@ export default function CatalogClient({
             e.currentTarget.style.transform = "";
           }}
         >
-          {/* Left: text */}
-          <div style={{ flex: 1, minWidth: 0 }}>
+          {/* ── Image area ── */}
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              aspectRatio: "4 / 3",
+              overflow: "hidden",
+              background: `linear-gradient(135deg, ${accent}16, ${accent}06)`,
+            }}
+          >
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 38,
+                  color: accent + "80",
+                }}
+              >
+                <UtensilsCrossed
+                  size={32}
+                  strokeWidth={1.5}
+                  color={accent + "60"}
+                />
+              </div>
+            )}
+
+            {/* Soldout overlay */}
+            {soldOut && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.42)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span
+                  style={{
+                    color: "#fff",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    background: "rgba(0,0,0,0.5)",
+                    padding: "3px 10px",
+                    borderRadius: 999,
+                  }}
+                >
+                  Agotado
+                </span>
+              </div>
+            )}
+
+            {/* Add / stepper button */}
+            {!soldOut && (
+              <div
+                style={{ position: "absolute", bottom: 8, right: 8 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {qty === 0 ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addItem(item);
+                    }}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      background: accent,
+                      color: onAccent,
+                      border: `2.5px solid ${SURFACE}`,
+                      fontSize: 22,
+                      fontWeight: 300,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: `0 3px 10px ${accent}55`,
+                      transition: "transform 0.1s",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                    onTouchStart={(e) =>
+                      (e.currentTarget.style.transform = "scale(0.86)")
+                    }
+                    onTouchEnd={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                    onMouseDown={(e) =>
+                      (e.currentTarget.style.transform = "scale(0.9)")
+                    }
+                    onMouseUp={(e) =>
+                      (e.currentTarget.style.transform = "scale(1)")
+                    }
+                  >
+                    +
+                  </button>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 3,
+                      background: SURFACE,
+                      borderRadius: 18,
+                      padding: "3px 5px",
+                      boxShadow: `0 2px 10px ${accent}40`,
+                      border: `1.5px solid ${accent}30`,
+                    }}
+                  >
+                    <button
+                      onClick={() => removeItem(item)}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        background: accent + "18",
+                        border: "none",
+                        color: accent,
+                        fontSize: 16,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                        WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
+                      −
+                    </button>
+                    <span
+                      style={{
+                        fontWeight: 800,
+                        fontSize: 13,
+                        minWidth: 16,
+                        textAlign: "center",
+                        color: TEXT1,
+                      }}
+                    >
+                      {qty}
+                    </span>
+                    <button
+                      onClick={() => addItem(item)}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        background: accent,
+                        border: "none",
+                        color: onAccent,
+                        fontSize: 16,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 700,
+                        WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Text area ── */}
+          <div style={{ padding: "10px 12px 12px" }}>
+            {item.badge && item.badge !== "" && (
+              <div style={{ marginBottom: 4 }}>
+                <Badge badge={item.badge} />
+              </div>
+            )}
             <span
               style={{
                 fontWeight: 700,
-                fontSize: 15,
+                fontSize: 14,
                 color: TEXT1,
                 lineHeight: 1.3,
                 display: "block",
@@ -530,20 +715,13 @@ export default function CatalogClient({
             >
               {item.name}
             </span>
-
-            {item.badge && item.badge !== "" && (
-              <div style={{ marginBottom: 5 }}>
-                <Badge badge={item.badge} />
-              </div>
-            )}
-
             {item.description && (
               <p
                 style={{
-                  fontSize: 13,
+                  fontSize: 12,
                   color: TEXT2,
-                  margin: "0 0 8px",
-                  lineHeight: 1.5,
+                  margin: "0 0 6px",
+                  lineHeight: 1.4,
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
                   WebkitBoxOrient:
@@ -554,231 +732,9 @@ export default function CatalogClient({
                 {item.description}
               </p>
             )}
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <span style={{ fontWeight: 800, fontSize: 16, color: accent }}>
-                {fmt(item.price)}
-              </span>
-
-              {/* Inline stepper when no image */}
-              {!item.image && !soldOut && qty > 0 && (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    background: SURFACE2,
-                    borderRadius: 20,
-                    padding: "4px 8px",
-                    border: `1px solid ${BORDER}`,
-                  }}
-                >
-                  <button
-                    onClick={() => removeItem(item)}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: BORDER,
-                      border: "none",
-                      color: TEXT1,
-                      fontSize: 18,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                    }}
-                  >
-                    −
-                  </button>
-                  <span
-                    style={{
-                      fontWeight: 700,
-                      fontSize: 14,
-                      minWidth: 18,
-                      textAlign: "center",
-                      color: TEXT1,
-                    }}
-                  >
-                    {qty}
-                  </span>
-                  <button
-                    onClick={() => addItem(item)}
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: accent,
-                      border: "none",
-                      color: onAccent,
-                      fontSize: 18,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right: image + button */}
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            {item.image ? (
-              <img
-                src={item.image}
-                alt={item.name}
-                style={{
-                  width: 90,
-                  height: 90,
-                  borderRadius: 12,
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 90,
-                  height: 90,
-                  borderRadius: 12,
-                  background: SURFACE2,
-                  border: `1px solid ${BORDER}`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <UtensilsCrossed
-                  size={26}
-                  strokeWidth={1.5}
-                  color={accent + "70"}
-                />
-              </div>
-            )}
-
-            {!soldOut &&
-              (qty === 0 ? (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    addItem(item);
-                  }}
-                  style={{
-                    position: "absolute",
-                    bottom: -7,
-                    right: -7,
-                    width: 34,
-                    height: 34,
-                    borderRadius: "50%",
-                    background: accent,
-                    color: onAccent,
-                    border: `3px solid ${SURFACE}`,
-                    fontSize: 22,
-                    fontWeight: 300,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: `0 3px 10px ${accent}55`,
-                    transition: "transform 0.1s",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                  onTouchStart={(e) =>
-                    (e.currentTarget.style.transform = "scale(0.86)")
-                  }
-                  onTouchEnd={(e) =>
-                    (e.currentTarget.style.transform = "scale(1)")
-                  }
-                  onMouseDown={(e) =>
-                    (e.currentTarget.style.transform = "scale(0.9)")
-                  }
-                  onMouseUp={(e) =>
-                    (e.currentTarget.style.transform = "scale(1)")
-                  }
-                >
-                  +
-                </button>
-              ) : (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    position: "absolute",
-                    bottom: -11,
-                    right: -7,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    background: SURFACE,
-                    borderRadius: 20,
-                    padding: "3px 6px",
-                    boxShadow: `0 2px 10px ${accent}40`,
-                    border: `1.5px solid ${accent}30`,
-                  }}
-                >
-                  <button
-                    onClick={() => removeItem(item)}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
-                      background: accent + "18",
-                      border: "none",
-                      color: accent,
-                      fontSize: 16,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                    }}
-                  >
-                    −
-                  </button>
-                  <span
-                    style={{
-                      fontWeight: 800,
-                      fontSize: 13,
-                      minWidth: 16,
-                      textAlign: "center",
-                      color: TEXT1,
-                    }}
-                  >
-                    {qty}
-                  </span>
-                  <button
-                    onClick={() => addItem(item)}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: "50%",
-                      background: accent,
-                      border: "none",
-                      color: onAccent,
-                      fontSize: 16,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
-              ))}
+            <span style={{ fontWeight: 800, fontSize: 15, color: accent }}>
+              {fmt(item.price)}
+            </span>
           </div>
         </div>
       </div>
@@ -1241,6 +1197,181 @@ export default function CatalogClient({
           )}
         </div>
 
+        {/* ── Populares ────────────────────────────────────────────────────────── */}
+        {!searchQuery &&
+          (() => {
+            const featured = restaurant.menu.categories
+              .flatMap((c) => c.items)
+              .filter(
+                (item) =>
+                  item.image &&
+                  item.badge !== "Agotado" &&
+                  (item.badge === "Popular" ||
+                    item.badge === "Más pedido" ||
+                    item.badge === "Nuevo"),
+              )
+              .slice(0, 8);
+
+            if (featured.length < 2) return null;
+
+            return (
+              <div
+                style={{
+                  maxWidth: 640,
+                  margin: "0 auto",
+                  padding: "12px 0 0",
+                }}
+              >
+                {/* header */}
+                <div
+                  style={{
+                    padding: "0 16px 8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 3,
+                      height: 14,
+                      borderRadius: 2,
+                      background: accent,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: TEXT2,
+                      textTransform: "uppercase" as const,
+                      letterSpacing: "0.08em",
+                      fontFamily: "var(--font-dm, var(--font-sans, inherit))",
+                    }}
+                  >
+                    Populares
+                  </span>
+                </div>
+
+                {/* horizontal scroll */}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    overflowX: "auto",
+                    padding: "4px 16px 16px",
+                    scrollbarWidth: "none" as const,
+                  }}
+                >
+                  {featured.map((item) => {
+                    const fQty = getQty(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedItem(item)}
+                        style={{
+                          flexShrink: 0,
+                          width: 130,
+                          background: SURFACE,
+                          borderRadius: 14,
+                          border: `1.5px solid ${fQty > 0 ? accent + "30" : BORDER}`,
+                          overflow: "hidden",
+                          cursor: "pointer",
+                          boxShadow:
+                            fQty > 0
+                              ? `0 3px 14px ${accent}22`
+                              : "0 1px 4px rgba(0,0,0,0.07)",
+                          transition: "box-shadow 0.2s",
+                          WebkitTapHighlightColor: "transparent",
+                        }}
+                        onTouchStart={(e) => {
+                          e.currentTarget.style.transform = "scale(0.97)";
+                        }}
+                        onTouchEnd={(e) => {
+                          e.currentTarget.style.transform = "";
+                        }}
+                        onTouchCancel={(e) => {
+                          e.currentTarget.style.transform = "";
+                        }}
+                      >
+                        {/* mini image */}
+                        <div
+                          style={{
+                            position: "relative",
+                            height: 100,
+                            overflow: "hidden",
+                            background: `linear-gradient(135deg, ${accent}14, ${accent}06)`,
+                          }}
+                        >
+                          <img
+                            src={item.image!}
+                            alt={item.name}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                            }}
+                          />
+                          {fQty > 0 && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                top: 6,
+                                right: 6,
+                                background: accent,
+                                color: onAccent,
+                                borderRadius: 999,
+                                width: 20,
+                                height: 20,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: 11,
+                                fontWeight: 800,
+                              }}
+                            >
+                              {fQty}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* mini text */}
+                        <div style={{ padding: "8px 10px 10px" }}>
+                          <p
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: TEXT1,
+                              margin: "0 0 2px",
+                              lineHeight: 1.3,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {item.name}
+                          </p>
+                          <p
+                            style={{
+                              fontSize: 12,
+                              fontWeight: 800,
+                              color: accent,
+                              margin: 0,
+                            }}
+                          >
+                            {fmt(item.price)}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
         {/* ── Products ─────────────────────────────────────────────────────────── */}
         <div
           style={{ maxWidth: 640, margin: "0 auto", padding: "8px 12px 120px" }}
@@ -1263,24 +1394,32 @@ export default function CatalogClient({
                 &rdquo;
               </p>
               {searchResults.length > 0 ? (
-                searchResults.map((item, idx) => (
-                  <Fragment key={item.id}>
-                    {ProductCard({
-                      item,
-                      catEmoji:
-                        (item as typeof item & { _catEmoji: string })
-                          ._catEmoji ?? "🍽️",
-                      accent,
-                      onAccent,
-                      SURFACE,
-                      SURFACE2,
-                      BORDER,
-                      TEXT1,
-                      TEXT2,
-                      idx,
-                    })}
-                  </Fragment>
-                ))
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    gap: 10,
+                  }}
+                >
+                  {searchResults.map((item, idx) => (
+                    <Fragment key={item.id}>
+                      {ProductCard({
+                        item,
+                        catEmoji:
+                          (item as typeof item & { _catEmoji: string })
+                            ._catEmoji ?? "🍽️",
+                        accent,
+                        onAccent,
+                        SURFACE,
+                        SURFACE2,
+                        BORDER,
+                        TEXT1,
+                        TEXT2,
+                        idx,
+                      })}
+                    </Fragment>
+                  ))}
+                </div>
               ) : (
                 <div
                   style={{
@@ -1367,22 +1506,31 @@ export default function CatalogClient({
                 </div>
 
                 {cat.items.length > 0 ? (
-                  cat.items.map((item, idx) => (
-                    <Fragment key={item.id}>
-                      {ProductCard({
-                        item,
-                        catEmoji: cat.emoji,
-                        accent,
-                        onAccent,
-                        SURFACE,
-                        SURFACE2,
-                        BORDER,
-                        TEXT1,
-                        TEXT2,
-                        idx,
-                      })}
-                    </Fragment>
-                  ))
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gap: 10,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {cat.items.map((item, idx) => (
+                      <Fragment key={item.id}>
+                        {ProductCard({
+                          item,
+                          catEmoji: cat.emoji,
+                          accent,
+                          onAccent,
+                          SURFACE,
+                          SURFACE2,
+                          BORDER,
+                          TEXT1,
+                          TEXT2,
+                          idx,
+                        })}
+                      </Fragment>
+                    ))}
+                  </div>
                 ) : (
                   <div
                     style={{
