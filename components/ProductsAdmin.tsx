@@ -524,9 +524,11 @@ function ProductModal({
 function ProductMobileCard({
   product,
   cat,
+  tenantSlug,
   inlinePriceId,
   inlinePriceVal,
   inlinePriceRef,
+  inlinePriceEscaped,
   deletingId,
   onToggle,
   onEdit,
@@ -534,12 +536,15 @@ function ProductMobileCard({
   onInlinePriceStart,
   onInlinePriceSave,
   onInlinePriceValChange,
+  onUploaded,
 }: {
   product: Product;
   cat: Category | undefined;
+  tenantSlug: string;
   inlinePriceId: string | null;
   inlinePriceVal: string;
   inlinePriceRef: React.RefObject<HTMLInputElement>;
+  inlinePriceEscaped: React.MutableRefObject<boolean>;
   deletingId: string | null;
   onToggle: (p: Product) => void;
   onEdit: (p: Product) => void;
@@ -547,9 +552,37 @@ function ProductMobileCard({
   onInlinePriceStart: (p: Product) => void;
   onInlinePriceSave: (p: Product) => void;
   onInlinePriceValChange: (val: string) => void;
+  onUploaded: (productId: string, url: string) => void;
 }) {
-  const displayUrl = product.image_url ?? null;
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [uploadState, setUploadState] = useState<UploadState>("idle");
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const displayUrl = localPreview ?? product.image_url ?? null;
   const isEditing = inlinePriceId === product.id;
+
+  async function handleCameraFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLocalPreview(URL.createObjectURL(file));
+    setUploadState("uploading");
+    try {
+      const publicUrl = await uploadImage(file, tenantSlug, product.id);
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_url: publicUrl }),
+      });
+      if (!res.ok) throw new Error("update failed");
+      onUploaded(product.id, publicUrl);
+      setUploadState("success");
+      setTimeout(() => setUploadState("idle"), 2000);
+    } catch {
+      setLocalPreview(null);
+      setUploadState("error");
+      setTimeout(() => setUploadState("idle"), 2500);
+    }
+  }
 
   return (
     <div
@@ -570,15 +603,32 @@ function ProductMobileCard({
             {cat?.emoji ?? "🍽️"}
           </div>
         )}
+        {/* Camera — opens file picker */}
         <button
-          onClick={() => onEdit(product)}
+          onClick={() => cameraInputRef.current?.click()}
+          disabled={uploadState === "uploading"}
           style={
             { WebkitTapHighlightColor: "transparent" } as React.CSSProperties
           }
-          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center"
+          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center disabled:opacity-40"
         >
-          <Camera className="w-3.5 h-3.5 text-white" />
+          {uploadState === "uploading" && (
+            <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+          )}
+          {uploadState === "success" && (
+            <Check className="w-3.5 h-3.5 text-emerald-400" />
+          )}
+          {(uploadState === "idle" || uploadState === "error") && (
+            <Camera className="w-3.5 h-3.5 text-white" />
+          )}
         </button>
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleCameraFile}
+          className="hidden"
+        />
         {product.badge && (
           <span className="absolute top-2 left-2 text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold pointer-events-none">
             {product.badge.replace(/^\S+\s/, "")}
@@ -640,7 +690,7 @@ function ProductMobileCard({
             onKeyDown={(e) => {
               if (e.key === "Enter") e.currentTarget.blur();
               if (e.key === "Escape") {
-                onInlinePriceValChange(String(product.price));
+                inlinePriceEscaped.current = true;
                 e.currentTarget.blur();
               }
             }}
@@ -734,6 +784,7 @@ export default function ProductsAdmin({
   const [inlinePriceId, setInlinePriceId] = useState<string | null>(null);
   const [inlinePriceVal, setInlinePriceVal] = useState("");
   const inlinePriceRef = useRef<HTMLInputElement>(null);
+  const inlinePriceEscaped = useRef(false);
 
   useEffect(() => {
     if (inlinePriceId && inlinePriceRef.current) {
@@ -893,6 +944,11 @@ export default function ProductsAdmin({
   }
 
   async function saveInlinePrice(product: Product) {
+    if (inlinePriceEscaped.current) {
+      inlinePriceEscaped.current = false;
+      setInlinePriceId(null);
+      return;
+    }
     const price = parseInt(inlinePriceVal.replace(/\D/g, ""), 10);
     setInlinePriceId(null);
     if (isNaN(price) || price < 0 || price === product.price) return;
@@ -1060,9 +1116,11 @@ export default function ProductsAdmin({
                   key={product.id}
                   product={product}
                   cat={cat}
+                  tenantSlug={tenant.slug}
                   inlinePriceId={inlinePriceId}
                   inlinePriceVal={inlinePriceVal}
                   inlinePriceRef={inlinePriceRef}
+                  inlinePriceEscaped={inlinePriceEscaped}
                   deletingId={deletingId}
                   onToggle={toggleAvailable}
                   onEdit={openEdit}
@@ -1073,6 +1131,7 @@ export default function ProductsAdmin({
                   }}
                   onInlinePriceSave={saveInlinePrice}
                   onInlinePriceValChange={setInlinePriceVal}
+                  onUploaded={handleImageUploaded}
                 />
               );
             })}
