@@ -76,7 +76,6 @@ export function KPICard({
         {value}
       </p>
 
-      {/* Footer: change badge OR sub text */}
       {hasChange ? (
         <div
           className={`self-start flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
@@ -96,18 +95,18 @@ export function KPICard({
             <span className="opacity-60 ml-0.5">{changeLabel}</span>
           )}
         </div>
-      ) : change === null || change === undefined ? (
+      ) : sub ? (
+        <p className="text-[11px] text-dash-muted/60 leading-none truncate">
+          {sub}
+        </p>
+      ) : (
         <p
           className="text-[11px] font-medium"
           style={{ color: "var(--dash-muted)" }}
         >
           —
         </p>
-      ) : sub ? (
-        <p className="text-[11px] text-dash-muted/60 leading-none truncate">
-          {sub}
-        </p>
-      ) : null}
+      )}
     </div>
   );
 }
