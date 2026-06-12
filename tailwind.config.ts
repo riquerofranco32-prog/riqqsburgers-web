@@ -15,8 +15,8 @@ const config: Config = {
         "altum-cream": "#F5F3EF",
         "altum-text": "#4A5568",
         // Legacy aliases → ALTUM gold
-        brand: "#C9A84C",
-        orange: "#C9A84C",
+        brand: "#FF6B35",
+        orange: "#FF6B35",
         // Surface tokens
         card: "#111D35",
         border: "#253055",
@@ -41,14 +41,14 @@ const config: Config = {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         glowPulse: {
-          "0%, 100%": { boxShadow: "0 0 8px rgba(201,168,76,0.3)" },
-          "50%": { boxShadow: "0 0 20px rgba(201,168,76,0.6)" },
+          "0%, 100%": { boxShadow: "0 0 8px rgba(255,107,53,0.3)" },
+          "50%": { boxShadow: "0 0 20px rgba(255,107,53,0.6)" },
         },
       },
       boxShadow: {
-        "brand-sm": "0 0 12px rgba(201,168,76,0.15)",
-        "brand-md": "0 0 24px rgba(201,168,76,0.25)",
-        "brand-lg": "0 0 48px rgba(201,168,76,0.38)",
+        "brand-sm": "0 0 12px rgba(255,107,53,0.15)",
+        "brand-md": "0 0 24px rgba(255,107,53,0.25)",
+        "brand-lg": "0 0 48px rgba(255,107,53,0.38)",
       },
     },
   },

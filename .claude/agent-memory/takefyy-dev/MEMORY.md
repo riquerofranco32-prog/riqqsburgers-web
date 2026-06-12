@@ -1,0 +1,1 @@
+- [Storage upload fix](project_storage-upload-fix.md) — uploads de logo/banner deben ir via API route server-side; el browser no tiene sesión Supabase Auth
