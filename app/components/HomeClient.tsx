@@ -2276,9 +2276,9 @@ export default function HomeClient({
           </motion.div>
 
           <div className="grid md:grid-cols-5 gap-5">
-            {/* Large featured */}
+            {/* Large featured — Larry's Burgers */}
             <motion.div
-              className="md:col-span-3"
+              className="md:col-span-3 grid grid-cols-1 lg:grid-cols-12 gap-8"
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -2287,13 +2287,10 @@ export default function HomeClient({
                 background: "var(--brand-dark)",
                 border: "1px solid rgba(255,107,53,0.18)",
                 borderRadius: 24,
-                padding: 40,
+                padding: "36px 32px",
                 position: "relative",
                 overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                minHeight: 280,
+                minHeight: 380,
               }}
             >
               <span
@@ -2312,62 +2309,165 @@ export default function HomeClient({
               >
                 &ldquo;
               </span>
-              <div>
-                <div className="flex mb-5">
-                  {"★★★★★".split("").map((s, si) => (
+
+              {/* Left Side: Testimonial & Improvements (col-span-7) */}
+              <div className="lg:col-span-7 flex flex-col justify-between gap-6 relative z-10">
+                <div>
+                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
+                    {/* Five stars */}
+                    <div className="flex">
+                      {"★★★★★".split("").map((s, si) => (
+                        <span key={si} style={{ color: "var(--accent)", fontSize: 16 }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
                     <span
-                      key={si}
-                      style={{ color: "var(--accent)", fontSize: 18 }}
+                      style={{
+                        background: "rgba(255,107,53,0.12)",
+                        color: "var(--accent)",
+                        fontSize: 10,
+                        fontWeight: 800,
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                      }}
                     >
-                      {s}
+                      Cliente Destacado
                     </span>
-                  ))}
+                  </div>
+
+                  <p
+                    style={{
+                      fontSize: 15,
+                      lineHeight: 1.6,
+                      color: "#fff",
+                      fontStyle: "italic",
+                      marginBottom: 20,
+                    }}
+                  >
+                    &ldquo;Fuimos de los primeros en confiar en Takefyy para automatizar nuestras ventas. El resultado fue inmediato: pasamos de anotar pedidos a mano por WhatsApp a recibir todo ya detallado. Cero errores, clientes más felices y más tiempo para tirar las mejores smash burgers.&rdquo;
+                  </p>
+
+                  {/* Improvements list */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {[
+                      "⚡ Pedidos 100% automatizados por WhatsApp",
+                      "🎯 Reducción a cero de errores de envío",
+                      "📈 Mayor ticket promedio con el carrito"
+                    ].map((imp) => (
+                      <div key={imp} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
+                        <span>{imp}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p
-                  style={{
-                    fontSize: 19,
-                    lineHeight: 1.7,
-                    color: "#fff",
-                    fontStyle: "italic",
-                    marginBottom: 28,
-                    position: "relative",
-                    zIndex: 1,
-                  }}
-                >
-                  &ldquo;{testimonials[0].text}&rdquo;
-                </p>
+
+                <div className="flex items-center gap-3 mt-4">
+                  {/* Restaurant Logo */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/logo_url.png?t=1781289992571"
+                    alt="Larry's Burgers logo"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 10,
+                      objectFit: "cover",
+                      border: "1.5px solid rgba(255,255,255,0.15)",
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                      Larry&apos;s Burgers
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+                      Real Smash Burgers · San Rafael
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
+
+              {/* Right Side: Menu Sample (col-span-5) */}
+              <div className="lg:col-span-5 flex flex-col justify-center relative z-10">
                 <div
                   style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: "50%",
-                    background: "var(--accent)",
+                    background: "#161920",
+                    borderRadius: 16,
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    padding: 16,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 14,
-                    fontWeight: 700,
-                    color: "#fff",
+                    flexDirection: "column",
+                    gap: 12,
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
                   }}
                 >
-                  {testimonials[0].initials}
-                </div>
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>
-                    {testimonials[0].name}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      Muestra del Menú
+                    </span>
+                    <a
+                      href="https://takefyy.com/larryssburgers"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
+                    >
+                      Ver real ↗
+                    </a>
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--dash-muted)" }}>
-                    {testimonials[0].restaurant}
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {[
+                      { name: "The Larry", price: "$10.000", desc: "Doble smash, cheddar, salsa Larry", img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg" },
+                      { name: "Bacon Larry", price: "$10.500", desc: "Doble smash, cheddar, bacon caramelizado", img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg" },
+                      { name: "Ultra Chesse", price: "$10.500", desc: "Doble smash, cuádruple cheddar, alioli", img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg" }
+                    ].map((item) => (
+                      <div
+                        key={item.name}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          background: "#1E222B",
+                          padding: 8,
+                          borderRadius: 10,
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.img}
+                          alt={item.name}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 6,
+                            objectFit: "cover",
+                          }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {item.name}
+                            </span>
+                            <span style={{ fontSize: 10, fontWeight: 800, color: "#F5C518", marginLeft: 4 }}>
+                              {item.price}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                            {item.desc}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* 2 smaller */}
+            {/* smaller */}
             <div className="md:col-span-2 flex flex-col gap-5">
-              {testimonials.slice(1).map((t, i) => (
+              {testimonials.map((t, i) => (
                 <motion.div
                   key={t.name}
                   initial={{ opacity: 0, x: 24 }}
