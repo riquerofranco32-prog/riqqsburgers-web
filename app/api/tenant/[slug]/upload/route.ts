@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 
@@ -88,5 +89,6 @@ export async function POST(
   // when the same path is overwritten with a new image.
   const url = `${publicUrl}?t=${Date.now()}`;
 
+  revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ url });
 }

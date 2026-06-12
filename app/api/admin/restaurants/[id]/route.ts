@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertSuperAdmin } from "@/lib/authz";
 
@@ -17,6 +18,12 @@ export async function PATCH(
   const body = (await req.json()) as { active: boolean };
   const supabase = createServerClient();
 
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("slug")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("tenants")
     .update({ active: body.active })
@@ -24,6 +31,8 @@ export async function PATCH(
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (tenant?.slug) revalidatePath(`/${tenant.slug}`, "layout");
   return NextResponse.json({ ok: true });
 }
 
@@ -41,8 +50,16 @@ export async function DELETE(
   const { id } = await params;
   const supabase = createServerClient();
 
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("slug")
+    .eq("id", id)
+    .maybeSingle();
+
   const { error } = await supabase.from("tenants").delete().eq("id", id);
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  if (tenant?.slug) revalidatePath(`/${tenant.slug}`, "layout");
   return NextResponse.json({ ok: true });
 }

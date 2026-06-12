@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import { unstable_noStore as noStore } from "next/cache";
 import {
   getActiveTenant,
   getAllTenants,
@@ -62,6 +63,7 @@ export interface Restaurant {
 }
 
 async function getTopProductId(tenantId: string): Promise<string | null> {
+  noStore();
   const supabase = createServerClient();
   const since = new Date();
   since.setDate(since.getDate() - 90);

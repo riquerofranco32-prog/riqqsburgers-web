@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertSuperAdmin } from "@/lib/authz";
 
@@ -8,8 +9,9 @@ export async function GET(
 ) {
   try {
     await assertSuperAdmin();
-  } catch (e) {
-    return e as NextResponse;
+  } catch (res) {
+    if (res instanceof NextResponse) return res;
+    throw res;
   }
   const { id } = await params;
   const supabase = createServerClient();
@@ -27,8 +29,9 @@ export async function POST(
 ) {
   try {
     await assertSuperAdmin();
-  } catch (e) {
-    return e as NextResponse;
+  } catch (res) {
+    if (res instanceof NextResponse) return res;
+    throw res;
   }
   const { id } = await params;
   const body = await req.json();
@@ -56,5 +59,13 @@ export async function POST(
     .single();
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("slug")
+    .eq("id", id)
+    .maybeSingle();
+  if (tenant?.slug) revalidatePath(`/${tenant.slug}`, "layout");
+
   return NextResponse.json(data);
 }
