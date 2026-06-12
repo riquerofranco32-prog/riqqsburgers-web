@@ -56,6 +56,18 @@ function paymentLabel(method: string) {
   return '💵 Efectivo'
 }
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    setIsMobile(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return isMobile
+}
+
 interface RecentOrdersTableProps {
   orders: Order[]
   slug: string
@@ -66,6 +78,7 @@ interface RecentOrdersTableProps {
 
 export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loading = false, maxRows = 10 }: RecentOrdersTableProps) {
   const [orders, setOrders] = useState(initialOrders)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setOrders(initialOrders)
@@ -135,66 +148,172 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
         </Link>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[620px]">
-          <thead>
-            <tr className="border-b border-dash-border/50">
-              {['#', 'Hora', 'Cliente', 'Tipo', 'Pago', 'Total', 'Estado'].map((h, i) => (
-                <th
-                  key={h}
-                  className={`py-2.5 text-[11px] uppercase tracking-wider text-dash-muted font-medium
-                    ${i === 0 ? 'pl-5 pr-3 text-left' : i === 6 ? 'pl-3 pr-5 text-right' : 'px-3 text-left'}
-                    ${i === 5 ? 'text-right' : ''}`}
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {orders.slice(0, maxRows).map((order, idx) => (
-              <tr
-                key={order.id}
-                className="transition-colors duration-150"
+      {isMobile ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 12 }}>
+          {orders.slice(0, maxRows).map((order) => (
+            <Link
+              key={order.id}
+              href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                background: "var(--dash-surface-2)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 12,
+                padding: 14,
+                textDecoration: "none",
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "var(--dash-surface-3)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "var(--dash-surface-2)")
+              }
+            >
+              <div
                 style={{
-                  borderBottom: idx < Math.min(orders.length, maxRows) - 1 ? '1px solid var(--dash-border)' : undefined,
-                  cursor: 'default',
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = 'var(--dash-surface-2)')}
-                onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
               >
-                <td className="pl-5 pr-3 py-3 text-xs font-mono">
-                  <Link
-                    href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
-                    style={{ color: 'var(--accent)', textDecoration: 'none' }}
-                    className="hover:underline"
-                  >
-                    #{order.order_ref ?? order.id.slice(0, 6)}
-                  </Link>
-                </td>
-                <td className="px-3 py-3 text-xs text-dash-muted tabular-nums">
+                <span
+                  style={{
+                    fontFamily: "var(--font-mono, monospace)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "var(--accent)",
+                  }}
+                >
+                  #{order.order_ref ?? order.id.slice(0, 6)}
+                </span>
+                <span style={{ fontSize: 11, color: "var(--dash-muted)" }}>
                   {fmtHora(order.created_at)}
-                </td>
-                <td className="px-3 py-3 text-xs text-dash-text max-w-[120px] truncate">
-                  {order.customer_name ?? '—'}
-                </td>
-                <td className="px-3 py-3 text-xs text-dash-muted whitespace-nowrap">
-                  {deliveryLabel(order.delivery_type)}
-                </td>
-                <td className="px-3 py-3 text-xs text-dash-muted whitespace-nowrap">
-                  {paymentLabel(order.payment_method)}
-                </td>
-                <td className="px-3 py-3 text-xs font-mono text-right text-dash-text">
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--dash-text)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: "60%",
+                  }}
+                >
+                  {order.customer_name ?? "—"}
+                </span>
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: "var(--dash-text)",
+                    fontFamily: "var(--font-mono, monospace)",
+                  }}
+                >
                   {fmtARS(order.total)}
-                </td>
-                <td className="pl-3 pr-5 py-3 text-right">
-                  <StatusBadge status={order.status} />
-                </td>
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingTop: 6,
+                  borderTop:
+                    "1px solid var(--dash-border-subtle, rgba(255,255,255,0.05))",
+                }}
+              >
+                <span style={{ fontSize: 11, color: "var(--dash-muted)" }}>
+                  {deliveryLabel(order.delivery_type)} ·{" "}
+                  {paymentLabel(order.payment_method)}
+                </span>
+                <StatusBadge status={order.status} />
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[620px]">
+            <thead>
+              <tr className="border-b border-dash-border/50">
+                {["#", "Hora", "Cliente", "Tipo", "Pago", "Total", "Estado"].map(
+                  (h, i) => (
+                    <th
+                      key={h}
+                      className={`py-2.5 text-[11px] uppercase tracking-wider text-dash-muted font-medium
+                    ${i === 0 ? "pl-5 pr-3 text-left" : i === 6 ? "pl-3 pr-5 text-right" : "px-3 text-left"}
+                    ${i === 5 ? "text-right" : ""}`}
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {orders.slice(0, maxRows).map((order, idx) => (
+                <tr
+                  key={order.id}
+                  className="transition-colors duration-150"
+                  style={{
+                    borderBottom:
+                      idx < Math.min(orders.length, maxRows) - 1
+                        ? "1px solid var(--dash-border)"
+                        : undefined,
+                    cursor: "default",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "var(--dash-surface-2)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
+                >
+                  <td className="pl-5 pr-3 py-3 text-xs font-mono">
+                    <Link
+                      href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+                      style={{ color: "var(--accent)", textDecoration: "none" }}
+                      className="hover:underline"
+                    >
+                      #{order.order_ref ?? order.id.slice(0, 6)}
+                    </Link>
+                  </td>
+                  <td className="px-3 py-3 text-xs text-dash-muted tabular-nums">
+                    {fmtHora(order.created_at)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-dash-text max-w-[120px] truncate">
+                    {order.customer_name ?? "—"}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-dash-muted whitespace-nowrap">
+                    {deliveryLabel(order.delivery_type)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-dash-muted whitespace-nowrap">
+                    {paymentLabel(order.payment_method)}
+                  </td>
+                  <td className="px-3 py-3 text-xs font-mono text-right text-dash-text">
+                    {fmtARS(order.total)}
+                  </td>
+                  <td className="pl-3 pr-5 py-3 text-right">
+                    <StatusBadge status={order.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {orders.length > maxRows && (
         <div style={{ borderTop: '1px solid var(--dash-border)', padding: '10px 20px' }}>

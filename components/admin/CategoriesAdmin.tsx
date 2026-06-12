@@ -216,7 +216,7 @@ export default function CategoriesAdmin({
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div style={{ padding: "20px 20px 48px", maxWidth: 720 }}>
+    <div className="p-4 md:p-6 max-w-3xl w-full pb-12">
       {/* Header */}
       <div
         style={{
@@ -430,6 +430,7 @@ export default function CategoriesAdmin({
                       onClick={() => moveBy(index, -1)}
                       disabled={index === 0}
                       title="Subir"
+                      className="hidden sm:flex items-center justify-center"
                       style={iconBtn(index === 0)}
                     >
                       <ChevronUp size={16} />
@@ -438,6 +439,7 @@ export default function CategoriesAdmin({
                       onClick={() => moveBy(index, 1)}
                       disabled={index === categories.length - 1}
                       title="Bajar"
+                      className="hidden sm:flex items-center justify-center"
                       style={iconBtn(index === categories.length - 1)}
                     >
                       <ChevronDown size={16} />
@@ -445,6 +447,7 @@ export default function CategoriesAdmin({
                     <button
                       onClick={() => openEdit(cat)}
                       title="Editar"
+                      className="flex items-center justify-center"
                       style={iconBtn(false)}
                     >
                       <Pencil size={15} />
@@ -456,6 +459,7 @@ export default function CategoriesAdmin({
                           ? "Tiene productos asignados"
                           : "Eliminar categoría"
                       }
+                      className="flex items-center justify-center"
                       style={{
                         ...iconBtn(false),
                         color: count > 0 ? "var(--dash-muted)" : "#f87171",
@@ -691,9 +695,6 @@ function iconBtn(disabled: boolean): React.CSSProperties {
   return {
     width: 34,
     height: 34,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
     background: "none",
     border: "none",
     borderRadius: 8,

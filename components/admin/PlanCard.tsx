@@ -52,13 +52,7 @@ export default function PlanCard({
 
   return (
     <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 24,
-        padding: "20px 20px 24px",
-        maxWidth: 760,
-      }}
+      className="p-4 md:p-5 flex flex-col gap-6 max-w-3xl w-full"
     >
       {/* Free upsell banner */}
       {currentPlan === "free" && (
@@ -314,11 +308,7 @@ export default function PlanCard({
           Comparativa de planes
         </h3>
         <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 12,
-          }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-3"
         >
           {(["free", "pro", "premium"] as PlanId[]).map((planId) => {
             const plan = PLANS[planId];

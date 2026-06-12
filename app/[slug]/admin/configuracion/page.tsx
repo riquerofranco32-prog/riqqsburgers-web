@@ -37,7 +37,7 @@ export default async function ConfiguracionPage({
   }
 
   return (
-    <div style={{ padding: "24px 24px 48px" }}>
+    <div className="p-4 md:p-6 lg:p-8 max-w-3xl w-full pb-12">
       <div style={{ marginBottom: 28 }}>
         <h1
           style={{

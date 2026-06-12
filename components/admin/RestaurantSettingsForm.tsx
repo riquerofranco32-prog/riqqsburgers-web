@@ -33,16 +33,6 @@ const labelStyle = {
   letterSpacing: "0.06em",
 };
 
-const sectionStyle = {
-  display: "flex",
-  flexDirection: "column" as const,
-  gap: 16,
-  padding: "20px",
-  background: "var(--dash-surface)",
-  border: "1px solid var(--dash-border)",
-  borderRadius: 12,
-};
-
 const sectionTitleStyle = {
   fontSize: 13,
   fontWeight: 700,
@@ -233,7 +223,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
       }}
     >
       {/* Info básica */}
-      <div style={sectionStyle}>
+      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
         <p style={sectionTitleStyle}>Info básica</p>
 
         <div>
@@ -376,7 +366,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
       </div>
 
       {/* Presencia */}
-      <div style={sectionStyle}>
+      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
         <p style={sectionTitleStyle}>Presencia</p>
 
         <div>
@@ -452,7 +442,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
       </div>
 
       {/* Visual */}
-      <div style={sectionStyle}>
+      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
         <p style={sectionTitleStyle}>Visual</p>
         <div
           style={{
@@ -480,7 +470,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
       </div>
 
       {/* Imágenes */}
-      <div style={sectionStyle}>
+      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
         <p style={sectionTitleStyle}>Imágenes</p>
 
         {/* Logo */}
