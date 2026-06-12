@@ -127,7 +127,7 @@ function ProductImageCell({
           </span>
         )}
         {state === "idle" && (
-          <Camera className="w-4 h-4 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
+          <Camera className="w-4 h-4 text-white opacity-40 group-hover/img:opacity-100 transition-opacity" />
         )}
       </button>
 
@@ -519,6 +519,193 @@ function ProductModal({
   );
 }
 
+// ── Mobile product card (< md) ────────────────────────────────────────────────
+
+function ProductMobileCard({
+  product,
+  cat,
+  inlinePriceId,
+  inlinePriceVal,
+  inlinePriceRef,
+  deletingId,
+  onToggle,
+  onEdit,
+  onDelete,
+  onInlinePriceStart,
+  onInlinePriceSave,
+  onInlinePriceValChange,
+}: {
+  product: Product;
+  cat: Category | undefined;
+  inlinePriceId: string | null;
+  inlinePriceVal: string;
+  inlinePriceRef: React.RefObject<HTMLInputElement>;
+  deletingId: string | null;
+  onToggle: (p: Product) => void;
+  onEdit: (p: Product) => void;
+  onDelete: (p: Product) => void;
+  onInlinePriceStart: (p: Product) => void;
+  onInlinePriceSave: (p: Product) => void;
+  onInlinePriceValChange: (val: string) => void;
+}) {
+  const displayUrl = product.image_url ?? null;
+  const isEditing = inlinePriceId === product.id;
+
+  return (
+    <div
+      className={`bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden flex flex-col transition-opacity ${!product.available ? "opacity-60" : ""}`}
+    >
+      {/* Photo */}
+      <div className="relative aspect-[4/3] bg-zinc-800">
+        {displayUrl ? (
+          <Image
+            src={displayUrl}
+            alt={product.name}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-4xl">
+            {cat?.emoji ?? "🍽️"}
+          </div>
+        )}
+        <button
+          onClick={() => onEdit(product)}
+          style={
+            { WebkitTapHighlightColor: "transparent" } as React.CSSProperties
+          }
+          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center"
+        >
+          <Camera className="w-3.5 h-3.5 text-white" />
+        </button>
+        {product.badge && (
+          <span className="absolute top-2 left-2 text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold pointer-events-none">
+            {product.badge.replace(/^\S+\s/, "")}
+          </span>
+        )}
+        {!product.available && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
+            <span className="text-[10px] bg-zinc-800/90 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
+              Agotado
+            </span>
+          </div>
+        )}
+        {!displayUrl && (
+          <span className="absolute top-2 right-2 text-[8px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded-full pointer-events-none">
+            Sin foto
+          </span>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="p-3 flex flex-col gap-2">
+        {/* Name + Toggle */}
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-sm text-white flex-1 min-w-0 truncate leading-tight">
+            {product.name}
+          </p>
+          <button
+            onClick={() => onToggle(product)}
+            style={
+              {
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+                width: 44,
+                height: 28,
+                flexShrink: 0,
+              } as React.CSSProperties
+            }
+            className="flex items-center justify-center"
+          >
+            <div
+              className={`w-10 h-6 rounded-full transition-colors relative ${product.available ? "bg-yellow-400" : "bg-zinc-700"}`}
+            >
+              <div
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${product.available ? "translate-x-4" : "translate-x-0.5"}`}
+              />
+            </div>
+          </button>
+        </div>
+
+        {/* Price — inline edit on tap */}
+        {isEditing ? (
+          <input
+            ref={inlinePriceRef}
+            type="number"
+            inputMode="numeric"
+            value={inlinePriceVal}
+            onChange={(e) => onInlinePriceValChange(e.target.value)}
+            onBlur={() => onInlinePriceSave(product)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") {
+                onInlinePriceValChange(String(product.price));
+                e.currentTarget.blur();
+              }
+            }}
+            min={0}
+            style={{ fontSize: 16 }}
+            className="w-full bg-zinc-800 border border-yellow-400 rounded-xl px-3 py-2 text-yellow-400 font-bold outline-none"
+          />
+        ) : (
+          <button
+            onClick={() => onInlinePriceStart(product)}
+            style={
+              {
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              } as React.CSSProperties
+            }
+            className="flex items-baseline gap-1.5 min-h-[36px] text-left"
+          >
+            <span className="text-yellow-400 text-sm font-bold">
+              ${product.price.toLocaleString("es-AR")}
+            </span>
+            <span className="text-[9px] text-zinc-600">toca para editar</span>
+          </button>
+        )}
+
+        {/* Category */}
+        {cat && (
+          <p className="text-zinc-600 text-xs">
+            {cat.emoji} {cat.name}
+          </p>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2 mt-0.5">
+          <button
+            onClick={() => onEdit(product)}
+            style={
+              {
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              } as React.CSSProperties
+            }
+            className="flex-1 h-11 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            Editar
+          </button>
+          <button
+            onClick={() => onDelete(product)}
+            disabled={deletingId === product.id}
+            style={
+              {
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              } as React.CSSProperties
+            }
+            className="w-11 h-11 bg-zinc-800 hover:bg-red-950 active:bg-red-900 text-zinc-500 hover:text-red-400 rounded-xl transition-colors flex items-center justify-center disabled:opacity-40 text-sm"
+          >
+            {deletingId === product.id ? "…" : "🗑"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 
 type SortKey = "default" | "name" | "price-asc" | "price-desc";
@@ -544,6 +731,16 @@ export default function ProductsAdmin({
   const [sort, setSort] = useState<SortKey>("default");
   const [toast, setToast] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [inlinePriceId, setInlinePriceId] = useState<string | null>(null);
+  const [inlinePriceVal, setInlinePriceVal] = useState("");
+  const inlinePriceRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inlinePriceId && inlinePriceRef.current) {
+      inlinePriceRef.current.focus();
+      inlinePriceRef.current.select();
+    }
+  }, [inlinePriceId]);
 
   useEffect(() => {
     if (showModal) {
@@ -695,6 +892,33 @@ export default function ProductsAdmin({
     );
   }
 
+  async function saveInlinePrice(product: Product) {
+    const price = parseInt(inlinePriceVal.replace(/\D/g, ""), 10);
+    setInlinePriceId(null);
+    if (isNaN(price) || price < 0 || price === product.price) return;
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, price } : p)),
+    );
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ price }),
+      });
+      if (!res.ok) throw new Error("update failed");
+      vibrate(40);
+      setToast("Precio actualizado");
+    } catch {
+      vibrate([50, 30, 50]);
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id ? { ...p, price: product.price } : p,
+        ),
+      );
+      setToast("Error al actualizar precio");
+    }
+  }
+
   async function toggleAvailable(product: Product) {
     const newVal = !product.available;
     vibrate(40);
@@ -826,106 +1050,136 @@ export default function ProductsAdmin({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5">
-          {filtered.map((product) => {
-            const cat = categories.find((c) => c.id === product.category_id);
-            return (
-              <div
-                key={product.id}
-                className={`bg-zinc-900 rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${product.available ? "border-zinc-800" : "border-zinc-800 opacity-50"}`}
-              >
-                <ProductImageCell
+        <>
+          {/* Mobile: 2-column vertical cards */}
+          <div className="grid grid-cols-2 gap-3 md:hidden">
+            {filtered.map((product) => {
+              const cat = categories.find((c) => c.id === product.category_id);
+              return (
+                <ProductMobileCard
+                  key={product.id}
                   product={product}
-                  tenantSlug={tenant.slug}
-                  categoryEmoji={cat?.emoji ?? "🍽️"}
-                  onUploaded={handleImageUploaded}
+                  cat={cat}
+                  inlinePriceId={inlinePriceId}
+                  inlinePriceVal={inlinePriceVal}
+                  inlinePriceRef={inlinePriceRef}
+                  deletingId={deletingId}
+                  onToggle={toggleAvailable}
+                  onEdit={openEdit}
+                  onDelete={handleDelete}
+                  onInlinePriceStart={(p) => {
+                    setInlinePriceVal(String(p.price));
+                    setInlinePriceId(p.id);
+                  }}
+                  onInlinePriceSave={saveInlinePrice}
+                  onInlinePriceValChange={setInlinePriceVal}
                 />
+              );
+            })}
+          </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-sm text-white">
-                      {product.name}
+          {/* Desktop: horizontal rows */}
+          <div className="hidden md:flex flex-col gap-2.5">
+            {filtered.map((product) => {
+              const cat = categories.find((c) => c.id === product.category_id);
+              return (
+                <div
+                  key={product.id}
+                  className={`bg-zinc-900 rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${product.available ? "border-zinc-800" : "border-zinc-800 opacity-50"}`}
+                >
+                  <ProductImageCell
+                    product={product}
+                    tenantSlug={tenant.slug}
+                    categoryEmoji={cat?.emoji ?? "🍽️"}
+                    onUploaded={handleImageUploaded}
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-sm text-white">
+                        {product.name}
+                      </p>
+                      {product.badge && (
+                        <span className="text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold">
+                          {product.badge.replace(/^\S+\s/, "")}
+                        </span>
+                      )}
+                      {!product.available && (
+                        <span className="text-[10px] bg-zinc-700 text-zinc-400 px-1.5 py-0.5 rounded-full font-bold">
+                          Agotado
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-yellow-400 text-sm font-bold">
+                      ${product.price.toLocaleString("es-AR")}
                     </p>
-                    {product.badge && (
-                      <span className="text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold">
-                        {product.badge.replace(/^\S+\s/, "")}
-                      </span>
-                    )}
-                    {!product.available && (
-                      <span className="text-[10px] bg-zinc-700 text-zinc-400 px-1.5 py-0.5 rounded-full font-bold">
-                        Agotado
-                      </span>
+                    {cat && (
+                      <p className="text-zinc-500 text-xs">
+                        {cat.emoji} {cat.name}
+                      </p>
                     )}
                   </div>
-                  <p className="text-yellow-400 text-sm font-bold">
-                    ${product.price.toLocaleString("es-AR")}
-                  </p>
-                  {cat && (
-                    <p className="text-zinc-500 text-xs">
-                      {cat.emoji} {cat.name}
-                    </p>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => toggleAvailable(product)}
-                    title={product.available ? "Deshabilitar" : "Habilitar"}
-                    style={
-                      {
-                        width: 44,
-                        height: 44,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        flexShrink: 0,
-                        WebkitTapHighlightColor: "transparent",
-                        userSelect: "none",
-                      } as React.CSSProperties
-                    }
-                  >
-                    <div
-                      className={`w-10 h-6 rounded-full transition-colors relative ${product.available ? "bg-yellow-400" : "bg-zinc-700"}`}
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => toggleAvailable(product)}
+                      title={product.available ? "Deshabilitar" : "Habilitar"}
+                      style={
+                        {
+                          width: 44,
+                          height: 44,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          flexShrink: 0,
+                          WebkitTapHighlightColor: "transparent",
+                          userSelect: "none",
+                        } as React.CSSProperties
+                      }
                     >
                       <div
-                        className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${product.available ? "translate-x-4" : "translate-x-0.5"}`}
-                      />
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => openEdit(product)}
-                    style={
-                      {
-                        WebkitTapHighlightColor: "transparent",
-                        userSelect: "none",
-                      } as React.CSSProperties
-                    }
-                    className="text-xs text-zinc-500 hover:text-white px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-all"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product)}
-                    disabled={deletingId === product.id}
-                    title="Eliminar"
-                    style={
-                      {
-                        WebkitTapHighlightColor: "transparent",
-                        userSelect: "none",
-                      } as React.CSSProperties
-                    }
-                    className="text-xs text-zinc-600 hover:text-red-400 px-2 py-1.5 rounded-lg hover:bg-zinc-800 transition-all disabled:opacity-40"
-                  >
-                    {deletingId === product.id ? "…" : "🗑"}
-                  </button>
+                        className={`w-10 h-6 rounded-full transition-colors relative ${product.available ? "bg-yellow-400" : "bg-zinc-700"}`}
+                      >
+                        <div
+                          className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${product.available ? "translate-x-4" : "translate-x-0.5"}`}
+                        />
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => openEdit(product)}
+                      style={
+                        {
+                          WebkitTapHighlightColor: "transparent",
+                          userSelect: "none",
+                        } as React.CSSProperties
+                      }
+                      className="text-xs text-zinc-500 hover:text-white min-h-[44px] px-3 rounded-xl hover:bg-zinc-800 transition-all flex items-center"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product)}
+                      disabled={deletingId === product.id}
+                      title="Eliminar"
+                      style={
+                        {
+                          WebkitTapHighlightColor: "transparent",
+                          userSelect: "none",
+                        } as React.CSSProperties
+                      }
+                      className="text-xs text-zinc-600 hover:text-red-400 min-h-[44px] px-3 rounded-xl hover:bg-zinc-800 transition-all disabled:opacity-40 flex items-center"
+                    >
+                      {deletingId === product.id ? "…" : "🗑"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       {showModal && (

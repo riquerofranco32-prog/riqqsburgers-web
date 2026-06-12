@@ -1,16 +1,24 @@
-import { type LucideIcon } from 'lucide-react'
+import { type LucideIcon } from "lucide-react";
 
 interface KPICardProps {
-  label: string
-  value: string
-  change?: number | null
-  changeLabel?: string
-  sub?: string
-  icon: LucideIcon
-  loading?: boolean
+  label: string;
+  value: string;
+  change?: number | null;
+  changeLabel?: string;
+  sub?: string;
+  icon: LucideIcon;
+  loading?: boolean;
 }
 
-export function KPICard({ label, value, change, changeLabel, sub, icon: Icon, loading = false }: KPICardProps) {
+export function KPICard({
+  label,
+  value,
+  change,
+  changeLabel,
+  sub,
+  icon: Icon,
+  loading = false,
+}: KPICardProps) {
   if (loading) {
     return (
       <div className="bg-dash-surface border border-dash-border rounded-2xl p-5 flex flex-col gap-4">
@@ -21,27 +29,37 @@ export function KPICard({ label, value, change, changeLabel, sub, icon: Icon, lo
         <div className="h-7 w-28 bg-dash-surface-2 rounded animate-pulse" />
         <div className="h-4 w-20 bg-dash-surface-2 rounded animate-pulse" />
       </div>
-    )
+    );
   }
 
-  const isPositive = change !== null && change !== undefined && change > 0
-  const isNegative = change !== null && change !== undefined && change < 0
-  const hasChange = change !== null && change !== undefined
+  const isPositive = change !== null && change !== undefined && change > 0;
+  const isNegative = change !== null && change !== undefined && change < 0;
+  const hasChange = change !== null && change !== undefined;
 
   return (
     <div
-      className="bg-dash-surface border border-dash-border rounded-2xl p-5 flex flex-col gap-3 min-h-[120px]"
-      style={{ transition: 'border-color 0.2s, transform 0.2s', cursor: 'default' }}
-      onMouseEnter={e => {
-        e.currentTarget.style.borderColor = 'rgba(255,107,53,0.3)'
-        e.currentTarget.style.transform = 'translateY(-2px)'
+      className="border border-dash-border rounded-2xl p-5 flex flex-col gap-3 min-h-[120px]"
+      style={{
+        background:
+          "linear-gradient(135deg, var(--dash-surface), var(--dash-surface-2))",
+        boxShadow:
+          "0 2px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
+        transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s",
+        cursor: "default",
       }}
-      onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'var(--dash-border)'
-        e.currentTarget.style.transform = 'translateY(0)'
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = "rgba(255,107,53,0.35)";
+        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.boxShadow =
+          "0 8px 32px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,107,53,0.08), inset 0 1px 0 rgba(255,255,255,0.08)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = "var(--dash-border)";
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow =
+          "0 2px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)";
       }}
     >
-
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <p className="text-[11px] uppercase tracking-wider text-dash-muted font-medium leading-none">
@@ -53,33 +71,43 @@ export function KPICard({ label, value, change, changeLabel, sub, icon: Icon, lo
       {/* Value */}
       <p
         className="font-mono leading-none tracking-tight truncate"
-        style={{ color: 'var(--accent)', fontSize: 32, fontWeight: 800 }}
+        style={{ color: "var(--accent)", fontSize: 32, fontWeight: 800 }}
       >
         {value}
       </p>
 
       {/* Footer: change badge OR sub text */}
       {hasChange ? (
-        <div className={`self-start flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-          isPositive
-            ? 'bg-green-400/10 text-green-400'
-            : isNegative
-            ? 'bg-red-400/10 text-red-400'
-            : 'bg-dash-surface-2 text-dash-muted'
-        }`}>
+        <div
+          className={`self-start flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
+            isPositive
+              ? "bg-green-400/10 text-green-400"
+              : isNegative
+                ? "bg-red-400/10 text-red-400"
+                : "bg-dash-surface-2 text-dash-muted"
+          }`}
+        >
           <span>
-            {isPositive ? '↑' : isNegative ? '↓' : ''}
-            {isPositive ? '+' : ''}
+            {isPositive ? "↑" : isNegative ? "↓" : ""}
+            {isPositive ? "+" : ""}
             {(change as number).toFixed(1)}%
           </span>
-          {changeLabel && <span className="opacity-60 ml-0.5">{changeLabel}</span>}
+          {changeLabel && (
+            <span className="opacity-60 ml-0.5">{changeLabel}</span>
+          )}
         </div>
       ) : change === null || change === undefined ? (
-        <p className="text-[11px] font-medium" style={{ color: 'var(--dash-muted)' }}>—</p>
+        <p
+          className="text-[11px] font-medium"
+          style={{ color: "var(--dash-muted)" }}
+        >
+          —
+        </p>
       ) : sub ? (
-        <p className="text-[11px] text-dash-muted/60 leading-none truncate">{sub}</p>
+        <p className="text-[11px] text-dash-muted/60 leading-none truncate">
+          {sub}
+        </p>
       ) : null}
-
     </div>
-  )
+  );
 }

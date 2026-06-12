@@ -212,7 +212,8 @@ export default function AdminDashboard({
               key={r}
               onClick={() => handleRangeChange(r)}
               style={{
-                padding: "6px 14px",
+                padding: "8px 14px",
+                minHeight: 40,
                 borderRadius: 7,
                 border: "none",
                 fontSize: 12,
@@ -236,7 +237,7 @@ export default function AdminDashboard({
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <KPICard
           label={`Pedidos${range === "today" ? " hoy" : ""}`}
           value={analyticsLoading ? "…" : String(activeOrderCount)}
