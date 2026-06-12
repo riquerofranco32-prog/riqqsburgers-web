@@ -145,21 +145,15 @@ export default function AdminDashboard({
     <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
       {/* Header */}
       <div
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-dash-border/60"
         style={{
-          padding: "24px 24px 20px",
-          borderBottom: "1px solid var(--dash-border)",
-          display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          alignItems: isMobile ? "flex-start" : "center",
-          justifyContent: "space-between",
-          gap: 16,
-          margin: "0 -16px",
+          paddingBottom: 20,
         }}
       >
         <div>
           <h1
             style={{
-              fontSize: isMobile ? 20 : 24,
+              fontSize: isMobile ? 24 : 28,
               fontWeight: 800,
               letterSpacing: "-0.03em",
               background:
@@ -205,6 +199,7 @@ export default function AdminDashboard({
             borderRadius: 10,
             padding: 4,
             border: "1px solid var(--dash-border)",
+            alignSelf: isMobile ? "flex-start" : "auto",
           }}
         >
           {RANGES.map((r) => (

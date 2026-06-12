@@ -604,6 +604,7 @@ export default function HomeClient({
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const heroRef = useRef<HTMLElement>(null);
   const rafRef = useRef<number>(0);
+  const isHoveringHero = useRef(false);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20);
@@ -611,7 +612,28 @@ export default function HomeClient({
     return () => window.removeEventListener("scroll", h);
   }, []);
 
+  // Idle automatic mouse drift animation
+  useEffect(() => {
+    let start = Date.now();
+    let frame: number;
+
+    const tick = () => {
+      if (!isHoveringHero.current) {
+        const elapsed = (Date.now() - start) / 1000;
+        // Smooth figure-8 (infinity) Lissajous curve around the center (0.5, 0.5)
+        const x = 0.5 + 0.22 * Math.sin(elapsed * 0.7);
+        const y = 0.5 + 0.22 * Math.cos(elapsed * 0.4);
+        setMousePos({ x, y });
+      }
+      frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   function handleHeroMouseMove(e: React.MouseEvent<HTMLElement>) {
+    isHoveringHero.current = true;
     cancelAnimationFrame(rafRef.current);
     rafRef.current = requestAnimationFrame(() => {
       const rect = heroRef.current?.getBoundingClientRect();
@@ -621,6 +643,10 @@ export default function HomeClient({
         y: (e.clientY - rect.top) / rect.height,
       });
     });
+  }
+
+  function handleHeroMouseLeave() {
+    isHoveringHero.current = false;
   }
 
   function scrollTo(id: string) {
@@ -840,6 +866,7 @@ export default function HomeClient({
       <section
         ref={heroRef}
         onMouseMove={handleHeroMouseMove}
+        onMouseLeave={handleHeroMouseLeave}
         style={{
           position: "relative",
           background: "#0E1116",

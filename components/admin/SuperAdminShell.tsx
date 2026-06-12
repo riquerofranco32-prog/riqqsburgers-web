@@ -125,7 +125,7 @@ export default function SuperAdminShell({ children }: { children: React.ReactNod
           maxHeight: mobileOpen ? "calc(100vh - 56px)" : 0,
           opacity: mobileOpen ? 1 : 0,
           pointerEvents: mobileOpen ? "auto" : "none",
-          overflowY: "auto",
+          overflow: mobileOpen ? "auto" : "hidden",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
         }}
