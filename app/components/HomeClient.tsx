@@ -471,9 +471,9 @@ function PhoneMockup() {
         ))}
       </div>
       {[
-        { name: "Smash Clásica", price: "$3.500", badge: "Popular" },
-        { name: "BBQ Doble", price: "$4.800", badge: null },
-        { name: "Chicken Crispy", price: "$3.900", badge: "Nuevo" },
+        { name: "Bacon", price: "$10.500", badge: "Popular" },
+        { name: "American", price: "$9.500", badge: null },
+        { name: "Paltum", price: "$11.000", badge: "Nuevo" },
       ].map((p) => (
         <div
           key={p.name}
@@ -534,7 +534,7 @@ function PhoneMockup() {
           Ver carrito (2)
         </span>
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.8)" }}>
-          $7.400 →
+          $20.000 →
         </span>
       </div>
     </div>
