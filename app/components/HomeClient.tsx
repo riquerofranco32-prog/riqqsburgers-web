@@ -2397,7 +2397,7 @@ export default function HomeClient({
                       Muestra del Menú
                     </span>
                     <a
-                      href="https://takefyy.com/larryssburgers"
+                      href="https://takefyy.vercel.app/larryssburgers"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
@@ -2586,7 +2586,7 @@ export default function HomeClient({
                       Muestra del Menú
                     </span>
                     <a
-                      href="https://takefyy.com/riqqsburgers"
+                      href="https://takefyy.vercel.app/riqqsburgers"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
