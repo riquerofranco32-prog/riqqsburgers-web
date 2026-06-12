@@ -74,6 +74,7 @@ function DesktopNavLinks({
             <Link
               key={item.href}
               href={href}
+              title={collapsed ? item.label : undefined}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -127,6 +128,7 @@ function DesktopNavLinks({
       >
         <Link
           href="/admin"
+          title={collapsed ? "Panel Takefyy" : undefined}
           style={{
             display: "flex",
             alignItems: "center",
@@ -150,6 +152,7 @@ function DesktopNavLinks({
         </Link>
         <Link
           href={`/${slug}`}
+          title={collapsed ? "Ver menú" : undefined}
           style={{
             display: "flex",
             alignItems: "center",
@@ -170,6 +173,7 @@ function DesktopNavLinks({
         </Link>
         <button
           onClick={onLogout}
+          title={collapsed ? "Cerrar sesión" : undefined}
           style={{
             display: "flex",
             alignItems: "center",
@@ -210,9 +214,8 @@ export default function AdminShell({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const swipeStartX = useRef<number | null>(null);
 
-  // Lock body scroll while mobile drawer is open
+  // Lock body scroll while mobile dropdown menu is open
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => {
@@ -228,20 +231,6 @@ export default function AdminShell({
 
   function closeMobile() {
     setMobileOpen(false);
-  }
-
-  // Swipe-left to close drawer
-  function onDrawerTouchStart(e: React.TouchEvent) {
-    swipeStartX.current = e.touches[0].clientX;
-  }
-  function onDrawerTouchEnd(e: React.TouchEvent) {
-    if (swipeStartX.current === null) return;
-    const delta = e.changedTouches[0].clientX - swipeStartX.current;
-    swipeStartX.current = null;
-    if (delta < -60) {
-      closeMobile();
-      vibrate(30);
-    }
   }
 
   return (
@@ -271,9 +260,6 @@ export default function AdminShell({
           paddingTop: "env(safe-area-inset-top, 0px)",
           zIndex: 60,
           minHeight: 56,
-          opacity: mobileOpen ? 0 : 1,
-          pointerEvents: mobileOpen ? "none" : "auto",
-          transition: "opacity 0.2s ease",
         }}
       >
         {/* Hamburger — 44×44 touch target */}
@@ -351,111 +337,40 @@ export default function AdminShell({
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 65,
+            zIndex: 50,
             background: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(4px)",
           }}
         />
       )}
 
-      {/* ── MOBILE DRAWER ───────────────────────────────────────────────────── */}
-      <aside
+      {/* ── MOBILE DROPDOWN MENU ────────────────────────────────────────────── */}
+      <div
         className="lg:hidden"
-        onTouchStart={onDrawerTouchStart}
-        onTouchEnd={onDrawerTouchEnd}
         style={{
           position: "fixed",
-          top: 0,
+          top: 56,
           left: 0,
-          bottom: 0,
-          width: 272,
+          right: 0,
           background: "var(--dash-surface)",
-          borderRight: "1px solid var(--dash-border)",
+          borderBottom: "1px solid var(--dash-border)",
+          zIndex: 55,
           display: "flex",
           flexDirection: "column",
-          zIndex: 70,
-          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
-          transition: "transform 0.25s cubic-bezier(0.22,1,0.36,1)",
-          overflowY: "auto",
-          paddingTop: "env(safe-area-inset-top, 0px)",
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          maxHeight: mobileOpen ? "calc(100vh - 56px)" : 0,
+          opacity: mobileOpen ? 1 : 0,
           pointerEvents: mobileOpen ? "auto" : "none",
+          overflowY: "auto",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
         }}
       >
-        {/* Logo header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 16px",
-            borderBottom: "1px solid var(--dash-border)",
-            minHeight: 56,
-            flexShrink: 0,
-          }}
-        >
-          <TakefyyLogo size="sm" />
-          <button
-            onClick={closeMobile}
-            style={{
-              width: 44,
-              height: 44,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--dash-muted)",
-              fontSize: 22,
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {/* Tenant name */}
-        <div
-          style={{
-            padding: "12px 16px",
-            borderBottom: "1px solid var(--dash-border)",
-            flexShrink: 0,
-          }}
-        >
-          <p
-            style={{
-              color: "var(--dash-muted)",
-              fontSize: 10,
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              marginBottom: 2,
-            }}
-          >
-            Restaurante
-          </p>
-          <p
-            style={{
-              color: "var(--dash-text)",
-              fontSize: 15,
-              fontWeight: 700,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {tenantName}
-          </p>
-        </div>
-
-        {/* Nav items — 52px min height, 16px font */}
         <nav
           style={{
-            flex: 1,
-            padding: "8px 8px",
+            padding: "16px 12px",
             display: "flex",
             flexDirection: "column",
-            gap: 2,
+            gap: 6,
           }}
         >
           {NAV_ITEMS.map((item) => {
@@ -473,28 +388,28 @@ export default function AdminShell({
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
-                  padding: "0 14px",
-                  minHeight: 52,
+                  padding: "12px 16px",
                   borderRadius: 10,
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: isActive ? 700 : 500,
                   color: isActive ? "#fff" : "var(--dash-text)",
                   background: isActive
                     ? `linear-gradient(135deg, var(--accent), #ff8c5a)`
-                    : "transparent",
+                    : "var(--dash-surface-2)",
+                  border: isActive ? "none" : "1px solid var(--dash-border)",
                   textDecoration: "none",
                   transition: "all 0.15s",
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
                   boxShadow: isActive
-                    ? `0 4px 12px rgba(255,107,53,0.3)`
+                    ? `0 4px 12px rgba(255,107,53,0.25)`
                     : "none",
                 }}
               >
                 <item.icon
-                  size={20}
-                  strokeWidth={1.8}
-                  style={{ flexShrink: 0 }}
+                  size={18}
+                  strokeWidth={2}
+                  style={{ flexShrink: 0, color: isActive ? "#fff" : "var(--accent)" }}
                 />
                 {item.label}
               </Link>
@@ -502,80 +417,87 @@ export default function AdminShell({
           })}
         </nav>
 
-        {/* Footer */}
         <div
           style={{
-            padding: "8px 8px",
+            padding: "12px 12px 24px",
             borderTop: "1px solid var(--dash-border)",
+            background: "rgba(0,0,0,0.15)",
             display: "flex",
             flexDirection: "column",
-            gap: 2,
-            flexShrink: 0,
+            gap: 8,
           }}
         >
-          <Link
-            href="/admin"
-            onClick={closeMobile}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "0 14px",
-              minHeight: 48,
-              borderRadius: 10,
-              fontSize: 14,
-              color: "var(--accent)",
-              textDecoration: "none",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <ArrowLeftFromLine size={14} strokeWidth={1.8} />
-            Panel Takefyy
-          </Link>
-          <Link
-            href={`/${slug}`}
-            onClick={closeMobile}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "0 14px",
-              minHeight: 48,
-              borderRadius: 10,
-              fontSize: 14,
-              color: "var(--dash-muted)",
-              textDecoration: "none",
-              WebkitTapHighlightColor: "transparent",
-            }}
-          >
-            <ExternalLink size={14} strokeWidth={1.8} />
-            Ver menú
-          </Link>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Link
+              href="/admin"
+              onClick={closeMobile}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                padding: "12px",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--accent)",
+                background: "var(--dash-surface-2)",
+                border: "1px solid var(--dash-border)",
+                textDecoration: "none",
+                textAlign: "center",
+              }}
+            >
+              <ArrowLeftFromLine size={14} />
+              Panel
+            </Link>
+            <Link
+              href={`/${slug}`}
+              onClick={closeMobile}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                padding: "12px",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--dash-text)",
+                background: "var(--dash-surface-2)",
+                border: "1px solid var(--dash-border)",
+                textDecoration: "none",
+                textAlign: "center",
+              }}
+            >
+              <ExternalLink size={14} />
+              Ver menú
+            </Link>
+          </div>
           <button
             onClick={handleLogout}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
-              padding: "0 14px",
-              minHeight: 48,
+              justifyContent: "center",
+              gap: 8,
+              padding: "12px",
               borderRadius: 10,
               width: "100%",
-              background: "none",
-              border: "none",
-              fontSize: 14,
+              background: "rgba(239, 68, 68, 0.1)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+              fontSize: 13,
+              fontWeight: 600,
               color: "#f87171",
               cursor: "pointer",
-              textAlign: "left",
-              WebkitTapHighlightColor: "transparent",
-              userSelect: "none",
             }}
           >
-            <LogOut size={14} strokeWidth={1.8} />
+            <LogOut size={14} />
             Cerrar sesión
           </button>
         </div>
-      </aside>
+      </div>
 
       {/* ── DESKTOP SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
@@ -583,10 +505,10 @@ export default function AdminShell({
         style={{
           width: collapsed ? 64 : 240,
           minHeight: "100vh",
-          background: "var(--dash-surface)",
+          background: "linear-gradient(180deg, var(--dash-surface) 0%, var(--dash-surface-2) 100%)",
           borderRight: "1px solid var(--dash-border)",
           flexDirection: "column",
-          transition: "width 0.2s ease",
+          transition: "width 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           position: "fixed",
           top: 0,
           left: 0,
@@ -713,7 +635,7 @@ export default function AdminShell({
           .admin-shell-main {
             padding-top: 0;
             margin-left: ${collapsed ? 64 : 240}px;
-            transition: margin-left 0.2s ease;
+            transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           }
         }
       `}</style>
