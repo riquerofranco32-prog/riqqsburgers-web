@@ -1036,41 +1036,27 @@ export default function HomeClient({
               {/* Social proof */}
               <motion.div
                 {...fadeUp(0.52)}
-                className="flex items-center gap-4 flex-wrap"
+                className="flex items-center gap-2 flex-wrap"
+                style={{
+                  background: "rgba(255, 107, 53, 0.08)",
+                  border: "1px solid rgba(255, 107, 53, 0.2)",
+                  borderRadius: 12,
+                  padding: "8px 14px",
+                  display: "inline-flex",
+                }}
               >
-                <div className="flex">
-                  {["MG", "RP", "SV", "JC"].map((ini, i) => (
-                    <div
-                      key={ini}
-                      style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: "50%",
-                        background: `hsl(${20 + i * 30}, 65%, 42%)`,
-                        border: "2.5px solid #0E1116",
-                        marginLeft: i === 0 ? 0 : -9,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: "#fff",
-                      }}
-                    >
-                      {ini}
-                    </div>
-                  ))}
-                </div>
+                <span style={{ fontSize: 16 }}>🚀</span>
                 <div style={{ color: "var(--dash-muted)", fontSize: 13 }}>
-                  <span style={{ color: "#fff", fontWeight: 600 }}>
-                    <AnimatedCounter
-                      target={Math.max(restaurantCount, 50)}
-                      suffix="+"
-                      prefix=""
-                    />{" "}
-                    restaurantes
-                  </span>{" "}
-                  ya usan Takefyy
+                  Hace como{" "}
+                  <a
+                    href="/larryssburgers"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}
+                  >
+                    Larry&apos;s Burgers
+                  </a>{" "}
+                  y probá Takefyy gratis
                 </div>
               </motion.div>
             </div>
@@ -2055,7 +2041,30 @@ export default function HomeClient({
                 viewport={{ once: true }}
                 transition={{ duration: 0.55, delay: i * 0.1, ease }}
               >
-                <TiltCard style={{ height: "100%" }}>
+                <TiltCard style={{ height: "100%", position: "relative" }}>
+                  {plan.featured && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: -12,
+                        left: "50%",
+                        transform: "translateX(-50%) translateZ(10px)",
+                        color: "#fff",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: "4px 14px",
+                        borderRadius: 20,
+                        background: "#FF6B35",
+                        border: "1px solid rgba(255,255,255,0.3)",
+                        whiteSpace: "nowrap",
+                        zIndex: 10,
+                        letterSpacing: "0.08em",
+                        boxShadow: "0 4px 12px rgba(255,107,53,0.3)",
+                      }}
+                    >
+                      MÁS POPULAR
+                    </div>
+                  )}
                   <div
                     className={plan.featured ? "animate-border-glow" : ""}
                     style={{
@@ -2083,26 +2092,6 @@ export default function HomeClient({
                             pointerEvents: "none",
                           }}
                         />
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: -12,
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            color: "#fff",
-                            fontSize: 10,
-                            fontWeight: 700,
-                            padding: "4px 14px",
-                            borderRadius: 20,
-                            background: "rgba(0,0,0,0.22)",
-                            border: "1px solid rgba(255,255,255,0.22)",
-                            whiteSpace: "nowrap",
-                            zIndex: 2,
-                            letterSpacing: "0.08em",
-                          }}
-                        >
-                          MÁS POPULAR
-                        </div>
                       </>
                     )}
                     <div
@@ -2275,10 +2264,10 @@ export default function HomeClient({
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-5 gap-5">
-            {/* Large featured — Larry's Burgers */}
+          <div className="max-w-5xl mx-auto flex flex-col gap-10">
+            {/* Card 1 — Larry's Burgers */}
             <motion.div
-              className="md:col-span-3 grid grid-cols-1 lg:grid-cols-12 gap-8"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8"
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -2334,7 +2323,7 @@ export default function HomeClient({
                         letterSpacing: "0.05em",
                       }}
                     >
-                      Cliente Destacado
+                      Caso de Éxito
                     </span>
                   </div>
 
@@ -2383,7 +2372,7 @@ export default function HomeClient({
                       Larry&apos;s Burgers
                     </div>
                     <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-                      Real Smash Burgers · San Rafael
+                      Real Smash Burgers · San Rafael, Mendoza
                     </div>
                   </div>
                 </div>
@@ -2465,101 +2454,194 @@ export default function HomeClient({
               </div>
             </motion.div>
 
-            {/* smaller */}
-            <div className="md:col-span-2 flex flex-col gap-5">
-              {testimonials.map((t, i) => (
-                <motion.div
-                  key={t.name}
-                  initial={{ opacity: 0, x: 24 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.55, delay: i * 0.12, ease }}
-                  style={{
-                    background: "var(--surface)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 20,
-                    padding: 24,
-                    flex: 1,
-                    position: "relative",
-                    overflow: "hidden",
-                    transition: "all 0.25s ease",
-                  }}
-                  whileHover={{
-                    y: -4,
-                    boxShadow: "0 16px 40px rgba(0,0,0,0.08)",
-                  }}
-                >
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: -12,
-                      left: 16,
-                      fontSize: 70,
-                      fontFamily: "Georgia, serif",
-                      color: "var(--accent)",
-                      opacity: 0.08,
-                      lineHeight: 1,
-                      userSelect: "none",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    &ldquo;
-                  </span>
-                  <div className="flex mb-3">
-                    {"★★★★★".split("").map((s, si) => (
-                      <span
-                        key={si}
-                        style={{ color: "var(--accent)", fontSize: 13 }}
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                  <p
-                    className="text-sm leading-relaxed mb-5"
-                    style={{
-                      color: "var(--text-secondary)",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    &ldquo;{t.text}&rdquo;
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div
+            {/* Card 2 — Riqq's Burgers */}
+            <motion.div
+              className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1, ease }}
+              style={{
+                background: "var(--brand-dark)",
+                border: "1px solid rgba(255,107,53,0.18)",
+                borderRadius: 24,
+                padding: "36px 32px",
+                position: "relative",
+                overflow: "hidden",
+                minHeight: 380,
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: -20,
+                  left: 20,
+                  fontSize: 120,
+                  fontFamily: "Georgia, serif",
+                  color: "var(--accent)",
+                  opacity: 0.08,
+                  lineHeight: 1,
+                  userSelect: "none",
+                  pointerEvents: "none",
+                }}
+              >
+                &ldquo;
+              </span>
+
+              {/* Left Side: Testimonial & Improvements (col-span-7) */}
+              <div className="lg:col-span-7 flex flex-col justify-between gap-6 relative z-10">
+                <div>
+                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
+                    {/* Five stars */}
+                    <div className="flex">
+                      {"★★★★★".split("").map((s, si) => (
+                        <span key={si} style={{ color: "var(--accent)", fontSize: 16 }}>
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                    <span
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        background: "var(--accent)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: "#fff",
-                        flexShrink: 0,
+                        background: "rgba(255,107,53,0.12)",
+                        color: "var(--accent)",
+                        fontSize: 10,
+                        fontWeight: 800,
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
                       }}
                     >
-                      {t.initials}
+                      Caso de Éxito
+                    </span>
+                  </div>
+
+                  <p
+                    style={{
+                      fontSize: 15,
+                      lineHeight: 1.6,
+                      color: "#fff",
+                      fontStyle: "italic",
+                      marginBottom: 20,
+                    }}
+                  >
+                    &ldquo;Takefyy nos cambió la forma de trabajar en Catriel. Antes nos volvíamos locos atendiendo llamadas y copiando pedidos del chat. Ahora los clientes arman el pedido solos y nos llega todo ordenado para cocinar. El ticket promedio subió un 25% gracias a las sugerencias del carrito.&rdquo;
+                  </p>
+
+                  {/* Improvements list */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {[
+                      "⚡ Ahorro de más de 2 horas por noche en WhatsApp",
+                      "📈 Aumento del 25% en el ticket promedio",
+                      "🍔 Menú digital visual ultra rápido y fluido"
+                    ].map((imp) => (
+                      <div key={imp} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
+                        <span>{imp}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 mt-4">
+                  {/* Restaurant Logo */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/riqqsburgers/logo_url.png"
+                    alt="Riqq's Burgers logo"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 10,
+                      objectFit: "cover",
+                      border: "1.5px solid rgba(255,255,255,0.15)",
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                      Riqq&apos;s Burgers
                     </div>
-                    <div>
-                      <div
-                        className="text-sm font-semibold"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        {t.name}
-                      </div>
-                      <div
-                        className="text-xs"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {t.restaurant}
-                      </div>
+                    <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+                      Amor a primera mordida 🍔 · Catriel, Río Negro
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                </div>
+              </div>
+
+              {/* Right Side: Menu Sample (col-span-5) */}
+              <div className="lg:col-span-5 flex flex-col justify-center relative z-10">
+                <div
+                  style={{
+                    background: "#161920",
+                    borderRadius: 16,
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    padding: 16,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                    boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                      Muestra del Menú
+                    </span>
+                    <a
+                      href="https://takefyy.com/riqqsburgers"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
+                    >
+                      Ver real ↗
+                    </a>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {[
+                      { name: "Bacon", price: "$10.500", desc: "Smash, cheddar, panceta ahumada, cebolla crispy", img: "/bacon.jpeg" },
+                      { name: "American", price: "$9.500", desc: "Smash, cheddar, tomate, lechuga, cebolla morada", img: "/american.jpeg" },
+                      { name: "Paltum", price: "$11.000", desc: "Smash, cheddar, panceta ahumada y palta", img: "/paltum.jpeg" }
+                    ].map((item) => (
+                      <div
+                        key={item.name}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          background: "#1E222B",
+                          padding: 8,
+                          borderRadius: 10,
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.img}
+                          alt={item.name}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 6,
+                            objectFit: "cover",
+                          }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {item.name}
+                            </span>
+                            <span style={{ fontSize: 10, fontWeight: 800, color: "#F5C518", marginLeft: 4 }}>
+                              {item.price}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                            {item.desc}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
