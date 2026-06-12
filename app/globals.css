@@ -2,9 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import "./styles/altum-tokens.css";
-
-/* ── Brand system — ALTUM SDI ────────────────────────────────────────────── */
+/* ── Brand system — Takefyy ────────────────────────────────────────────── */
 :root {
   /* Brand */
   --brand-dark: #1a2752;

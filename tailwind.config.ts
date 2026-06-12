@@ -9,12 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ALTUM SDI brand palette
-        "altum-navy": "#1A2752",
-        "altum-gold": "#C9A84C",
-        "altum-cream": "#F5F3EF",
-        "altum-text": "#4A5568",
-        // Legacy aliases → ALTUM gold
+        // Takefyy brand colors
         brand: "#FF6B35",
         orange: "#FF6B35",
         // Surface tokens
