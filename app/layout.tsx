@@ -83,9 +83,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "ALTUM SDI — Tu carta digital, lista en minutos",
+  title: "Takefyy — Tu carta digital, lista en minutos",
   description:
-    "Creá el menú digital de tu negocio y recibí pedidos por WhatsApp. Sin apps, sin comisiones. Probá gratis 14 días.",
+    "Creá el menú digital de tu negocio y recibí pedidos por WhatsApp. Sin apps, sin comisiones. Empezá gratis.",
   keywords: [
     "menu digital",
     "restaurante",
@@ -93,28 +93,29 @@ export const metadata: Metadata = {
     "carta digital",
     "Argentina",
     "pedidos online",
-    "ALTUM",
+    "Takefyy",
   ],
   authors: [{ name: "Franco Riquero" }],
-  creator: "ALTUM SDI",
+  creator: "Takefyy",
   openGraph: {
-    title: "ALTUM SDI — Tu carta digital, lista en minutos",
+    title: "Takefyy — Tu carta digital, lista en minutos",
     description:
       "Creá el menú digital de tu negocio y recibí pedidos por WhatsApp.",
-    url: "https://altum-sdi.vercel.app",
-    siteName: "ALTUM SDI",
+    url: "https://takefyy.com",
+    siteName: "Takefyy",
     locale: "es_AR",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ALTUM SDI — Tu carta digital, lista en minutos",
+    title: "Takefyy — Tu carta digital, lista en minutos",
     description:
       "Menú digital + pedidos por WhatsApp para negocios en Argentina.",
   },
   icons: {
-    icon: "/altum-logo.png",
-    shortcut: "/altum-logo.png",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/takefyy-logo.png",
   },
   robots: { index: true, follow: true },
 };

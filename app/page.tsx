@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
   title: "Takefyy — Menú digital para restaurantes | Pedidos por WhatsApp",
   description:
-    "Creá el menú digital de tu restaurante y empezá a recibir pedidos por WhatsApp sin apps, sin comisiones. Panel admin incluido. 14 días gratis.",
+    "Creá el menú digital de tu restaurante y empezá a recibir pedidos por WhatsApp sin apps, sin comisiones. Panel admin incluido. Empezá gratis.",
   keywords: [
     "menú digital restaurante",
     "carta online argentina",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Takefyy — Tu carta, online en minutos",
     description:
-      "Menú digital para restaurantes. Pedidos por WhatsApp. Sin apps, sin comisiones. 14 días gratis.",
+      "Menú digital para restaurantes. Pedidos por WhatsApp. Sin apps, sin comisiones. Empezá gratis.",
     url: "https://takefyy.com",
     siteName: "Takefyy",
     locale: "es_AR",
