@@ -7,6 +7,8 @@ import {
   JetBrains_Mono,
   Playfair_Display,
   DM_Sans,
+  Cormorant_Garamond,
+  Montserrat,
 } from "next/font/google";
 import "./globals.css";
 
@@ -58,6 +60,21 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+// ALTUM SDI primary fonts
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-cormorant",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -66,9 +83,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Takefyy — Tu carta, online en minutos",
+  title: "ALTUM SDI — Tu carta digital, lista en minutos",
   description:
-    "Creá el menú digital de tu restaurante y recibí pedidos por WhatsApp. Sin apps, sin comisiones. Probá gratis 14 días.",
+    "Creá el menú digital de tu negocio y recibí pedidos por WhatsApp. Sin apps, sin comisiones. Probá gratis 14 días.",
   keywords: [
     "menu digital",
     "restaurante",
@@ -76,27 +93,28 @@ export const metadata: Metadata = {
     "carta digital",
     "Argentina",
     "pedidos online",
+    "ALTUM",
   ],
   authors: [{ name: "Franco Riquero" }],
-  creator: "Takefyy",
+  creator: "ALTUM SDI",
   openGraph: {
-    title: "Takefyy — Tu carta, online en minutos",
+    title: "ALTUM SDI — Tu carta digital, lista en minutos",
     description:
-      "Creá el menú digital de tu restaurante y recibí pedidos por WhatsApp.",
-    url: "https://takefyy.vercel.app",
-    siteName: "Takefyy",
+      "Creá el menú digital de tu negocio y recibí pedidos por WhatsApp.",
+    url: "https://altum-sdi.vercel.app",
+    siteName: "ALTUM SDI",
     locale: "es_AR",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Takefyy — Tu carta, online en minutos",
+    title: "ALTUM SDI — Tu carta digital, lista en minutos",
     description:
-      "Menú digital + pedidos por WhatsApp para restaurantes en Argentina.",
+      "Menú digital + pedidos por WhatsApp para negocios en Argentina.",
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/altum-logo.png",
+    shortcut: "/altum-logo.png",
   },
   robots: { index: true, follow: true },
 };
@@ -109,7 +127,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${syne.variable} ${inter.variable} ${anton.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfair.variable} ${dmSans.variable}`}
+      className={`${syne.variable} ${inter.variable} ${anton.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfair.variable} ${dmSans.variable} ${cormorant.variable} ${montserrat.variable}`}
     >
       <body className="min-h-screen antialiased">{children}</body>
     </html>

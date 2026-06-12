@@ -2,33 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Brand system ────────────────────────────────────────────────────────── */
+@import "./styles/altum-tokens.css";
+
+/* ── Brand system — ALTUM SDI ────────────────────────────────────────────── */
 :root {
   /* Brand */
-  --brand-dark: #0e1116;
-  --brand-cream: #e8e5de;
-  --accent: #ff6b35;
+  --brand-dark: #1a2752;
+  --brand-cream: #f5f3ef;
+  --accent: #c9a84c;
 
   /* UI pública (restaurantes) */
-  --bg: #fffaf7;
+  --bg: #fafaf8;
   --surface: #ffffff;
-  --surface-2: #f5f0ec;
-  --border: #ede8e3;
-  --text-primary: #1a1208;
-  --text-secondary: #6b5b4e;
-  --text-muted: #a8998c;
+  --surface-2: #f5f3ef;
+  --border: #e8e5df;
+  --text-primary: #1a2752;
+  --text-secondary: #4a5568;
+  --text-muted: #8895a7;
 
   /* UI interna (dashboards) */
-  --dash-bg: #0c0e13;
-  --dash-surface: #13161e;
-  --dash-surface-2: #1c2030;
-  --dash-surface-3: #232838;
-  --dash-border: #252a36;
-  --dash-border-subtle: #1e2330;
+  --dash-bg: #0d1628;
+  --dash-surface: #111d35;
+  --dash-surface-2: #162040;
+  --dash-surface-3: #1e2a4a;
+  --dash-border: #253055;
+  --dash-border-subtle: #1a2645;
   --dash-text: #eef0f6;
   --dash-muted: #7c8192;
-  --dash-accent-subtle: rgba(255, 107, 53, 0.1);
-  --dash-accent-glow: rgba(255, 107, 53, 0.25);
+  --dash-accent-subtle: rgba(201, 168, 76, 0.1);
+  --dash-accent-glow: rgba(201, 168, 76, 0.25);
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
@@ -303,13 +305,13 @@ html {
   0%,
   100% {
     box-shadow:
-      0 0 0 0 rgba(255, 107, 53, 0.5),
-      0 0 24px rgba(255, 107, 53, 0.2);
+      0 0 0 0 rgba(201, 168, 76, 0.5),
+      0 0 24px rgba(201, 168, 76, 0.2);
   }
   50% {
     box-shadow:
-      0 0 0 12px rgba(255, 107, 53, 0),
-      0 0 48px rgba(255, 107, 53, 0.35);
+      0 0 0 12px rgba(201, 168, 76, 0),
+      0 0 48px rgba(201, 168, 76, 0.35);
   }
 }
 .animate-pulse-glow {
@@ -333,7 +335,7 @@ html {
 
 /* ── Focus-visible ring — accessibility requirement ─────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--accent, #ff6b35);
+  outline: 2px solid var(--accent, #c9a84c);
   outline-offset: 3px;
   border-radius: 4px;
 }
@@ -367,15 +369,15 @@ html {
 /* ── Restaurant card (homepage) ─────────────────────────────────────────── */
 .restaurant-card {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 107, 53, 0.15);
+  border: 1px solid rgba(201, 168, 76, 0.15);
   transition:
     border-color 300ms ease,
     box-shadow 300ms ease,
     transform 300ms ease;
 }
 .restaurant-card:hover {
-  border-color: rgba(255, 107, 53, 0.7);
-  box-shadow: 0 0 24px rgba(255, 107, 53, 0.18);
+  border-color: rgba(201, 168, 76, 0.7);
+  box-shadow: 0 0 24px rgba(201, 168, 76, 0.18);
   transform: translateY(-4px);
 }
 
@@ -384,6 +386,76 @@ input,
 textarea,
 select {
   font-size: 16px !important;
+}
+
+/* ── Performance táctil — elimina delay 300ms y flash azul ──────────────── */
+* {
+  touch-action: manipulation;
+}
+button,
+a,
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── will-change en elementos animados ───────────────────────────────────── */
+.product-sheet,
+.cart-drawer,
+.menu-blob {
+  will-change: transform;
+}
+
+/* ── Skeleton shimmer para imágenes ─────────────────────────────────────── */
+@keyframes img-shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+.img-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--border) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200px 100%;
+  animation: img-shimmer 1.2s infinite linear;
+}
+
+/* ── Flip animation para contador de cantidad ───────────────────────────── */
+@keyframes qty-flip {
+  0% {
+    transform: translateY(-60%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.qty-flip {
+  animation: qty-flip 0.15s ease;
+}
+
+/* ── min-height fijo en descripción — cards de altura uniforme ───────────── */
+.product-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+  line-height: 1.3;
+}
+
+/* ── Hero restaurant name — text-shadow para legibilidad ─────────────────── */
+.hero-restaurant-name {
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 /* ── Menú mobile ─────────────────────────────────────────────────────────── */
@@ -536,7 +608,7 @@ a {
   }
 }
 .gradient-text-animate {
-  background: linear-gradient(90deg, #ff6b35, #ffb380, #ff6b35);
+  background: linear-gradient(90deg, #c9a84c, #dfc480, #c9a84c);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -548,7 +620,7 @@ a {
 .dot-grid {
   background-image: radial-gradient(
     circle,
-    rgba(255, 107, 53, 0.18) 1px,
+    rgba(201, 168, 76, 0.18) 1px,
     transparent 1px
   );
   background-size: 36px 36px;
@@ -569,13 +641,13 @@ a {
   0%,
   100% {
     box-shadow:
-      0 0 0 1px rgba(255, 107, 53, 0.3),
-      0 24px 64px rgba(255, 107, 53, 0.2);
+      0 0 0 1px rgba(201, 168, 76, 0.3),
+      0 24px 64px rgba(201, 168, 76, 0.2);
   }
   50% {
     box-shadow:
-      0 0 0 1px rgba(255, 107, 53, 0.6),
-      0 24px 80px rgba(255, 107, 53, 0.35);
+      0 0 0 1px rgba(201, 168, 76, 0.6),
+      0 24px 80px rgba(201, 168, 76, 0.35);
   }
 }
 .animate-border-glow {
@@ -650,31 +722,45 @@ a {
   pointer-events: none;
 }
 .menu-blob-1 {
-  width: 400px;
-  height: 400px;
-  top: -100px;
-  left: -100px;
+  width: 600px;
+  height: 600px;
+  top: -150px;
+  left: -150px;
   background: var(--blob-color, var(--accent));
-  opacity: 0.1;
-  animation: blob-drift-1 12s ease-in-out infinite;
+  opacity: 0.2;
+  filter: blur(80px);
+  animation: blob-drift-1 10s ease-in-out infinite;
 }
 .menu-blob-2 {
-  width: 350px;
-  height: 350px;
-  top: 30%;
-  right: -80px;
+  width: 500px;
+  height: 500px;
+  top: 25%;
+  right: -120px;
   background: var(--blob-color, var(--accent));
-  opacity: 0.07;
-  animation: blob-drift-2 15s ease-in-out infinite;
+  opacity: 0.15;
+  filter: blur(90px);
+  animation: blob-drift-2 13s ease-in-out infinite;
 }
 .menu-blob-3 {
-  width: 300px;
-  height: 300px;
-  bottom: 20%;
-  left: 20%;
-  background: #fbb724;
-  opacity: 0.06;
-  animation: blob-drift-3 18s ease-in-out infinite;
+  width: 450px;
+  height: 450px;
+  bottom: 15%;
+  left: 10%;
+  background: #c9a84c;
+  opacity: 0.13;
+  filter: blur(100px);
+  animation: blob-drift-3 16s ease-in-out infinite;
+}
+.menu-blob-4 {
+  width: 700px;
+  height: 700px;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--blob-color, var(--accent));
+  opacity: 0.07;
+  filter: blur(120px);
+  animation: blob-drift-2 20s ease-in-out infinite reverse;
 }
 
 /* ── Admin card ─────────────────────────────────────────────────────────── */
@@ -687,8 +773,8 @@ a {
     box-shadow 0.2s ease;
 }
 .admin-card:hover {
-  border-color: rgba(255, 107, 53, 0.2);
-  box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.08);
+  border-color: rgba(201, 168, 76, 0.2);
+  box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.08);
 }
 
 /* ── Admin table ────────────────────────────────────────────────────────── */
@@ -748,6 +834,121 @@ a {
   color: #94a3b8;
 }
 .admin-badge-orange {
-  background: rgba(255, 107, 53, 0.12);
-  color: #ff8c5a;
+  background: rgba(201, 168, 76, 0.12);
+  color: #d4b45a;
+}
+
+/* ── Admin input ────────────────────────────────────────────────────────── */
+.admin-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--dash-border);
+  background: var(--dash-surface-2);
+  color: var(--dash-text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+.admin-input:focus {
+  border-color: var(--accent);
+}
+
+/* ── Drawer animation ────────────────────────────────────────────────────── */
+@keyframes drawer-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ── Toggle switch ───────────────────────────────────────────────────────── */
+.toggle-track {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  transition: background 0.2s ease;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.toggle-track.on .toggle-thumb {
+  transform: translateX(20px);
+}
+
+/* ── Product detail: modal centrado en desktop ───────────────────────────── */
+@media (min-width: 1024px) {
+  .product-sheet-modal {
+    bottom: auto !important;
+    left: 50% !important;
+    right: auto !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 520px !important;
+    max-width: 520px !important;
+    border-radius: 24px !important;
+    max-height: 85vh !important;
+    border-top: none !important;
+    animation: modalIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 16px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ── Desktop menu layout ─────────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  /* Sidebar scrollbar invisible */
+  .lg\:flex aside::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Product card hover lift */
+  .product-card-hover {
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+  .product-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Remove bottom padding from products on desktop (no floating cart bar) */
+  .lg-products-pad {
+    padding-bottom: 32px !important;
+  }
+}
+
+/* ── Smooth scroll globally ──────────────────────────────────────────────── */
+@media (min-width: 1024px) {
+  html {
+    scroll-behavior: smooth;
+  }
 }

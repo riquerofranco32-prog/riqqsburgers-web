@@ -28,6 +28,8 @@ export interface MenuItem {
   image: string;
   badge: string | null;
   extras: Array<{ name: string; price: number }>;
+  is_featured: boolean;
+  featured_order: number;
 }
 
 export interface MenuCategory {
@@ -61,11 +63,15 @@ export interface Restaurant {
 
 async function getTopProductId(tenantId: string): Promise<string | null> {
   const supabase = createServerClient();
+  const since = new Date();
+  since.setDate(since.getDate() - 90);
   const { data: orders } = await supabase
     .from("orders")
     .select("items")
     .eq("tenant_id", tenantId)
-    .not("items", "is", null);
+    .not("items", "is", null)
+    .gte("created_at", since.toISOString())
+    .limit(500);
 
   if (!orders || orders.length === 0) return null;
 
@@ -134,6 +140,8 @@ function mapToRestaurant(
                   : (p.badge ?? null),
               extras:
                 (p.extras as Array<{ name: string; price: number }>) ?? [],
+              is_featured: p.is_featured ?? false,
+              featured_order: p.featured_order ?? 0,
             })),
         }));
         const uncategorized = products
@@ -154,6 +162,8 @@ function mapToRestaurant(
                 ? "Más pedido"
                 : (p.badge ?? null),
             extras: (p.extras as Array<{ name: string; price: number }>) ?? [],
+            is_featured: p.is_featured ?? false,
+            featured_order: p.featured_order ?? 0,
           }));
         if (uncategorized.length > 0) {
           mapped.push({

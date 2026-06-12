@@ -56,6 +56,8 @@ export interface Product {
   badge: string | null;
   available: boolean;
   sort_order: number;
+  is_featured: boolean;
+  featured_order: number;
   created_at: string;
   extras: Array<{ name: string; price: number }>;
 }

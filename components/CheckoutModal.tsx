@@ -86,6 +86,23 @@ export default function CheckoutModal({
         delivery: "pickup",
         payment: "cash",
       });
+    } else {
+      // Autofill con datos guardados de sesiones anteriores
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem("tak_customer") ?? "{}",
+        ) as Partial<typeof form>;
+        if (saved.name || saved.lastname || saved.phone) {
+          setForm((prev) => ({
+            ...prev,
+            name: saved.name ?? prev.name,
+            lastname: saved.lastname ?? prev.lastname,
+            phone: saved.phone ?? prev.phone,
+            delivery: saved.delivery ?? prev.delivery,
+            payment: saved.payment ?? prev.payment,
+          }));
+        }
+      } catch {}
     }
   }, [isOpen]);
 
@@ -245,6 +262,34 @@ export default function CheckoutModal({
     setDone(true);
     onClearCart();
     setLoading(false);
+
+    // Guardar datos del cliente para autofill futuro
+    try {
+      localStorage.setItem(
+        "tak_customer",
+        JSON.stringify({
+          name: form.name,
+          lastname: form.lastname,
+          phone: form.phone,
+          delivery: form.delivery,
+          payment: form.payment,
+        }),
+      );
+    } catch {}
+
+    // Guardar en historial de pedidos por restaurante
+    try {
+      const histKey = `tak_history_${tenant.slug}`;
+      const history = JSON.parse(
+        localStorage.getItem(histKey) ?? "[]",
+      ) as Array<{ ref: string; total: number; date: string }>;
+      history.unshift({
+        ref: tempRef,
+        total: grandTotal,
+        date: new Date().toISOString(),
+      });
+      localStorage.setItem(histKey, JSON.stringify(history.slice(0, 10)));
+    } catch {}
   }
 
   if (!isOpen) return null;
@@ -506,6 +551,8 @@ export default function CheckoutModal({
                       borderColor: nameError ? "#ef4444" : "var(--border)",
                     }}
                     placeholder="Juan"
+                    inputMode="text"
+                    autoComplete="given-name"
                     value={form.name}
                     onChange={(e) => set("name", e.target.value)}
                     onBlur={() => touch("name")}
@@ -521,6 +568,8 @@ export default function CheckoutModal({
                       borderColor: lastnameError ? "#ef4444" : "var(--border)",
                     }}
                     placeholder="García"
+                    inputMode="text"
+                    autoComplete="family-name"
                     value={form.lastname}
                     onChange={(e) => set("lastname", e.target.value)}
                     onBlur={() => touch("lastname")}
@@ -539,6 +588,8 @@ export default function CheckoutModal({
                   style={inputBase}
                   placeholder="11 1234-5678"
                   type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
                   value={form.phone}
                   onChange={(e) => set("phone", e.target.value)}
                   onFocus={(e) => (e.target.style.borderColor = accent)}
@@ -613,6 +664,8 @@ export default function CheckoutModal({
                       borderColor: addressError ? "#ef4444" : "var(--border)",
                     }}
                     placeholder="Av. Corrientes 1234, CABA"
+                    inputMode="text"
+                    autoComplete="street-address"
                     value={form.address}
                     onChange={(e) => set("address", e.target.value)}
                     onBlur={() => touch("address")}

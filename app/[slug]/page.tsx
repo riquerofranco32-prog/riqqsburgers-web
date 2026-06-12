@@ -48,5 +48,58 @@ export default async function RestaurantPage({ params }: Props) {
   const { slug } = await params;
   const restaurant = await getRestaurant(slug);
   if (!restaurant) notFound();
-  return <CatalogClient restaurant={restaurant} />;
+
+  const schemaOrg = {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: restaurant.name,
+    description:
+      restaurant.tagline ||
+      `Mirá el menú de ${restaurant.name} y pedí por WhatsApp.`,
+    url: `https://takefyy.com/${restaurant.slug}`,
+    image: restaurant.banner_url || restaurant.logo || undefined,
+    telephone: restaurant.phone || undefined,
+    address: restaurant.address
+      ? {
+          "@type": "PostalAddress",
+          streetAddress: restaurant.address,
+          addressCountry: "AR",
+        }
+      : undefined,
+    servesCuisine: restaurant.menu.categories
+      .map((c) => c.name)
+      .slice(0, 5)
+      .join(", "),
+    hasMenu: {
+      "@type": "Menu",
+      hasMenuSection: restaurant.menu.categories.map((cat) => ({
+        "@type": "MenuSection",
+        name: cat.name,
+        hasMenuItem: cat.items.slice(0, 10).map((item) => ({
+          "@type": "MenuItem",
+          name: item.name,
+          description: item.description || undefined,
+          offers: {
+            "@type": "Offer",
+            price: item.price,
+            priceCurrency: "ARS",
+            availability:
+              item.badge === "Agotado"
+                ? "https://schema.org/OutOfStock"
+                : "https://schema.org/InStock",
+          },
+        })),
+      })),
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
+      />
+      <CatalogClient restaurant={restaurant} />
+    </>
+  );
 }

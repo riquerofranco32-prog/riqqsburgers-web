@@ -54,17 +54,26 @@ export default function MenuBackground({ accentColor = "#FF6B35" }: Props) {
       a: number;
       c: RGB;
     }> = [
-      { ox: 0.15, oy: 0.1, r: 180, sp: 0.00035, ph: 0.0, a: 0.07, c: accent },
-      { ox: 0.85, oy: 0.25, r: 220, sp: 0.00025, ph: 2.1, a: 0.05, c: accent },
-      { ox: 0.5, oy: 0.55, r: 260, sp: 0.0002, ph: 4.2, a: 0.04, c: warm },
-      { ox: 0.1, oy: 0.75, r: 190, sp: 0.0004, ph: 1.0, a: 0.05, c: accent },
-      { ox: 0.88, oy: 0.82, r: 200, sp: 0.0003, ph: 3.3, a: 0.04, c: peach },
+      { ox: 0.15, oy: 0.1, r: 280, sp: 0.0006, ph: 0.0, a: 0.18, c: accent },
+      { ox: 0.85, oy: 0.25, r: 320, sp: 0.0004, ph: 2.5, a: 0.14, c: accent },
+      { ox: 0.5, oy: 0.55, r: 350, sp: 0.0003, ph: 4.2, a: 0.1, c: warm },
+      { ox: 0.1, oy: 0.78, r: 240, sp: 0.0005, ph: 1.3, a: 0.15, c: accent },
+      { ox: 0.88, oy: 0.82, r: 260, sp: 0.0004, ph: 3.1, a: 0.12, c: peach },
+      { ox: 0.5, oy: 0.3, r: 500, sp: 0.0002, ph: 0.8, a: 0.06, c: accent },
     ];
 
     let t = 0;
 
     function tick() {
       ctx!.clearRect(0, 0, w, h);
+
+      // Tinted base layer — gives the page a subtle colour cast
+      const base = ctx!.createLinearGradient(0, 0, w, h);
+      base.addColorStop(0, `rgba(${accent.r},${accent.g},${accent.b},0.03)`);
+      base.addColorStop(0.5, `rgba(255,250,247,0)`);
+      base.addColorStop(1, `rgba(${accent.r},${accent.g},${accent.b},0.05)`);
+      ctx!.fillStyle = base;
+      ctx!.fillRect(0, 0, w, h);
 
       for (const b of blobs) {
         const ox = Math.sin(t * b.sp * 1000 + b.ph) * 40;
@@ -77,7 +86,14 @@ export default function MenuBackground({ accentColor = "#FF6B35" }: Props) {
 
         const grad = ctx!.createRadialGradient(x, y, 0, x, y, r);
         grad.addColorStop(0, `rgba(${b.c.r},${b.c.g},${b.c.b},${b.a})`);
-        grad.addColorStop(0.5, `rgba(${b.c.r},${b.c.g},${b.c.b},${b.a * 0.5})`);
+        grad.addColorStop(
+          0.3,
+          `rgba(${b.c.r},${b.c.g},${b.c.b},${b.a * 0.75})`,
+        );
+        grad.addColorStop(
+          0.65,
+          `rgba(${b.c.r},${b.c.g},${b.c.b},${b.a * 0.3})`,
+        );
         grad.addColorStop(1, `rgba(${b.c.r},${b.c.g},${b.c.b},0)`);
 
         ctx!.beginPath();
@@ -118,6 +134,10 @@ export default function MenuBackground({ accentColor = "#FF6B35" }: Props) {
           style={{ "--blob-color": accentColor } as React.CSSProperties}
         />
         <div className="menu-blob menu-blob-3" />
+        <div
+          className="menu-blob menu-blob-4"
+          style={{ "--blob-color": accentColor } as React.CSSProperties}
+        />
       </div>
     );
   }
