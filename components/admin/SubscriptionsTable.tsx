@@ -7,9 +7,9 @@ import { PLANS } from "@/lib/plans";
 
 const PLAN_BADGE: Record<PlanId, { label: string; bg: string; color: string }> =
   {
-    free: { label: "Free", bg: "#F3F4F6", color: "#6B7280" },
+    free: { label: "Starter", bg: "#F3F4F6", color: "#6B7280" },
     pro: { label: "Pro", bg: "#DBEAFE", color: "#1D4ED8" },
-    premium: { label: "Premium", bg: "#FEF3C7", color: "#92400E" },
+    premium: { label: "Growth", bg: "#FEF3C7", color: "#92400E" },
   };
 
 const VALID_PLANS: PlanId[] = ["free", "pro", "premium"];

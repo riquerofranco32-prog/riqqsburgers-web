@@ -77,7 +77,7 @@ export default function PlanCard({
                 marginBottom: 4,
               }}
             >
-              Estás en el plan gratuito
+              Estás en el plan Starter
             </p>
             <p
               style={{
@@ -156,7 +156,7 @@ export default function PlanCard({
                   letterSpacing: "0.06em",
                 }}
               >
-                {currentPlan}
+                {limits.label}
               </span>
             </div>
             <p
@@ -352,34 +352,45 @@ export default function PlanCard({
                   style={{
                     color: isCurrent ? planColor.text : "var(--dash-text)",
                     fontWeight: 800,
-                    fontSize: 16,
-                    marginBottom: 4,
+                    fontSize: 14,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    marginBottom: 8,
                   }}
                 >
                   {plan.label}
                 </p>
+                <div style={{ marginBottom: 12 }}>
+                  <span
+                    style={{
+                      color: "var(--dash-text)",
+                      fontSize: 24,
+                      fontWeight: 800,
+                      letterSpacing: "-0.02em",
+                    }}
+                  >
+                    {plan.priceArs === 0 ? "Gratis" : `$${plan.priceArs.toLocaleString("es-AR")}`}
+                  </span>
+                  <span
+                    style={{
+                      color: "var(--dash-muted)",
+                      fontSize: 13,
+                      marginLeft: plan.priceArs === 0 ? 6 : 4,
+                    }}
+                  >
+                    {plan.priceArs === 0 ? "para siempre" : "/mes"}
+                  </span>
+                </div>
                 <p
                   style={{
                     color: "var(--dash-muted)",
-                    fontSize: 20,
-                    fontWeight: 700,
-                    marginBottom: 14,
-                    lineHeight: 1.2,
+                    fontSize: 13,
+                    lineHeight: 1.4,
+                    marginBottom: 16,
+                    minHeight: 38,
                   }}
                 >
-                  {plan.priceArs === 0 ? (
-                    "Gratis"
-                  ) : (
-                    <>
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>
-                        ARS{" "}
-                      </span>
-                      {plan.priceArs.toLocaleString("es-AR")}
-                      <span style={{ fontSize: 12, fontWeight: 400 }}>
-                        /mes
-                      </span>
-                    </>
-                  )}
+                  {plan.description}
                 </p>
 
                 <div
