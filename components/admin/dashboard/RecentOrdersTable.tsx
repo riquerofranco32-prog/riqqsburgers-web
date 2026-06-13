@@ -132,8 +132,9 @@ export function RecentOrdersTable({
 
   useEffect(() => {
     const supabase = createSupabaseBrowser()
+    const uniqueId = Math.random().toString(36).substring(7)
     const channel = supabase
-      .channel(`recent-orders:${tenantId}`)
+      .channel(`recent-orders-${tenantId}-${uniqueId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'orders', filter: `tenant_id=eq.${tenantId}` },

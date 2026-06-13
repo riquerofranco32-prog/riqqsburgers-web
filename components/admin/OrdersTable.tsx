@@ -386,8 +386,9 @@ export function OrdersTable({
 
   useEffect(() => {
     const supabase = createSupabaseBrowser();
+    const uniqueId = Math.random().toString(36).substring(7);
     const channel = supabase
-      .channel(`orders:${tenantId}`)
+      .channel(`orders-${tenantId}-${uniqueId}`)
       .on(
         "postgres_changes",
         {

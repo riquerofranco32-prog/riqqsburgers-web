@@ -37,8 +37,9 @@ export default function PendingOrdersBadge({
 
     void fetchCount();
 
+    const uniqueId = Math.random().toString(36).substring(7);
     const channel = supabase
-      .channel(`pending-orders-${tenantId}`)
+      .channel(`pending-orders-${tenantId}-${uniqueId}`)
       .on(
         "postgres_changes",
         {
