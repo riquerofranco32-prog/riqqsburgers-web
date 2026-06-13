@@ -921,9 +921,6 @@ export default function CatalogClient({
         style={{
           position: "relative",
           zIndex: 2,
-          maxWidth: 1280,
-          marginLeft: "auto",
-          marginRight: "auto",
         }}
       >
         {/* ── Header ──────────────────────────────────────────────────────────── */}
