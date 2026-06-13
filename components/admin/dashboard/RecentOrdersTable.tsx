@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -68,17 +68,63 @@ function useIsMobile() {
   return isMobile
 }
 
+function playChime() {
+  if (typeof window === 'undefined') return
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioContextClass) return
+    const audioCtx = new AudioContextClass()
+
+    const playTone = (freq: number, startTime: number, duration: number) => {
+      const osc = audioCtx.createOscillator()
+      const gainNode = audioCtx.createGain()
+
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, startTime)
+
+      gainNode.gain.setValueAtTime(0, startTime)
+      gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.04)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
+
+      osc.connect(gainNode)
+      gainNode.connect(audioCtx.destination)
+
+      osc.start(startTime)
+      osc.stop(startTime + duration)
+    }
+
+    const now = audioCtx.currentTime
+    playTone(523.25, now, 0.4) // C5
+    playTone(659.25, now + 0.1, 0.5) // E5
+  } catch (err) {
+    console.error('Failed to play chime:', err)
+  }
+}
+
 interface RecentOrdersTableProps {
   orders: Order[]
   slug: string
   tenantId: string
   loading?: boolean
   maxRows?: number
+  soundEnabled?: boolean
 }
 
-export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loading = false, maxRows = 10 }: RecentOrdersTableProps) {
+export function RecentOrdersTable({
+  orders: initialOrders,
+  slug,
+  tenantId,
+  loading = false,
+  maxRows = 10,
+  soundEnabled = true,
+}: RecentOrdersTableProps) {
   const [orders, setOrders] = useState(initialOrders)
   const isMobile = useIsMobile()
+
+  const soundEnabledRef = useRef(soundEnabled)
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled
+  }, [soundEnabled])
 
   useEffect(() => {
     setOrders(initialOrders)
@@ -95,9 +141,23 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
           const incoming = payload.new as Order
           setOrders(prev => {
             if (prev.some(o => o.id === incoming.id)) return prev
+            if (soundEnabledRef.current) {
+              playChime()
+            }
             return [incoming, ...prev].slice(0, 10)
           })
-          toast.success(`Nuevo pedido #${incoming.order_ref} 🛒`, { duration: 5000 })
+          toast.success(`Nuevo pedido #${incoming.order_ref || incoming.id.slice(0, 6)} 🛒`, { duration: 5000 })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `tenant_id=eq.${tenantId}` },
+        (payload) => {
+          const updated = payload.new as Order
+          setOrders(prev => {
+            return prev.map(o => o.id === updated.id ? updated : o)
+          })
+          toast.info(`Pedido #${updated.order_ref || updated.id.slice(0, 6)} actualizado a "${updated.status}" ℹ️`, { duration: 4000 })
         }
       )
       .subscribe()
@@ -138,6 +198,22 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
 
   return (
     <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
+      <style>{`
+        @keyframes slide-down-fade {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .order-row-animate {
+          opacity: 0;
+          animation: slide-down-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
       <div className="px-5 py-4 border-b border-dash-border flex items-center justify-between">
         <h2 className="text-sm font-semibold text-dash-text">Pedidos recientes</h2>
         <Link
@@ -150,10 +226,11 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
 
       {isMobile ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 12 }}>
-          {orders.slice(0, maxRows).map((order) => (
+          {orders.slice(0, maxRows).map((order, idx) => (
             <Link
               key={order.id}
               href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+              className="order-row-animate"
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -164,6 +241,7 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
                 padding: 14,
                 textDecoration: "none",
                 transition: "background 0.15s",
+                animationDelay: `${idx * 40}ms`,
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background = "var(--dash-surface-3)")
@@ -266,13 +344,14 @@ export function RecentOrdersTable({ orders: initialOrders, slug, tenantId, loadi
               {orders.slice(0, maxRows).map((order, idx) => (
                 <tr
                   key={order.id}
-                  className="transition-colors duration-150"
+                  className="order-row-animate transition-colors duration-150"
                   style={{
                     borderBottom:
                       idx < Math.min(orders.length, maxRows) - 1
                         ? "1px solid var(--dash-border)"
                         : undefined,
                     cursor: "default",
+                    animationDelay: `${idx * 40}ms`,
                   }}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.background = "var(--dash-surface-2)")

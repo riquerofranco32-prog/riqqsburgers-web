@@ -17,6 +17,7 @@ import { RecentOrdersTable } from "@/components/admin/dashboard/RecentOrdersTabl
 import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
 import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
 import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
+import { OperationControls } from "@/components/admin/dashboard/OperationControls";
 import ExportReportButton from "@/components/admin/ExportReportButton";
 import type { Order, Product } from "@/types/supabase";
 import type {
@@ -76,6 +77,7 @@ interface AdminDashboardProps {
   tenantName: string;
   slug: string;
   tenantId: string;
+  isOpen: boolean;
   kpis: DashboardKPIs;
   salesData: DailyRevenue[];
   categoryData: CategoryRevenue[];
@@ -89,6 +91,7 @@ export default function AdminDashboard({
   tenantName,
   slug,
   tenantId,
+  isOpen: isOpenInitial,
   kpis,
   salesData,
   categoryData,
@@ -106,6 +109,19 @@ export default function AdminDashboard({
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(
     null,
   );
+
+  const [isOpen, setIsOpen] = useState(isOpenInitial);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kitchen_chime_enabled");
+      return saved !== "false";
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("kitchen_chime_enabled", String(soundEnabled));
+  }, [soundEnabled]);
 
   const fetchAnalytics = useCallback(
     async (r: "week" | "month") => {
@@ -425,13 +441,23 @@ export default function AdminDashboard({
       </div>
 
       {/* Tables */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="stagger-item" style={{ animationDelay: "780ms" }}>
           <RecentOrdersTable
             orders={recentOrders}
             slug={slug}
             tenantId={tenantId}
             maxRows={isMobile ? 5 : 10}
+            soundEnabled={soundEnabled}
+          />
+        </div>
+        <div className="stagger-item" style={{ animationDelay: "840ms" }}>
+          <OperationControls
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            soundEnabled={soundEnabled}
+            setSoundEnabled={setSoundEnabled}
+            slug={slug}
           />
         </div>
       </div>

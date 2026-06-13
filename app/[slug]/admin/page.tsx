@@ -293,6 +293,7 @@ export default async function AdminPage({
         tenantName={tenant.name}
         slug={slug}
         tenantId={tenant.id}
+        isOpen={tenant.is_open}
         kpis={kpis}
         salesData={salesData}
         categoryData={categoryData}
