@@ -445,7 +445,7 @@ function PhoneMockup() {
             fontWeight: 700,
           }}
         >
-          Riqq&apos;s Burgers
+          Larry&apos;s Burgers
         </div>
         <div
           style={{ fontSize: 9, color: "rgba(255,255,255,0.65)", marginTop: 2 }}
@@ -454,7 +454,7 @@ function PhoneMockup() {
         </div>
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        {["Burgers", "Bebidas", "Promos"].map((c, i) => (
+        {["Burgers", "Extras"].map((c, i) => (
           <div
             key={c}
             style={{
@@ -471,9 +471,10 @@ function PhoneMockup() {
         ))}
       </div>
       {[
-        { name: "Bacon", price: "$10.500", badge: "Popular" },
-        { name: "American", price: "$9.500", badge: null },
-        { name: "Paltum", price: "$11.000", badge: "Nuevo" },
+        { name: "The Larry", price: "$8.500", badge: "Popular" },
+        { name: "Ultra Chesse", price: "$8.999", badge: null },
+        { name: "Bacon Larry", price: "$9.000", badge: "Nuevo" },
+        { name: "Papas", price: "$2.500", badge: null },
       ].map((p) => (
         <div
           key={p.name}
@@ -534,7 +535,7 @@ function PhoneMockup() {
           Ver carrito (2)
         </span>
         <span style={{ fontSize: 10, color: "rgba(255,255,255,0.8)" }}>
-          $20.000 →
+          $17.500 →
         </span>
       </div>
     </div>
@@ -1011,7 +1012,7 @@ export default function HomeClient({
                   Empezar gratis →
                 </motion.button>
                 <motion.a
-                  href="/riqqsburgers"
+                  href="/larryssburgers"
                   className="rounded-full px-7 py-3.5 text-sm font-semibold"
                   style={{
                     border: "1.5px solid rgba(255,255,255,0.16)",
@@ -1070,7 +1071,7 @@ export default function HomeClient({
               <FloatToast
                 icon={<ShoppingCart size={18} color="rgba(255,107,53,0.9)" />}
                 title="Nuevo pedido"
-                sub="$4.200 · BBQ Doble x2"
+                sub="$17.000 · The Larry x2"
                 color="rgba(255,107,53,0.25)"
                 delay={0.8}
                 style={{ top: "10%", right: -16 }}
