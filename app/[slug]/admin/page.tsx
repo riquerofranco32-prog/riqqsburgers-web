@@ -301,6 +301,8 @@ export default async function AdminPage({
         allOrders={orders}
         topProducts={topProducts}
         unavailableProducts={unavailableProducts}
+        products={products}
+        categories={categories}
       />
     </>
   );

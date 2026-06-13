@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import {
   ShoppingCart,
   DollarSign,
@@ -19,7 +19,8 @@ import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
 import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
 import { OperationControls } from "@/components/admin/dashboard/OperationControls";
 import ExportReportButton from "@/components/admin/ExportReportButton";
-import type { Order, Product } from "@/types/supabase";
+import { createSupabaseBrowser } from "@/lib/supabase";
+import type { Category, Product, Order, OrderItem } from "@/types/supabase";
 import type {
   DashboardKPIs,
   DailyRevenue,
@@ -28,6 +29,177 @@ import type {
   AnalyticsRange,
   AnalyticsResponse,
 } from "@/types/dashboard";
+
+function startOfDay(d: Date): Date {
+  const r = new Date(d);
+  r.setHours(0, 0, 0, 0);
+  return r;
+}
+
+function computeKPIs(orders: Order[], products: Product[]): DashboardKPIs {
+  const today = startOfDay(new Date());
+  const yesterday = new Date(today.getTime() - 86_400_000);
+
+  const todayOrders = orders.filter((o) => new Date(o.created_at) >= today && o.status !== "cancelled");
+  const yesterdayOrders = orders.filter((o) => {
+    const d = new Date(o.created_at);
+    return d >= yesterday && d < today && o.status !== "cancelled";
+  });
+
+  const ordersToday = todayOrders.length;
+  const ordersYesterday = yesterdayOrders.length;
+  const ordersTodayChange =
+    ordersYesterday > 0
+      ? ((ordersToday - ordersYesterday) / ordersYesterday) * 100
+      : null;
+
+  const revenueToday = todayOrders.reduce((s, o) => s + o.total, 0);
+  const revenueYesterday = yesterdayOrders.reduce((s, o) => s + o.total, 0);
+  const revenueTodayChange =
+    revenueYesterday > 0
+      ? ((revenueToday - revenueYesterday) / revenueYesterday) * 100
+      : null;
+
+  const avgTicketToday =
+    ordersToday > 0 ? Math.round(revenueToday / ordersToday) : 0;
+  const avgTicketYesterday =
+    ordersYesterday > 0 ? Math.round(revenueYesterday / ordersYesterday) : 0;
+  const avgTicketChange =
+    avgTicketYesterday > 0
+      ? ((avgTicketToday - avgTicketYesterday) / avgTicketYesterday) * 100
+      : null;
+
+  const itemMap: Record<string, { name: string; qty: number }> = {};
+  for (const order of todayOrders) {
+    for (const item of (order.items || []) as OrderItem[]) {
+      if (!itemMap[item.product_id])
+        itemMap[item.product_id] = { name: item.name, qty: 0 };
+      itemMap[item.product_id].qty += item.quantity;
+    }
+  }
+  const topProductToday =
+    Object.values(itemMap).sort((a, b) => b.qty - a.qty)[0] ?? null;
+
+  const activeProducts = products.filter((p) => p.available).length;
+
+  return {
+    ordersToday,
+    ordersTodayChange,
+    revenueToday,
+    revenueTodayChange,
+    avgTicketToday,
+    avgTicketChange,
+    topProductToday,
+    activeProducts,
+  };
+}
+
+function computeSalesLast7Days(orders: Order[]): DailyRevenue[] {
+  const result: DailyRevenue[] = [];
+  const activeOrders = orders.filter((o) => o.status !== "cancelled");
+  for (let i = 6; i >= 0; i--) {
+    const day = startOfDay(new Date());
+    day.setDate(day.getDate() - i);
+    const nextDay = new Date(day.getTime() + 86_400_000);
+
+    const dayTotal = activeOrders
+      .filter((o) => {
+        const d = new Date(o.created_at);
+        return d >= day && d < nextDay;
+      })
+      .reduce((s, o) => s + o.total, 0);
+
+    const isToday = i === 0;
+    const raw = day.toLocaleDateString("es-AR", { weekday: "short" });
+    const label = isToday
+      ? "Hoy"
+      : raw.charAt(0).toUpperCase() + raw.slice(1).replace(".", "");
+    result.push({ date: label, total: dayTotal });
+  }
+  return result;
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Burgers: "#facc15",
+  Promos: "#fb923c",
+  Bebidas: "#60a5fa",
+  Otros: "#52525b",
+};
+
+function computeCategoryRevenue(
+  orders: Order[],
+  products: Product[],
+  categories: Category[],
+): CategoryRevenue[] {
+  const activeOrders = orders.filter((o) => o.status !== "cancelled");
+  const catMap: Record<string, number> = {};
+  for (const order of activeOrders) {
+    for (const item of (order.items || []) as OrderItem[]) {
+      const product = products.find((p) => p.id === item.product_id);
+      const category = product
+        ? categories.find((c) => c.id === product.category_id)
+        : null;
+      const name = category?.name ?? "Otros";
+      catMap[name] = (catMap[name] ?? 0) + item.price * item.quantity;
+    }
+  }
+  return Object.entries(catMap)
+    .map(([name, value]) => ({
+      name,
+      value,
+      color: CATEGORY_COLORS[name] ?? "#52525b",
+    }))
+    .sort((a, b) => b.value - a.value);
+}
+
+function computeTopProducts(
+  orders: Order[],
+  products: Product[],
+  categories: Category[],
+): TopProduct[] {
+  const activeOrders = orders.filter((o) => o.status !== "cancelled");
+  const map: Record<
+    string,
+    {
+      name: string;
+      qty: number;
+      revenue: number;
+      productRef?: Product;
+    }
+  > = {};
+
+  for (const order of activeOrders) {
+    for (const item of (order.items || []) as OrderItem[]) {
+      if (!map[item.product_id]) {
+        map[item.product_id] = {
+          name: item.name,
+          qty: 0,
+          revenue: 0,
+          productRef: products.find((p) => p.id === item.product_id),
+        };
+      }
+      map[item.product_id].qty += item.quantity;
+      map[item.product_id].revenue += item.price * item.quantity;
+    }
+  }
+
+  return Object.entries(map)
+    .map(([product_id, data]) => {
+      const cat = data.productRef
+        ? categories.find((c) => c.id === data.productRef!.category_id)
+        : null;
+      return {
+        product_id,
+        name: data.name,
+        category_name: cat?.name ?? null,
+        category_emoji: cat?.emoji ?? null,
+        quantity: data.qty,
+        revenue: data.revenue,
+      };
+    })
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 5);
+}
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -85,6 +257,8 @@ interface AdminDashboardProps {
   allOrders: Order[];
   topProducts: TopProduct[];
   unavailableProducts: Product[];
+  products: Product[];
+  categories: Category[];
 }
 
 export default function AdminDashboard({
@@ -99,11 +273,14 @@ export default function AdminDashboard({
   allOrders,
   topProducts,
   unavailableProducts,
+  products,
+  categories,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
   const dateLabel = getDateLabel();
   const greeting = getGreeting();
 
+  const [orders, setOrders] = useState<Order[]>(allOrders);
   const [range, setRange] = useState<AnalyticsRange>("today");
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(
@@ -118,6 +295,85 @@ export default function AdminDashboard({
     }
     return true;
   });
+
+  const soundEnabledRef = useRef(soundEnabled);
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    const uniqueId = Math.random().toString(36).substring(7);
+    const channel = supabase
+      .channel(`dashboard-orders-${tenantId}-${uniqueId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "orders",
+          filter: `tenant_id=eq.${tenantId}`,
+        },
+        (payload) => {
+          const incoming = payload.new as Order;
+          setOrders((prev) => {
+            if (prev.some((o) => o.id === incoming.id)) return prev;
+            return [incoming, ...prev];
+          });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `tenant_id=eq.${tenantId}`,
+        },
+        (payload) => {
+          const updated = payload.new as Order;
+          setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "orders",
+          filter: `tenant_id=eq.${tenantId}`,
+        },
+        (payload) => {
+          const deleted = payload.old as { id: string };
+          setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tenantId]);
+
+  const currentKPIs = useMemo(() => {
+    return computeKPIs(orders, products);
+  }, [orders, products]);
+
+  const currentSalesData = useMemo(() => {
+    return computeSalesLast7Days(orders);
+  }, [orders]);
+
+  const currentCategoryData = useMemo(() => {
+    return computeCategoryRevenue(orders, products, categories);
+  }, [orders, products, categories]);
+
+  const currentTopProducts = useMemo(() => {
+    return computeTopProducts(orders, products, categories);
+  }, [orders, products, categories]);
+
+  const currentRecentOrders = useMemo(() => {
+    return orders.slice(0, 10);
+  }, [orders]);
 
   useEffect(() => {
     localStorage.setItem("kitchen_chime_enabled", String(soundEnabled));
@@ -150,13 +406,13 @@ export default function AdminDashboard({
   };
 
   const activeRevenue =
-    range === "today" ? kpis.revenueToday : (analyticsData?.revenue ?? 0);
+    range === "today" ? currentKPIs.revenueToday : (analyticsData?.revenue ?? 0);
   const activeOrderCount =
-    range === "today" ? kpis.ordersToday : (analyticsData?.orderCount ?? 0);
+    range === "today" ? currentKPIs.ordersToday : (analyticsData?.orderCount ?? 0);
   const activeAvgTicket =
-    range === "today" ? kpis.avgTicketToday : (analyticsData?.avgTicket ?? 0);
+    range === "today" ? currentKPIs.avgTicketToday : (analyticsData?.avgTicket ?? 0);
   const activeSalesData =
-    range === "today" ? salesData : (analyticsData?.dailyRevenue ?? salesData);
+    range === "today" ? currentSalesData : (analyticsData?.dailyRevenue ?? currentSalesData);
 
   const rangeLabel =
     range === "today"
@@ -448,24 +704,24 @@ export default function AdminDashboard({
           />
         </div>
         <div className="stagger-item" style={{ animationDelay: "560ms" }}>
-          <CategoryDonut data={categoryData} compact={isMobile} />
+          <CategoryDonut data={range === "today" ? currentCategoryData : categoryData} compact={isMobile} />
         </div>
       </div>
 
       {/* Horas pico + Top productos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="stagger-item" style={{ animationDelay: "640ms" }}>
-          <PeakHoursWidget orders={allOrders} />
+          <PeakHoursWidget orders={orders} />
         </div>
         <div className="stagger-item" style={{ animationDelay: "700ms" }}>
-          <TopProductsList products={topProducts} showRevenue={!isMobile} />
+          <TopProductsList products={range === "today" ? currentTopProducts : topProducts} showRevenue={!isMobile} />
         </div>
       </div>
 
       {/* Tables */}
       <div className="stagger-item w-full" style={{ animationDelay: "780ms" }}>
         <RecentOrdersTable
-          orders={recentOrders}
+          orders={currentRecentOrders}
           slug={slug}
           tenantId={tenantId}
           maxRows={isMobile ? 5 : 10}

@@ -778,6 +778,32 @@ export function OrdersTable({
           } catch {}
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
+          filter: `tenant_id=eq.${tenantId}`,
+        },
+        (payload) => {
+          const updated = payload.new as Order;
+          setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "orders",
+          filter: `tenant_id=eq.${tenantId}`,
+        },
+        (payload) => {
+          const deleted = payload.old as { id: string };
+          setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
