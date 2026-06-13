@@ -399,144 +399,438 @@ function PhoneMockup() {
       style={{
         width: 260,
         height: 480,
-        background: "#1A1D24",
+        background: "#0D0D0D", // phone bezel matches screenshot theme
         borderRadius: 36,
-        border: "2px solid rgba(255,107,53,0.2)",
-        padding: 16,
+        border: "2.5px solid rgba(255,107,53,0.25)",
+        padding: "8px 6px 12px", // tight padding for maximum screen space
         display: "flex",
         flexDirection: "column",
-        gap: 10,
+        gap: 6,
         boxShadow:
-          "0 0 0 8px rgba(255,107,53,0.04), inset 0 1px 0 rgba(255,255,255,0.05)",
+          "0 0 0 8px rgba(255,107,53,0.04), 0 24px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)",
+        userSelect: "none",
       }}
     >
+      {/* Top Phone bar (Status bar) */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 4px",
+          padding: "0 10px",
+          flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 10, color: "#F0EDE8", fontWeight: 600 }}>
+        <span style={{ fontSize: 9, color: "#F0EDE8", fontWeight: 600 }}>
           9:41
         </span>
         <div
           style={{
-            width: 48,
-            height: 6,
-            background: "#0E1116",
-            borderRadius: 8,
+            width: 50,
+            height: 12,
+            background: "#000",
+            borderRadius: "0 0 8px 8px",
+            marginTop: -8,
           }}
         />
-        <span style={{ fontSize: 10, color: "#F0EDE8" }}>●●●</span>
+        <span style={{ fontSize: 9, color: "#F0EDE8", display: "flex", gap: 3 }}>
+          📶 🔋
+        </span>
       </div>
+
+      {/* Screen container */}
       <div
         style={{
-          background: "linear-gradient(135deg, #FF6B35, #e85a28)",
-          borderRadius: 14,
-          padding: "10px 12px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          borderRadius: 22,
+          background: "#0D0D0D", // match dark theme
+          position: "relative",
+          border: "1px solid rgba(255,255,255,0.04)",
         }}
       >
+        {/* Scrollable screen content */}
         <div
           style={{
-            fontSize: 11,
-            color: "rgba(255,255,255,0.95)",
-            fontWeight: 700,
+            flex: 1,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            paddingBottom: 60, // space for the floating cart
           }}
+          className="phone-scroll"
         >
-          Larry&apos;s Burgers
-        </div>
-        <div
-          style={{ fontSize: 9, color: "rgba(255,255,255,0.65)", marginTop: 2 }}
-        >
-          Abierto · Hacé tu pedido
-        </div>
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        {["Burgers", "Extras"].map((c, i) => (
+          <style>{`
+            .phone-scroll::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+
+          {/* Restaurant Banner Header */}
           <div
-            key={c}
             style={{
-              fontSize: 9,
-              padding: "3px 8px",
-              borderRadius: 20,
-              background: i === 0 ? "#FF6B35" : "#22262F",
-              color: i === 0 ? "#fff" : "#8A8D95",
-              fontWeight: 600,
+              height: 105,
+              position: "relative",
+              backgroundImage: "url('https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/banner_url.png?t=1781301346730')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              flexShrink: 0,
             }}
           >
-            {c}
-          </div>
-        ))}
-      </div>
-      {[
-        { name: "The Larry", price: "$8.500", badge: "Popular" },
-        { name: "Ultra Chesse", price: "$8.999", badge: null },
-        { name: "Bacon Larry", price: "$9.000", badge: "Nuevo" },
-        { name: "Papas", price: "$2.500", badge: null },
-      ].map((p) => (
-        <div
-          key={p.name}
-          style={{
-            background: "#22262F",
-            borderRadius: 12,
-            padding: "9px 10px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 10, color: "#F0EDE8", fontWeight: 600 }}>
-              {p.name}
-            </div>
+            {/* Dark overlay */}
             <div
               style={{
-                fontSize: 9,
-                color: "#FF6B35",
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(13,13,13,0.95) 100%)",
+              }}
+            />
+
+            {/* Abierto Status badge */}
+            <div
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                background: "rgba(34,197,94,0.9)",
+                color: "#fff",
+                fontSize: 7,
                 fontWeight: 700,
-                marginTop: 2,
+                padding: "2px 6px",
+                borderRadius: 20,
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
               }}
             >
-              {p.price}
+              <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#fff", display: "inline-block" }} />
+              Abierto
+            </div>
+
+            {/* Restaurant Logo */}
+            <div
+              style={{
+                position: "absolute",
+                top: 14,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                border: "1.5px solid rgba(255,255,255,0.15)",
+                background: "#0D0D0D",
+                backgroundImage: "url('https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/logo_url.png?t=1781301339056')",
+                backgroundSize: "cover",
+              }}
+            />
+
+            {/* Titles */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 4,
+                left: 0,
+                right: 0,
+                textAlign: "center",
+                padding: "0 8px",
+              }}
+            >
+              <h3 style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
+                Larry's Burgers
+              </h3>
+              <p style={{ fontSize: 8, color: "rgba(255,255,255,0.6)", margin: "1px 0 3px" }}>
+                Real Smash Burgers · San Rafael
+              </p>
+              
+              {/* Info icons row */}
+              <div style={{ display: "flex", justifyContent: "center", gap: 8, fontSize: 7, color: "rgba(255,255,255,0.45)" }}>
+                <span>🕒 20:00 - 00:00</span>
+                <span>📍 San Rafael, Mza</span>
+              </div>
             </div>
           </div>
-          {p.badge && (
+
+          {/* Categories Horizontal Tabs */}
+          <div style={{ display: "flex", gap: 6, padding: "0 10px", flexShrink: 0 }}>
             <div
               style={{
                 fontSize: 8,
-                padding: "2px 6px",
+                fontWeight: 700,
+                padding: "4px 10px",
                 borderRadius: 20,
-                background: "rgba(255,107,53,0.15)",
-                color: "#FF6B35",
-                fontWeight: 600,
-                border: "1px solid rgba(255,107,53,0.3)",
+                background: "#8B1A1A",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+                border: "1px solid rgba(255,107,53,0.15)",
               }}
             >
-              {p.badge}
+              🍔 Burgers
             </div>
-          )}
+            <div
+              style={{
+                fontSize: 8,
+                fontWeight: 700,
+                padding: "4px 10px",
+                borderRadius: 20,
+                background: "#1E1E24",
+                color: "rgba(255,255,255,0.6)",
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
+              🍟 Extras
+            </div>
+          </div>
+
+          {/* Category Section Title */}
+          <div
+            style={{
+              padding: "0 10px",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontSize: 8, fontWeight: 800, color: "#F5C518", letterSpacing: "0.08em" }}>
+              🍔 BURGERS
+            </span>
+            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+          </div>
+
+          {/* Products List */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "0 10px" }}>
+            {/* Product 1 — The Larry */}
+            <div
+              style={{
+                background: "var(--brand-dark)",
+                border: "1px solid rgba(255,255,255,0.04)",
+                borderRadius: 12,
+                padding: 10,
+                display: "flex",
+                gap: 8,
+                position: "relative",
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {/* Popular badge */}
+                <span
+                  style={{
+                    background: "rgba(245,197,24,0.12)",
+                    color: "#F5C518",
+                    fontSize: 6,
+                    fontWeight: 800,
+                    padding: "1px 5px",
+                    borderRadius: 4,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  ☆ Más pedido
+                </span>
+                <h4 style={{ fontSize: 10, fontWeight: 700, color: "#fff", margin: "4px 0 2px" }}>
+                  The Larry
+                </h4>
+                <p style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", margin: "0 0 6px", lineHeight: 1.2 }}>
+                  1 medallon de 100gr - Cebolla caramelizada - 4 fetas de cheddar - Salsa Larry
+                </p>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", display: "block" }}>
+                  $ 8.500
+                </span>
+              </div>
+              
+              {/* Product Image + add button */}
+              <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+                <img
+                  src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg"
+                  alt="The Larry"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: -4,
+                    right: -4,
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: "#8B1A1A",
+                    color: "#fff",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  +
+                </div>
+              </div>
+            </div>
+
+            {/* Product 2 — Ultra Chesse */}
+            <div
+              style={{
+                background: "var(--brand-dark)",
+                border: "1px solid rgba(255,255,255,0.04)",
+                borderRadius: 12,
+                padding: 10,
+                display: "flex",
+                gap: 8,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h4 style={{ fontSize: 10, fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>
+                  Ultra Chesse
+                </h4>
+                <p style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", margin: "0 0 6px", lineHeight: 1.2 }}>
+                  1 medallon de 100gr - 6 fetas de cheddar - Cebolla en cubitos - Salsa Larry
+                </p>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", display: "block" }}>
+                  $ 8.999
+                </span>
+              </div>
+              
+              <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+                <img
+                  src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg"
+                  alt="Ultra Chesse"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: -4,
+                    right: -4,
+                    width: 18,
+                    height: 18,
+                    borderRadius: "50%",
+                    background: "#8B1A1A",
+                    color: "#fff",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  +
+                </div>
+              </div>
+            </div>
+
+            {/* Product 3 — Bacon Larry */}
+            <div
+              style={{
+                background: "var(--brand-dark)",
+                border: "1px solid rgba(255,255,255,0.04)",
+                borderRadius: 12,
+                padding: 10,
+                display: "flex",
+                gap: 8,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h4 style={{ fontSize: 10, fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>
+                  Bacon Larry
+                </h4>
+                <p style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", margin: "0 0 6px", lineHeight: 1.2 }}>
+                  1 medallon de 100gr - 4 fetas de cheddar - 2 fetas bacon - Salsa Larry
+                </p>
+                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", display: "block" }}>
+                  $ 9.000
+                </span>
+              </div>
+              
+              <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+                <img
+                  src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg"
+                  alt="Bacon Larry"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+                />
+                
+                {/* Quantity counter pill */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: -4,
+                    right: -8,
+                    background: "#8B1A1A",
+                    borderRadius: 20,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    padding: "2px 6px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 700 }}>-</span>
+                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 900 }}>1</span>
+                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 700 }}>+</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      ))}
-      <div
-        style={{
-          background: "#FF6B35",
-          borderRadius: 12,
-          padding: "10px 12px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "auto",
-          boxShadow: "0 4px 16px rgba(255,107,53,0.4)",
-        }}
-      >
-        <span style={{ fontSize: 10, color: "#fff", fontWeight: 700 }}>
-          Ver carrito (2)
-        </span>
-        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.8)" }}>
-          $17.500 →
-        </span>
+
+        {/* Floating Cart Bar */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 8,
+            left: 8,
+            right: 8,
+            background: "#8B1A1A",
+            borderRadius: 14,
+            padding: "8px 12px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 4px 16px rgba(139,26,26,0.5)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            zIndex: 100,
+          }}
+        >
+          {/* Left: Cart badge */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                borderRadius: 8,
+                padding: "3px 6px",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <ShoppingCart size={9} color="#fff" />
+              <span style={{ fontSize: 8, color: "#fff", fontWeight: 800 }}>1</span>
+            </div>
+            <span style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>
+              Bacon Larry
+            </span>
+          </div>
+
+          {/* Right: Price & Delivery */}
+          <div style={{ textAlign: "right" }}>
+            <span style={{ fontSize: 9, color: "#fff", fontWeight: 800, display: "block" }}>
+              $ 9.000
+            </span>
+            <span style={{ fontSize: 6, color: "rgba(255,255,255,0.7)", display: "block" }}>
+              + envío $ 2.000
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
