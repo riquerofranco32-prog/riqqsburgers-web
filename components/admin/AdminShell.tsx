@@ -151,7 +151,7 @@ function DesktopNavLinks({
           {!collapsed && "Panel Takefyy"}
         </Link>
         <Link
-          href={`/${slug}`}
+          href={`/${slug}/admin/preview`}
           title={collapsed ? "Ver menú" : undefined}
           style={{
             display: "flex",
@@ -451,7 +451,7 @@ export default function AdminShell({
               Panel
             </Link>
             <Link
-              href={`/${slug}`}
+              href={`/${slug}/admin/preview`}
               onClick={closeMobile}
               style={{
                 flex: 1,
