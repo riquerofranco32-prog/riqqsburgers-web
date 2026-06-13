@@ -242,26 +242,35 @@ export default async function AdminPage({
   eightDaysAgo.setHours(0, 0, 0, 0);
 
   // Fetch all data in parallel
-  const [{ data: rawOrders }, { data: rawProducts }, { data: rawCategories }] =
-    await Promise.all([
-      db
-        .from("orders")
-        .select("*")
-        .eq("tenant_id", tenant.id)
-        .gte("created_at", eightDaysAgo.toISOString())
-        .order("created_at", { ascending: false }),
-      db
-        .from("products")
-        .select(
-          "id, name, category_id, tenant_id, description, price, image_url, badge, available, sort_order, created_at",
-        )
-        .eq("tenant_id", tenant.id),
-      db
-        .from("categories")
-        .select("*")
-        .eq("tenant_id", tenant.id)
-        .eq("active", true),
-    ]);
+  const [
+    { data: rawOrders },
+    { data: rawProducts },
+    { data: rawCategories },
+    { count: unavailableCount },
+  ] = await Promise.all([
+    db
+      .from("orders")
+      .select("*")
+      .eq("tenant_id", tenant.id)
+      .gte("created_at", eightDaysAgo.toISOString())
+      .order("created_at", { ascending: false }),
+    db
+      .from("products")
+      .select(
+        "id, name, category_id, tenant_id, description, price, image_url, badge, available, sort_order, created_at",
+      )
+      .eq("tenant_id", tenant.id),
+    db
+      .from("categories")
+      .select("*")
+      .eq("tenant_id", tenant.id)
+      .eq("active", true),
+    db
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenant.id)
+      .eq("available", false),
+  ]);
 
   const orders = (rawOrders ?? []) as Order[];
   const products = (rawProducts ?? []) as Product[];
@@ -288,6 +297,7 @@ export default async function AdminPage({
         categoryData={categoryData}
         recentOrders={recentOrders}
         topProducts={topProducts}
+        unavailableCount={unavailableCount ?? 0}
       />
     </>
   );

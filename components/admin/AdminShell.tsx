@@ -19,11 +19,13 @@ import {
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import TakefyyLogo from "@/components/TakefyyLogo";
+import PendingOrdersBadge from "@/components/admin/PendingOrdersBadge";
 
 interface AdminShellProps {
   children: React.ReactNode;
   tenantName: string;
   slug: string;
+  tenantId: string;
 }
 
 const NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
@@ -42,6 +44,7 @@ function vibrate(pattern: number | number[]) {
 
 interface DesktopNavLinksProps {
   slug: string;
+  tenantId: string;
   collapsed: boolean;
   pathname: string;
   onLogout: () => void;
@@ -49,6 +52,7 @@ interface DesktopNavLinksProps {
 
 function DesktopNavLinks({
   slug,
+  tenantId,
   collapsed,
   pathname,
   onLogout,
@@ -111,7 +115,14 @@ function DesktopNavLinks({
               }}
             >
               <item.icon size={16} strokeWidth={1.8} />
-              {!collapsed && item.label}
+              {!collapsed && (
+                <>
+                  <span style={{ flex: 1 }}>{item.label}</span>
+                  {item.href === "/pedidos" && (
+                    <PendingOrdersBadge tenantId={tenantId} />
+                  )}
+                </>
+              )}
             </Link>
           );
         })}
@@ -209,6 +220,7 @@ export default function AdminShell({
   children,
   tenantName,
   slug,
+  tenantId,
 }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -410,7 +422,10 @@ export default function AdminShell({
                     color: isActive ? "#fff" : "var(--accent)",
                   }}
                 />
-                {item.label}
+                <span style={{ flex: 1 }}>{item.label}</span>
+                {item.href === "/pedidos" && (
+                  <PendingOrdersBadge tenantId={tenantId} />
+                )}
               </Link>
             );
           })}
@@ -616,6 +631,7 @@ export default function AdminShell({
 
         <DesktopNavLinks
           slug={slug}
+          tenantId={tenantId}
           collapsed={collapsed}
           pathname={pathname}
           onLogout={handleLogout}

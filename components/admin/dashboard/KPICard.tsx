@@ -1,4 +1,7 @@
+"use client";
+
 import { type LucideIcon } from "lucide-react";
+import { useCountUp } from "@/hooks/useCountUp";
 
 interface KPICardProps {
   label: string;
@@ -8,6 +11,45 @@ interface KPICardProps {
   sub?: string;
   icon: LucideIcon;
   loading?: boolean;
+}
+
+/**
+ * Extrae el número de un string con formato ARS u otro.
+ * Ej: "$12.345" → 12345, "42" → 42, "—" → null
+ */
+function parseNumericValue(value: string): number | null {
+  const cleaned = value.replace(/[^0-9.]/g, "");
+  if (!cleaned) return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+
+/**
+ * Reconstruye el string animado respetando el formato original.
+ * Si empieza con "$", lo conserva; si no, usa el número directo.
+ */
+function formatAnimated(original: string, animated: number): string {
+  const isCurrency = original.trimStart().startsWith("$");
+  if (isCurrency) {
+    return new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 0,
+    }).format(animated);
+  }
+  return String(animated);
+}
+
+function AnimatedValue({ value }: { value: string }) {
+  const numeric = parseNumericValue(value);
+  const animated = useCountUp(
+    numeric ?? 0,
+    800,
+    numeric !== null && numeric > 0,
+  );
+
+  if (numeric === null || numeric === 0) return <>{value}</>;
+  return <>{formatAnimated(value, animated)}</>;
 }
 
 export function KPICard({
@@ -136,7 +178,7 @@ export function KPICard({
         {label}
       </p>
 
-      {/* Value */}
+      {/* Value — animated */}
       <p
         style={{
           fontSize: 32,
@@ -150,7 +192,7 @@ export function KPICard({
           whiteSpace: "nowrap",
         }}
       >
-        {value}
+        <AnimatedValue value={value} />
       </p>
 
       {/* Sub (when no change badge) */}

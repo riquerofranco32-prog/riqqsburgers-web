@@ -15,6 +15,8 @@ import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
 import { CategoryDonut } from "@/components/admin/dashboard/CategoryDonut";
 import { RecentOrdersTable } from "@/components/admin/dashboard/RecentOrdersTable";
 import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
+import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
+import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
 import ExportReportButton from "@/components/admin/ExportReportButton";
 import type { Order } from "@/types/supabase";
 import type {
@@ -79,6 +81,7 @@ interface AdminDashboardProps {
   categoryData: CategoryRevenue[];
   recentOrders: Order[];
   topProducts: TopProduct[];
+  unavailableCount: number;
 }
 
 export default function AdminDashboard({
@@ -90,6 +93,7 @@ export default function AdminDashboard({
   categoryData,
   recentOrders,
   topProducts,
+  unavailableCount,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
   const dateLabel = getDateLabel();
@@ -149,8 +153,23 @@ export default function AdminDashboard({
 
   return (
     <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
+      <style>{`
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      {/* Alerta productos sin stock */}
+      <LowStockAlert unavailableCount={unavailableCount} slug={slug} />
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-5 border-b border-dash-border/60">
+      <div
+        className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-5 border-b border-dash-border/60"
+        style={{
+          animation: "fade-up 0.4s ease forwards",
+          animationDelay: "0ms",
+          opacity: 0,
+        }}
+      >
         {/* Left: greeting + date */}
         <div>
           <h1
@@ -235,7 +254,14 @@ export default function AdminDashboard({
       </div>
 
       {/* Quick actions */}
-      <div className="flex flex-wrap gap-2">
+      <div
+        className="flex flex-wrap gap-2"
+        style={{
+          animation: "fade-up 0.4s ease forwards",
+          animationDelay: "60ms",
+          opacity: 0,
+        }}
+      >
         <a
           href={`/${slug}/admin/productos?new=1`}
           style={{
@@ -320,7 +346,14 @@ export default function AdminDashboard({
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+        style={{
+          animation: "fade-up 0.4s ease forwards",
+          animationDelay: "120ms",
+          opacity: 0,
+        }}
+      >
         <KPICard
           label={`Pedidos${range === "today" ? " hoy" : ""}`}
           value={analyticsLoading ? "…" : String(activeOrderCount)}
@@ -361,7 +394,14 @@ export default function AdminDashboard({
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+      <div
+        className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4"
+        style={{
+          animation: "fade-up 0.4s ease forwards",
+          animationDelay: "200ms",
+          opacity: 0,
+        }}
+      >
         <SalesAreaChart
           data={activeSalesData}
           loading={analyticsLoading}
@@ -371,15 +411,34 @@ export default function AdminDashboard({
         <CategoryDonut data={categoryData} compact={isMobile} />
       </div>
 
+      {/* Horas pico + Top productos */}
+      <div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+        style={{
+          animation: "fade-up 0.4s ease forwards",
+          animationDelay: "280ms",
+          opacity: 0,
+        }}
+      >
+        <PeakHoursWidget orders={recentOrders} />
+        <TopProductsList products={topProducts} showRevenue={!isMobile} />
+      </div>
+
       {/* Tables */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div
+        className="grid md:grid-cols-2 gap-4"
+        style={{
+          animation: "fade-up 0.4s ease forwards",
+          animationDelay: "340ms",
+          opacity: 0,
+        }}
+      >
         <RecentOrdersTable
           orders={recentOrders}
           slug={slug}
           tenantId={tenantId}
           maxRows={isMobile ? 5 : 10}
         />
-        <TopProductsList products={topProducts} showRevenue={!isMobile} />
       </div>
 
       {/* Export — mobile fallback */}
