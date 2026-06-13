@@ -42,7 +42,8 @@ function checkRateLimit(
 }
 
 export function middleware(req: NextRequest) {
-  const { pathname, method } = req.nextUrl;
+  const { pathname } = req.nextUrl;
+  const method = req.method;
 
   // Rate limit: order creation
   if (method === "POST" && pathname === "/api/orders") {
