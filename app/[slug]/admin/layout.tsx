@@ -20,6 +20,8 @@ export default async function AdminLayout({
   } = await authClient.auth.getUser();
   if (!user) redirect("/login");
 
+
+
   const db = createServerClient();
 
   const { data: rawTenant } = await db

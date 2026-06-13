@@ -2265,10 +2265,10 @@ export default function HomeClient({
             </h2>
           </motion.div>
 
-          <div className="max-w-5xl mx-auto flex flex-col gap-10">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Card 1 — Larry's Burgers */}
             <motion.div
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+              className="flex flex-col justify-between gap-8"
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -2300,8 +2300,8 @@ export default function HomeClient({
                 &ldquo;
               </span>
 
-              {/* Left Side: Testimonial & Improvements (col-span-7) */}
-              <div className="lg:col-span-7 flex flex-col justify-between gap-6 relative z-10">
+              {/* Left Side: Testimonial & Improvements */}
+              <div className="flex flex-col justify-between gap-6 relative z-10">
                 <div>
                   <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
                     {/* Five stars */}
@@ -2379,8 +2379,8 @@ export default function HomeClient({
                 </div>
               </div>
 
-              {/* Right Side: Menu Sample (col-span-5) */}
-              <div className="lg:col-span-5 flex flex-col justify-center relative z-10">
+              {/* Right Side: Menu Sample */}
+              <div className="flex flex-col justify-center relative z-10">
                 <div
                   style={{
                     background: "#161920",
@@ -2457,7 +2457,7 @@ export default function HomeClient({
 
             {/* Card 2 — Riqq's Burgers */}
             <motion.div
-              className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+              className="flex flex-col justify-between gap-8"
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -2489,8 +2489,8 @@ export default function HomeClient({
                 &ldquo;
               </span>
 
-              {/* Left Side: Testimonial & Improvements (col-span-7) */}
-              <div className="lg:col-span-7 flex flex-col justify-between gap-6 relative z-10">
+              {/* Left Side: Testimonial & Improvements */}
+              <div className="flex flex-col justify-between gap-6 relative z-10">
                 <div>
                   <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
                     {/* Five stars */}
@@ -2568,8 +2568,8 @@ export default function HomeClient({
                 </div>
               </div>
 
-              {/* Right Side: Menu Sample (col-span-5) */}
-              <div className="lg:col-span-5 flex flex-col justify-center relative z-10">
+              {/* Right Side: Menu Sample */}
+              <div className="flex flex-col justify-center relative z-10">
                 <div
                   style={{
                     background: "#161920",
