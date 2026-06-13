@@ -377,6 +377,17 @@ export default function AdminDashboard({
         </a>
       </div>
 
+      {/* Control rápido de la tienda */}
+      <div className="stagger-item w-full" style={{ animationDelay: "180ms" }}>
+        <OperationControls
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          soundEnabled={soundEnabled}
+          setSoundEnabled={setSoundEnabled}
+          slug={slug}
+        />
+      </div>
+
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="stagger-item" style={{ animationDelay: "240ms" }}>
@@ -452,25 +463,14 @@ export default function AdminDashboard({
       </div>
 
       {/* Tables */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="stagger-item" style={{ animationDelay: "780ms" }}>
-          <RecentOrdersTable
-            orders={recentOrders}
-            slug={slug}
-            tenantId={tenantId}
-            maxRows={isMobile ? 5 : 10}
-            soundEnabled={soundEnabled}
-          />
-        </div>
-        <div className="stagger-item" style={{ animationDelay: "840ms" }}>
-          <OperationControls
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            soundEnabled={soundEnabled}
-            setSoundEnabled={setSoundEnabled}
-            slug={slug}
-          />
-        </div>
+      <div className="stagger-item w-full" style={{ animationDelay: "780ms" }}>
+        <RecentOrdersTable
+          orders={recentOrders}
+          slug={slug}
+          tenantId={tenantId}
+          maxRows={isMobile ? 5 : 10}
+          soundEnabled={soundEnabled}
+        />
       </div>
 
       {/* Export — mobile fallback */}

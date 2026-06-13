@@ -56,26 +56,24 @@ export function OperationControls({
           "linear-gradient(145deg, var(--dash-surface) 0%, rgba(28,33,40,0.95) 100%)",
         border: "1px solid var(--dash-border)",
         borderRadius: 16,
-        padding: "20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
+        padding: "16px 20px",
       }}
+      className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 w-full"
     >
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      {/* Header & Live Indicator */}
+      <div className="flex justify-between items-center lg:justify-start lg:gap-4 flex-shrink-0">
         <div>
           <p
             style={{
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: 600,
               color: "var(--dash-text)",
-              marginBottom: 2,
+              marginBottom: 1,
             }}
           >
             Operación en vivo
           </p>
-          <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+          <p style={{ fontSize: 11, color: "var(--dash-muted)" }}>
             Control rápido de la tienda
           </p>
         </div>
@@ -89,7 +87,7 @@ export function OperationControls({
             background: "rgba(34, 197, 94, 0.08)",
             border: "1px solid rgba(34, 197, 94, 0.2)",
             borderRadius: 999,
-            padding: "4px 10px",
+            padding: "3px 8px",
           }}
         >
           <style>{`
@@ -100,15 +98,15 @@ export function OperationControls({
           `}</style>
           <span
             style={{
-              width: 6,
-              height: 6,
+              width: 5,
+              height: 5,
               borderRadius: "50%",
               background: "#4ade80",
-              boxShadow: "0 0 6px #4ade80",
+              boxShadow: "0 0 5px #4ade80",
               animation: "pulse-green 1.5s infinite ease-in-out",
             }}
           />
-          <span style={{ fontSize: 10, fontWeight: 700, color: "#4ade80", letterSpacing: "0.02em" }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: "#4ade80", letterSpacing: "0.02em" }}>
             LIVE
           </span>
         </div>
@@ -124,46 +122,45 @@ export function OperationControls({
             ? "1px solid rgba(34, 197, 94, 0.15)"
             : "1px solid rgba(239, 68, 68, 0.15)",
           borderRadius: 12,
-          padding: "16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
+          padding: "10px 14px",
           transition: "all 0.3s ease",
         }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-grow max-w-xl"
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 10,
+              width: 32,
+              height: 32,
+              borderRadius: 8,
               background: isOpen ? "rgba(34, 197, 94, 0.12)" : "rgba(239, 68, 68, 0.12)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               border: isOpen ? "1px solid rgba(34, 197, 94, 0.2)" : "1px solid rgba(239, 68, 68, 0.2)",
               color: isOpen ? "#4ade80" : "#f87171",
+              flexShrink: 0,
             }}
           >
-            <Store size={20} />
+            <Store size={16} />
           </div>
           <div>
             <p
               style={{
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 700,
                 color: isOpen ? "#4ade80" : "#f87171",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
-                marginBottom: 2,
+                marginBottom: 1,
               }}
             >
-              {isOpen ? "Abierto al público" : "Pausado / Cerrado"}
+              {isOpen ? "Abierto" : "Cerrado"}
             </p>
-            <p style={{ fontSize: 11, color: "var(--dash-muted)", lineHeight: 1.3 }}>
+            <p style={{ fontSize: 10, color: "var(--dash-muted)", lineHeight: 1.2 }}>
               {isOpen
-                ? "Clientes pueden ver tu carta y enviarte pedidos por WhatsApp."
-                : "Se desactivarán los pedidos y el menú mostrará un aviso de cerrado."}
+                ? "Carta abierta y recibiendo pedidos."
+                : "Pedidos desactivados por ahora."}
             </p>
           </div>
         </div>
@@ -172,10 +169,9 @@ export function OperationControls({
           onClick={handleToggleStatus}
           disabled={loading}
           style={{
-            width: "100%",
-            padding: "10px",
+            padding: "8px 14px",
             borderRadius: 8,
-            fontSize: 12,
+            fontSize: 11,
             fontWeight: 700,
             cursor: loading ? "not-allowed" : "pointer",
             border: "none",
@@ -189,9 +185,10 @@ export function OperationControls({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: 6,
+            gap: 4,
             transition: "transform 0.15s, box-shadow 0.15s",
           }}
+          className="w-full sm:w-auto sm:min-w-[130px] flex-shrink-0"
           onMouseEnter={(e) => {
             if (!loading) {
               e.currentTarget.style.transform = "translateY(-1px)";
@@ -210,7 +207,7 @@ export function OperationControls({
           }}
         >
           {loading ? (
-            <Loader2 size={14} className="animate-spin" />
+            <Loader2 size={12} className="animate-spin" />
           ) : isOpen ? (
             "Pausar servicio"
           ) : (
@@ -228,19 +225,21 @@ export function OperationControls({
           background: "var(--dash-surface-2)",
           border: "1px solid var(--dash-border)",
           borderRadius: 12,
-          padding: "14px",
+          padding: "10px 14px",
+          gap: 12,
         }}
+        className="flex-shrink-0 w-full sm:w-auto sm:min-w-[200px]"
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ color: soundEnabled ? "var(--accent)" : "var(--dash-muted)", display: "flex", alignItems: "center" }}>
-            {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </div>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--dash-text)" }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--dash-text)" }}>
               Timbre de cocina
             </p>
-            <p style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 1 }}>
-              Suena al recibir nuevos pedidos
+            <p style={{ fontSize: 10, color: "var(--dash-muted)" }}>
+              Suena en nuevos pedidos
             </p>
           </div>
         </div>
@@ -249,9 +248,9 @@ export function OperationControls({
           type="button"
           onClick={() => setSoundEnabled(!soundEnabled)}
           style={{
-            width: 44,
-            height: 24,
-            borderRadius: 12,
+            width: 40,
+            height: 20,
+            borderRadius: 10,
             background: soundEnabled ? "var(--accent)" : "var(--dash-border)",
             border: "none",
             cursor: "pointer",
@@ -263,10 +262,10 @@ export function OperationControls({
           <span
             style={{
               position: "absolute",
-              top: 3,
-              left: soundEnabled ? 23 : 3,
-              width: 18,
-              height: 18,
+              top: 2,
+              left: soundEnabled ? 22 : 2,
+              width: 16,
+              height: 16,
               borderRadius: "50%",
               background: "#fff",
               boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
@@ -280,16 +279,15 @@ export function OperationControls({
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: 11,
+          fontSize: 10,
           color: "var(--dash-muted)",
           padding: "0 4px",
         }}
+        className="flex-row justify-between items-center lg:flex-col lg:items-end lg:justify-center lg:gap-1.5 flex-shrink-0 w-full lg:w-auto"
       >
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <Wifi size={12} />
-          <span>WebSocket activo</span>
+          <Wifi size={11} className="text-emerald-400" />
+          <span style={{ fontWeight: 600, color: "var(--dash-text)" }}>WebSocket activo</span>
         </div>
         <span>Servidor Mendoza-1</span>
       </div>
