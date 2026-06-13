@@ -414,7 +414,7 @@ function OrderDetailView({
             }}
           >
             <span>Total</span>
-            <span style={{ color: "var(--accent)" }}>{fmtARS(order.total)}</span>
+            <span style={{ color: "#ffffff" }}>{fmtARS(order.total)}</span>
           </div>
         </div>
       </div>
@@ -617,7 +617,7 @@ function MobileOrderCard({
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
-                color: "var(--accent)",
+                color: "var(--dash-text)",
                 fontWeight: 700,
                 fontSize: 14,
                 fontFamily: "var(--font-mono, monospace)",
@@ -944,13 +944,12 @@ export function OrdersTable({
         </div>
       </div>
 
-      {/* Filter pills */}
       <div
         style={{
           padding: "10px 16px",
           borderBottom: "1px solid var(--dash-border)",
           display: "flex",
-          gap: 6,
+          gap: 8,
           overflowX: "auto",
           scrollbarWidth: "none",
         }}
@@ -963,18 +962,18 @@ export function OrdersTable({
               onClick={() => setFilter(pill.key)}
               style={{
                 flexShrink: 0,
-                padding: "5px 12px",
+                padding: "7px 16px",
                 borderRadius: 999,
-                fontSize: isMobile ? 13 : 12,
+                fontSize: isMobile ? 14 : 13,
                 fontWeight: 600,
                 border: "1px solid",
                 cursor: "pointer",
                 transition: "all 0.15s",
                 background: isActive
-                  ? "var(--accent)"
+                  ? "rgba(255,107,53,0.12)"
                   : "var(--dash-surface-2)",
-                color: isActive ? "#fff" : "var(--dash-muted)",
-                borderColor: isActive ? "var(--accent)" : "var(--dash-border)",
+                color: isActive ? "var(--accent)" : "var(--dash-muted)",
+                borderColor: isActive ? "rgba(255,107,53,0.3)" : "var(--dash-border)",
                 minHeight: isMobile ? 36 : "auto",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
@@ -1064,11 +1063,21 @@ export function OrdersTable({
                       <Link
                         href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
                         style={{
-                          color: "var(--accent)",
-                          fontWeight: 600,
+                          color: "var(--dash-text)",
+                          fontWeight: 700,
                           fontSize: 13,
                           textDecoration: "none",
                           fontFamily: "var(--font-mono, monospace)",
+                          borderBottom: "1px dashed rgba(255,255,255,0.25)",
+                          transition: "color 0.15s, border-color 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = "var(--accent)";
+                          e.currentTarget.style.borderColor = "var(--accent)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = "var(--dash-text)";
+                          e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
                         }}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -1106,8 +1115,8 @@ export function OrdersTable({
                   </div>
                   <span
                     style={{
-                      fontWeight: 700,
-                      color: "#f59e0b",
+                      fontWeight: 800,
+                      color: "var(--dash-text)",
                       fontSize: 14,
                       flexShrink: 0,
                     }}

@@ -216,7 +216,7 @@ export default function CategoriesAdmin({
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 md:p-6 max-w-3xl w-full pb-12">
+    <div className="p-4 md:p-6 w-full pb-12">
       {/* Header */}
       <div
         style={{

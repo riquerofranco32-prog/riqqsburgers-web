@@ -999,7 +999,7 @@ export default function ProductsAdmin({
   }
 
   return (
-    <div className="p-5 md:p-8 flex flex-col gap-5 max-w-5xl">
+    <div className="p-5 md:p-8 flex flex-col gap-5 w-full">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
@@ -1076,10 +1076,10 @@ export default function ProductsAdmin({
       </div>
 
       {/* Category filter */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+      <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-0.5">
         <button
           onClick={() => setFilterCat("all")}
-          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold border transition-all ${filterCat === "all" ? "bg-yellow-400 text-black border-yellow-400" : "bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white"}`}
+          className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${filterCat === "all" ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/35" : "bg-zinc-900 text-zinc-400 border-zinc-700/80 hover:text-white hover:border-zinc-500"}`}
         >
           Todos ({products.length})
         </button>
@@ -1087,7 +1087,7 @@ export default function ProductsAdmin({
           <button
             key={cat.id}
             onClick={() => setFilterCat(cat.id)}
-            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold border transition-all ${filterCat === cat.id ? "bg-yellow-400 text-black border-yellow-400" : "bg-zinc-900 text-zinc-400 border-zinc-700 hover:text-white"}`}
+            className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${filterCat === cat.id ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/35" : "bg-zinc-900 text-zinc-400 border-zinc-700/80 hover:text-white hover:border-zinc-500"}`}
           >
             {cat.emoji} {cat.name} (
             {products.filter((p) => p.category_id === cat.id).length})

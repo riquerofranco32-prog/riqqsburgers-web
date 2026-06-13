@@ -51,7 +51,7 @@ export default async function PedidosPage(
   const todaySales = todayDeliveredOrders.reduce((sum, o) => sum + o.total, 0)
 
   return (
-    <div className="p-5 md:p-8 flex flex-col gap-6 max-w-5xl">
+    <div className="p-5 md:p-8 flex flex-col gap-6 w-full">
       <BackButton href={`/${slug}/admin`} label="Dashboard" />
       <div>
         <h1 className="text-xl font-bold font-[family-name:var(--font-syne)] text-zinc-100">Pedidos</h1>
