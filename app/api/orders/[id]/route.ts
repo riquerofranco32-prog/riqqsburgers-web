@@ -66,3 +66,48 @@ export async function PATCH(
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  const supabase = createServerClient();
+
+  // Verificar que la orden pertenece a un tenant del que el usuario es admin
+  const { data: order } = await supabase
+    .from("orders")
+    .select("tenant_id")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!order) {
+    return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
+  }
+
+  const { data: membership } = await supabase
+    .from("tenant_users")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("tenant_id", order.tenant_id)
+    .maybeSingle();
+
+  if (!membership || !["admin", "superadmin"].includes(membership.role)) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+
+  const { error } = await supabase
+    .from("orders")
+    .delete()
+    .eq("id", id);
+
+  if (error)
+    return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

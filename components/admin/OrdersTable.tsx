@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Search, X, Printer, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import type { Order } from "@/types/supabase";
 
@@ -179,6 +180,387 @@ function matchesFilter(order: Order, filter: FilterKey): boolean {
   return false;
 }
 
+// ── Order detailed view & Invoice ─────────────────────────────────────────────
+
+interface OrderItemDetailed {
+  name: string;
+  quantity: number;
+  price: number;
+  selected_extra?: {
+    name: string;
+    price: number;
+  } | null;
+}
+
+function OrderDetailView({
+  order,
+  slug,
+  onUpdateStatus,
+  onDeleteOrder,
+}: {
+  order: Order;
+  slug: string;
+  onUpdateStatus: (id: string, status: string) => Promise<void>;
+  onDeleteOrder: (id: string) => Promise<void>;
+}) {
+  const items = (order.items ?? []) as OrderItemDetailed[];
+  const hasDelivery = order.delivery_type === "delivery" || order.delivery_type === "domicilio";
+  const deliveryCost = order.delivery_cost ?? 0;
+  const subtotal = order.subtotal ?? (order.total - deliveryCost);
+
+  function handlePrintTicket() {
+    window.open(
+      `/${slug}/admin/pedidos/${order.order_ref ?? order.id}?print=1`,
+      `print-${order.order_ref || order.id}`,
+      "width=420,height=700,status=no,toolbar=no,menubar=no"
+    );
+  }
+
+  return (
+    <div
+      style={{
+        padding: "16px 20px",
+        background: "rgba(0,0,0,0.2)",
+        borderTop: "1px solid var(--dash-border)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
+      {/* Informacion de Cliente y Envio */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 12,
+        }}
+      >
+        {/* Info cliente */}
+        <div
+          style={{
+            background: "var(--dash-surface)",
+            border: "1px solid var(--dash-border)",
+            borderRadius: 12,
+            padding: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--dash-muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>
+            Contacto & Entrega
+          </h4>
+          <div style={{ fontSize: 13, display: "flex", flexDirection: "column", gap: 4 }}>
+            <p style={{ margin: 0, color: "var(--dash-text)", fontWeight: 600 }}>{order.customer_name || "Sin nombre"}</p>
+            {order.customer_phone && (
+              <p style={{ margin: 0, color: "var(--dash-muted)" }}>
+                📞 <a href={`tel:${order.customer_phone}`} style={{ color: "var(--accent)", textDecoration: "none" }}>{order.customer_phone}</a>
+              </p>
+            )}
+            <p style={{ margin: 0, color: "var(--dash-muted)" }}>
+              📍 {deliveryLabel(order.delivery_type)}
+            </p>
+            {(order.customer_address ?? order.address) && (
+              <p style={{ margin: "4px 0 0 0", padding: "6px 8px", background: "var(--dash-surface-2)", borderRadius: 6, color: "var(--dash-text)", fontSize: 12 }}>
+                {order.customer_address ?? order.address}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Notas e Instrucciones */}
+        <div
+          style={{
+            background: order.notes ? "rgba(251,146,60,0.05)" : "var(--dash-surface)",
+            border: order.notes ? "1px solid rgba(251,146,60,0.2)" : "1px solid var(--dash-border)",
+            borderRadius: 12,
+            padding: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          <h4 style={{ fontSize: 11, fontWeight: 700, color: order.notes ? "#fb923c" : "var(--dash-muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>
+            Notas y Pago
+          </h4>
+          <div style={{ fontSize: 13, display: "flex", flexDirection: "column", gap: 4 }}>
+            <p style={{ margin: 0, color: "var(--dash-muted)" }}>
+              Método de Pago: <strong style={{ color: "var(--dash-text)" }}>{paymentLabel(order.payment_method)}</strong>
+            </p>
+            {order.notes ? (
+              <div style={{ padding: 8, background: "rgba(251,146,60,0.1)", borderLeft: "3px solid #fb923c", borderRadius: 4, color: "#ffedd5", fontSize: 12, marginTop: 4 }}>
+                <strong>Nota:</strong> &ldquo;{order.notes}&rdquo;
+              </div>
+            ) : (
+              <p style={{ margin: 0, color: "var(--dash-muted)", fontStyle: "italic" }}>Sin notas del cliente</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Detalle de Pedido (Factura/Invoice) */}
+      <div
+        style={{
+          background: "var(--dash-surface)",
+          border: "1px solid var(--dash-border)",
+          borderRadius: 12,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            padding: "10px 14px",
+            borderBottom: "1px solid var(--dash-border)",
+            background: "var(--dash-surface-2)",
+            display: "grid",
+            gridTemplateColumns: "3fr 1.2fr 1.5fr",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "var(--dash-muted)",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          <span>Producto</span>
+          <span style={{ textAlign: "right" }}>Unit.</span>
+          <span style={{ textAlign: "right" }}>Total</span>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {items.map((item, i) => {
+            const extraPrice = item.selected_extra?.price ?? 0;
+            const unitPrice = item.price + extraPrice;
+            const itemTotal = unitPrice * item.quantity;
+
+            return (
+              <div
+                key={i}
+                style={{
+                  padding: "12px 14px",
+                  borderBottom: i < items.length - 1 ? "1px solid var(--dash-border)" : "none",
+                  display: "grid",
+                  gridTemplateColumns: "3fr 1.2fr 1.5fr",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span
+                      style={{
+                        background: "rgba(255,107,53,0.15)",
+                        color: "var(--accent)",
+                        fontWeight: 700,
+                        fontSize: 11,
+                        padding: "1px 6px",
+                        borderRadius: 999,
+                        minWidth: 16,
+                        textAlign: "center",
+                      }}
+                    >
+                      {item.quantity}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--dash-text)" }}>{item.name}</span>
+                  </div>
+                  {item.selected_extra && (
+                    <span style={{ fontSize: 11, color: "var(--dash-muted)", marginLeft: 28 }}>
+                      + {item.selected_extra.name} {item.selected_extra.price > 0 && `(+${fmtARS(item.selected_extra.price)})`}
+                    </span>
+                  )}
+                </div>
+                <span style={{ fontSize: 12, color: "var(--dash-muted)", textAlign: "right" }}>
+                  {fmtARS(item.price)}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--dash-text)", textAlign: "right" }}>
+                  {fmtARS(itemTotal)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Resumen de totales */}
+        <div
+          style={{
+            background: "var(--dash-surface-2)",
+            borderTop: "1px solid var(--dash-border)",
+            padding: "12px 14px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            fontSize: 12,
+          }}
+        >
+          {hasDelivery && deliveryCost > 0 && (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--dash-muted)" }}>
+                <span>Subtotal</span>
+                <span>{fmtARS(subtotal)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--dash-muted)" }}>
+                <span>Costo de envío</span>
+                <span>{fmtARS(deliveryCost)}</span>
+              </div>
+            </>
+          )}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: 14,
+              fontWeight: 800,
+              color: "var(--dash-text)",
+              paddingTop: hasDelivery && deliveryCost > 0 ? 6 : 0,
+              borderTop: hasDelivery && deliveryCost > 0 ? "1px dashed var(--dash-border)" : "none",
+            }}
+          >
+            <span>Total</span>
+            <span style={{ color: "var(--accent)" }}>{fmtARS(order.total)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Flujo de Estados y Botones Especiales */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          flexWrap: "wrap",
+          borderTop: "1px solid var(--dash-border)",
+          paddingTop: 14,
+        }}
+      >
+        {/* Actualizacion de estados */}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {STATUS_FLOW.map(({ key, label }) => {
+            const m = getStatusMeta(key);
+            const isCurrent =
+              order.status === key ||
+              (key === "pending" && order.status === "nuevo") ||
+              (key === "confirmed" && order.status === "preparando") ||
+              (key === "ready" && order.status === "listo") ||
+              (key === "delivered" && order.status === "entregado");
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  vibrate(40);
+                  onUpdateStatus(order.id, key);
+                }}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  border: "1px solid",
+                  background: isCurrent ? m.bg : "transparent",
+                  color: isCurrent ? m.color : "var(--dash-muted)",
+                  borderColor: isCurrent ? m.border : "var(--dash-border)",
+                  minHeight: 32,
+                  WebkitTapHighlightColor: "transparent",
+                  userSelect: "none",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+          {order.status !== "cancelled" &&
+            order.status !== "delivered" &&
+            order.status !== "entregado" && (
+              <button
+                onClick={() => {
+                  vibrate([40, 30, 40]);
+                  onUpdateStatus(order.id, "cancelled");
+                }}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 999,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  border: "1px solid rgba(239,68,68,0.4)",
+                  background: "rgba(239,68,68,0.08)",
+                  color: "#f87171",
+                  minHeight: 32,
+                  WebkitTapHighlightColor: "transparent",
+                  userSelect: "none",
+                }}
+              >
+                ✕ Cancelar
+              </button>
+            )}
+        </div>
+
+        {/* Acciones del sistema: Imprimir / Eliminar */}
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={handlePrintTicket}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "7px 12px",
+              background: "var(--dash-surface-2)",
+              border: "1px solid var(--dash-border)",
+              color: "var(--dash-text)",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "border-color 0.15s, background 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+              e.currentTarget.style.background = "rgba(255,107,53,0.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--dash-border)";
+              e.currentTarget.style.background = "var(--dash-surface-2)";
+            }}
+          >
+            <Printer style={{ width: 14, height: 14, color: "var(--accent)" }} />
+            Imprimir Ticket
+          </button>
+          
+          <button
+            onClick={() => onDeleteOrder(order.id)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "7px 12px",
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.3)",
+              color: "#f87171",
+              borderRadius: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "border-color 0.15s, background 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "#ef4444";
+              e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
+              e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+            }}
+          >
+            <Trash2 style={{ width: 14, height: 14 }} />
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Mobile card layout ────────────────────────────────────────────────────────
 
 function MobileOrderCard({
@@ -186,182 +568,144 @@ function MobileOrderCard({
   slug,
   isNew,
   onUpdateStatus,
+  onDeleteOrder,
 }: {
   order: Order;
   slug: string;
   isNew: boolean;
   onUpdateStatus: (id: string, status: string) => Promise<void>;
+  onDeleteOrder: (id: string) => Promise<void>;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div
       style={{
         background: isNew ? "rgba(255,107,53,0.08)" : "var(--dash-surface)",
         border: "1px solid var(--dash-border)",
         borderRadius: 14,
-        padding: 16,
         marginBottom: 10,
+        overflow: "hidden",
         transition: "background 1s ease",
       }}
     >
-      {/* Row 1: ref + status */}
-      <div
+      {/* Clickable Header card */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
         style={{
+          width: "100%",
+          padding: 16,
+          background: "none",
+          border: "none",
+          textAlign: "left",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 6,
+          flexDirection: "column",
+          cursor: "pointer",
+          WebkitTapHighlightColor: "transparent",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Link
-            href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
-            style={{
-              color: "var(--accent)",
-              fontWeight: 700,
-              fontSize: 14,
-              textDecoration: "none",
-              fontFamily: "var(--font-mono, monospace)",
-            }}
-          >
-            #{order.order_ref ?? order.id.slice(0, 6)}
-          </Link>
-          {isNew && (
-            <span
-              style={{
-                fontSize: 10,
-                padding: "2px 6px",
-                borderRadius: 999,
-                fontWeight: 700,
-                background: "rgba(255,107,53,0.2)",
-                color: "#ff6b35",
-                border: "1px solid rgba(255,107,53,0.4)",
-              }}
-            >
-              🔔 Nuevo
-            </span>
-          )}
-        </div>
-        <StatusBadge status={order.status} />
-      </div>
-
-      {/* Row 2: customer + delivery */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 4,
-        }}
-      >
-        <span
+        {/* Row 1: ref + status */}
+        <div
           style={{
-            fontWeight: 600,
-            fontSize: 14,
-            color: "var(--dash-text)",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            maxWidth: "60%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            marginBottom: 6,
           }}
         >
-          {order.customer_name ?? "—"}
-        </span>
-        <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-          {deliveryLabel(order.delivery_type)}
-        </span>
-      </div>
-
-      {/* Row 3: total + payment + time */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12,
-        }}
-      >
-        <span style={{ fontWeight: 800, fontSize: 18, color: "var(--accent)" }}>
-          {fmtARS(order.total)}
-        </span>
-        <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-          {paymentLabel(order.payment_method)} · {fmtFecha(order.created_at)}
-        </span>
-      </div>
-
-      {/* Status pills — horizontal scroll */}
-      <div
-        style={{
-          display: "flex",
-          gap: 6,
-          overflowX: "auto",
-          scrollbarWidth: "none",
-          WebkitOverflowScrolling: "touch",
-        }}
-      >
-        {STATUS_FLOW.map(({ key, label }) => {
-          const m = getStatusMeta(key);
-          const isCurrent =
-            order.status === key ||
-            (key === "pending" && order.status === "nuevo") ||
-            (key === "confirmed" && order.status === "preparando") ||
-            (key === "ready" && order.status === "listo") ||
-            (key === "delivered" && order.status === "entregado");
-          return (
-            <button
-              key={key}
-              onClick={() => {
-                vibrate(40);
-                onUpdateStatus(order.id, key);
-              }}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
               style={{
-                flexShrink: 0,
-                padding: "6px 14px",
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                border: "1px solid",
-                background: isCurrent ? m.bg : "transparent",
-                color: isCurrent ? m.color : "var(--dash-muted)",
-                borderColor: isCurrent ? m.border : "var(--dash-border)",
-                minHeight: 34,
-                WebkitTapHighlightColor: "transparent",
-                userSelect: "none",
+                color: "var(--accent)",
+                fontWeight: 700,
+                fontSize: 14,
+                fontFamily: "var(--font-mono, monospace)",
               }}
             >
-              {label}
-            </button>
-          );
-        })}
-        {order.status !== "cancelled" &&
-          order.status !== "delivered" &&
-          order.status !== "entregado" && (
-            <button
-              onClick={() => {
-                vibrate([40, 30, 40]);
-                onUpdateStatus(order.id, "cancelled");
-              }}
-              style={{
-                flexShrink: 0,
-                padding: "6px 14px",
-                borderRadius: 999,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                border: "1px solid rgba(239,68,68,0.4)",
-                background: "rgba(239,68,68,0.08)",
-                color: "#f87171",
-                minHeight: 34,
-                WebkitTapHighlightColor: "transparent",
-                userSelect: "none",
-              }}
-            >
-              ✕ Cancelar
-            </button>
-          )}
-      </div>
+              #{order.order_ref ?? order.id.slice(0, 6)}
+            </span>
+            {isNew && (
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: "2px 6px",
+                  borderRadius: 999,
+                  fontWeight: 700,
+                  background: "rgba(255,107,53,0.2)",
+                  color: "#ff6b35",
+                  border: "1px solid rgba(255,107,53,0.4)",
+                }}
+              >
+                🔔 Nuevo
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <StatusBadge status={order.status} />
+            {isOpen ? (
+              <ChevronUp style={{ width: 16, height: 16, color: "var(--dash-muted)" }} />
+            ) : (
+              <ChevronDown style={{ width: 16, height: 16, color: "var(--dash-muted)" }} />
+            )}
+          </div>
+        </div>
+
+        {/* Row 2: customer + delivery */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            marginBottom: 4,
+          }}
+        >
+          <span
+            style={{
+              fontWeight: 600,
+              fontSize: 14,
+              color: "var(--dash-text)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: "60%",
+            }}
+          >
+            {order.customer_name ?? "—"}
+          </span>
+          <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+            {deliveryLabel(order.delivery_type)}
+          </span>
+        </div>
+
+        {/* Row 3: total + payment + time */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+          }}
+        >
+          <span style={{ fontWeight: 800, fontSize: 18, color: "var(--accent)" }}>
+            {fmtARS(order.total)}
+          </span>
+          <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+            {paymentLabel(order.payment_method)} · {fmtFecha(order.created_at)}
+          </span>
+        </div>
+      </button>
+
+      {/* Expanded details */}
+      {isOpen && (
+        <OrderDetailView
+          order={order}
+          slug={slug}
+          onUpdateStatus={onUpdateStatus}
+          onDeleteOrder={onDeleteOrder}
+        />
+      )}
     </div>
   );
 }
@@ -462,6 +806,29 @@ export function OrdersTable({
         );
       }
       vibrate([50, 30, 50]);
+    }
+  }
+
+  async function deleteOrder(orderId: string) {
+    if (!confirm("¿Estás seguro de que deseas eliminar este pedido de forma permanente? Esta acción no se puede deshacer.")) {
+      return;
+    }
+    if (!confirm("Confirmación final: ¿Eliminar pedido permanentemente?")) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/orders/${orderId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed");
+      
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      toast.success("Pedido eliminado correctamente.");
+      vibrate([60, 40, 60]);
+    } catch {
+      toast.error("No se pudo eliminar el pedido. Verificá tu conexión o permisos.");
+      vibrate([100, 50, 100]);
     }
   }
 
@@ -643,6 +1010,7 @@ export function OrdersTable({
               slug={slug}
               isNew={newOrderIds.has(order.id)}
               onUpdateStatus={updateStatus}
+              onDeleteOrder={deleteOrder}
             />
           ))}
         </div>
@@ -768,172 +1136,12 @@ export function OrdersTable({
                 </button>
 
                 {isOpen && (
-                  <div
-                    style={{
-                      padding: "0 20px 16px",
-                      background: "rgba(0,0,0,0.15)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 4,
-                        fontSize: 13,
-                        marginBottom: 12,
-                        paddingTop: 4,
-                      }}
-                    >
-                      {order.customer_phone && (
-                        <p>
-                          <span style={{ color: "var(--dash-muted)" }}>
-                            Tel:
-                          </span>{" "}
-                          <span style={{ color: "var(--dash-text)" }}>
-                            {order.customer_phone}
-                          </span>
-                        </p>
-                      )}
-                      {(order.customer_address ?? order.address) && (
-                        <p>
-                          <span style={{ color: "var(--dash-muted)" }}>
-                            Dirección:
-                          </span>{" "}
-                          <span style={{ color: "var(--dash-text)" }}>
-                            {order.customer_address ?? order.address}
-                          </span>
-                        </p>
-                      )}
-                      {order.notes && (
-                        <p>
-                          <span style={{ color: "var(--dash-muted)" }}>
-                            Notas:
-                          </span>{" "}
-                          <span style={{ color: "var(--dash-text)" }}>
-                            {order.notes}
-                          </span>
-                        </p>
-                      )}
-                    </div>
-
-                    {Array.isArray(order.items) && order.items.length > 0 && (
-                      <div
-                        style={{
-                          background: "var(--dash-surface)",
-                          borderRadius: 10,
-                          padding: 12,
-                          marginBottom: 12,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 6,
-                        }}
-                      >
-                        {(
-                          order.items as {
-                            name: string;
-                            quantity: number;
-                            price: number;
-                          }[]
-                        ).map((item, i) => (
-                          <div
-                            key={i}
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              fontSize: 12,
-                              color: "var(--dash-muted)",
-                            }}
-                          >
-                            <span>
-                              {item.quantity}× {item.name}
-                            </span>
-                            <span>{fmtARS(item.price * item.quantity)}</span>
-                          </div>
-                        ))}
-                        <div
-                          style={{
-                            borderTop: "1px solid var(--dash-border)",
-                            paddingTop: 6,
-                            display: "flex",
-                            justifyContent: "space-between",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: "var(--dash-text)",
-                          }}
-                        >
-                          <span>Total</span>
-                          <span style={{ color: "#f59e0b" }}>
-                            {fmtARS(order.total)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {STATUS_FLOW.map(({ key, label }) => {
-                        const m = getStatusMeta(key);
-                        const isCurrent =
-                          order.status === key ||
-                          (key === "pending" && order.status === "nuevo") ||
-                          (key === "confirmed" &&
-                            order.status === "preparando") ||
-                          (key === "ready" && order.status === "listo") ||
-                          (key === "delivered" && order.status === "entregado");
-                        return (
-                          <button
-                            key={key}
-                            onClick={() => {
-                              vibrate(40);
-                              updateStatus(order.id, key);
-                            }}
-                            style={{
-                              padding: "5px 12px",
-                              borderRadius: 999,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              transition: "all 0.15s",
-                              border: "1px solid",
-                              background: isCurrent ? m.bg : "transparent",
-                              color: isCurrent ? m.color : "var(--dash-muted)",
-                              borderColor: isCurrent
-                                ? m.border
-                                : "var(--dash-border)",
-                              WebkitTapHighlightColor: "transparent",
-                              userSelect: "none",
-                            }}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })}
-                      {order.status !== "cancelled" &&
-                        order.status !== "delivered" &&
-                        order.status !== "entregado" && (
-                          <button
-                            onClick={() => {
-                              vibrate([40, 30, 40]);
-                              updateStatus(order.id, "cancelled");
-                            }}
-                            style={{
-                              padding: "5px 12px",
-                              borderRadius: 999,
-                              fontSize: 12,
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              transition: "all 0.15s",
-                              border: "1px solid rgba(239,68,68,0.4)",
-                              background: "rgba(239,68,68,0.08)",
-                              color: "#f87171",
-                              WebkitTapHighlightColor: "transparent",
-                              userSelect: "none",
-                            }}
-                          >
-                            ✕ Cancelar
-                          </button>
-                        )}
-                    </div>
-                  </div>
+                  <OrderDetailView
+                    order={order}
+                    slug={slug}
+                    onUpdateStatus={updateStatus}
+                    onDeleteOrder={deleteOrder}
+                  />
                 )}
               </div>
             );

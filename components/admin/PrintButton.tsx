@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 
 export default function PrintButton({
   label = "Imprimir",
@@ -7,6 +8,17 @@ export default function PrintButton({
   label?: string;
   fullWidth?: boolean;
 }) {
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("print") === "1") {
+        const timer = setTimeout(() => {
+          window.print();
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
   return (
     <button
       onClick={() => window.print()}
