@@ -145,6 +145,7 @@ export default function SuperAdminShell({
         />
       )}
 
+      {/* Note: no inline display property — lg:hidden Tailwind class must win */}
       <div
         className="lg:hidden"
         style={{
@@ -153,9 +154,8 @@ export default function SuperAdminShell({
           left: 0,
           right: 0,
           background: "var(--dash-surface)",
-          borderBottom: "1px solid var(--dash-border)",
+          borderBottom: mobileOpen ? "1px solid var(--dash-border)" : "none",
           zIndex: 55,
-          display: "flex",
           flexDirection: "column",
           maxHeight: mobileOpen ? "calc(100vh - 56px)" : 0,
           opacity: mobileOpen ? 1 : 0,

@@ -6,6 +6,7 @@ export type DashboardKPIs = {
   avgTicketToday: number;
   avgTicketChange: number | null;
   topProductToday: { name: string; qty: number } | null;
+  activeProducts: number;
 };
 
 export type DailyRevenue = {

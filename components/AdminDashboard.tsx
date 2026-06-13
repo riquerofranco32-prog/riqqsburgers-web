@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ShoppingCart, DollarSign, TrendingUp, Star } from "lucide-react";
+import { ShoppingCart, DollarSign, TrendingUp, Package } from "lucide-react";
 import { KPICard } from "@/components/admin/dashboard/KPICard";
 import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
 import { CategoryDonut } from "@/components/admin/dashboard/CategoryDonut";
@@ -118,15 +118,6 @@ export default function AdminDashboard({
     range === "today" ? kpis.ordersToday : (analyticsData?.orderCount ?? 0);
   const activeAvgTicket =
     range === "today" ? kpis.avgTicketToday : (analyticsData?.avgTicket ?? 0);
-  const activeTopProduct =
-    range === "today"
-      ? kpis.topProductToday
-      : analyticsData?.topProducts[0]
-        ? {
-            name: analyticsData.topProducts[0].name,
-            qty: analyticsData.topProducts[0].quantity,
-          }
-        : null;
   const activeSalesData =
     range === "today" ? salesData : (analyticsData?.dailyRevenue ?? salesData);
 
@@ -261,16 +252,14 @@ export default function AdminDashboard({
           icon={TrendingUp}
         />
         <KPICard
-          label={`Top producto${range === "today" ? " hoy" : ""}`}
-          value={analyticsLoading ? "…" : (activeTopProduct?.name ?? "—")}
+          label="Productos activos"
+          value={analyticsLoading ? "…" : String(kpis.activeProducts)}
           sub={
-            analyticsLoading
-              ? undefined
-              : activeTopProduct
-                ? `${activeTopProduct.qty} unidades`
-                : "Sin pedidos aún"
+            kpis.activeProducts === 1
+              ? "1 producto en carta"
+              : `${kpis.activeProducts} productos en carta`
           }
-          icon={Star}
+          icon={Package}
         />
       </div>
 
