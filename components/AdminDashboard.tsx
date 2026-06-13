@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ShoppingCart, DollarSign, TrendingUp, Package } from "lucide-react";
+import {
+  ShoppingCart,
+  DollarSign,
+  TrendingUp,
+  Package,
+  Plus,
+  ClipboardList,
+  Eye,
+} from "lucide-react";
 import { KPICard } from "@/components/admin/dashboard/KPICard";
 import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
 import { CategoryDonut } from "@/components/admin/dashboard/CategoryDonut";
@@ -36,6 +44,13 @@ function fmtARS(n: number) {
     currency: "ARS",
     maximumFractionDigits: 0,
   }).format(n);
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Buenos días";
+  if (h < 19) return "Buenas tardes";
+  return "Buenas noches";
 }
 
 function getDateLabel(): string {
@@ -78,6 +93,7 @@ export default function AdminDashboard({
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
   const dateLabel = getDateLabel();
+  const greeting = getGreeting();
 
   const [range, setRange] = useState<AnalyticsRange>("today");
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -111,7 +127,6 @@ export default function AdminDashboard({
     }
   };
 
-  // Valores derivados según el rango activo
   const activeRevenue =
     range === "today" ? kpis.revenueToday : (analyticsData?.revenue ?? 0);
   const activeOrderCount =
@@ -135,27 +150,20 @@ export default function AdminDashboard({
   return (
     <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
       {/* Header */}
-      <div
-        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-dash-border/60"
-        style={{
-          paddingBottom: 20,
-        }}
-      >
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-5 border-b border-dash-border/60">
+        {/* Left: greeting + date */}
         <div>
           <h1
             style={{
-              fontSize: isMobile ? 24 : 28,
+              fontSize: isMobile ? 22 : 26,
               fontWeight: 800,
               letterSpacing: "-0.03em",
-              background:
-                "linear-gradient(135deg, var(--dash-text), var(--dash-muted))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              marginBottom: 4,
+              color: "var(--dash-text)",
+              marginBottom: 6,
+              lineHeight: 1.2,
             }}
           >
-            {tenantName}
+            {greeting}, {tenantName} 👋
           </h1>
           <p
             style={{
@@ -174,52 +182,141 @@ export default function AdminDashboard({
                 borderRadius: "50%",
                 background: "#4ade80",
                 boxShadow: "0 0 6px #4ade8088",
-                animation: "pulse-dot 2s ease-in-out infinite",
+                flexShrink: 0,
               }}
             />
-            {dateLabel}
+            {dateLabel} · Panel activo
           </p>
         </div>
 
-        {/* Range selector */}
+        {/* Right: range selector + export */}
         <div
+          className="flex items-center gap-3"
+          style={{ alignSelf: isMobile ? "flex-start" : "flex-start" }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 4,
+              background: "var(--dash-surface-2)",
+              borderRadius: 10,
+              padding: 4,
+              border: "1px solid var(--dash-border)",
+            }}
+          >
+            {RANGES.map((r) => (
+              <button
+                key={r}
+                onClick={() => handleRangeChange(r)}
+                style={{
+                  padding: "8px 14px",
+                  minHeight: 36,
+                  borderRadius: 7,
+                  border: "none",
+                  fontSize: 12,
+                  fontWeight: range === r ? 700 : 500,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  background:
+                    range === r
+                      ? "linear-gradient(135deg, var(--accent), #ff8c5a)"
+                      : "transparent",
+                  color: range === r ? "#fff" : "var(--dash-muted)",
+                  boxShadow:
+                    range === r ? "0 2px 8px rgba(255,107,53,0.3)" : "none",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                {RANGE_LABELS[r]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="flex flex-wrap gap-2">
+        <a
+          href={`/${slug}/admin/productos?new=1`}
           style={{
-            display: "flex",
-            gap: 4,
-            background: "var(--dash-surface-2)",
-            borderRadius: 10,
-            padding: 4,
-            border: "1px solid var(--dash-border)",
-            alignSelf: isMobile ? "flex-start" : "auto",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 500,
+            background: "var(--accent)",
+            color: "#fff",
+            textDecoration: "none",
+            transition: "opacity 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = "0.88";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = "1";
           }}
         >
-          {RANGES.map((r) => (
-            <button
-              key={r}
-              onClick={() => handleRangeChange(r)}
-              style={{
-                padding: "8px 14px",
-                minHeight: 40,
-                borderRadius: 7,
-                border: "none",
-                fontSize: 12,
-                fontWeight: range === r ? 700 : 500,
-                cursor: "pointer",
-                transition: "all 0.15s",
-                background:
-                  range === r
-                    ? "linear-gradient(135deg, var(--accent), #ff8c5a)"
-                    : "transparent",
-                color: range === r ? "#fff" : "var(--dash-muted)",
-                boxShadow:
-                  range === r ? "0 2px 8px rgba(255,107,53,0.3)" : "none",
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              {RANGE_LABELS[r]}
-            </button>
-          ))}
-        </div>
+          <Plus style={{ width: 14, height: 14 }} />
+          Agregar producto
+        </a>
+        <a
+          href={`/${slug}/admin/pedidos`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 500,
+            background: "var(--dash-surface-2)",
+            color: "var(--dash-muted)",
+            border: "1px solid var(--dash-border)",
+            textDecoration: "none",
+            transition: "border-color 0.15s, color 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
+            e.currentTarget.style.color = "var(--dash-text)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--dash-border)";
+            e.currentTarget.style.color = "var(--dash-muted)";
+          }}
+        >
+          <ClipboardList style={{ width: 14, height: 14 }} />
+          Ver pedidos
+        </a>
+        <a
+          href={`/${slug}/admin/preview`}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 500,
+            background: "var(--dash-surface-2)",
+            color: "var(--dash-muted)",
+            border: "1px solid var(--dash-border)",
+            textDecoration: "none",
+            transition: "border-color 0.15s, color 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
+            e.currentTarget.style.color = "var(--dash-text)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "var(--dash-border)";
+            e.currentTarget.style.color = "var(--dash-muted)";
+          }}
+        >
+          <Eye style={{ width: 14, height: 14 }} />
+          Ver menú
+        </a>
       </div>
 
       {/* KPIs */}
@@ -285,8 +382,10 @@ export default function AdminDashboard({
         <TopProductsList products={topProducts} showRevenue={!isMobile} />
       </div>
 
-      {/* Reportes */}
-      <ExportReportButton slug={slug} />
+      {/* Export — mobile fallback */}
+      <div className="sm:hidden">
+        <ExportReportButton slug={slug} />
+      </div>
     </div>
   );
 }

@@ -21,13 +21,28 @@ export function KPICard({
 }: KPICardProps) {
   if (loading) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl p-5 flex flex-col gap-4">
+      <div
+        className="border border-dash-border rounded-2xl p-5 flex flex-col gap-3"
+        style={{
+          background:
+            "linear-gradient(145deg, var(--dash-surface) 0%, rgba(28,33,40,0.95) 100%)",
+          boxShadow:
+            "0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
+        }}
+      >
         <div className="flex items-start justify-between">
-          <div className="h-2.5 w-24 bg-dash-surface-2 rounded animate-pulse" />
-          <div className="h-4 w-4 bg-dash-surface-2 rounded animate-pulse" />
+          <div
+            className="rounded-xl animate-pulse"
+            style={{
+              width: 40,
+              height: 40,
+              background: "rgba(255,107,53,0.08)",
+            }}
+          />
+          <div className="h-5 w-16 bg-dash-surface-2 rounded-full animate-pulse" />
         </div>
+        <div className="h-2.5 w-24 bg-dash-surface-2 rounded animate-pulse mt-2" />
         <div className="h-7 w-28 bg-dash-surface-2 rounded animate-pulse" />
-        <div className="h-4 w-20 bg-dash-surface-2 rounded animate-pulse" />
       </div>
     );
   }
@@ -38,73 +53,121 @@ export function KPICard({
 
   return (
     <div
-      className="border border-dash-border rounded-2xl p-5 flex flex-col gap-3 min-h-[120px]"
+      className="border border-dash-border rounded-2xl p-5 flex flex-col min-h-[128px]"
       style={{
         background:
-          "linear-gradient(135deg, var(--dash-surface), var(--dash-surface-2))",
+          "linear-gradient(145deg, var(--dash-surface) 0%, rgba(28,33,40,0.95) 100%)",
         boxShadow:
-          "0 2px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)",
-        transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s",
+          "0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
+        transition:
+          "border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease",
         cursor: "default",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "rgba(255,107,53,0.35)";
-        e.currentTarget.style.transform = "translateY(-2px)";
+        e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
+        e.currentTarget.style.transform = "translateY(-1px)";
         e.currentTarget.style.boxShadow =
-          "0 8px 32px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,107,53,0.08), inset 0 1px 0 rgba(255,255,255,0.08)";
+          "0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.borderColor = "var(--dash-border)";
         e.currentTarget.style.transform = "translateY(0)";
         e.currentTarget.style.boxShadow =
-          "0 2px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05)";
+          "0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)";
       }}
     >
-      {/* Header */}
+      {/* Top row: icon bubble + change badge */}
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] uppercase tracking-wider text-dash-muted font-medium leading-none">
-          {label}
-        </p>
-        <Icon className="w-4 h-4 text-dash-muted/40 flex-shrink-0 mt-0.5" />
+        {/* Icon bubble */}
+        <div
+          className="flex items-center justify-center flex-shrink-0"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            background: "rgba(255,107,53,0.12)",
+          }}
+        >
+          <Icon style={{ color: "var(--accent)", width: 18, height: 18 }} />
+        </div>
+
+        {/* Change badge */}
+        {hasChange ? (
+          <div
+            className="flex items-center gap-1 flex-shrink-0"
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              padding: "3px 8px",
+              borderRadius: 999,
+              background: isPositive
+                ? "rgba(34,197,94,0.15)"
+                : isNegative
+                  ? "rgba(239,68,68,0.15)"
+                  : "var(--dash-surface-2)",
+              color: isPositive
+                ? "#4ade80"
+                : isNegative
+                  ? "#f87171"
+                  : "var(--dash-muted)",
+            }}
+          >
+            <span>
+              {isPositive ? "+" : ""}
+              {(change as number).toFixed(1)}%
+            </span>
+            {changeLabel && (
+              <span style={{ opacity: 0.6, fontSize: 10 }}>{changeLabel}</span>
+            )}
+          </div>
+        ) : null}
       </div>
+
+      {/* Label */}
+      <p
+        style={{
+          fontSize: 13,
+          color: "var(--dash-muted)",
+          marginTop: 16,
+          marginBottom: 4,
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </p>
 
       {/* Value */}
       <p
-        className="font-mono leading-none tracking-tight truncate"
-        style={{ color: "var(--accent)", fontSize: 32, fontWeight: 800 }}
+        style={{
+          fontSize: 32,
+          fontWeight: 800,
+          color: "var(--dash-text)",
+          letterSpacing: "-0.02em",
+          lineHeight: 1,
+          fontFamily: "var(--font-mono, monospace)",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
       >
         {value}
       </p>
 
-      {hasChange ? (
-        <div
-          className={`self-start flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-            isPositive
-              ? "bg-green-400/10 text-green-400"
-              : isNegative
-                ? "bg-red-400/10 text-red-400"
-                : "bg-dash-surface-2 text-dash-muted"
-          }`}
-        >
-          <span>
-            {isPositive ? "↑" : isNegative ? "↓" : ""}
-            {isPositive ? "+" : ""}
-            {(change as number).toFixed(1)}%
-          </span>
-          {changeLabel && (
-            <span className="opacity-60 ml-0.5">{changeLabel}</span>
-          )}
-        </div>
-      ) : sub ? (
-        <p className="text-[11px] text-dash-muted/60 leading-none truncate">
-          {sub}
-        </p>
-      ) : (
+      {/* Sub (when no change badge) */}
+      {!hasChange && sub && (
         <p
-          className="text-[11px] font-medium"
-          style={{ color: "var(--dash-muted)" }}
+          style={{
+            fontSize: 11,
+            color: "var(--dash-muted)",
+            opacity: 0.6,
+            marginTop: 4,
+            lineHeight: 1,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
         >
-          —
+          {sub}
         </p>
       )}
     </div>

@@ -8,7 +8,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
 import type { DailyRevenue } from "@/types/dashboard";
 
@@ -36,8 +35,36 @@ function CustomTooltip({
         border: "1px solid var(--dash-border)",
         borderRadius: 12,
         padding: "8px 12px",
+        position: "relative",
       }}
     >
+      {/* Arrow */}
+      <div
+        style={{
+          position: "absolute",
+          top: -6,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 0,
+          height: 0,
+          borderLeft: "6px solid transparent",
+          borderRight: "6px solid transparent",
+          borderBottom: "6px solid var(--dash-border)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: -5,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 0,
+          height: 0,
+          borderLeft: "6px solid transparent",
+          borderRight: "6px solid transparent",
+          borderBottom: "6px solid var(--dash-surface-2)",
+        }}
+      />
       <p style={{ fontSize: 11, color: "var(--dash-muted)", marginBottom: 4 }}>
         {label}
       </p>
@@ -71,28 +98,53 @@ export function SalesAreaChart({
   if (loading) {
     return (
       <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
-        <div className="h-2.5 w-44 bg-dash-surface-2 rounded animate-pulse mb-5" />
+        <div className="h-4 w-44 bg-dash-surface-2 rounded animate-pulse mb-1" />
+        <div className="h-3 w-28 bg-dash-surface-2 rounded animate-pulse mb-5" />
         <div className="h-[220px] bg-dash-surface-2/60 rounded-xl animate-pulse" />
       </div>
     );
   }
 
-  const maxVal = Math.max(...data.map((d) => d.total), 1);
-
   return (
     <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
-      <p className="text-[11px] uppercase tracking-wider text-dash-muted font-medium mb-5">
-        {title}
-      </p>
+      {/* Header */}
+      <div className="mb-5">
+        <p
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--dash-text)",
+            lineHeight: 1.2,
+          }}
+        >
+          Ventas de la semana
+        </p>
+        <p
+          style={{
+            fontSize: 12,
+            color: "var(--dash-muted)",
+            marginTop: 3,
+          }}
+        >
+          {title}
+        </p>
+      </div>
+
       <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart
           data={data}
           margin={{ top: 5, right: 20, left: 0, bottom: 0 }}
           barCategoryGap="30%"
         >
+          <defs>
+            <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FF6B35" stopOpacity={1} />
+              <stop offset="100%" stopColor="#FF6B35" stopOpacity={0.2} />
+            </linearGradient>
+          </defs>
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="var(--dash-border)"
+            stroke="rgba(255,255,255,0.05)"
             vertical={false}
           />
           <XAxis
@@ -112,16 +164,12 @@ export function SalesAreaChart({
             content={<CustomTooltip />}
             cursor={{ fill: "rgba(255,107,53,0.06)", radius: 6 }}
           />
-          <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={48}>
-            {data.map((entry, index) => (
-              <Cell
-                key={`cell-${index}`}
-                fill={
-                  entry.total === maxVal ? "#FF6B35" : "rgba(255,107,53,0.45)"
-                }
-              />
-            ))}
-          </Bar>
+          <Bar
+            dataKey="total"
+            radius={[6, 6, 0, 0]}
+            maxBarSize={48}
+            fill="url(#barGradient)"
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>
