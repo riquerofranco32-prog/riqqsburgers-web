@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
+import { safeDbError } from "@/lib/db-error";
 
 const ALLOWED_FIELDS = ["name", "emoji", "active", "sort_order"] as const;
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -63,7 +64,7 @@ export async function PATCH(
     .eq("id", id);
 
   if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
 
   revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ ok: true });
@@ -124,7 +125,7 @@ export async function DELETE(
   const { error } = await supabase.from("categories").delete().eq("id", id);
 
   if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
 
   revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ ok: true });

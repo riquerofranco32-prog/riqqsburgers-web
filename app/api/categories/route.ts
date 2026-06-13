@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
+import { safeDbError } from "@/lib/db-error";
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
 
   revalidatePath(`/${body.slug}`, "layout");
   return NextResponse.json(data, { status: 201 });

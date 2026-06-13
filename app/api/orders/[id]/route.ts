@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/authz";
+import { safeDbError } from "@/lib/db-error";
 
 const ALLOWED_STATUSES = [
   "pending",
@@ -62,6 +63,6 @@ export async function PATCH(
     .eq("id", id);
 
   if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

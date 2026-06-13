@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertSuperAdmin } from "@/lib/authz";
+import { safeDbError } from "@/lib/db-error";
 
 export async function GET(
   req: NextRequest,
@@ -58,7 +59,7 @@ export async function POST(
     .select()
     .single();
   if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
 
   const { data: tenant } = await supabase
     .from("tenants")

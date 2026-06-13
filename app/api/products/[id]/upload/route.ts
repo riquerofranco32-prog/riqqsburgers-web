@@ -38,11 +38,29 @@ export async function POST(
     );
   }
 
+  let tenantId: string;
   try {
-    await assertTenantAdmin(slug);
+    const result = await assertTenantAdmin(slug);
+    tenantId = result.tenantId;
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
+  }
+
+  // Verify the product belongs to this tenant before allowing upload
+  const supabaseCheck = createServerClient();
+  const { data: productCheck } = await supabaseCheck
+    .from("products")
+    .select("id")
+    .eq("id", id)
+    .eq("tenant_id", tenantId)
+    .maybeSingle();
+
+  if (!productCheck) {
+    return NextResponse.json(
+      { error: "Producto no encontrado o no pertenece a este restaurante" },
+      { status: 403 },
+    );
   }
 
   if (file.size > MAX_SIZE_BYTES) {
@@ -63,7 +81,7 @@ export async function POST(
   const path = `${slug}/${id}-${Date.now()}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const supabase = createServerClient();
+  const supabase = supabaseCheck;
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)

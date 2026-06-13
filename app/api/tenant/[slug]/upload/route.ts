@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
+import { safeDbError } from "@/lib/db-error";
 
 const BUCKET = "restaurant-logos";
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -78,7 +79,10 @@ export async function POST(
 
   if (uploadError) {
     console.error("[upload-logo] Supabase storage error:", uploadError);
-    return NextResponse.json({ error: uploadError.message }, { status: 500 });
+    return NextResponse.json(
+      { error: safeDbError(uploadError, "Error al subir imagen") },
+      { status: 500 },
+    );
   }
 
   const {

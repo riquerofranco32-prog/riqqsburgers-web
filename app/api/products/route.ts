@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
+import { safeDbError } from "@/lib/db-error";
 import { canAddProduct } from "@/lib/subscriptions";
 import { PLANS } from "@/lib/plans";
 import type { PlanId } from "@/lib/plans";
@@ -25,6 +26,71 @@ export async function POST(req: NextRequest) {
       { error: "Faltan campos requeridos" },
       { status: 400 },
     );
+  }
+
+  if (
+    typeof body.name !== "string" ||
+    body.name.trim().length === 0 ||
+    body.name.length > 200
+  ) {
+    return NextResponse.json(
+      { error: "Nombre inválido (máx. 200 caracteres)" },
+      { status: 400 },
+    );
+  }
+
+  if (
+    typeof body.price !== "number" ||
+    !isFinite(body.price) ||
+    body.price < 0 ||
+    body.price > 10_000_000
+  ) {
+    return NextResponse.json({ error: "Precio inválido" }, { status: 400 });
+  }
+
+  if (body.badge !== undefined && body.badge !== null) {
+    if (typeof body.badge !== "string" || body.badge.length > 50) {
+      return NextResponse.json(
+        { error: "Badge inválido (máx. 50 caracteres)" },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (body.description !== undefined && body.description !== null) {
+    if (
+      typeof body.description !== "string" ||
+      body.description.length > 1000
+    ) {
+      return NextResponse.json(
+        { error: "Descripción demasiado larga (máx. 1000 caracteres)" },
+        { status: 400 },
+      );
+    }
+  }
+
+  if (body.extras !== undefined && body.extras !== null) {
+    if (!Array.isArray(body.extras) || body.extras.length > 20) {
+      return NextResponse.json(
+        { error: "extras inválido (máx. 20 opciones)" },
+        { status: 400 },
+      );
+    }
+    for (const extra of body.extras) {
+      if (
+        typeof extra.name !== "string" ||
+        extra.name.length > 100 ||
+        typeof extra.price !== "number" ||
+        !isFinite(extra.price) ||
+        extra.price < 0 ||
+        extra.price > 10_000_000
+      ) {
+        return NextResponse.json(
+          { error: "Extra inválido en extras" },
+          { status: 400 },
+        );
+      }
+    }
   }
 
   let tenantId: string;
@@ -74,7 +140,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error)
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
 
   revalidatePath(`/${body.slug}`, "layout");
   return NextResponse.json(data, { status: 201 });
