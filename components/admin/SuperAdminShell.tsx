@@ -54,7 +54,7 @@ export default function SuperAdminShell({
       }}
     >
       <header
-        className="lg:hidden"
+        className="lg:hidden flex items-center justify-between"
         style={{
           position: "fixed",
           top: 0,
@@ -62,9 +62,6 @@ export default function SuperAdminShell({
           right: 0,
           background: "var(--dash-surface)",
           borderBottom: "1px solid var(--dash-border)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
           paddingLeft: 4,
           paddingRight: 4,
           paddingTop: "env(safe-area-inset-top, 0px)",
