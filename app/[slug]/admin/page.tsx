@@ -282,6 +282,7 @@ export default async function AdminPage({
   const categoryData = computeCategoryRevenue(orders, products, categories);
   const topProducts = computeTopProducts(orders, products, categories);
   const recentOrders = orders.slice(0, 10);
+  const unavailableProducts = products.filter((p) => !p.available);
 
   return (
     <>
@@ -296,8 +297,9 @@ export default async function AdminPage({
         salesData={salesData}
         categoryData={categoryData}
         recentOrders={recentOrders}
+        allOrders={orders}
         topProducts={topProducts}
-        unavailableCount={unavailableCount ?? 0}
+        unavailableProducts={unavailableProducts}
       />
     </>
   );

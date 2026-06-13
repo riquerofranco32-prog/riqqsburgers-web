@@ -6,30 +6,51 @@ export function useCountUp(
   enabled = true,
 ): number {
   const [current, setCurrent] = useState(enabled ? 0 : target);
-  const frameRef = useRef<number>();
-  const startRef = useRef<number>();
+  const currentRef = useRef(current);
+
+  // Sync ref with the current state
+  useEffect(() => {
+    currentRef.current = current;
+  }, [current]);
 
   useEffect(() => {
-    if (!enabled || target === 0) {
-      setCurrent(target);
-      return;
-    }
-    startRef.current = undefined;
-    const animate = (ts: number) => {
-      if (!startRef.current) startRef.current = ts;
-      const progress = Math.min((ts - startRef.current) / duration, 1);
+    if (!enabled) return;
+
+    const startValue = currentRef.current;
+    const endValue = target;
+
+    if (startValue === endValue) return;
+
+    let startTime: number | undefined;
+    let frameId: number;
+
+    const animate = (timestamp: number) => {
+      if (startTime === undefined) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
       // ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
-      setCurrent(Math.round(eased * target));
+      const nextVal = Math.round(startValue + (endValue - startValue) * eased);
+      setCurrent(nextVal);
+
       if (progress < 1) {
-        frameRef.current = requestAnimationFrame(animate);
+        frameId = requestAnimationFrame(animate);
       }
     };
-    frameRef.current = requestAnimationFrame(animate);
+
+    frameId = requestAnimationFrame(animate);
     return () => {
-      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      cancelAnimationFrame(frameId);
     };
   }, [target, duration, enabled]);
+
+  // Sync target directly ONLY on initial mount if disabled
+  const firstMount = useRef(true);
+  useEffect(() => {
+    if (!enabled && firstMount.current) {
+      setCurrent(target);
+      firstMount.current = false;
+    }
+  }, [target, enabled]);
 
   return current;
 }

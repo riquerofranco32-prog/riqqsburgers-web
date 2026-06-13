@@ -42,13 +42,14 @@ function formatAnimated(original: string, animated: number): string {
 
 function AnimatedValue({ value }: { value: string }) {
   const numeric = parseNumericValue(value);
+  const isLoading = value === "…";
   const animated = useCountUp(
     numeric ?? 0,
     800,
-    numeric !== null && numeric > 0,
+    !isLoading,
   );
 
-  if (numeric === null || numeric === 0) return <>{value}</>;
+  if (isLoading || numeric === null) return <>{value}</>;
   return <>{formatAnimated(value, animated)}</>;
 }
 

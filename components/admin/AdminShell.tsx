@@ -80,6 +80,7 @@ function DesktopNavLinks({
               href={href}
               title={collapsed ? item.label : undefined}
               style={{
+                position: "relative",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
@@ -115,11 +116,14 @@ function DesktopNavLinks({
               }}
             >
               <item.icon size={16} strokeWidth={1.8} />
+              {collapsed && item.href === "/pedidos" && (
+                <PendingOrdersBadge tenantId={tenantId} collapsed={true} />
+              )}
               {!collapsed && (
                 <>
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.href === "/pedidos" && (
-                    <PendingOrdersBadge tenantId={tenantId} />
+                    <PendingOrdersBadge tenantId={tenantId} collapsed={false} />
                   )}
                 </>
               )}

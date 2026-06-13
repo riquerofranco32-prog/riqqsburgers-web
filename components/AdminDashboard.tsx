@@ -18,7 +18,7 @@ import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
 import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
 import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
 import ExportReportButton from "@/components/admin/ExportReportButton";
-import type { Order } from "@/types/supabase";
+import type { Order, Product } from "@/types/supabase";
 import type {
   DashboardKPIs,
   DailyRevenue,
@@ -80,8 +80,9 @@ interface AdminDashboardProps {
   salesData: DailyRevenue[];
   categoryData: CategoryRevenue[];
   recentOrders: Order[];
+  allOrders: Order[];
   topProducts: TopProduct[];
-  unavailableCount: number;
+  unavailableProducts: Product[];
 }
 
 export default function AdminDashboard({
@@ -92,8 +93,9 @@ export default function AdminDashboard({
   salesData,
   categoryData,
   recentOrders,
+  allOrders,
   topProducts,
-  unavailableCount,
+  unavailableProducts,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
   const dateLabel = getDateLabel();
@@ -154,20 +156,24 @@ export default function AdminDashboard({
   return (
     <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
       <style>{`
-        @keyframes fade-up {
-          from { opacity: 0; transform: translateY(16px); }
+        @keyframes premium-fade-up {
+          from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        .stagger-item {
+          opacity: 0;
+          animation: premium-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
       `}</style>
+
       {/* Alerta productos sin stock */}
-      <LowStockAlert unavailableCount={unavailableCount} slug={slug} />
+      <LowStockAlert unavailableProducts={unavailableProducts} slug={slug} />
+
       {/* Header */}
       <div
-        className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-5 border-b border-dash-border/60"
+        className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-5 border-b border-dash-border/60 stagger-item"
         style={{
-          animation: "fade-up 0.4s ease forwards",
           animationDelay: "0ms",
-          opacity: 0,
         }}
       >
         {/* Left: greeting + date */}
@@ -254,16 +260,10 @@ export default function AdminDashboard({
       </div>
 
       {/* Quick actions */}
-      <div
-        className="flex flex-wrap gap-2"
-        style={{
-          animation: "fade-up 0.4s ease forwards",
-          animationDelay: "60ms",
-          opacity: 0,
-        }}
-      >
+      <div className="flex flex-wrap gap-2">
         <a
           href={`/${slug}/admin/productos?new=1`}
+          className="stagger-item"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -276,6 +276,7 @@ export default function AdminDashboard({
             color: "#fff",
             textDecoration: "none",
             transition: "opacity 0.15s",
+            animationDelay: "80ms",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.opacity = "0.88";
@@ -289,6 +290,7 @@ export default function AdminDashboard({
         </a>
         <a
           href={`/${slug}/admin/pedidos`}
+          className="stagger-item"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -302,6 +304,7 @@ export default function AdminDashboard({
             border: "1px solid var(--dash-border)",
             textDecoration: "none",
             transition: "border-color 0.15s, color 0.15s",
+            animationDelay: "120ms",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
@@ -317,6 +320,7 @@ export default function AdminDashboard({
         </a>
         <a
           href={`/${slug}/admin/preview`}
+          className="stagger-item"
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -330,6 +334,7 @@ export default function AdminDashboard({
             border: "1px solid var(--dash-border)",
             textDecoration: "none",
             transition: "border-color 0.15s, color 0.15s",
+            animationDelay: "160ms",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
@@ -346,103 +351,93 @@ export default function AdminDashboard({
       </div>
 
       {/* KPIs */}
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
-        style={{
-          animation: "fade-up 0.4s ease forwards",
-          animationDelay: "120ms",
-          opacity: 0,
-        }}
-      >
-        <KPICard
-          label={`Pedidos${range === "today" ? " hoy" : ""}`}
-          value={analyticsLoading ? "…" : String(activeOrderCount)}
-          change={range === "today" ? kpis.ordersTodayChange : null}
-          changeLabel={rangeLabel}
-          icon={ShoppingCart}
-        />
-        <KPICard
-          label={`Ventas${range === "today" ? " hoy" : ""}`}
-          value={analyticsLoading ? "…" : fmtARS(activeRevenue)}
-          change={range === "today" ? kpis.revenueTodayChange : null}
-          changeLabel={rangeLabel}
-          icon={DollarSign}
-        />
-        <KPICard
-          label="Ticket promedio"
-          value={
-            analyticsLoading
-              ? "…"
-              : activeAvgTicket > 0
-                ? fmtARS(activeAvgTicket)
-                : "—"
-          }
-          change={range === "today" ? kpis.avgTicketChange : null}
-          changeLabel={rangeLabel}
-          icon={TrendingUp}
-        />
-        <KPICard
-          label="Productos activos"
-          value={analyticsLoading ? "…" : String(kpis.activeProducts)}
-          sub={
-            kpis.activeProducts === 1
-              ? "1 producto en carta"
-              : `${kpis.activeProducts} productos en carta`
-          }
-          icon={Package}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="stagger-item" style={{ animationDelay: "240ms" }}>
+          <KPICard
+            label={`Pedidos${range === "today" ? " hoy" : ""}`}
+            value={analyticsLoading ? "…" : String(activeOrderCount)}
+            change={range === "today" ? kpis.ordersTodayChange : null}
+            changeLabel={rangeLabel}
+            icon={ShoppingCart}
+          />
+        </div>
+        <div className="stagger-item" style={{ animationDelay: "300ms" }}>
+          <KPICard
+            label={`Ventas${range === "today" ? " hoy" : ""}`}
+            value={analyticsLoading ? "…" : fmtARS(activeRevenue)}
+            change={range === "today" ? kpis.revenueTodayChange : null}
+            changeLabel={rangeLabel}
+            icon={DollarSign}
+          />
+        </div>
+        <div className="stagger-item" style={{ animationDelay: "360ms" }}>
+          <KPICard
+            label="Ticket promedio"
+            value={
+              analyticsLoading
+                ? "…"
+                : activeAvgTicket > 0
+                  ? fmtARS(activeAvgTicket)
+                  : "—"
+            }
+            change={range === "today" ? kpis.avgTicketChange : null}
+            changeLabel={rangeLabel}
+            icon={TrendingUp}
+          />
+        </div>
+        <div className="stagger-item" style={{ animationDelay: "420ms" }}>
+          <KPICard
+            label="Productos activos"
+            value={analyticsLoading ? "…" : String(kpis.activeProducts)}
+            sub={
+              kpis.activeProducts === 1
+                ? "1 producto en carta"
+                : `${kpis.activeProducts} productos en carta`
+            }
+            icon={Package}
+          />
+        </div>
       </div>
 
       {/* Charts */}
-      <div
-        className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4"
-        style={{
-          animation: "fade-up 0.4s ease forwards",
-          animationDelay: "200ms",
-          opacity: 0,
-        }}
-      >
-        <SalesAreaChart
-          data={activeSalesData}
-          loading={analyticsLoading}
-          chartHeight={isMobile ? 200 : 280}
-          title={chartTitle}
-        />
-        <CategoryDonut data={categoryData} compact={isMobile} />
+      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+        <div className="stagger-item" style={{ animationDelay: "500ms" }}>
+          <SalesAreaChart
+            data={activeSalesData}
+            loading={analyticsLoading}
+            chartHeight={isMobile ? 200 : 280}
+            title={chartTitle}
+          />
+        </div>
+        <div className="stagger-item" style={{ animationDelay: "560ms" }}>
+          <CategoryDonut data={categoryData} compact={isMobile} />
+        </div>
       </div>
 
       {/* Horas pico + Top productos */}
-      <div
-        className="grid grid-cols-1 lg:grid-cols-2 gap-4"
-        style={{
-          animation: "fade-up 0.4s ease forwards",
-          animationDelay: "280ms",
-          opacity: 0,
-        }}
-      >
-        <PeakHoursWidget orders={recentOrders} />
-        <TopProductsList products={topProducts} showRevenue={!isMobile} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="stagger-item" style={{ animationDelay: "640ms" }}>
+          <PeakHoursWidget orders={allOrders} />
+        </div>
+        <div className="stagger-item" style={{ animationDelay: "700ms" }}>
+          <TopProductsList products={topProducts} showRevenue={!isMobile} />
+        </div>
       </div>
 
       {/* Tables */}
-      <div
-        className="grid md:grid-cols-2 gap-4"
-        style={{
-          animation: "fade-up 0.4s ease forwards",
-          animationDelay: "340ms",
-          opacity: 0,
-        }}
-      >
-        <RecentOrdersTable
-          orders={recentOrders}
-          slug={slug}
-          tenantId={tenantId}
-          maxRows={isMobile ? 5 : 10}
-        />
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="stagger-item" style={{ animationDelay: "780ms" }}>
+          <RecentOrdersTable
+            orders={recentOrders}
+            slug={slug}
+            tenantId={tenantId}
+            maxRows={isMobile ? 5 : 10}
+          />
+        </div>
       </div>
 
       {/* Export — mobile fallback */}
-      <div className="sm:hidden">
+      <div className="sm:hidden stagger-item" style={{ animationDelay: "840ms" }}>
         <ExportReportButton slug={slug} />
       </div>
     </div>
