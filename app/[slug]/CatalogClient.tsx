@@ -1264,7 +1264,7 @@ export default function CatalogClient({
           </div>
         )}
         {/* ── Desktop 3-column layout ── */}
-        <div className="lg:flex">
+        <div className="lg:flex w-full min-h-screen">
           {/* Desktop category sidebar */}
           <aside
             className="hidden lg:flex lg:flex-col"
