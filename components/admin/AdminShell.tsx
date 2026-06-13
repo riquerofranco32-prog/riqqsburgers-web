@@ -342,9 +342,8 @@ export default function AdminShell({
       )}
 
       {/* ── MOBILE DROPDOWN MENU ────────────────────────────────────────────── */}
-      {/* Note: no inline display property — lg:hidden Tailwind class must win */}
       <div
-        className="lg:hidden"
+        className="lg:hidden flex flex-col"
         style={{
           position: "fixed",
           top: 56,

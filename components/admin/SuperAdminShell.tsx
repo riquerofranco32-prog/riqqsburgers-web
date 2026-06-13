@@ -5,7 +5,13 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import TakefyyLogo from "@/components/TakefyyLogo";
-import { LayoutDashboard, Store, LogOut } from "lucide-react";
+import {
+  LayoutDashboard,
+  Store,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -142,9 +148,8 @@ export default function SuperAdminShell({
         />
       )}
 
-      {/* Note: no inline display property — lg:hidden Tailwind class must win */}
       <div
-        className="lg:hidden"
+        className="lg:hidden flex flex-col"
         style={{
           position: "fixed",
           top: 56,
@@ -271,7 +276,7 @@ export default function SuperAdminShell({
               color: "var(--dash-muted)",
             }}
           >
-            {collapsed ? "→" : "←"}
+            {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         </div>
 
@@ -345,7 +350,7 @@ export default function SuperAdminShell({
           flex: 1;
           min-height: 100vh;
           background: var(--dash-bg);
-          padding-top: 56px;
+          padding-top: calc(56px + env(safe-area-inset-top, 0px));
         }
         @media (min-width: 1024px) {
           .super-admin-main {
