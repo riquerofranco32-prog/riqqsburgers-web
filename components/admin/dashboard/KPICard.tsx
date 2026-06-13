@@ -18,7 +18,10 @@ interface KPICardProps {
  * Ej: "$12.345" → 12345, "42" → 42, "—" → null
  */
 function parseNumericValue(value: string): number | null {
-  const cleaned = value.replace(/[^0-9.]/g, "");
+  const isCurrency = value.includes("$");
+  const cleaned = isCurrency
+    ? value.replace(/[^0-9]/g, "")
+    : value.replace(/[^0-9.]/g, "");
   if (!cleaned) return null;
   const n = parseFloat(cleaned);
   return isNaN(n) ? null : n;

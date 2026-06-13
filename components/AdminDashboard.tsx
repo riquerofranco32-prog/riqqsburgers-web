@@ -288,17 +288,20 @@ export default function AdminDashboard({
             borderRadius: 8,
             fontSize: 13,
             fontWeight: 500,
-            background: "var(--accent)",
+            background: "linear-gradient(135deg, var(--accent) 0%, #ff8c5a 100%)",
             color: "#fff",
             textDecoration: "none",
-            transition: "opacity 0.15s",
+            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease",
             animationDelay: "80ms",
+            boxShadow: "0 2px 8px rgba(255,107,53,0.2)",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = "0.88";
+            e.currentTarget.style.transform = "translateY(-1.5px) scale(1.02)";
+            e.currentTarget.style.boxShadow = "0 6px 16px rgba(255,107,53,0.35)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = "1";
+            e.currentTarget.style.transform = "none";
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,107,53,0.2)";
           }}
         >
           <Plus style={{ width: 14, height: 14 }} />
@@ -319,16 +322,20 @@ export default function AdminDashboard({
             color: "var(--dash-muted)",
             border: "1px solid var(--dash-border)",
             textDecoration: "none",
-            transition: "border-color 0.15s, color 0.15s",
+            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
             animationDelay: "120ms",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
+            e.currentTarget.style.borderColor = "rgba(255,107,53,0.4)";
             e.currentTarget.style.color = "var(--dash-text)";
+            e.currentTarget.style.transform = "translateY(-1.5px) scale(1.02)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = "var(--dash-border)";
             e.currentTarget.style.color = "var(--dash-muted)";
+            e.currentTarget.style.transform = "none";
+            e.currentTarget.style.boxShadow = "none";
           }}
         >
           <ClipboardList style={{ width: 14, height: 14 }} />
@@ -349,16 +356,20 @@ export default function AdminDashboard({
             color: "var(--dash-muted)",
             border: "1px solid var(--dash-border)",
             textDecoration: "none",
-            transition: "border-color 0.15s, color 0.15s",
+            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
             animationDelay: "160ms",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
+            e.currentTarget.style.borderColor = "rgba(255,107,53,0.4)";
             e.currentTarget.style.color = "var(--dash-text)";
+            e.currentTarget.style.transform = "translateY(-1.5px) scale(1.02)";
+            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = "var(--dash-border)";
             e.currentTarget.style.color = "var(--dash-muted)";
+            e.currentTarget.style.transform = "none";
+            e.currentTarget.style.boxShadow = "none";
           }}
         >
           <Eye style={{ width: 14, height: 14 }} />
