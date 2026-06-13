@@ -409,7 +409,10 @@ export default function AdminShell({
                 <item.icon
                   size={18}
                   strokeWidth={2}
-                  style={{ flexShrink: 0, color: isActive ? "#fff" : "var(--accent)" }}
+                  style={{
+                    flexShrink: 0,
+                    color: isActive ? "#fff" : "var(--accent)",
+                  }}
                 />
                 {item.label}
               </Link>
@@ -501,13 +504,13 @@ export default function AdminShell({
 
       {/* ── DESKTOP SIDEBAR ─────────────────────────────────────────────────── */}
       <aside
-        className="hidden lg:flex"
+        className="hidden lg:flex lg:flex-col"
         style={{
           width: collapsed ? 64 : 240,
           minHeight: "100vh",
-          background: "linear-gradient(180deg, var(--dash-surface) 0%, var(--dash-surface-2) 100%)",
+          background:
+            "linear-gradient(180deg, var(--dash-surface) 0%, var(--dash-surface-2) 100%)",
           borderRight: "1px solid var(--dash-border)",
-          flexDirection: "column",
           transition: "width 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           position: "fixed",
           top: 0,
