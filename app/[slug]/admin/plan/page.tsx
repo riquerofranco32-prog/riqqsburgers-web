@@ -43,7 +43,6 @@ export default async function PlanPage({
       <div
         style={{
           padding: "4px 20px 0",
-          maxWidth: 760,
         }}
       >
         <h1

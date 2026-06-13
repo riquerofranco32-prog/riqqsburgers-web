@@ -218,13 +218,16 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: 20,
-        maxWidth: 680,
+        gap: 24,
+        width: "100%",
       }}
     >
-      {/* Info básica */}
-      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
-        <p style={sectionTitleStyle}>Info básica</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start w-full">
+        {/* Column 1 */}
+        <div className="flex flex-col gap-6 w-full">
+          {/* Info básica */}
+          <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
+            <p style={sectionTitleStyle}>Info básica</p>
 
         <div>
           <label style={labelStyle}>Nombre del restaurante *</label>
@@ -440,10 +443,13 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
           />
         </div>
       </div>
+        </div>
 
-      {/* Visual */}
-      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
-        <p style={sectionTitleStyle}>Visual</p>
+        {/* Column 2 */}
+        <div className="flex flex-col gap-6 w-full">
+          {/* Visual */}
+          <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
+            <p style={sectionTitleStyle}>Visual</p>
         <div
           style={{
             display: "grid",
@@ -643,58 +649,60 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
         </div>
       </div>
 
-      {/* Video del hero */}
-      <div>
-        <label style={labelStyle}>Video del hero (URL)</label>
-        <input
-          type="url"
-          value={form.hero_video_url}
-          onChange={(e) => set("hero_video_url", e.target.value)}
-          placeholder="https://... .mp4"
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: 8,
-            border: "1px solid var(--dash-border)",
-            background: "var(--dash-surface-2)",
-            color: "var(--dash-text)",
-            fontSize: 13,
-            boxSizing: "border-box",
-          }}
-        />
-        <p style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 4 }}>
-          Si se define, reemplaza al banner. Usá una URL directa a un .mp4.
-        </p>
+        {/* Video del hero */}
+        <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
+          <p style={sectionTitleStyle}>Video del hero</p>
+          <div>
+            <label style={labelStyle}>Video del hero (URL)</label>
+            <input
+              type="url"
+              value={form.hero_video_url}
+              onChange={(e) => set("hero_video_url", e.target.value)}
+              placeholder="https://... .mp4"
+              style={inputStyle}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = "var(--accent)")
+              }
+              onBlur={(e) =>
+                (e.currentTarget.style.borderColor = "var(--dash-border)")
+              }
+            />
+            <p style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 4 }}>
+              Si se define, reemplaza al banner. Usá una URL directa a un .mp4.
+            </p>
+          </div>
+        </div>
       </div>
+    </div>
 
-      {/* Acciones */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            padding: "11px 28px",
-            borderRadius: 10,
-            background: "var(--accent)",
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 14,
-            border: "none",
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1,
-            transition: "filter 0.15s",
-            fontFamily: "var(--font-sans)",
-          }}
-          onMouseEnter={(e) => {
-            if (!loading) e.currentTarget.style.filter = "brightness(1.1)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.filter = "";
-          }}
-        >
-          {loading ? "Guardando..." : "Guardar cambios"}
-        </button>
-      </div>
-    </form>
+    {/* Acciones */}
+    <div style={{ display: "flex", gap: 10 }}>
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          padding: "11px 28px",
+          borderRadius: 10,
+          background: "var(--accent)",
+          color: "#fff",
+          fontWeight: 600,
+          fontSize: 14,
+          border: "none",
+          cursor: loading ? "not-allowed" : "pointer",
+          opacity: loading ? 0.7 : 1,
+          transition: "filter 0.15s",
+          fontFamily: "var(--font-sans)",
+        }}
+        onMouseEnter={(e) => {
+          if (!loading) e.currentTarget.style.filter = "brightness(1.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.filter = "";
+        }}
+      >
+        {loading ? "Guardando..." : "Guardar cambios"}
+      </button>
+    </div>
+  </form>
   );
 }

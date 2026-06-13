@@ -1076,7 +1076,10 @@ export default function ProductsAdmin({
       </div>
 
       {/* Category filter */}
-      <div className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-0.5">
+      <div
+        style={{ WebkitOverflowScrolling: "touch" }}
+        className="flex gap-2.5 overflow-x-auto scrollbar-hide pb-0.5"
+      >
         <button
           onClick={() => setFilterCat("all")}
           className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${filterCat === "all" ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/35" : "bg-zinc-900 text-zinc-400 border-zinc-700/80 hover:text-white hover:border-zinc-500"}`}

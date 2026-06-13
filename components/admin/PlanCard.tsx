@@ -52,7 +52,7 @@ export default function PlanCard({
 
   return (
     <div
-      className="p-4 md:p-5 flex flex-col gap-6 max-w-3xl w-full"
+      className="p-4 md:p-5 flex flex-col gap-6 w-full"
     >
       {/* Free upsell banner */}
       {currentPlan === "free" && (
