@@ -3647,17 +3647,56 @@ export default function CatalogClient({
           <div
             style={{
               textAlign: "center",
-              padding: "32px 0 48px",
+              padding: "48px 20px 60px",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 8,
+              gap: 16,
             }}
           >
+            {/* Empty cart illustration */}
+            <div
+              className="empty-cart-icon"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: 24,
+                background: hexToRgba(accent, 0.08),
+                border: `2px dashed ${hexToRgba(accent, 0.2)}`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 32,
+                marginBottom: 4,
+              }}
+            >
+              🛒
+            </div>
+            <div>
+              <p
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: TEXT1,
+                  marginBottom: 4,
+                }}
+              >
+                Tu carrito está vacío
+              </p>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: TEXT2,
+                  lineHeight: 1.5,
+                  maxWidth: 220,
+                  margin: "0 auto",
+                }}
+              >
+                Explorá la carta y sumá lo que más te gusta
+              </p>
+            </div>
             <a
-              href="https://takefyy.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -3669,6 +3708,7 @@ export default function CatalogClient({
                 textDecoration: "none",
                 transition: "all 0.2s",
                 boxShadow: "0 1px 4px rgba(0,0,0,0.05)",
+                marginTop: 4,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = accent + "60";
@@ -3695,6 +3735,7 @@ export default function CatalogClient({
             </a>
           </div>
         )}
+
         {/* ── Checkout ─────────────────────────────────────────────────────────── */}
         <CheckoutModal
           isOpen={checkoutOpen}

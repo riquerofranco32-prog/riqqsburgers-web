@@ -46,14 +46,27 @@ export async function PATCH(
     return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
   }
 
-  const { data: membership } = await supabase
-    .from("tenant_users")
-    .select("role")
-    .eq("user_id", user.id)
-    .eq("tenant_id", order.tenant_id)
-    .maybeSingle();
+  const [{ data: membership }, { data: globalSuperAdmin }] = await Promise.all([
+    supabase
+      .from("tenant_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("tenant_id", order.tenant_id)
+      .maybeSingle(),
+    supabase
+      .from("tenant_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "superadmin")
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
-  if (!membership || !["admin", "superadmin"].includes(membership.role)) {
+  const isAuthorized =
+    (membership && ["admin", "superadmin"].includes(membership.role)) ||
+    !!globalSuperAdmin;
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
@@ -91,14 +104,27 @@ export async function DELETE(
     return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
   }
 
-  const { data: membership } = await supabase
-    .from("tenant_users")
-    .select("role")
-    .eq("user_id", user.id)
-    .eq("tenant_id", order.tenant_id)
-    .maybeSingle();
+  const [{ data: membership }, { data: globalSuperAdmin }] = await Promise.all([
+    supabase
+      .from("tenant_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("tenant_id", order.tenant_id)
+      .maybeSingle(),
+    supabase
+      .from("tenant_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "superadmin")
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
-  if (!membership || !["admin", "superadmin"].includes(membership.role)) {
+  const isAuthorized =
+    (membership && ["admin", "superadmin"].includes(membership.role)) ||
+    !!globalSuperAdmin;
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 

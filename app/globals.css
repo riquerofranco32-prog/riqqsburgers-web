@@ -950,3 +950,120 @@ a {
     scroll-behavior: smooth;
   }
 }
+
+/* ── Shine (brillo metálico) effect — tarjeta Pro destacada ───────────────── */
+@keyframes planShine {
+  0% {
+    transform: translateX(-100%) skewX(-20deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.35;
+  }
+  80% {
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+    opacity: 0;
+  }
+}
+.plan-featured-card::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -60%;
+  width: 50%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 45%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.2) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+  animation: planShine 4s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* ── Menu hero logo pulse animation ─────────────────────────────────────── */
+@keyframes logoPulse {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.25;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* ── Orbiting hero glow animation ────────────────────────────────────────── */
+@keyframes glowOrbit {
+  0%, 100% {
+    transform: translate(-50%, -50%) translate(60px, 20px);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(-50%, -50%) translate(-30px, -50px);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) translate(-70px, 30px);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translate(-50%, -50%) translate(40px, 60px);
+    opacity: 0.9;
+  }
+}
+
+/* ── Hero catalog fade up ────────────────────────────────────────────────── */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Card product slide in ───────────────────────────────────────────────── */
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Empty cart illustration ─────────────────────────────────────────────── */
+@keyframes emptyCartBounce {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.empty-cart-icon {
+  animation: emptyCartBounce 2.5s ease-in-out infinite;
+}
+

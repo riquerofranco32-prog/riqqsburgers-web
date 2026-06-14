@@ -1331,28 +1331,64 @@ export default function HomeClient({
               {/* Social proof */}
               <motion.div
                 {...fadeUp(0.52)}
-                className="flex items-center gap-2 flex-wrap"
-                style={{
-                  background: "rgba(255, 107, 53, 0.08)",
-                  border: "1px solid rgba(255, 107, 53, 0.2)",
-                  borderRadius: 12,
-                  padding: "8px 14px",
-                  display: "inline-flex",
-                }}
+                className="flex flex-col gap-3"
               >
-                <span style={{ fontSize: 16 }}>🚀</span>
-                <div style={{ color: "var(--dash-muted)", fontSize: 13 }}>
-                  Hace como{" "}
-                  <a
-                    href="/larryssburgers"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}
-                  >
-                    Larry&apos;s Burgers
-                  </a>{" "}
-                  y probá Takefyy gratis
+                <div
+                  style={{
+                    background: "rgba(255, 107, 53, 0.08)",
+                    border: "1px solid rgba(255, 107, 53, 0.2)",
+                    borderRadius: 12,
+                    padding: "8px 14px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>🚀</span>
+                  <div style={{ color: "var(--dash-muted)", fontSize: 13 }}>
+                    Hace como{" "}
+                    <a
+                      href="/larryssburgers"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}
+                    >
+                      Larry&apos;s Burgers
+                    </a>{" "}
+                    y probá Takefyy gratis
+                  </div>
                 </div>
+                {restaurantCount > 0 && (
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      background: "rgba(34,197,94,0.06)",
+                      border: "1px solid rgba(34,197,94,0.18)",
+                      borderRadius: 12,
+                      padding: "8px 14px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 7,
+                        height: 7,
+                        borderRadius: "50%",
+                        background: "#22c55e",
+                        display: "inline-block",
+                        animation: "pulse-dot 2s ease-in-out infinite",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontSize: 13, color: "var(--dash-muted)" }}>
+                      <strong style={{ color: "#22c55e", fontWeight: 700 }}>
+                        +{restaurantCount}
+                      </strong>{" "}
+                      negocios activos en Takefyy
+                    </span>
+                  </div>
+                )}
               </motion.div>
             </div>
 
@@ -2361,7 +2397,7 @@ export default function HomeClient({
                     </div>
                   )}
                   <div
-                    className={plan.featured ? "animate-border-glow" : ""}
+                    className={plan.featured ? "animate-border-glow plan-featured-card" : ""}
                     style={{
                       background: plan.featured
                         ? "linear-gradient(145deg, #FF6B35 0%, #d94f1e 100%)"
@@ -2692,7 +2728,7 @@ export default function HomeClient({
                       Muestra del Menú
                     </span>
                     <a
-                      href="https://takefyy.vercel.app/larryssburgers"
+                      href="/larryssburgers"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
@@ -2881,7 +2917,7 @@ export default function HomeClient({
                       Muestra del Menú
                     </span>
                     <a
-                      href="https://takefyy.vercel.app/riqqsburgers"
+                      href="/riqqsburgers"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
