@@ -642,6 +642,85 @@ export default function AdminShell({
         />
       </aside>
 
+      {/* ── MOBILE BOTTOM NAV ───────────────────────────────────────────────── */}
+      <nav
+        className="lg:hidden"
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 60,
+          background: "var(--dash-surface)",
+          borderTop: "1px solid var(--dash-border)",
+          display: "flex",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+      >
+        {[
+          { href: "", label: "Dashboard", icon: LayoutDashboard },
+          { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
+          { href: "/productos", label: "Productos", icon: Package },
+        ].map((item) => {
+          const href = `/${slug}/admin${item.href}`;
+          const isActive =
+            item.href === ""
+              ? pathname === `/${slug}/admin`
+              : pathname.startsWith(href);
+          return (
+            <Link
+              key={item.href}
+              href={href}
+              onClick={closeMobile}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 3,
+                padding: "10px 4px",
+                color: isActive ? "var(--accent)" : "var(--dash-muted)",
+                textDecoration: "none",
+                position: "relative",
+                WebkitTapHighlightColor: "transparent",
+                transition: "color 0.15s",
+              }}
+            >
+              <div style={{ position: "relative" }}>
+                <item.icon size={20} strokeWidth={isActive ? 2.2 : 1.8} />
+                {item.href === "/pedidos" && (
+                  <PendingOrdersBadge tenantId={tenantId} collapsed={true} />
+                )}
+              </div>
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: isActive ? 700 : 500,
+                  letterSpacing: "0.01em",
+                }}
+              >
+                {item.label}
+              </span>
+              {isActive && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: 28,
+                    height: 2,
+                    borderRadius: 999,
+                    background: "var(--accent)",
+                  }}
+                />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
       {/* ── MAIN ────────────────────────────────────────────────────────────── */}
       <style>{`
         .admin-shell-main {
@@ -649,10 +728,12 @@ export default function AdminShell({
           min-height: 100vh;
           background: var(--dash-bg);
           padding-top: calc(56px + env(safe-area-inset-top, 0px));
+          padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
         }
         @media (min-width: 1024px) {
           .admin-shell-main {
             padding-top: 0;
+            padding-bottom: 0;
             margin-left: ${collapsed ? 64 : 240}px;
             transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           }

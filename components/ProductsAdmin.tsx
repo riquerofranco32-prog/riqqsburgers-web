@@ -225,7 +225,7 @@ function ProductModal({
     setUploadError("");
     setUploading(true);
     try {
-      const url = await uploadImage(file, tenantSlug);
+      const url = await uploadImage(file, tenantSlug, product?.id);
       set("image_url", url);
     } catch {
       setUploadError("Error al subir imagen. Podés pegar una URL manualmente.");

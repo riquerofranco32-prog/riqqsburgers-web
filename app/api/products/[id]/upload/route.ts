@@ -47,20 +47,23 @@ export async function POST(
     throw res;
   }
 
-  // Verify the product belongs to this tenant before allowing upload
   const supabaseCheck = createServerClient();
-  const { data: productCheck } = await supabaseCheck
-    .from("products")
-    .select("id")
-    .eq("id", id)
-    .eq("tenant_id", tenantId)
-    .maybeSingle();
 
-  if (!productCheck) {
-    return NextResponse.json(
-      { error: "Producto no encontrado o no pertenece a este restaurante" },
-      { status: 403 },
-    );
+  // For temp IDs (new product not yet saved), skip the product ownership check
+  if (!id.startsWith("temp-")) {
+    const { data: productCheck } = await supabaseCheck
+      .from("products")
+      .select("id")
+      .eq("id", id)
+      .eq("tenant_id", tenantId)
+      .maybeSingle();
+
+    if (!productCheck) {
+      return NextResponse.json(
+        { error: "Producto no encontrado o no pertenece a este restaurante" },
+        { status: 403 },
+      );
+    }
   }
 
   if (file.size > MAX_SIZE_BYTES) {

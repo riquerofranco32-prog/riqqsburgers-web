@@ -40,7 +40,9 @@ function computeKPIs(orders: Order[], products: Product[]): DashboardKPIs {
   const today = startOfDay(new Date());
   const yesterday = new Date(today.getTime() - 86_400_000);
 
-  const todayOrders = orders.filter((o) => new Date(o.created_at) >= today && o.status !== "cancelled");
+  const todayOrders = orders.filter(
+    (o) => new Date(o.created_at) >= today && o.status !== "cancelled",
+  );
   const yesterdayOrders = orders.filter((o) => {
     const d = new Date(o.created_at);
     return d >= yesterday && d < today && o.status !== "cancelled";
@@ -320,7 +322,7 @@ export default function AdminDashboard({
             if (prev.some((o) => o.id === incoming.id)) return prev;
             return [incoming, ...prev];
           });
-        }
+        },
       )
       .on(
         "postgres_changes",
@@ -332,8 +334,10 @@ export default function AdminDashboard({
         },
         (payload) => {
           const updated = payload.new as Order;
-          setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-        }
+          setOrders((prev) =>
+            prev.map((o) => (o.id === updated.id ? updated : o)),
+          );
+        },
       )
       .on(
         "postgres_changes",
@@ -346,7 +350,7 @@ export default function AdminDashboard({
         (payload) => {
           const deleted = payload.old as { id: string };
           setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
-        }
+        },
       )
       .subscribe();
 
@@ -406,13 +410,21 @@ export default function AdminDashboard({
   };
 
   const activeRevenue =
-    range === "today" ? currentKPIs.revenueToday : (analyticsData?.revenue ?? 0);
+    range === "today"
+      ? currentKPIs.revenueToday
+      : (analyticsData?.revenue ?? 0);
   const activeOrderCount =
-    range === "today" ? currentKPIs.ordersToday : (analyticsData?.orderCount ?? 0);
+    range === "today"
+      ? currentKPIs.ordersToday
+      : (analyticsData?.orderCount ?? 0);
   const activeAvgTicket =
-    range === "today" ? currentKPIs.avgTicketToday : (analyticsData?.avgTicket ?? 0);
+    range === "today"
+      ? currentKPIs.avgTicketToday
+      : (analyticsData?.avgTicket ?? 0);
   const activeSalesData =
-    range === "today" ? currentSalesData : (analyticsData?.dailyRevenue ?? currentSalesData);
+    range === "today"
+      ? currentSalesData
+      : (analyticsData?.dailyRevenue ?? currentSalesData);
 
   const rangeLabel =
     range === "today"
@@ -472,6 +484,7 @@ export default function AdminDashboard({
             }}
           >
             <span
+              className="animate-pulse"
               style={{
                 display: "inline-block",
                 width: 6,
@@ -544,16 +557,19 @@ export default function AdminDashboard({
             borderRadius: 8,
             fontSize: 13,
             fontWeight: 500,
-            background: "linear-gradient(135deg, var(--accent) 0%, #ff8c5a 100%)",
+            background:
+              "linear-gradient(135deg, var(--accent) 0%, #ff8c5a 100%)",
             color: "#fff",
             textDecoration: "none",
-            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease",
+            transition:
+              "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease",
             animationDelay: "80ms",
             boxShadow: "0 2px 8px rgba(255,107,53,0.2)",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-1.5px) scale(1.02)";
-            e.currentTarget.style.boxShadow = "0 6px 16px rgba(255,107,53,0.35)";
+            e.currentTarget.style.boxShadow =
+              "0 6px 16px rgba(255,107,53,0.35)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = "none";
@@ -578,7 +594,8 @@ export default function AdminDashboard({
             color: "var(--dash-muted)",
             border: "1px solid var(--dash-border)",
             textDecoration: "none",
-            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
+            transition:
+              "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
             animationDelay: "120ms",
           }}
           onMouseEnter={(e) => {
@@ -612,7 +629,8 @@ export default function AdminDashboard({
             color: "var(--dash-muted)",
             border: "1px solid var(--dash-border)",
             textDecoration: "none",
-            transition: "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
+            transition:
+              "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
             animationDelay: "160ms",
           }}
           onMouseEnter={(e) => {
@@ -648,8 +666,9 @@ export default function AdminDashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="stagger-item" style={{ animationDelay: "240ms" }}>
           <KPICard
+            loading={analyticsLoading}
             label={`Pedidos${range === "today" ? " hoy" : ""}`}
-            value={analyticsLoading ? "…" : String(activeOrderCount)}
+            value={String(activeOrderCount)}
             change={range === "today" ? kpis.ordersTodayChange : null}
             changeLabel={rangeLabel}
             icon={ShoppingCart}
@@ -657,8 +676,9 @@ export default function AdminDashboard({
         </div>
         <div className="stagger-item" style={{ animationDelay: "300ms" }}>
           <KPICard
+            loading={analyticsLoading}
             label={`Ventas${range === "today" ? " hoy" : ""}`}
-            value={analyticsLoading ? "…" : fmtARS(activeRevenue)}
+            value={fmtARS(activeRevenue)}
             change={range === "today" ? kpis.revenueTodayChange : null}
             changeLabel={rangeLabel}
             icon={DollarSign}
@@ -666,14 +686,9 @@ export default function AdminDashboard({
         </div>
         <div className="stagger-item" style={{ animationDelay: "360ms" }}>
           <KPICard
+            loading={analyticsLoading}
             label="Ticket promedio"
-            value={
-              analyticsLoading
-                ? "…"
-                : activeAvgTicket > 0
-                  ? fmtARS(activeAvgTicket)
-                  : "—"
-            }
+            value={activeAvgTicket > 0 ? fmtARS(activeAvgTicket) : "—"}
             change={range === "today" ? kpis.avgTicketChange : null}
             changeLabel={rangeLabel}
             icon={TrendingUp}
@@ -681,8 +696,9 @@ export default function AdminDashboard({
         </div>
         <div className="stagger-item" style={{ animationDelay: "420ms" }}>
           <KPICard
+            loading={analyticsLoading}
             label="Productos activos"
-            value={analyticsLoading ? "…" : String(kpis.activeProducts)}
+            value={String(kpis.activeProducts)}
             sub={
               kpis.activeProducts === 1
                 ? "1 producto en carta"
@@ -704,7 +720,10 @@ export default function AdminDashboard({
           />
         </div>
         <div className="stagger-item" style={{ animationDelay: "560ms" }}>
-          <CategoryDonut data={range === "today" ? currentCategoryData : categoryData} compact={isMobile} />
+          <CategoryDonut
+            data={range === "today" ? currentCategoryData : categoryData}
+            compact={isMobile}
+          />
         </div>
       </div>
 
@@ -714,7 +733,10 @@ export default function AdminDashboard({
           <PeakHoursWidget orders={orders} />
         </div>
         <div className="stagger-item" style={{ animationDelay: "700ms" }}>
-          <TopProductsList products={range === "today" ? currentTopProducts : topProducts} showRevenue={!isMobile} />
+          <TopProductsList
+            products={range === "today" ? currentTopProducts : topProducts}
+            showRevenue={!isMobile}
+          />
         </div>
       </div>
 
@@ -730,7 +752,10 @@ export default function AdminDashboard({
       </div>
 
       {/* Export — mobile fallback */}
-      <div className="sm:hidden stagger-item" style={{ animationDelay: "840ms" }}>
+      <div
+        className="sm:hidden stagger-item"
+        style={{ animationDelay: "840ms" }}
+      >
         <ExportReportButton slug={slug} />
       </div>
     </div>

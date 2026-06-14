@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronUp, Search, X, Printer, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Search,
+  X,
+  Printer,
+  Trash2,
+  Clock,
+  ChefHat,
+  CheckCircle,
+  DollarSign,
+} from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -23,6 +34,47 @@ function fmtFecha(iso: string) {
 function vibrate(pattern: number | number[]) {
   if (typeof window !== "undefined" && "vibrate" in navigator)
     navigator.vibrate(pattern);
+}
+
+// ── Order age ─────────────────────────────────────────────────────────────────
+
+function getOrderAgeMinutes(createdAt: string): number {
+  return Math.floor((Date.now() - new Date(createdAt).getTime()) / 60_000);
+}
+
+function useNowMinute() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+}
+
+function OrderAgeBadge({
+  createdAt,
+  status,
+}: {
+  createdAt: string;
+  status: string;
+}) {
+  useNowMinute();
+  const activeStatuses = [
+    "pending",
+    "nuevo",
+    "confirmed",
+    "preparando",
+    "preparing",
+  ];
+  if (!activeStatuses.includes(status)) return null;
+  const mins = getOrderAgeMinutes(createdAt);
+  if (mins < 2) return null;
+  const color =
+    mins >= 30 ? "#f87171" : mins >= 15 ? "#fb923c" : "var(--dash-muted)";
+  return (
+    <span style={{ fontSize: 11, color, fontWeight: mins >= 15 ? 700 : 400 }}>
+      hace {mins}m
+    </span>
+  );
 }
 
 // ── Media query hook ─────────────────────────────────────────────────────────
@@ -110,6 +162,7 @@ const STATUS_META: Record<
 const STATUS_FLOW = [
   { key: "pending", label: "Pendiente" },
   { key: "confirmed", label: "Confirmado" },
+  { key: "preparing", label: "Preparando" },
   { key: "ready", label: "Listo" },
   { key: "delivered", label: "Entregado" },
 ] as const;
@@ -203,16 +256,18 @@ function OrderDetailView({
   onUpdateStatus: (id: string, status: string) => Promise<void>;
   onDeleteOrder: (id: string) => Promise<void>;
 }) {
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const items = (order.items ?? []) as OrderItemDetailed[];
-  const hasDelivery = order.delivery_type === "delivery" || order.delivery_type === "domicilio";
+  const hasDelivery =
+    order.delivery_type === "delivery" || order.delivery_type === "domicilio";
   const deliveryCost = order.delivery_cost ?? 0;
-  const subtotal = order.subtotal ?? (order.total - deliveryCost);
+  const subtotal = order.subtotal ?? order.total - deliveryCost;
 
   function handlePrintTicket() {
     window.open(
       `/${slug}/admin/pedidos/${order.order_ref ?? order.id}?print=1`,
       `print-${order.order_ref || order.id}`,
-      "width=420,height=700,status=no,toolbar=no,menubar=no"
+      "width=420,height=700,status=no,toolbar=no,menubar=no",
     );
   }
 
@@ -247,21 +302,56 @@ function OrderDetailView({
             gap: 8,
           }}
         >
-          <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--dash-muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>
+          <h4
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "var(--dash-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              margin: 0,
+            }}
+          >
             Contacto & Entrega
           </h4>
-          <div style={{ fontSize: 13, display: "flex", flexDirection: "column", gap: 4 }}>
-            <p style={{ margin: 0, color: "var(--dash-text)", fontWeight: 600 }}>{order.customer_name || "Sin nombre"}</p>
+          <div
+            style={{
+              fontSize: 13,
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+            }}
+          >
+            <p
+              style={{ margin: 0, color: "var(--dash-text)", fontWeight: 600 }}
+            >
+              {order.customer_name || "Sin nombre"}
+            </p>
             {order.customer_phone && (
               <p style={{ margin: 0, color: "var(--dash-muted)" }}>
-                📞 <a href={`tel:${order.customer_phone}`} style={{ color: "var(--accent)", textDecoration: "none" }}>{order.customer_phone}</a>
+                📞{" "}
+                <a
+                  href={`tel:${order.customer_phone}`}
+                  style={{ color: "var(--accent)", textDecoration: "none" }}
+                >
+                  {order.customer_phone}
+                </a>
               </p>
             )}
             <p style={{ margin: 0, color: "var(--dash-muted)" }}>
               📍 {deliveryLabel(order.delivery_type)}
             </p>
             {(order.customer_address ?? order.address) && (
-              <p style={{ margin: "4px 0 0 0", padding: "6px 8px", background: "var(--dash-surface-2)", borderRadius: 6, color: "var(--dash-text)", fontSize: 12 }}>
+              <p
+                style={{
+                  margin: "4px 0 0 0",
+                  padding: "6px 8px",
+                  background: "var(--dash-surface-2)",
+                  borderRadius: 6,
+                  color: "var(--dash-text)",
+                  fontSize: 12,
+                }}
+              >
                 {order.customer_address ?? order.address}
               </p>
             )}
@@ -271,8 +361,12 @@ function OrderDetailView({
         {/* Notas e Instrucciones */}
         <div
           style={{
-            background: order.notes ? "rgba(251,146,60,0.05)" : "var(--dash-surface)",
-            border: order.notes ? "1px solid rgba(251,146,60,0.2)" : "1px solid var(--dash-border)",
+            background: order.notes
+              ? "rgba(251,146,60,0.05)"
+              : "var(--dash-surface)",
+            border: order.notes
+              ? "1px solid rgba(251,146,60,0.2)"
+              : "1px solid var(--dash-border)",
             borderRadius: 12,
             padding: 14,
             display: "flex",
@@ -280,19 +374,56 @@ function OrderDetailView({
             gap: 8,
           }}
         >
-          <h4 style={{ fontSize: 11, fontWeight: 700, color: order.notes ? "#fb923c" : "var(--dash-muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>
+          <h4
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: order.notes ? "#fb923c" : "var(--dash-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              margin: 0,
+            }}
+          >
             Notas y Pago
           </h4>
-          <div style={{ fontSize: 13, display: "flex", flexDirection: "column", gap: 4 }}>
+          <div
+            style={{
+              fontSize: 13,
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+            }}
+          >
             <p style={{ margin: 0, color: "var(--dash-muted)" }}>
-              Método de Pago: <strong style={{ color: "var(--dash-text)" }}>{paymentLabel(order.payment_method)}</strong>
+              Método de Pago:{" "}
+              <strong style={{ color: "var(--dash-text)" }}>
+                {paymentLabel(order.payment_method)}
+              </strong>
             </p>
             {order.notes ? (
-              <div style={{ padding: 8, background: "rgba(251,146,60,0.1)", borderLeft: "3px solid #fb923c", borderRadius: 4, color: "#ffedd5", fontSize: 12, marginTop: 4 }}>
+              <div
+                style={{
+                  padding: 8,
+                  background: "rgba(251,146,60,0.1)",
+                  borderLeft: "3px solid #fb923c",
+                  borderRadius: 4,
+                  color: "#ffedd5",
+                  fontSize: 12,
+                  marginTop: 4,
+                }}
+              >
                 <strong>Nota:</strong> &ldquo;{order.notes}&rdquo;
               </div>
             ) : (
-              <p style={{ margin: 0, color: "var(--dash-muted)", fontStyle: "italic" }}>Sin notas del cliente</p>
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--dash-muted)",
+                  fontStyle: "italic",
+                }}
+              >
+                Sin notas del cliente
+              </p>
             )}
           </div>
         </div>
@@ -337,14 +468,21 @@ function OrderDetailView({
                 key={i}
                 style={{
                   padding: "12px 14px",
-                  borderBottom: i < items.length - 1 ? "1px solid var(--dash-border)" : "none",
+                  borderBottom:
+                    i < items.length - 1
+                      ? "1px solid var(--dash-border)"
+                      : "none",
                   display: "grid",
                   gridTemplateColumns: "3fr 1.2fr 1.5fr",
                   alignItems: "center",
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 2 }}
+                >
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
                     <span
                       style={{
                         background: "rgba(255,107,53,0.15)",
@@ -359,18 +497,47 @@ function OrderDetailView({
                     >
                       {item.quantity}
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--dash-text)" }}>{item.name}</span>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "var(--dash-text)",
+                      }}
+                    >
+                      {item.name}
+                    </span>
                   </div>
                   {item.selected_extra && (
-                    <span style={{ fontSize: 11, color: "var(--dash-muted)", marginLeft: 28 }}>
-                      + {item.selected_extra.name} {item.selected_extra.price > 0 && `(+${fmtARS(item.selected_extra.price)})`}
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "var(--dash-muted)",
+                        marginLeft: 28,
+                      }}
+                    >
+                      + {item.selected_extra.name}{" "}
+                      {item.selected_extra.price > 0 &&
+                        `(+${fmtARS(item.selected_extra.price)})`}
                     </span>
                   )}
                 </div>
-                <span style={{ fontSize: 12, color: "var(--dash-muted)", textAlign: "right" }}>
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "var(--dash-muted)",
+                    textAlign: "right",
+                  }}
+                >
                   {fmtARS(item.price)}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--dash-text)", textAlign: "right" }}>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--dash-text)",
+                    textAlign: "right",
+                  }}
+                >
                   {fmtARS(itemTotal)}
                 </span>
               </div>
@@ -392,11 +559,23 @@ function OrderDetailView({
         >
           {hasDelivery && deliveryCost > 0 && (
             <>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--dash-muted)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  color: "var(--dash-muted)",
+                }}
+              >
                 <span>Subtotal</span>
                 <span>{fmtARS(subtotal)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "var(--dash-muted)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  color: "var(--dash-muted)",
+                }}
+              >
                 <span>Costo de envío</span>
                 <span>{fmtARS(deliveryCost)}</span>
               </div>
@@ -410,7 +589,10 @@ function OrderDetailView({
               fontWeight: 800,
               color: "var(--dash-text)",
               paddingTop: hasDelivery && deliveryCost > 0 ? 6 : 0,
-              borderTop: hasDelivery && deliveryCost > 0 ? "1px dashed var(--dash-border)" : "none",
+              borderTop:
+                hasDelivery && deliveryCost > 0
+                  ? "1px dashed var(--dash-border)"
+                  : "none",
             }}
           >
             <span>Total</span>
@@ -497,7 +679,7 @@ function OrderDetailView({
         </div>
 
         {/* Acciones del sistema: Imprimir / Eliminar */}
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button
             onClick={handlePrintTicket}
             style={{
@@ -523,38 +705,81 @@ function OrderDetailView({
               e.currentTarget.style.background = "var(--dash-surface-2)";
             }}
           >
-            <Printer style={{ width: 14, height: 14, color: "var(--accent)" }} />
+            <Printer
+              style={{ width: 14, height: 14, color: "var(--accent)" }}
+            />
             Imprimir Ticket
           </button>
-          
-          <button
-            onClick={() => onDeleteOrder(order.id)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 12px",
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.3)",
-              color: "#f87171",
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "border-color 0.15s, background 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "#ef4444";
-              e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
-              e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-            }}
-          >
-            <Trash2 style={{ width: 14, height: 14 }} />
-            Eliminar
-          </button>
+
+          {confirmingDelete ? (
+            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+              <span style={{ fontSize: 12, color: "#f87171", fontWeight: 600 }}>
+                ¿Eliminar?
+              </span>
+              <button
+                onClick={() => {
+                  setConfirmingDelete(false);
+                  onDeleteOrder(order.id);
+                }}
+                style={{
+                  padding: "7px 12px",
+                  background: "rgba(239,68,68,0.15)",
+                  border: "1px solid #ef4444",
+                  color: "#f87171",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Sí, eliminar
+              </button>
+              <button
+                onClick={() => setConfirmingDelete(false)}
+                style={{
+                  padding: "7px 12px",
+                  background: "var(--dash-surface-2)",
+                  border: "1px solid var(--dash-border)",
+                  color: "var(--dash-muted)",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "7px 12px",
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(239,68,68,0.3)",
+                color: "#f87171",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "border-color 0.15s, background 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#ef4444";
+                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
+                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+              }}
+            >
+              <Trash2 style={{ width: 14, height: 14 }} />
+              Eliminar
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -644,9 +869,13 @@ function MobileOrderCard({
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <StatusBadge status={order.status} />
             {isOpen ? (
-              <ChevronUp style={{ width: 16, height: 16, color: "var(--dash-muted)" }} />
+              <ChevronUp
+                style={{ width: 16, height: 16, color: "var(--dash-muted)" }}
+              />
             ) : (
-              <ChevronDown style={{ width: 16, height: 16, color: "var(--dash-muted)" }} />
+              <ChevronDown
+                style={{ width: 16, height: 16, color: "var(--dash-muted)" }}
+              />
             )}
           </div>
         </div>
@@ -688,10 +917,21 @@ function MobileOrderCard({
             width: "100%",
           }}
         >
-          <span style={{ fontWeight: 800, fontSize: 18, color: "var(--accent)" }}>
+          <span
+            style={{ fontWeight: 800, fontSize: 18, color: "var(--accent)" }}
+          >
             {fmtARS(order.total)}
           </span>
-          <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+          <span
+            style={{
+              fontSize: 12,
+              color: "var(--dash-muted)",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <OrderAgeBadge createdAt={order.created_at} status={order.status} />
             {paymentLabel(order.payment_method)} · {fmtFecha(order.created_at)}
           </span>
         </div>
@@ -788,8 +1028,10 @@ export function OrdersTable({
         },
         (payload) => {
           const updated = payload.new as Order;
-          setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
-        }
+          setOrders((prev) =>
+            prev.map((o) => (o.id === updated.id ? updated : o)),
+          );
+        },
       )
       .on(
         "postgres_changes",
@@ -802,7 +1044,7 @@ export function OrdersTable({
         (payload) => {
           const deleted = payload.old as { id: string };
           setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
-        }
+        },
       )
       .subscribe();
     return () => {
@@ -836,10 +1078,11 @@ export function OrdersTable({
   }
 
   async function deleteOrder(orderId: string) {
-    if (!confirm("¿Estás seguro de que deseas eliminar este pedido de forma permanente? Esta acción no se puede deshacer.")) {
-      return;
-    }
-    if (!confirm("Confirmación final: ¿Eliminar pedido permanentemente?")) {
+    if (
+      !confirm(
+        "¿Eliminar este pedido permanentemente? Esta acción no se puede deshacer.",
+      )
+    ) {
       return;
     }
 
@@ -847,13 +1090,21 @@ export function OrdersTable({
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Failed");
-      
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? `Error ${res.status}`);
+      }
+
       setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      if (expanded === orderId) setExpanded(null);
       toast.success("Pedido eliminado correctamente.");
       vibrate([60, 40, 60]);
-    } catch {
-      toast.error("No se pudo eliminar el pedido. Verificá tu conexión o permisos.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "No se pudo eliminar el pedido.",
+      );
       vibrate([100, 50, 100]);
     }
   }
@@ -864,6 +1115,31 @@ export function OrdersTable({
       map[key] = orders.filter((o) => matchesFilter(o, key)).length;
     });
     return map;
+  }, [orders]);
+
+  const stats = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return {
+      pending: orders.filter(
+        (o) => o.status === "pending" || o.status === "nuevo",
+      ).length,
+      active: orders.filter(
+        (o) =>
+          o.status === "confirmed" ||
+          o.status === "preparando" ||
+          o.status === "preparing",
+      ).length,
+      ready: orders.filter((o) => o.status === "ready" || o.status === "listo")
+        .length,
+      todaySales: orders
+        .filter(
+          (o) =>
+            (o.status === "delivered" || o.status === "entregado") &&
+            new Date(o.created_at) >= today,
+        )
+        .reduce((sum, o) => sum + o.total, 0),
+    };
   }, [orders]);
 
   const filtered = useMemo(() => {
@@ -880,309 +1156,406 @@ export function OrdersTable({
   }, [orders, filter, search]);
 
   return (
-    <div
-      style={{
-        background: "var(--dash-surface)",
-        border: "1px solid var(--dash-border)",
-        borderRadius: 16,
-        overflow: "hidden",
-      }}
-    >
-      {/* Header */}
-      <div
-        style={{
-          padding: "16px 20px",
-          borderBottom: "1px solid var(--dash-border)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <h2
-          style={{ fontSize: 15, fontWeight: 700, color: "var(--dash-text)" }}
-        >
-          Pedidos
-          <span
+    <>
+      {/* Live stats KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          {
+            label: "Pendientes",
+            value: stats.pending,
+            icon: Clock,
+            color: "#f59e0b",
+            bg: "rgba(245,158,11,0.1)",
+          },
+          {
+            label: "En Cocina",
+            value: stats.active,
+            icon: ChefHat,
+            color: "#60a5fa",
+            bg: "rgba(59,130,246,0.1)",
+          },
+          {
+            label: "Listos",
+            value: stats.ready,
+            icon: CheckCircle,
+            color: "#4ade80",
+            bg: "rgba(34,197,94,0.1)",
+          },
+          {
+            label: "Ventas Hoy",
+            value: "$ " + stats.todaySales.toLocaleString("es-AR"),
+            icon: DollarSign,
+            color: "var(--accent, #ff6b35)",
+            bg: "rgba(255,107,53,0.1)",
+          },
+        ].map(({ label, value, icon: Icon, color, bg }) => (
+          <div
+            key={label}
             style={{
-              marginLeft: 8,
-              fontSize: 12,
-              fontWeight: 400,
-              color: "var(--dash-muted)",
+              background:
+                "linear-gradient(145deg, var(--dash-surface, #1e1e1e) 0%, rgba(28,33,40,0.95) 100%)",
+              border: "1px solid var(--dash-border, rgba(255,255,255,0.08))",
+              borderRadius: 12,
+              padding: 14,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
             }}
           >
-            {orders.length} en total
-          </span>
-        </h2>
-        <div
-          style={{ position: "relative", minWidth: isMobile ? "100%" : 200 }}
-        >
-          <Search
-            style={{
-              position: "absolute",
-              left: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              width: 14,
-              height: 14,
-              color: "var(--dash-muted)",
-            }}
-          />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por cliente o ref..."
-            style={{
-              background: "var(--dash-surface-2)",
-              border: "1px solid var(--dash-border)",
-              borderRadius: 8,
-              paddingLeft: 30,
-              paddingRight: search ? 30 : 10,
-              paddingTop: 8,
-              paddingBottom: 8,
-              fontSize: 16, // prevent iOS zoom
-              color: "var(--dash-text)",
-              outline: "none",
-              width: "100%",
-            }}
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
+            <div
               style={{
-                position: "absolute",
-                right: 8,
-                top: "50%",
-                transform: "translateY(-50%)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--dash-muted)",
+                background: bg,
+                padding: 8,
+                borderRadius: 10,
                 display: "flex",
-                padding: 0,
-                WebkitTapHighlightColor: "transparent",
-              }}
-            >
-              <X style={{ width: 12, height: 12 }} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div
-        style={{
-          padding: "10px 16px",
-          borderBottom: "1px solid var(--dash-border)",
-          display: "flex",
-          gap: 8,
-          overflowX: "auto",
-          scrollbarWidth: "none",
-        }}
-      >
-        {FILTER_PILLS.map((pill) => {
-          const isActive = filter === pill.key;
-          return (
-            <button
-              key={pill.key}
-              onClick={() => setFilter(pill.key)}
-              style={{
+                alignItems: "center",
+                justifyContent: "center",
                 flexShrink: 0,
-                padding: "7px 16px",
-                borderRadius: 999,
-                fontSize: isMobile ? 14 : 13,
-                fontWeight: 600,
-                border: "1px solid",
-                cursor: "pointer",
-                transition: "all 0.15s",
-                background: isActive
-                  ? "rgba(255,107,53,0.12)"
-                  : "var(--dash-surface-2)",
-                color: isActive ? "var(--accent)" : "var(--dash-muted)",
-                borderColor: isActive ? "rgba(255,107,53,0.3)" : "var(--dash-border)",
-                minHeight: isMobile ? 36 : "auto",
-                WebkitTapHighlightColor: "transparent",
-                userSelect: "none",
               }}
             >
-              {pill.label} ({counts[pill.key] ?? 0})
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Content */}
-      {filtered.length === 0 ? (
-        <div
-          style={{
-            padding: "56px 20px",
-            textAlign: "center",
-            color: "var(--dash-muted)",
-          }}
-        >
-          <p style={{ fontSize: 32, marginBottom: 8 }}>📋</p>
-          <p style={{ fontSize: 14 }}>
-            {search ? "Sin resultados" : "No hay pedidos en esta categoría"}
-          </p>
-        </div>
-      ) : isMobile ? (
-        // ── Mobile: cards ──
-        <div style={{ padding: "12px 12px 4px" }}>
-          {filtered.map((order) => (
-            <MobileOrderCard
-              key={order.id}
-              order={order}
-              slug={slug}
-              isNew={newOrderIds.has(order.id)}
-              onUpdateStatus={updateStatus}
-              onDeleteOrder={deleteOrder}
-            />
-          ))}
-        </div>
-      ) : (
-        // ── Desktop: accordion rows ──
-        <div>
-          {filtered.map((order) => {
-            const isOpen = expanded === order.id;
-            const isNew = newOrderIds.has(order.id);
-
-            return (
-              <div
-                key={order.id}
+              <Icon style={{ color, width: 18, height: 18 }} />
+            </div>
+            <div>
+              <p
                 style={{
-                  background: isNew ? "rgba(255,107,53,0.06)" : undefined,
-                  borderBottom: "1px solid var(--dash-border)",
-                  transition: "background 1s ease",
+                  margin: 0,
+                  fontSize: 11,
+                  color: "var(--dash-muted, #888)",
+                  fontWeight: 500,
                 }}
               >
-                <button
-                  onClick={() => setExpanded(isOpen ? null : order.id)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 20px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    transition: "background 0.15s",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "var(--dash-surface-2)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <Link
-                        href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
-                        style={{
-                          color: "var(--dash-text)",
-                          fontWeight: 700,
-                          fontSize: 13,
-                          textDecoration: "none",
-                          fontFamily: "var(--font-mono, monospace)",
-                          borderBottom: "1px dashed rgba(255,255,255,0.25)",
-                          transition: "color 0.15s, border-color 0.15s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = "var(--accent)";
-                          e.currentTarget.style.borderColor = "var(--accent)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = "var(--dash-text)";
-                          e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        #{order.order_ref ?? order.id.slice(0, 6)}
-                      </Link>
-                      <StatusBadge status={order.status} />
-                      {isNew && (
-                        <span
-                          style={{
-                            fontSize: 10,
-                            padding: "2px 6px",
-                            borderRadius: 999,
-                            fontWeight: 700,
-                            background: "rgba(255,107,53,0.2)",
-                            color: "#ff6b35",
-                            border: "1px solid rgba(255,107,53,0.4)",
-                          }}
-                        >
-                          🔔 Nuevo
-                        </span>
-                      )}
-                    </div>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: "var(--dash-muted)",
-                        marginTop: 2,
-                      }}
-                    >
-                      {order.customer_name ?? "—"} ·{" "}
-                      {deliveryLabel(order.delivery_type)} ·{" "}
-                      {paymentLabel(order.payment_method)} ·{" "}
-                      {fmtFecha(order.created_at)}
-                    </p>
-                  </div>
-                  <span
-                    style={{
-                      fontWeight: 800,
-                      color: "var(--dash-text)",
-                      fontSize: 14,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {fmtARS(order.total)}
-                  </span>
-                  {isOpen ? (
-                    <ChevronUp
-                      style={{
-                        width: 16,
-                        height: 16,
-                        color: "var(--dash-muted)",
-                        flexShrink: 0,
-                      }}
-                    />
-                  ) : (
-                    <ChevronDown
-                      style={{
-                        width: 16,
-                        height: 16,
-                        color: "var(--dash-muted)",
-                        flexShrink: 0,
-                      }}
-                    />
-                  )}
-                </button>
+                {label}
+              </p>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: "var(--dash-text, #fff)",
+                  fontFamily: "var(--font-mono, monospace)",
+                }}
+              >
+                {value}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
 
-                {isOpen && (
-                  <OrderDetailView
-                    order={order}
-                    slug={slug}
-                    onUpdateStatus={updateStatus}
-                    onDeleteOrder={deleteOrder}
-                  />
-                )}
-              </div>
+      {/* Orders table */}
+      <div
+        style={{
+          background: "var(--dash-surface)",
+          border: "1px solid var(--dash-border)",
+          borderRadius: 16,
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: "16px 20px",
+            borderBottom: "1px solid var(--dash-border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <h2
+            style={{ fontSize: 15, fontWeight: 700, color: "var(--dash-text)" }}
+          >
+            Pedidos
+            <span
+              style={{
+                marginLeft: 8,
+                fontSize: 12,
+                fontWeight: 400,
+                color: "var(--dash-muted)",
+              }}
+            >
+              {orders.length} en total
+            </span>
+          </h2>
+          <div
+            style={{ position: "relative", minWidth: isMobile ? "100%" : 200 }}
+          >
+            <Search
+              style={{
+                position: "absolute",
+                left: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 14,
+                height: 14,
+                color: "var(--dash-muted)",
+              }}
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por cliente o ref..."
+              style={{
+                background: "var(--dash-surface-2)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 8,
+                paddingLeft: 30,
+                paddingRight: search ? 30 : 10,
+                paddingTop: 8,
+                paddingBottom: 8,
+                fontSize: 16, // prevent iOS zoom
+                color: "var(--dash-text)",
+                outline: "none",
+                width: "100%",
+              }}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                style={{
+                  position: "absolute",
+                  right: 8,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--dash-muted)",
+                  display: "flex",
+                  padding: 0,
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                <X style={{ width: 12, height: 12 }} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: "10px 16px",
+            borderBottom: "1px solid var(--dash-border)",
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            scrollbarWidth: "none",
+          }}
+        >
+          {FILTER_PILLS.map((pill) => {
+            const isActive = filter === pill.key;
+            return (
+              <button
+                key={pill.key}
+                onClick={() => setFilter(pill.key)}
+                style={{
+                  flexShrink: 0,
+                  padding: "7px 16px",
+                  borderRadius: 999,
+                  fontSize: isMobile ? 14 : 13,
+                  fontWeight: 600,
+                  border: "1px solid",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  background: isActive
+                    ? "rgba(255,107,53,0.12)"
+                    : "var(--dash-surface-2)",
+                  color: isActive ? "var(--accent)" : "var(--dash-muted)",
+                  borderColor: isActive
+                    ? "rgba(255,107,53,0.3)"
+                    : "var(--dash-border)",
+                  minHeight: isMobile ? 36 : "auto",
+                  WebkitTapHighlightColor: "transparent",
+                  userSelect: "none",
+                }}
+              >
+                {pill.label} ({counts[pill.key] ?? 0})
+              </button>
             );
           })}
         </div>
-      )}
-    </div>
+
+        {/* Content */}
+        {filtered.length === 0 ? (
+          <div
+            style={{
+              padding: "56px 20px",
+              textAlign: "center",
+              color: "var(--dash-muted)",
+            }}
+          >
+            <p style={{ fontSize: 32, marginBottom: 8 }}>📋</p>
+            <p style={{ fontSize: 14 }}>
+              {search ? "Sin resultados" : "No hay pedidos en esta categoría"}
+            </p>
+          </div>
+        ) : isMobile ? (
+          // ── Mobile: cards ──
+          <div style={{ padding: "12px 12px 4px" }}>
+            {filtered.map((order) => (
+              <MobileOrderCard
+                key={order.id}
+                order={order}
+                slug={slug}
+                isNew={newOrderIds.has(order.id)}
+                onUpdateStatus={updateStatus}
+                onDeleteOrder={deleteOrder}
+              />
+            ))}
+          </div>
+        ) : (
+          // ── Desktop: accordion rows ──
+          <div>
+            {filtered.map((order) => {
+              const isOpen = expanded === order.id;
+              const isNew = newOrderIds.has(order.id);
+
+              return (
+                <div
+                  key={order.id}
+                  style={{
+                    background: isNew ? "rgba(255,107,53,0.06)" : undefined,
+                    borderBottom: "1px solid var(--dash-border)",
+                    transition: "background 1s ease",
+                  }}
+                >
+                  <button
+                    onClick={() => setExpanded(isOpen ? null : order.id)}
+                    style={{
+                      width: "100%",
+                      padding: "12px 20px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      transition: "background 0.15s",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "var(--dash-surface-2)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <Link
+                          href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+                          style={{
+                            color: "var(--dash-text)",
+                            fontWeight: 700,
+                            fontSize: 13,
+                            textDecoration: "none",
+                            fontFamily: "var(--font-mono, monospace)",
+                            borderBottom: "1px dashed rgba(255,255,255,0.25)",
+                            transition: "color 0.15s, border-color 0.15s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = "var(--accent)";
+                            e.currentTarget.style.borderColor = "var(--accent)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = "var(--dash-text)";
+                            e.currentTarget.style.borderColor =
+                              "rgba(255,255,255,0.25)";
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          #{order.order_ref ?? order.id.slice(0, 6)}
+                        </Link>
+                        <StatusBadge status={order.status} />
+                        {isNew && (
+                          <span
+                            style={{
+                              fontSize: 10,
+                              padding: "2px 6px",
+                              borderRadius: 999,
+                              fontWeight: 700,
+                              background: "rgba(255,107,53,0.2)",
+                              color: "#ff6b35",
+                              border: "1px solid rgba(255,107,53,0.4)",
+                            }}
+                          >
+                            🔔 Nuevo
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "var(--dash-muted)",
+                          marginTop: 2,
+                        }}
+                      >
+                        {order.customer_name ?? "—"} ·{" "}
+                        {deliveryLabel(order.delivery_type)} ·{" "}
+                        {paymentLabel(order.payment_method)} ·{" "}
+                        {fmtFecha(order.created_at)}{" "}
+                        <OrderAgeBadge
+                          createdAt={order.created_at}
+                          status={order.status}
+                        />
+                      </p>
+                    </div>
+                    <span
+                      style={{
+                        fontWeight: 800,
+                        color: "var(--dash-text)",
+                        fontSize: 14,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {fmtARS(order.total)}
+                    </span>
+                    {isOpen ? (
+                      <ChevronUp
+                        style={{
+                          width: 16,
+                          height: 16,
+                          color: "var(--dash-muted)",
+                          flexShrink: 0,
+                        }}
+                      />
+                    ) : (
+                      <ChevronDown
+                        style={{
+                          width: 16,
+                          height: 16,
+                          color: "var(--dash-muted)",
+                          flexShrink: 0,
+                        }}
+                      />
+                    )}
+                  </button>
+
+                  {isOpen && (
+                    <OrderDetailView
+                      order={order}
+                      slug={slug}
+                      onUpdateStatus={updateStatus}
+                      onDeleteOrder={deleteOrder}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
