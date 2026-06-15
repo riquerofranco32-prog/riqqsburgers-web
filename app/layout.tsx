@@ -131,8 +131,10 @@ export default function RootLayout({
       lang="es"
       className={`${syne.variable} ${inter.variable} ${anton.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfair.variable} ${dmSans.variable} ${cormorant.variable} ${montserrat.variable}`}
     >
-      <body className="min-h-screen antialiased">{children}</body>
-      <GoogleAnalytics gaId="G-TFXZJ347RM" />
+      <body className="min-h-screen antialiased">
+        {children}
+        <GoogleAnalytics gaId="G-TFXZJ347RM" />
+      </body>
     </html>
   );
 }
