@@ -1417,6 +1417,10 @@ export default function CatalogClient({
                   const isActive = activeCategory === cat.id;
                   const Icon = getCategoryIcon(cat.name);
                   const count = cat.items.length;
+                  const availableCount = cat.items.filter(
+                    (i) => i.badge !== "Agotado",
+                  ).length;
+                  const allSoldOut = count > 0 && availableCount === 0;
                   return (
                     <button
                       key={cat.id}
@@ -1436,6 +1440,7 @@ export default function CatalogClient({
                         marginBottom: 2,
                         transition: "all 0.15s ease",
                         WebkitTapHighlightColor: "transparent",
+                        opacity: allSoldOut ? 0.55 : 1,
                       }}
                     >
                       <div
@@ -1468,7 +1473,9 @@ export default function CatalogClient({
                           {cat.emoji ? `${cat.emoji} ${cat.name}` : cat.name}
                         </p>
                         <p style={{ fontSize: 11, color: TEXTM, margin: 0 }}>
-                          {count} {count === 1 ? "producto" : "productos"}
+                          {allSoldOut
+                            ? "Agotado"
+                            : `${availableCount} ${availableCount === 1 ? "producto" : "productos"}`}
                         </p>
                       </div>
                       {isActive && (
@@ -2724,6 +2731,45 @@ export default function CatalogClient({
           </aside>
         </div>{" "}
         {/* end lg:flex */}
+        {/* ── Scroll to top ────────────────────────────────────────────────────── */}
+        {showSearch && !cartOpen && !selectedItem && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            aria-label="Volver arriba"
+            className="lg:hidden"
+            style={{
+              position: "fixed",
+              bottom: totalItems > 0 ? 88 : 20,
+              right: 16,
+              zIndex: 48,
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              background: "rgba(0,0,0,0.55)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.25)",
+              transition: "bottom 0.2s, opacity 0.2s",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M7 11V3M3 7l4-4 4 4"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
         {/* ── Toast ────────────────────────────────────────────────────────────── */}
         <AddedToast visible={!!addedToast} name={addedToast?.name ?? ""} />
         {/* ── Cart bar — mobile only ────────────────────────────────────────────── */}
