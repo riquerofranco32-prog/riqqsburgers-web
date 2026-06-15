@@ -1805,52 +1805,6 @@ export default function HomeClient({
         </div>
       </div>
 
-      {/* ── TRUST BADGES ────────────────────────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-60px" }}
-        transition={{ duration: 0.6, ease }}
-        style={{ padding: "32px 20px" }}
-      >
-        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-3">
-          {[
-            { icon: "🔒", text: "Pagos seguros con Mercado Pago" },
-            { icon: "⚡", text: "Sin contrato ni permanencia" },
-            { icon: "🛟", text: "Soporte en menos de 24hs" },
-            {
-              icon: "✅",
-              text: `+${restaurantCount} restaurantes en Argentina`,
-            },
-          ].map((badge) => (
-            <div
-              key={badge.text}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "8px 16px",
-                borderRadius: 99,
-                border: "1px solid rgba(255,255,255,0.1)",
-                background: "rgba(255,255,255,0.04)",
-              }}
-            >
-              <span style={{ fontSize: 15 }}>{badge.icon}</span>
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  color: "var(--text-secondary, rgba(255,255,255,0.65))",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {badge.text}
-              </span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-
       {/* ── STATS ───────────────────────────────────────────────────────────── */}
       <section
         style={{
@@ -2699,11 +2653,11 @@ export default function HomeClient({
                     width: 280,
                     height: 560,
                     borderRadius: 36,
-                    border: "8px solid rgba(255,255,255,0.12)",
+                    border: "8px solid rgba(0,0,0,0.15)",
                     background: "#0a0a0a",
                     overflow: "hidden",
                     boxShadow:
-                      "0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
+                      "0 40px 80px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.08)",
                     position: "relative",
                   }}
                 >
@@ -2757,7 +2711,7 @@ export default function HomeClient({
               <SectionLabel>Vista en vivo</SectionLabel>
               <h2
                 className="text-3xl sm:text-4xl font-bold mb-5"
-                style={{ color: "var(--dash-text)", lineHeight: 1.2 }}
+                style={{ color: "var(--text-primary)", lineHeight: 1.2 }}
               >
                 Así se ve tu carta{" "}
                 <span style={{ color: "var(--accent)" }}>en el celular</span> de
@@ -2766,7 +2720,7 @@ export default function HomeClient({
               <p
                 className="text-base mb-8"
                 style={{
-                  color: "var(--dash-muted)",
+                  color: "var(--text-secondary)",
                   lineHeight: 1.75,
                   maxWidth: 420,
                 }}
@@ -2805,12 +2759,12 @@ export default function HomeClient({
                     gap: 8,
                     padding: "12px 24px",
                     borderRadius: 10,
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    color: "var(--dash-text)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-primary)",
                     fontWeight: 600,
                     fontSize: 14,
                     textDecoration: "none",
-                    background: "rgba(255,255,255,0.04)",
+                    background: "var(--surface-2)",
                   }}
                 >
                   Crear la mía gratis
