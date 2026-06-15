@@ -12,10 +12,10 @@ export interface BlogPost {
 const posts: BlogPost[] = [
   {
     slug: "como-crear-menu-digital-restaurante-gratis",
-    title: "Cómo crear un menú digital para tu restaurante gratis en 2025",
+    title: "Cómo crear un menú digital para tu restaurante gratis en 2026",
     description:
       "Guía paso a paso para tener tu carta online en minutos. Sin saber programar, sin costos en dólares, con pedidos directo a tu WhatsApp.",
-    date: "2025-06-10",
+    date: "2026-06-10",
     readingTime: 5,
     category: "Guías",
     keywords: [
@@ -72,7 +72,7 @@ const posts: BlogPost[] = [
       "Pedidos por WhatsApp vs. Rappi y PedidosYa: qué le conviene más a tu restaurante",
     description:
       "Comparativa honesta entre recibir pedidos por WhatsApp con Takefyy y usar plataformas de delivery como Rappi o PedidosYa. Comisiones, control y ganancia real.",
-    date: "2025-06-05",
+    date: "2026-06-05",
     readingTime: 6,
     category: "Comparativas",
     keywords: [
@@ -122,7 +122,7 @@ const posts: BlogPost[] = [
       "Menú digital para hamburgueserías: guía completa para recibir más pedidos",
     description:
       "Cómo armar el menú digital perfecto para tu hamburguesería. Tips de fotografía, cómo nombrar los productos, badges que aumentan ventas y más.",
-    date: "2025-05-28",
+    date: "2026-05-28",
     readingTime: 7,
     category: "Guías",
     keywords: [
@@ -197,7 +197,7 @@ const posts: BlogPost[] = [
       "Cómo tomar fotos de tus hamburguesas con el celular (sin ser fotógrafo)",
     description:
       "Guía práctica para sacar fotos que venden. Luz, ángulo, fondo y tips específicos para hamburguerías. Sin cámara profesional, sin editor.",
-    date: "2025-06-18",
+    date: "2026-06-18",
     readingTime: 4,
     category: "Guías",
     keywords: [
@@ -245,7 +245,7 @@ const posts: BlogPost[] = [
       "5 estrategias para aumentar las ventas de tu hamburguesería sin depender de Rappi",
     description:
       "Cómo generar más pedidos y fidelizar clientes en tu hamburguesería sin pagar comisiones a plataformas de delivery. Estrategias concretas para Argentina.",
-    date: "2025-06-22",
+    date: "2026-06-22",
     readingTime: 6,
     category: "Estrategias",
     keywords: [
@@ -282,6 +282,63 @@ const posts: BlogPost[] = [
   },
 ];
 
+  {
+    slug: "menu-digital-pizzeria-argentina-2026",
+    title: "Menú digital para pizzerías en Argentina: guía 2026 para recibir más pedidos",
+    description:
+      "Cómo armar el menú digital de tu pizzería, atraer clientes por WhatsApp y dejar de pagar comisiones a Rappi o PedidosYa. Guía práctica para Argentina.",
+    date: "2026-06-15",
+    readingTime: 6,
+    category: "Guías",
+    keywords: [
+      "menú digital pizzería argentina",
+      "carta digital pizzería gratis",
+      "pizzería pedidos whatsapp argentina",
+      "sistema pedidos pizzería sin rappi",
+      "menú online pizzería argentina 2026",
+      "carta digital pizzería sin comisiones",
+    ],
+    content: `
+<h2>¿Por qué tu pizzería necesita un menú digital propio?</h2>
+<p>La pizza es uno de los productos más pedidos online en Argentina. El problema: la mayoría de las pizzerías dependen de Rappi o PedidosYa, que se llevan hasta el 35% de cada pedido. Con un menú digital propio, ese porcentaje queda en tu bolsillo.</p>
+<p>Takefyy te permite tener tu carta online en minutos, con pedidos que llegan directo a tu WhatsApp. Sin intermediarios, sin comisiones por venta.</p>
+
+<h2>Cómo estructurar el menú de tu pizzería</h2>
+<p>Las pizzerías que más convierten online tienen esta estructura de categorías:</p>
+<ol>
+  <li><strong>Pizzas clásicas</strong> — las que todos conocen (mozzarella, napolitana, fugazzeta)</li>
+  <li><strong>Pizzas especiales</strong> — las que te diferencian</li>
+  <li><strong>Media masa / Al molde</strong> — si ofrecés las dos</li>
+  <li><strong>Empanadas y entrantes</strong></li>
+  <li><strong>Bebidas</strong></li>
+</ol>
+<p>Si vendés por mitades, aclaralo en la descripción de cada pizza. Eso reduce las dudas y los mensajes de consulta antes del pedido.</p>
+
+<h2>El precio por porción o por pizza entera</h2>
+<p>Mostrá el precio de la pizza entera, no por porción. Los clientes online quieren saber cuánto gastan en total antes de pedir. Si ofrecés por porción, indicalo explícitamente con el tamaño.</p>
+
+<h2>Fotos de pizzas: lo que funciona</h2>
+<ul>
+  <li><strong>Fondo neutro oscuro o tabla de madera</strong>: el dorado de la masa resalta más</li>
+  <li><strong>Foto desde arriba</strong>: muestra el relleno completo</li>
+  <li><strong>Pizza recién salida del horno</strong>: el queso con manchas doradas vende solo</li>
+  <li><strong>Porciones cortadas visibles</strong>: ayuda al cliente a dimensionar el tamaño</li>
+</ul>
+
+<h2>El badge "Popular" en tus pizzas estrella</h2>
+<p>Marcá con el badge <em>Popular</em> tus 2-3 pizzas más pedidas. El efecto de prueba social hace que los clientes nuevos elijan las más vendidas — y eso sube tu ticket promedio porque suelen ser las más rentables.</p>
+
+<h2>Combos para subir el ticket promedio</h2>
+<p>Armá combos con pizza + bebida + postre a un precio ligeramente inferior a la suma individual. Esto aumenta el ticket sin que el cliente sienta que está gastando más. Ejemplo: <em>"Combo Noche: Pizza Grande + 1.5L de Coca + 6 facturas — $X"</em>.</p>
+
+<h2>Cómo calcular cuánto perdés con Rappi</h2>
+<p>Si tu pizzería vende $500.000 ARS por mes a través de Rappi al 30% de comisión, estás perdiendo $150.000 ARS cada mes — más de $1.800.000 ARS al año. Con Takefyy pagás una suscripción mensual fija en pesos y te quedás con el 100% de cada venta.</p>
+
+<h2>Conclusión</h2>
+<p>Un menú digital propio es la inversión más rentable que puede hacer una pizzería hoy en Argentina. Sin comisiones por pedido, con pedidos directo a tu WhatsApp y control total de tu negocio.</p>
+<p><a href="/">Empezar gratis con Takefyy →</a></p>
+    `.trim(),
+  },
 export function getAllPosts(): BlogPost[] {
   return posts.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),

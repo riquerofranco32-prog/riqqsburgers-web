@@ -72,7 +72,7 @@ function AnimatedCounter({
   }, [target]);
 
   return (
-    <span ref={ref}>
+    <span ref={ref} style={{ fontVariantNumeric: "tabular-nums" }}>
       {prefix}
       {count.toLocaleString("es-AR")}
       {suffix}
@@ -2000,6 +2000,44 @@ export default function HomeClient({
           >
             &quot;Si vendés comida, Takefyy funciona para vos.&quot;
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.55, ease }}
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 12,
+              flexWrap: "wrap",
+              marginTop: 32,
+            }}
+          >
+            {[
+              { label: "Menú para hamburguerías →", href: "/hamburgueserias" },
+              { label: "Menú para pizzerías →", href: "/pizzerias" },
+            ].map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: 99,
+                  background: "rgba(255,107,53,0.08)",
+                  border: "1px solid rgba(255,107,53,0.2)",
+                  color: "var(--accent)",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  transition:
+                    "background-color 0.15s ease, border-color 0.15s ease",
+                }}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </motion.div>
         </div>
       </section>
 
@@ -3010,7 +3048,8 @@ export default function HomeClient({
                           ? "1.5px solid rgba(255,255,255,0.28)"
                           : "1.5px solid var(--accent)",
                         cursor: "pointer",
-                        transition: "all 0.15s",
+                        transition:
+                          "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = plan.featured
