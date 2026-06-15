@@ -10,12 +10,15 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@next/third-parties": "^14.2.35",
+    "@radix-ui/react-slot": "^1.2.5",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
+    "@types/three": "^0.184.1",
+    "class-variance-authority": "^0.7.1",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
     "mercadopago": "^3.0.0",
-    "@next/third-parties": "^14.2.35",
     "next": "^14.2.35",
     "react": "^18",
     "react-dom": "^18",
@@ -23,6 +26,7 @@
     "recharts": "^3.8.1",
     "shaders": "^2.5.128",
     "sonner": "^2.0.7",
+    "three": "^0.184.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
