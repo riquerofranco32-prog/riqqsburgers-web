@@ -280,11 +280,10 @@ const posts: BlogPost[] = [
 <p><a href="/hamburgueserias">Ver cómo crear el menú digital de tu hamburguesería →</a></p>
     `.trim(),
   },
-];
-
   {
     slug: "menu-digital-pizzeria-argentina-2026",
-    title: "Menú digital para pizzerías en Argentina: guía 2026 para recibir más pedidos",
+    title:
+      "Menú digital para pizzerías en Argentina: guía 2026 para recibir más pedidos",
     description:
       "Cómo armar el menú digital de tu pizzería, atraer clientes por WhatsApp y dejar de pagar comisiones a Rappi o PedidosYa. Guía práctica para Argentina.",
     date: "2026-06-15",
@@ -339,6 +338,8 @@ const posts: BlogPost[] = [
 <p><a href="/">Empezar gratis con Takefyy →</a></p>
     `.trim(),
   },
+];
+
 export function getAllPosts(): BlogPost[] {
   return posts.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
