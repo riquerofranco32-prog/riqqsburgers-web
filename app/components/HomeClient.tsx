@@ -1275,6 +1275,27 @@ export default function HomeClient({
                 {l.label}
               </button>
             ))}
+            <Link
+              href="/blog"
+              className="text-sm font-medium"
+              style={{
+                color: "var(--dash-muted)",
+                transition: "color 0.15s",
+                padding: "12px 8px",
+                minHeight: 44,
+                display: "flex",
+                alignItems: "center",
+                textDecoration: "none",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--dash-text)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--dash-muted)")
+              }
+            >
+              Blog
+            </Link>
           </div>
 
           <div className="flex items-center gap-3">
@@ -1390,9 +1411,32 @@ export default function HomeClient({
                   </motion.button>
                 ))}
                 <motion.div
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: navLinks.length * 0.06, duration: 0.25 }}
+                >
+                  <Link
+                    href="/blog"
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      display: "block",
+                      fontSize: 28,
+                      fontFamily: "var(--font-anton)",
+                      color: "var(--accent)",
+                      padding: "10px 0",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Blog
+                  </Link>
+                </motion.div>
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: navLinks.length * 0.06, duration: 0.25 }}
+                  transition={{
+                    delay: (navLinks.length + 1) * 0.06,
+                    duration: 0.25,
+                  }}
                 >
                   <a
                     href={
