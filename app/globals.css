@@ -1121,3 +1121,89 @@ a {
 .blog-content blockquote p {
   margin: 0;
 }
+
+/* ── HeroShader CSS aurora (GPU-compositor, zero CPU) ──────────────────── */
+@keyframes aurora-drift-1 {
+  0% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  33% {
+    transform: translate(8%, -12%) scale(1.08);
+  }
+  66% {
+    transform: translate(-6%, 8%) scale(0.95);
+  }
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+}
+@keyframes aurora-drift-2 {
+  0% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  40% {
+    transform: translate(-10%, 6%) scale(1.12);
+  }
+  70% {
+    transform: translate(5%, -8%) scale(0.92);
+  }
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+}
+@keyframes aurora-drift-3 {
+  0% {
+    transform: translate(0%, 0%) scale(1);
+  }
+  50% {
+    transform: translate(6%, 10%) scale(1.05);
+  }
+  100% {
+    transform: translate(0%, 0%) scale(1);
+  }
+}
+.hero-aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  will-change: transform;
+}
+.hero-aurora-1 {
+  width: 60%;
+  height: 70%;
+  top: -10%;
+  left: 20%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 107, 53, 0.18) 0%,
+    rgba(201, 74, 26, 0.08) 50%,
+    transparent 70%
+  );
+  animation: aurora-drift-1 18s ease-in-out infinite;
+}
+.hero-aurora-2 {
+  width: 50%;
+  height: 60%;
+  top: 30%;
+  left: -5%;
+  background: radial-gradient(
+    circle,
+    rgba(180, 40, 10, 0.14) 0%,
+    rgba(255, 107, 53, 0.06) 50%,
+    transparent 70%
+  );
+  animation: aurora-drift-2 24s ease-in-out infinite;
+}
+.hero-aurora-3 {
+  width: 45%;
+  height: 55%;
+  top: 20%;
+  right: -5%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 140, 90, 0.12) 0%,
+    rgba(201, 74, 26, 0.05) 50%,
+    transparent 70%
+  );
+  animation: aurora-drift-3 20s ease-in-out infinite;
+}
