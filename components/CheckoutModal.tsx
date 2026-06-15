@@ -382,6 +382,34 @@ export default function CheckoutModal({
               margin: "0 auto",
             }}
           />
+          <button
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              right: 16,
+              top: 14,
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              background: "var(--surface-2)",
+              border: "1px solid var(--border)",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              fontWeight: 700,
+              lineHeight: 1,
+              WebkitTapHighlightColor: "transparent",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--border)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
         </div>
 
         {done ? (
@@ -513,7 +541,7 @@ export default function CheckoutModal({
           </div>
         ) : (
           /* ── Form ────────────────────────────────────────────────────── */
-          <div style={{ padding: "20px 20px 32px" }}>
+          <div style={{ padding: "20px 20px 48px" }}>
             <h2
               style={{
                 color: "var(--text-primary)",
@@ -819,45 +847,53 @@ export default function CheckoutModal({
                 </div>
               )}
 
-              <button
-                onClick={handleConfirm}
-                disabled={loading}
+              <div
                 style={{
-                  width: "100%",
-                  background: loading ? "var(--surface-2)" : accent,
-                  color: loading ? "var(--text-muted)" : "white",
-                  fontWeight: 700,
-                  fontSize: 16,
-                  padding: "16px",
-                  borderRadius: 14,
-                  border: "none",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  transition: "all 0.15s",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
+                  borderTop: "1px solid var(--border)",
+                  paddingTop: 16,
+                  marginTop: 4,
                 }}
               >
-                {loading ? (
-                  <>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: 16,
-                        height: 16,
-                        border: "2px solid currentColor",
-                        borderTopColor: "transparent",
-                        borderRadius: "50%",
-                        animation: "spin 0.7s linear infinite",
-                      }}
-                    />
-                    Enviando...
-                  </>
-                ) : (
-                  "📲 Confirmar y enviar por WhatsApp"
-                )}
-              </button>
+                <button
+                  onClick={handleConfirm}
+                  disabled={loading}
+                  style={{
+                    width: "100%",
+                    background: loading ? "var(--surface-2)" : accent,
+                    color: loading ? "var(--text-muted)" : "white",
+                    fontWeight: 700,
+                    fontSize: 16,
+                    padding: "16px",
+                    borderRadius: 14,
+                    border: "none",
+                    cursor: loading ? "not-allowed" : "pointer",
+                    transition: "all 0.15s",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  {loading ? (
+                    <>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          width: 16,
+                          height: 16,
+                          border: "2px solid currentColor",
+                          borderTopColor: "transparent",
+                          borderRadius: "50%",
+                          animation: "spin 0.7s linear infinite",
+                        }}
+                      />
+                      Enviando...
+                    </>
+                  ) : (
+                    "📲 Confirmar y enviar por WhatsApp"
+                  )}
+                </button>
+              </div>
               <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
             </div>
           </div>

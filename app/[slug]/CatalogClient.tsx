@@ -3642,9 +3642,10 @@ export default function CatalogClient({
               </>
             );
           })()}
-        {/* ── Powered by Takefyy ───────────────────────────────────────────────── */}
+        {/* ── Powered by Takefyy (solo móvil — desktop usa sidebar) ──────────── */}
         {totalItems === 0 && (
           <div
+            className="lg:hidden"
             style={{
               textAlign: "center",
               padding: "48px 20px 60px",

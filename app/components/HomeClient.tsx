@@ -897,6 +897,7 @@ export default function HomeClient({
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const rafRef = useRef<number>(0);
   const isHoveringHero = useRef(false);
@@ -906,6 +907,17 @@ export default function HomeClient({
     window.addEventListener("scroll", h, { passive: true });
     return () => window.removeEventListener("scroll", h);
   }, []);
+
+  useEffect(() => {
+    if (localStorage.getItem("takefyy_banner_dismissed") === "1") {
+      setBannerDismissed(true);
+    }
+  }, []);
+
+  function dismissBanner() {
+    setBannerDismissed(true);
+    localStorage.setItem("takefyy_banner_dismissed", "1");
+  }
 
   // Idle automatic mouse drift animation
   useEffect(() => {
@@ -964,6 +976,70 @@ export default function HomeClient({
         fontFamily: "var(--font-sans)",
       }}
     >
+      {/* ── TRIAL BANNER ─────────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {!bannerDismissed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease }}
+            style={{
+              background: "linear-gradient(90deg, #FF6B35 0%, #FF8C00 100%)",
+              overflow: "hidden",
+              position: "relative",
+              zIndex: 60,
+            }}
+          >
+            <div
+              className="max-w-6xl mx-auto px-5 sm:px-8 flex items-center justify-center gap-3"
+              style={{ padding: "10px 20px", minHeight: 44 }}
+            >
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#fff", textAlign: "center" }}>
+                🎁 Probá Takefyy 14 días gratis — sin tarjeta de crédito
+              </span>
+              <a
+                href="https://wa.me/542994247985?text=Hola!%20Quiero%20probar%20Takefyy%20gratis%20🚀"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  background: "#fff",
+                  color: "#FF6B35",
+                  borderRadius: 6,
+                  padding: "4px 12px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  textDecoration: "none",
+                  flexShrink: 0,
+                }}
+              >
+                Empezar gratis →
+              </a>
+              <button
+                onClick={dismissBanner}
+                aria-label="Cerrar banner"
+                style={{
+                  position: "absolute",
+                  right: 16,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.8)",
+                  cursor: "pointer",
+                  fontSize: 18,
+                  lineHeight: 1,
+                  padding: 4,
+                }}
+              >
+                ×
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
       <nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
@@ -1328,9 +1404,40 @@ export default function HomeClient({
                 </motion.a>
               </motion.div>
 
-              {/* Social proof */}
+              {/* Trust badges */}
               <motion.div
                 {...fadeUp(0.52)}
+                className="flex flex-wrap gap-2 mb-6"
+              >
+                {[
+                  { icon: "💬", text: "Pedidos por WhatsApp" },
+                  { icon: "🚫", text: "Sin comisiones" },
+                  { icon: "🎁", text: "14 días gratis" },
+                ].map(({ icon, text }) => (
+                  <span
+                    key={text}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "5px 11px",
+                      borderRadius: 999,
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      fontSize: 12,
+                      color: "rgba(240,237,232,0.7)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    <span>{icon}</span>
+                    {text}
+                  </span>
+                ))}
+              </motion.div>
+
+              {/* Social proof */}
+              <motion.div
+                {...fadeUp(0.62)}
                 className="flex flex-col gap-3"
               >
                 <div
@@ -1504,6 +1611,51 @@ export default function HomeClient({
           ))}
         </div>
       </div>
+
+      {/* ── TRUST BADGES ────────────────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{ duration: 0.6, ease }}
+        style={{ padding: "32px 20px" }}
+      >
+        <div
+          className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-3"
+        >
+          {[
+            { icon: "🔒", text: "Pagos seguros con Mercado Pago" },
+            { icon: "⚡", text: "Sin contrato ni permanencia" },
+            { icon: "🛟", text: "Soporte en menos de 24hs" },
+            { icon: "✅", text: `+${restaurantCount} restaurantes en Argentina` },
+          ].map((badge) => (
+            <div
+              key={badge.text}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 16px",
+                borderRadius: 99,
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.04)",
+              }}
+            >
+              <span style={{ fontSize: 15 }}>{badge.icon}</span>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "var(--text-secondary, rgba(255,255,255,0.65))",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {badge.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
 
       {/* ── STATS ───────────────────────────────────────────────────────────── */}
       <section
@@ -2334,6 +2486,141 @@ export default function HomeClient({
         </div>
       </section>
 
+      {/* ── LIVE PREVIEW ────────────────────────────────────────────────────── */}
+      <section style={{ padding: "100px 0", background: "var(--bg)" }}>
+        <div className="max-w-6xl mx-auto px-5 sm:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Phone mockup */}
+            <motion.div
+              initial={{ opacity: 0, x: -32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease }}
+              className="flex justify-center"
+            >
+              <div style={{ position: "relative" }}>
+                {/* Phone frame */}
+                <div
+                  style={{
+                    width: 280,
+                    height: 560,
+                    borderRadius: 36,
+                    border: "8px solid rgba(255,255,255,0.12)",
+                    background: "#0a0a0a",
+                    overflow: "hidden",
+                    boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
+                    position: "relative",
+                  }}
+                >
+                  {/* Notch */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      width: 90,
+                      height: 24,
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: "0 0 16px 16px",
+                      zIndex: 2,
+                    }}
+                  />
+                  <iframe
+                    src="/larryssburgers"
+                    title="Demo menú Larry's Sburgers"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      border: "none",
+                      pointerEvents: "none",
+                    }}
+                    loading="lazy"
+                  />
+                </div>
+                {/* Glow */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: -40,
+                    background: "radial-gradient(ellipse at center, rgba(255,107,53,0.15) 0%, transparent 70%)",
+                    zIndex: -1,
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
+            </motion.div>
+
+            {/* Text */}
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease, delay: 0.1 }}
+            >
+              <SectionLabel>Vista en vivo</SectionLabel>
+              <h2
+                className="text-3xl sm:text-4xl font-bold mb-5"
+                style={{ color: "var(--dash-text)", lineHeight: 1.2 }}
+              >
+                Así se ve tu carta{" "}
+                <span style={{ color: "var(--accent)" }}>en el celular</span>{" "}
+                de tus clientes
+              </h2>
+              <p
+                className="text-base mb-8"
+                style={{ color: "var(--dash-muted)", lineHeight: 1.75, maxWidth: 420 }}
+              >
+                Una carta rápida, bonita y fácil de usar. Tus clientes eligen
+                sus productos, arman el pedido y te lo mandan directo por
+                WhatsApp — sin descargar nada.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href="/larryssburgers"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "12px 24px",
+                    borderRadius: 10,
+                    background: "var(--accent)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 14,
+                    textDecoration: "none",
+                  }}
+                >
+                  Ver demo en vivo →
+                </a>
+                <a
+                  href="https://wa.me/542994247985?text=Hola!%20Quiero%20probar%20Takefyy%20🚀"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "12px 24px",
+                    borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.12)",
+                    color: "var(--dash-text)",
+                    fontWeight: 600,
+                    fontSize: 14,
+                    textDecoration: "none",
+                    background: "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  Crear la mía gratis
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* ── PRICING ─────────────────────────────────────────────────────────── */}
       <section
         id="precios"
@@ -2377,23 +2664,23 @@ export default function HomeClient({
                     <div
                       style={{
                         position: "absolute",
-                        top: -12,
+                        top: -14,
                         left: "50%",
                         transform: "translateX(-50%) translateZ(10px)",
                         color: "#fff",
                         fontSize: 10,
-                        fontWeight: 700,
-                        padding: "4px 14px",
+                        fontWeight: 800,
+                        padding: "5px 16px",
                         borderRadius: 20,
-                        background: "#FF6B35",
-                        border: "1px solid rgba(255,255,255,0.3)",
+                        background: "linear-gradient(90deg, #ff8c42 0%, #ff6b35 50%, #e85d23 100%)",
+                        border: "1px solid rgba(255,255,255,0.35)",
                         whiteSpace: "nowrap",
                         zIndex: 10,
-                        letterSpacing: "0.08em",
-                        boxShadow: "0 4px 12px rgba(255,107,53,0.3)",
+                        letterSpacing: "0.1em",
+                        boxShadow: "0 4px 16px rgba(255,107,53,0.5), 0 0 0 2px rgba(255,107,53,0.15)",
                       }}
                     >
-                      MÁS POPULAR
+                      ⭐ MÁS POPULAR
                     </div>
                   )}
                   <div
@@ -3146,22 +3433,30 @@ export default function HomeClient({
                 color: "#fff",
                 background: "transparent",
                 cursor: "pointer",
-                textDecoration: "none",
+            <Link
+              href="/demo/riqqsburgers"
+              style={{
                 display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                padding: "18px 40px",
-                fontSize: 16,
+                gap: 8,
+                color: "var(--accent)",
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: "none",
+                marginTop: 28,
+                padding: "8px 0",
+                borderBottom: "1px solid rgba(255,107,53,0.3)",
+                transition: "border-color 0.2s",
               }}
-              whileHover={{
-                background: "rgba(255,255,255,0.07)",
-                borderColor: "rgba(255,255,255,0.3)",
-              }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.borderColor = "rgba(255,107,53,0.8)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)")
+              }
             >
-              Ver demo →
-            </motion.a>
+              Ver demo en vivo: Riqq&apos;s Burgers →
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -3309,10 +3604,16 @@ export default function HomeClient({
             style={{
               borderTop: "1px solid rgba(255,255,255,0.06)",
               paddingTop: 24,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
             }}
           >
             <p style={{ color: "rgba(255,255,255,0.25)", fontSize: 12 }}>
-              © 2026 Takefyy · Hecho en Argentina · Franco Riquero
+              © 2026 Takefyy &middot; Hecho con ❤️ en Argentina
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.14)", fontSize: 11 }}>
+              Takefyy no cobra comisiones por pedido. Todos los pedidos se procesan directamente entre el restaurante y el cliente.
             </p>
           </div>
         </div>
