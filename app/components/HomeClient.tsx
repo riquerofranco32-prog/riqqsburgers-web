@@ -400,10 +400,10 @@ const marqueeItems = [
 ];
 
 const stats = [
-  { value: 0, suffix: "%", label: "Comisión por pedido" },
-  { value: 3, suffix: " min", label: "Para estar online" },
-  { value: 0, suffix: " USD", label: "El precio es en ARS" },
-  { value: 100, suffix: "%", label: "Directo a tu WhatsApp" },
+  { value: 0, suffix: "%", label: "Comisión por pedido", iconKey: "shield", color: "#22c55e" },
+  { value: 3, suffix: " min", label: "Para estar online", iconKey: "zap", color: "var(--accent)" },
+  { value: 0, suffix: " USD", label: "El precio es en pesos", iconKey: "trending", color: "#f59e0b" },
+  { value: 100, suffix: "%", label: "Directo a tu WhatsApp", iconKey: "message", color: "#25D366" },
 ];
 
 function PhoneMockup() {
@@ -1863,55 +1863,62 @@ export default function HomeClient({
 
               <motion.div
                 {...fadeUp(0.43)}
-                className="flex flex-wrap gap-3 mb-12"
+                className="mb-12"
               >
-                <motion.button
-                  onClick={() =>
-                    window.open(
-                      "https://wa.me/542994247985?text=" +
-                        encodeURIComponent(
-                          "Hola! Me interesa Takefyy para mi negocio 🚀",
-                        ),
-                      "_blank",
-                    )
-                  }
-                  className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
-                  style={{
-                    background: "var(--accent)",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                  whileHover={{
-                    scale: 1.05,
-                    filter: "brightness(1.12)",
-                    boxShadow: "0 6px 32px rgba(255,107,53,0.45)",
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                >
-                  Empezar gratis →
-                </motion.button>
-                <motion.a
-                  href="/larryssburgers"
-                  className="rounded-full px-7 py-3.5 text-sm font-semibold"
-                  style={{
-                    border: "1.5px solid rgba(255,255,255,0.16)",
-                    color: "#fff",
-                    background: "transparent",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                  }}
-                  whileHover={{
-                    background: "rgba(255,255,255,0.07)",
-                    borderColor: "rgba(255,255,255,0.3)",
-                  }}
-                  whileTap={{ scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                >
-                  Ver demo
-                </motion.a>
+                <div className="flex flex-wrap gap-3 mb-3">
+                  <motion.button
+                    onClick={() =>
+                      window.open(
+                        "https://wa.me/542994247985?text=" +
+                          encodeURIComponent(
+                            "Hola! Me interesa Takefyy para mi negocio 🚀",
+                          ),
+                        "_blank",
+                      )
+                    }
+                    className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
+                    style={{
+                      background: "var(--accent)",
+                      border: "none",
+                      cursor: "pointer",
+                      position: "relative",
+                    }}
+                    whileHover={{
+                      scale: 1.05,
+                      filter: "brightness(1.12)",
+                      boxShadow: "0 6px 32px rgba(255,107,53,0.45)",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  >
+                    Empezar gratis →
+                  </motion.button>
+                  <motion.a
+                    href="/larryssburgers"
+                    className="rounded-full px-7 py-3.5 text-sm font-semibold"
+                    style={{
+                      border: "1.5px solid rgba(255,255,255,0.16)",
+                      color: "#fff",
+                      background: "transparent",
+                      cursor: "pointer",
+                      textDecoration: "none",
+                      display: "inline-flex",
+                      alignItems: "center",
+                    }}
+                    whileHover={{
+                      background: "rgba(255,255,255,0.07)",
+                      borderColor: "rgba(255,255,255,0.3)",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                  >
+                    Ver demo
+                  </motion.a>
+                </div>
+                <p style={{ fontSize: 12, color: "rgba(240,237,232,0.4)", margin: 0, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Check size={11} style={{ color: "#22c55e", flexShrink: 0 }} />
+                  Sin tarjeta de crédito · Setup en 3 minutos · Cancelás cuando querés
+                </p>
               </motion.div>
 
               {/* Trust badges */}
@@ -1920,26 +1927,26 @@ export default function HomeClient({
                 className="flex flex-wrap gap-2 mb-6"
               >
                 {[
-                  { icon: "💬", text: "Pedidos por WhatsApp" },
-                  { icon: "🚫", text: "Sin comisiones" },
-                  { icon: "🎁", text: "14 días gratis" },
-                ].map(({ icon, text }) => (
+                  { icon: <MessageCircle size={12} />, text: "Pedidos por WhatsApp", color: "#25D366" },
+                  { icon: <Shield size={12} />, text: "Sin comisiones", color: "#22c55e" },
+                  { icon: <Zap size={12} />, text: "14 días gratis", color: "var(--accent)" },
+                ].map(({ icon, text, color }) => (
                   <span
                     key={text}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 5,
-                      padding: "5px 11px",
+                      gap: 6,
+                      padding: "5px 12px",
                       borderRadius: 999,
                       background: "rgba(255,255,255,0.04)",
                       border: "1px solid rgba(255,255,255,0.1)",
                       fontSize: 12,
-                      color: "rgba(240,237,232,0.7)",
+                      color: "rgba(240,237,232,0.75)",
                       fontWeight: 500,
                     }}
                   >
-                    <span>{icon}</span>
+                    <span style={{ color, flexShrink: 0, display: "flex" }}>{icon}</span>
                     {text}
                   </span>
                 ))}
@@ -2091,30 +2098,27 @@ export default function HomeClient({
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 20,
-                padding: "0 24px",
+                gap: 16,
+                padding: "0 20px",
                 whiteSpace: "nowrap",
               }}
             >
               <span
                 style={{
-                  fontSize: 12,
-                  fontWeight: 700,
+                  fontSize: 11,
+                  fontWeight: 800,
                   color: "#fff",
-                  letterSpacing: "0.06em",
+                  letterSpacing: "0.08em",
                   textTransform: "uppercase",
                 }}
               >
                 {item}
               </span>
-              <span
-                style={{
-                  width: 4,
-                  height: 4,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.45)",
-                  flexShrink: 0,
-                }}
+              <Star
+                size={8}
+                fill="rgba(255,255,255,0.5)"
+                stroke="none"
+                style={{ flexShrink: 0 }}
               />
             </span>
           ))}
@@ -2140,7 +2144,7 @@ export default function HomeClient({
                 transition={{ duration: 0.5, delay: i * 0.1, ease }}
                 style={{
                   textAlign: "center",
-                  padding: "24px 16px",
+                  padding: "28px 16px",
                   position: "relative",
                 }}
               >
@@ -2157,14 +2161,35 @@ export default function HomeClient({
                     }}
                   />
                 )}
+                {/* Icon badge */}
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    background: `${s.color}18`,
+                    border: `1px solid ${s.color}30`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 14px",
+                    color: s.color,
+                  }}
+                >
+                  {s.iconKey === "shield" && <Shield size={18} />}
+                  {s.iconKey === "zap" && <Zap size={18} />}
+                  {s.iconKey === "trending" && <TrendingUp size={18} />}
+                  {s.iconKey === "message" && <MessageCircle size={18} />}
+                </div>
                 <div
                   style={{
                     fontFamily: "var(--font-anton)",
-                    fontSize: "clamp(2.8rem, 5vw, 4.5rem)",
-                    color: "#fff",
+                    fontSize: "clamp(2.4rem, 4.5vw, 3.8rem)",
+                    color: s.color,
                     lineHeight: 1,
                     letterSpacing: "0.01em",
                     marginBottom: 8,
+                    textShadow: `0 0 40px ${s.color}40`,
                   }}
                 >
                   <AnimatedCounter target={s.value} suffix={s.suffix} />
@@ -2174,6 +2199,7 @@ export default function HomeClient({
                     fontSize: 13,
                     color: "var(--dash-muted)",
                     letterSpacing: "0.01em",
+                    lineHeight: 1.4,
                   }}
                 >
                   {s.label}
@@ -3373,10 +3399,30 @@ export default function HomeClient({
                 color: "var(--text-primary)",
                 lineHeight: 1.0,
                 textWrap: "balance",
+                marginBottom: 16,
               }}
             >
               Tres planes. Sin sorpresas.
             </h2>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(34,197,94,0.08)",
+                  border: "1px solid rgba(34,197,94,0.25)",
+                  borderRadius: 999,
+                  padding: "6px 14px",
+                  fontSize: 13,
+                  color: "#22c55e",
+                  fontWeight: 600,
+                }}
+              >
+                <Shield size={13} />
+                Todos los planes incluyen 14 días gratis — sin tarjeta de crédito
+              </span>
+            </div>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
@@ -4356,7 +4402,7 @@ export default function HomeClient({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.55, delay: 0.2, ease }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
           >
             <motion.button
               onClick={() =>
@@ -4406,6 +4452,52 @@ export default function HomeClient({
               Ver demo en vivo →
             </Link>
           </motion.div>
+
+          {/* Social proof row */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.32, ease }}
+            style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 14, flexWrap: "wrap" }}
+          >
+            {/* Avatar stack */}
+            <div style={{ display: "flex" }}>
+              {["#FF6B35", "#f59e0b", "#22c55e", "#818cf8"].map((bg, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: `linear-gradient(135deg, ${bg}cc, ${bg}66)`,
+                    border: "2px solid #0E1116",
+                    marginLeft: idx === 0 ? 0 : -10,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: "#fff",
+                  }}
+                >
+                  {["L", "R", "S", "M"][idx]}
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ display: "flex", gap: 2, marginBottom: 2 }}>
+                {"★★★★★".split("").map((s, si) => (
+                  <span key={si} style={{ color: "var(--accent)", fontSize: 12 }}>{s}</span>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: "rgba(240,237,232,0.5)", margin: 0 }}>
+                Más de <strong style={{ color: "rgba(240,237,232,0.8)" }}>
+                  {restaurantCount > 0 ? restaurantCount : 8}
+                </strong> negocios confían en Takefyy
+              </p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -4439,16 +4531,17 @@ export default function HomeClient({
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 3.2, ease }}
           style={{
-            background: "var(--brand-dark)",
-            border: "1px solid rgba(255,107,53,0.25)",
+            background: "linear-gradient(135deg, #1a1a1a 0%, #111 100%)",
+            border: "1px solid rgba(255,107,53,0.4)",
             borderRadius: 12,
             padding: "8px 14px",
             fontSize: 12,
-            fontWeight: 600,
-            color: "var(--text-primary)",
+            fontWeight: 700,
+            color: "#ffffff",
             whiteSpace: "nowrap",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,107,53,0.1)",
             pointerEvents: "auto",
+            letterSpacing: "0.01em",
           }}
         >
           🔥 14 días gratis — sin tarjeta
@@ -4538,11 +4631,11 @@ export default function HomeClient({
                     (e.currentTarget.style.color = "rgba(255,255,255,0.4)")
                   }
                 >
-                  Contacto
+                  WhatsApp
                 </a>
               </div>
             </div>
-            <div className="flex gap-12">
+            <div className="flex gap-12 md:gap-20">
               <div>
                 <div
                   className="text-xs font-semibold mb-4"
@@ -4551,12 +4644,7 @@ export default function HomeClient({
                   PRODUCTO
                 </div>
                 <div className="flex flex-col gap-3">
-                  {[
-                    { label: "Funcionalidades", id: "producto" },
-                    { label: "Precios", id: "precios" },
-                    { label: "Clientes", id: "clientes" },
-                    { label: "FAQ", id: "faq" },
-                  ].map((l) => (
+                  {navLinks.map((l) => (
                     <button
                       key={l.label}
                       onClick={() => scrollTo(l.id)}
