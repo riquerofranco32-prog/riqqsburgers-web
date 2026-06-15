@@ -1,1 +1,3 @@
 - [Storage upload fix](project_storage-upload-fix.md) — uploads de logo/banner deben ir via API route server-side; el browser no tiene sesión Supabase Auth
+- [MenuItem type — sin 'available'](feedback_menuitem-type.md) — disponibilidad en cliente = badge "Agotado", no hay campo available en el tipo
+- [Edición CatalogClient.tsx](feedback_catalog-edit-strategy.md) — archivo >4000 líneas, usar node script para reemplazos grandes; Edit tool falla con concurrencia

@@ -84,6 +84,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://takefyy.com"),
   title: "Takefyy — Tu carta digital, lista en minutos",
   description:
     "Creá el menú digital de tu negocio y recibí pedidos por WhatsApp. Sin apps, sin comisiones. Empezá gratis.",

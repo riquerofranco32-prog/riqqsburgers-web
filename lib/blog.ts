@@ -188,6 +188,96 @@ const posts: BlogPost[] = [
 <h2>Conclusión</h2>
 <p>Un menú digital bien armado puede duplicar los pedidos online de tu hamburguesería sin pagar comisiones a terceros. La clave está en la estructura del menú, los nombres, las fotos y los badges.</p>
 <p>Takefyy te da todas esas herramientas. Empezá gratis hoy.</p>
+<p><a href="/hamburgueserias">Ver todo sobre menú digital para hamburguerías →</a></p>
+    `.trim(),
+  },
+  {
+    slug: "como-tomar-fotos-productos-hamburguesas-celular",
+    title:
+      "Cómo tomar fotos de tus hamburguesas con el celular (sin ser fotógrafo)",
+    description:
+      "Guía práctica para sacar fotos que venden. Luz, ángulo, fondo y tips específicos para hamburguerías. Sin cámara profesional, sin editor.",
+    date: "2025-06-18",
+    readingTime: 4,
+    category: "Guías",
+    keywords: [
+      "fotos hamburguesas celular",
+      "fotografía producto hamburguesería",
+      "cómo fotografiar hamburguesas",
+      "fotos menú digital restaurante",
+      "fotografía gastronómica celular argentina",
+    ],
+    content: `
+<h2>Por qué las fotos son la clave de tu menú digital</h2>
+<p>El 70% de la decisión de compra en un menú digital se toma en base a las fotos. Un cliente que ve una hamburguesa con queso derretido, bacon crocante y un pan brillante va a pedir antes que uno que ve solo texto con precio.</p>
+<p>Buena noticia: no necesitás una cámara profesional. Solo algunas reglas básicas y tu celular.</p>
+
+<h2>La regla número uno: luz natural siempre</h2>
+<p>El flash del celular aplana la imagen y hace que la comida se vea plástica. Colocá la hamburguesa cerca de una ventana con luz indirecta. Hora ideal: mañana o tarde, nunca al mediodía con sol directo.</p>
+
+<h2>Ángulos que funcionan para hamburguesas</h2>
+<ul>
+  <li><strong>45 grados (el clásico)</strong>: muestra las capas del relleno. Es el ángulo que más vende.</li>
+  <li><strong>Desde arriba (flat lay)</strong>: funciona para mostrar el plato completo con papas y bebida.</li>
+  <li><strong>A nivel (eye level)</strong>: para hamburguesas muy altas, muestra la altura impresionante.</li>
+</ul>
+
+<h2>El truco del queso derretido</h2>
+<p>Fotografiá en los primeros 60 segundos después de armar la hamburguesa — después el queso solidifica. Si es necesario, usá un soplete antes de fotografiar para activar el derretido.</p>
+
+<h2>Fondo: simple gana siempre</h2>
+<ul>
+  <li><strong>Tabla de madera oscura</strong>: da calidez y contrasta bien con la carne</li>
+  <li><strong>Papel kraft o pergamino</strong>: look artesanal muy popular en hamburguerías</li>
+  <li><strong>Pizarrón negro</strong>: moderno, hace destacar los colores del producto</li>
+</ul>
+
+<h2>Edición mínima, máximo impacto</h2>
+<p>Con la app de fotos del celular alcanza: subí brillo 10-15%, contraste 10%, saturación 10% y un toque más de calidez. No más. Las fotos muy editadas se ven falsas.</p>
+
+<h2>Conclusión</h2>
+<p>Una hora fotografiando tus hamburguesas puede aumentar el ticket promedio de tu hamburguesería en un 20-30%. Takefyy te permite actualizar las fotos de tu menú cuando quieras, desde el celular.</p>
+    `.trim(),
+  },
+  {
+    slug: "aumentar-ventas-hamburgueseria-sin-rappi",
+    title:
+      "5 estrategias para aumentar las ventas de tu hamburguesería sin depender de Rappi",
+    description:
+      "Cómo generar más pedidos y fidelizar clientes en tu hamburguesería sin pagar comisiones a plataformas de delivery. Estrategias concretas para Argentina.",
+    date: "2025-06-22",
+    readingTime: 6,
+    category: "Estrategias",
+    keywords: [
+      "aumentar ventas hamburguesería argentina",
+      "estrategias hamburguesería sin rappi",
+      "más pedidos hamburguesería whatsapp",
+      "fidelizar clientes hamburguesería",
+      "marketing hamburguesería argentina",
+      "hamburguesería sin plataformas delivery",
+    ],
+    content: `
+<h2>El problema de depender de Rappi</h2>
+<p>Rappi y PedidosYa cobran hasta el 35% de cada pedido. En una hamburguesería con margen ajustado, eso puede comerse toda tu ganancia. Pero lo más peligroso es que <strong>esos clientes son de la plataforma, no tuyos</strong>.</p>
+
+<h2>1. Instalá un menú digital con link propio</h2>
+<p>El primer paso es tener una URL propia para tu hamburguesería: <strong>takefyy.com/tu-hamburgueria</strong>. Cuando un cliente pide por ese link, el pedido llega directo a tu WhatsApp y te quedás con el 100% de la venta.</p>
+
+<h2>2. Convertí a tus clientes de Rappi en clientes directos</h2>
+<p>Incluí en el packaging una tarjeta con tu link de Takefyy y un incentivo: <em>"La próxima vez pedí directo por WhatsApp y te regalamos unas papas."</em> Con 3 conversiones por semana, en un mes tenés decenas de clientes propios.</p>
+
+<h2>3. Usá Instagram para llevar tráfico a tu menú</h2>
+<p>Reemplazá el link en bio por tu URL de Takefyy. Publicá stories con el cheese pull y CTA "Pedí ahora". Los reels de preparación de hamburguesas generan alto engagement y tráfico real.</p>
+
+<h2>4. Google Maps: el canal más subestimado</h2>
+<p>Cuando alguien busca "hamburguesería cerca" aparece primero Google Maps. Asegurate de tener fotos actualizadas, horarios correctos y el link a tu menú digital en el campo "Sitio web". Es gratis y genera pedidos constantes.</p>
+
+<h2>5. Lista de difusión de WhatsApp</h2>
+<p>Armá una lista con tus clientes y usala para comunicar el menú de la semana, promos y productos nuevos. Una lista de 100 contactos puede generar 10-20 pedidos extra por semana sin costo adicional.</p>
+
+<h2>Conclusión</h2>
+<p>Con un menú digital propio, Instagram activo, Google Maps optimizado y una lista de difusión, podés construir una base de clientes que compra directo a vos — sin pagar comisiones a nadie.</p>
+<p><a href="/hamburgueserias">Ver cómo crear el menú digital de tu hamburguesería →</a></p>
     `.trim(),
   },
 ];
