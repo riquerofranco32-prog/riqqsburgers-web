@@ -10,6 +10,7 @@ import {
   Cormorant_Garamond,
   Montserrat,
 } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "./globals.css";
 
 const syne = Syne({
@@ -131,6 +132,7 @@ export default function RootLayout({
       className={`${syne.variable} ${inter.variable} ${anton.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfair.variable} ${dmSans.variable} ${cormorant.variable} ${montserrat.variable}`}
     >
       <body className="min-h-screen antialiased">{children}</body>
+      <GoogleAnalytics gaId="G-TFXZJ347RM" />
     </html>
   );
 }
