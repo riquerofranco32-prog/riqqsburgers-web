@@ -18,14 +18,37 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const body = (await req.json()) as { status: string };
+  const body = (await req.json()) as {
+    status?: string;
+    kitchen_notes?: string | null;
+  };
 
-  if (!body.status) {
-    return NextResponse.json({ error: "status requerido" }, { status: 400 });
+  const hasStatus = "status" in body;
+  const hasKitchenNotes = "kitchen_notes" in body;
+
+  if (!hasStatus && !hasKitchenNotes) {
+    return NextResponse.json(
+      { error: "Se requiere status o kitchen_notes" },
+      { status: 400 },
+    );
   }
 
-  if (!(ALLOWED_STATUSES as readonly string[]).includes(body.status)) {
+  if (
+    hasStatus &&
+    !(ALLOWED_STATUSES as readonly string[]).includes(body.status!)
+  ) {
     return NextResponse.json({ error: "status inválido" }, { status: 400 });
+  }
+
+  if (
+    hasKitchenNotes &&
+    body.kitchen_notes !== null &&
+    typeof body.kitchen_notes !== "string"
+  ) {
+    return NextResponse.json(
+      { error: "kitchen_notes inválido" },
+      { status: 400 },
+    );
   }
 
   const user = await getSessionUser();
@@ -70,10 +93,11 @@ export async function PATCH(
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const { error } = await supabase
-    .from("orders")
-    .update({ status: body.status as OrderStatus })
-    .eq("id", id);
+  const patch: Record<string, unknown> = {};
+  if (hasStatus) patch.status = body.status as OrderStatus;
+  if (hasKitchenNotes) patch.kitchen_notes = body.kitchen_notes ?? null;
+
+  const { error } = await supabase.from("orders").update(patch).eq("id", id);
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
@@ -128,10 +152,7 @@ export async function DELETE(
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  const { error } = await supabase
-    .from("orders")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("orders").delete().eq("id", id);
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });

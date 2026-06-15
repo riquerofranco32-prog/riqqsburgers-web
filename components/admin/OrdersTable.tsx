@@ -966,6 +966,9 @@ export function OrdersTable({
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
+  const [dateRange, setDateRange] = useState<
+    "all" | "today" | "week" | "month"
+  >("all");
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -1144,6 +1147,23 @@ export function OrdersTable({
 
   const filtered = useMemo(() => {
     let list = orders.filter((o) => matchesFilter(o, filter));
+
+    if (dateRange !== "all") {
+      const now = new Date();
+      const startOfToday = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
+      const cutoff =
+        dateRange === "today"
+          ? startOfToday
+          : dateRange === "week"
+            ? new Date(startOfToday.getTime() - 6 * 86_400_000)
+            : new Date(startOfToday.getTime() - 29 * 86_400_000);
+      list = list.filter((o) => new Date(o.created_at) >= cutoff);
+    }
+
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -1153,7 +1173,7 @@ export function OrdersTable({
       );
     }
     return list;
-  }, [orders, filter, search]);
+  }, [orders, filter, dateRange, search]);
 
   return (
     <>
@@ -1372,6 +1392,71 @@ export function OrdersTable({
                 }}
               >
                 {pill.label} ({counts[pill.key] ?? 0})
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Date range filter */}
+        <div
+          style={{
+            padding: "8px 16px",
+            borderBottom: "1px solid var(--dash-border)",
+            display: "flex",
+            gap: 6,
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              color: "var(--dash-muted)",
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              flexShrink: 0,
+              marginRight: 2,
+            }}
+          >
+            Período:
+          </span>
+          {(
+            [
+              { key: "all", label: "Todos" },
+              { key: "today", label: "Hoy" },
+              { key: "week", label: "7 días" },
+              { key: "month", label: "30 días" },
+            ] as const
+          ).map(({ key, label }) => {
+            const isActive = dateRange === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setDateRange(key)}
+                style={{
+                  flexShrink: 0,
+                  padding: "5px 13px",
+                  borderRadius: 999,
+                  fontSize: isMobile ? 13 : 12,
+                  fontWeight: 600,
+                  border: "1px solid",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  background: isActive
+                    ? "rgba(96,165,250,0.12)"
+                    : "var(--dash-surface-2)",
+                  color: isActive ? "#60a5fa" : "var(--dash-muted)",
+                  borderColor: isActive
+                    ? "rgba(96,165,250,0.3)"
+                    : "var(--dash-border)",
+                  minHeight: isMobile ? 34 : "auto",
+                  WebkitTapHighlightColor: "transparent",
+                  userSelect: "none",
+                }}
+              >
+                {label}
               </button>
             );
           })}

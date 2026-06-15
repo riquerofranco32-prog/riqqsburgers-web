@@ -73,6 +73,7 @@ export interface Order {
   address: string | null;
   payment_method: "mercadopago" | "efectivo" | "cash" | "transfer";
   notes: string | null;
+  kitchen_notes: string | null;
   items: OrderItem[];
   subtotal: number;
   delivery_cost: number;

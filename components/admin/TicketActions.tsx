@@ -18,6 +18,7 @@ interface TicketActionsProps {
   orderId: string;
   currentStatus: string;
   isDelivery: boolean;
+  initialKitchenNotes?: string | null;
   deliveryData?: {
     orderRef: string;
     createdAt: string;
@@ -36,10 +37,29 @@ export default function TicketActions({
   orderId,
   currentStatus,
   isDelivery,
+  initialKitchenNotes,
   deliveryData,
 }: TicketActionsProps) {
   const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
+  const [kitchenNotes, setKitchenNotes] = useState(initialKitchenNotes ?? "");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
+
+  async function handleSaveNotes() {
+    setSavingNotes(true);
+    try {
+      await fetch(`/api/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kitchen_notes: kitchenNotes.trim() || null }),
+      });
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2000);
+    } finally {
+      setSavingNotes(false);
+    }
+  }
 
   function handlePrint() {
     window.print();
@@ -126,6 +146,73 @@ export default function TicketActions({
       }}
       className="no-print"
     >
+      {/* Nota interna del equipo */}
+      <div
+        style={{
+          background: "rgba(251,191,36,0.08)",
+          border: "1px solid rgba(251,191,36,0.25)",
+          borderRadius: 10,
+          padding: "12px 14px",
+          marginBottom: 4,
+        }}
+      >
+        <p
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            color: "#f59e0b",
+            margin: "0 0 8px",
+          }}
+        >
+          🍳 Nota interna del equipo
+        </p>
+        <textarea
+          value={kitchenNotes}
+          onChange={(e) => setKitchenNotes(e.target.value)}
+          placeholder="Ej: sin cebolla en mesa 3, pedir confirmación de pago..."
+          rows={3}
+          style={{
+            width: "100%",
+            background: "rgba(0,0,0,0.2)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 7,
+            color: "#f5f5f5",
+            fontSize: 13,
+            padding: "8px 10px",
+            resize: "vertical",
+            fontFamily: "inherit",
+            lineHeight: 1.5,
+            boxSizing: "border-box",
+          }}
+        />
+        <button
+          onClick={handleSaveNotes}
+          disabled={savingNotes}
+          style={{
+            marginTop: 8,
+            padding: "6px 16px",
+            background: notesSaved
+              ? "rgba(34,197,94,0.15)"
+              : "rgba(251,191,36,0.15)",
+            border: `1px solid ${notesSaved ? "rgba(34,197,94,0.4)" : "rgba(251,191,36,0.4)"}`,
+            borderRadius: 6,
+            color: notesSaved ? "#86efac" : "#fbbf24",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: savingNotes ? "not-allowed" : "pointer",
+            transition: "all 0.2s",
+          }}
+        >
+          {notesSaved
+            ? "✓ Guardado"
+            : savingNotes
+              ? "Guardando..."
+              : "Guardar nota"}
+        </button>
+      </div>
+
       {isDelivery && (
         <button
           onClick={handleDeliverySlip}
