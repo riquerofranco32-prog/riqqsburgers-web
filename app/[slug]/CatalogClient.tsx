@@ -4225,13 +4225,13 @@ export default function CatalogClient({
               id: product.id,
               name: product.name,
               price: product.price,
-              image: product.image,
-              category_id: product.category_id ?? "",
-              badge: "",
+              image: product.image ?? "",
+              badge: null,
               description: "",
-              available: true,
               extras: [],
-            } as unknown as import("@/lib/getRestaurant").MenuItem);
+              is_featured: false,
+              featured_order: 0,
+            } as MenuItem);
             setFavoritesOpen(false);
           }}
           accent={accent}
