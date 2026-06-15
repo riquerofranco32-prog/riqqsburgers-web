@@ -3593,9 +3593,7 @@ export default function CatalogClient({
               restaurant.menu.categories.find((c) =>
                 c.items.some((i) => i.id === selectedItem.id),
               )?.items ?? [];
-            const isSoldOut =
-              selectedItem.badge === "Agotado" ||
-              selectedItem.available === false;
+            const isSoldOut = selectedItem.badge === "Agotado";
             return (
               <>
                 <div
@@ -3745,23 +3743,147 @@ export default function CatalogClient({
                       paddingBottom: `max(28px, env(safe-area-inset-bottom, 28px))`,
                     }}
                   >
-                    {selectedItem.badge && (
+                    {/* Feature 3: Banner agotado / badge de disponibilidad mejorado */}
+                    {isSoldOut ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: "10px 14px",
+                          borderRadius: 10,
+                          background: "rgba(239,68,68,0.09)",
+                          border: "1px solid rgba(239,68,68,0.22)",
+                          marginBottom: 14,
+                        }}
+                      >
+                        <span style={{ fontSize: 15 }}>🚫</span>
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: "#dc2626",
+                          }}
+                        >
+                          Agotado temporalmente
+                        </span>
+                      </div>
+                    ) : selectedItem.badge === "Popular" ||
+                      selectedItem.badge === "Más pedido" ? (
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "5px 12px",
+                          borderRadius: 999,
+                          background: "rgba(22,163,74,0.10)",
+                          border: "1px solid rgba(22,163,74,0.25)",
+                          marginBottom: 10,
+                        }}
+                      >
+                        <span style={{ fontSize: 13 }}>🔥</span>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#16a34a",
+                          }}
+                        >
+                          El más pedido
+                        </span>
+                      </div>
+                    ) : selectedItem.badge === "Nuevo" ? (
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "5px 12px",
+                          borderRadius: 999,
+                          background: "rgba(59,130,246,0.10)",
+                          border: "1px solid rgba(59,130,246,0.25)",
+                          marginBottom: 10,
+                        }}
+                      >
+                        <span style={{ fontSize: 13 }}>✨</span>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#2563eb",
+                          }}
+                        >
+                          Nuevo
+                        </span>
+                      </div>
+                    ) : selectedItem.badge ? (
                       <div style={{ marginBottom: 10 }}>
                         <Badge badge={selectedItem.badge} />
                       </div>
-                    )}
+                    ) : null}
 
-                    <h2
+                    {/* Título + Feature 2: botón compartir producto */}
+                    <div
                       style={{
-                        fontWeight: 800,
-                        fontSize: 22,
-                        color: TEXT1,
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "space-between",
+                        gap: 10,
                         marginBottom: 8,
-                        lineHeight: 1.2,
                       }}
                     >
-                      {selectedItem.name}
-                    </h2>
+                      <h2
+                        style={{
+                          fontWeight: 800,
+                          fontSize: 22,
+                          color: TEXT1,
+                          lineHeight: 1.2,
+                          flex: 1,
+                          margin: 0,
+                        }}
+                      >
+                        {selectedItem.name}
+                      </h2>
+                      <button
+                        onClick={() =>
+                          void handleShareProduct(
+                            selectedItem.id,
+                            selectedItem.name,
+                          )
+                        }
+                        aria-label="Compartir este producto"
+                        style={{
+                          flexShrink: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          padding: "6px 12px",
+                          borderRadius: 999,
+                          border: `1.5px solid ${shareProductCopied ? "rgba(22,163,74,0.4)" : BORDER}`,
+                          background: "transparent",
+                          color: shareProductCopied ? "#16a34a" : TEXT2,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          transition: "all 0.18s",
+                          WebkitTapHighlightColor: "transparent",
+                          marginTop: 2,
+                        }}
+                      >
+                        {shareProductCopied ? (
+                          <>
+                            <CheckCircle2 size={12} strokeWidth={2.5} />
+                            Copiado
+                          </>
+                        ) : (
+                          <>
+                            <Share2 size={12} strokeWidth={2.5} />
+                            Compartir
+                          </>
+                        )}
+                      </button>
+                    </div>
 
                     {selectedItem.description && (
                       <p
@@ -3932,7 +4054,24 @@ export default function CatalogClient({
                       />
                     </div>
 
-                    {qty === 0 ? (
+                    {isSoldOut ? (
+                      <div
+                        style={{
+                          width: "100%",
+                          padding: "14px",
+                          borderRadius: 14,
+                          background: SURFACE2,
+                          border: `1px solid ${BORDER}`,
+                          textAlign: "center",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: TEXTM,
+                          cursor: "default",
+                        }}
+                      >
+                        No disponible
+                      </div>
+                    ) : qty === 0 ? (
                       <button
                         onClick={() => {
                           addItemWithNotes(
@@ -4056,6 +4195,29 @@ export default function CatalogClient({
                         </button>
                       </div>
                     )}
+
+                    {/* Feature 1: También te puede gustar */}
+                    <RelatedProducts
+                      currentId={selectedItem.id}
+                      categoryItems={selectedCategoryItems}
+                      accent={accent}
+                      onAccent={onAccent}
+                      SURFACE={SURFACE}
+                      SURFACE2={SURFACE2}
+                      BORDER={BORDER}
+                      TEXT1={TEXT1}
+                      TEXT2={TEXT2}
+                      TEXTM={TEXTM}
+                      onOpen={(item) => {
+                        setSelectedItem(item);
+                        void trackEvent(restaurant.id, "product_viewed", {
+                          product_id: item.id,
+                        });
+                      }}
+                      onAdd={addItem}
+                      fmt={fmt}
+                      hexToRgba={hexToRgba}
+                    />
                   </div>
                 </div>
               </>
