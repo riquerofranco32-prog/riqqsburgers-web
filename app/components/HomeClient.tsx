@@ -23,6 +23,18 @@ import {
   Wine,
   Truck,
   ChevronRight,
+  Check,
+  X,
+  Zap,
+  TrendingUp,
+  Target,
+  MessageCircle,
+  Smartphone,
+  Clock,
+  ArrowRight,
+  QrCode,
+  Flame,
+  Shield,
 } from "lucide-react";
 import TakefyyLogo from "@/components/TakefyyLogo";
 
@@ -1072,6 +1084,317 @@ function FloatToast({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/* ─── MAGNETIC BUTTON ─────────────────────────────────────────────────────── */
+function MagneticButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number }[]>([]);
+  const posX = useMotionValue(0);
+  const posY = useMotionValue(0);
+  const springX = useSpring(posX, { stiffness: 200, damping: 20 });
+  const springY = useSpring(posY, { stiffness: 200, damping: 20 });
+
+  function handleMouseMove(e: React.MouseEvent<HTMLButtonElement>) {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    posX.set((e.clientX - cx) * 0.35);
+    posY.set((e.clientY - cy) * 0.35);
+  }
+  function handleMouseLeave() {
+    posX.set(0);
+    posY.set(0);
+  }
+  function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+    if (!btnRef.current) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const newParticles = Array.from({ length: 8 }, (_, i) => ({
+      id: Date.now() + i,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    }));
+    setParticles((prev) => [...prev, ...newParticles]);
+    setTimeout(() => setParticles([]), 700);
+    onClick?.();
+  }
+
+  return (
+    <motion.button
+      ref={btnRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
+      style={{
+        x: springX,
+        y: springY,
+        background: "var(--accent)",
+        border: "none",
+        cursor: "pointer",
+        padding: "18px 52px",
+        fontSize: 18,
+        borderRadius: 999,
+        color: "#fff",
+        fontWeight: 700,
+        position: "relative",
+        overflow: "visible",
+      }}
+      whileHover={{
+        scale: 1.06,
+        filter: "brightness(1.15)",
+        boxShadow: "0 12px 48px rgba(255,107,53,0.55)",
+      }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 20 }}
+    >
+      {children}
+      {/* Particle burst */}
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          initial={{ x: p.x, y: p.y, opacity: 1, scale: 1 }}
+          animate={{ x: p.x + (Math.random() - 0.5) * 120, y: p.y - 80 - Math.random() * 60, opacity: 0, scale: 0 }}
+          transition={{ duration: 0.65, ease: "easeOut" }}
+          style={{
+            position: "absolute",
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: "#fff",
+            pointerEvents: "none",
+            left: 0,
+            top: 0,
+          }}
+        />
+      ))}
+    </motion.button>
+  );
+}
+
+/* ─── PRICING TOGGLE ──────────────────────────────────────────────────────── */
+function PricingToggle() {
+  const [annual, setAnnual] = useState(false);
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 24 }}>
+      <span style={{ fontSize: 14, fontWeight: 600, color: annual ? "var(--text-muted)" : "var(--text-primary)" }}>Mensual</span>
+      <button
+        onClick={() => setAnnual((v) => !v)}
+        style={{
+          width: 52,
+          height: 28,
+          borderRadius: 999,
+          background: annual ? "var(--accent)" : "rgba(255,255,255,0.12)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          position: "relative",
+          cursor: "pointer",
+          transition: "background 0.25s",
+          padding: 0,
+        }}
+      >
+        <motion.span
+          animate={{ x: annual ? 26 : 2 }}
+          transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          style={{
+            display: "block",
+            width: 22,
+            height: 22,
+            borderRadius: "50%",
+            background: "#fff",
+            position: "absolute",
+            top: 2,
+            left: 0,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+          }}
+        />
+      </button>
+      <span style={{ fontSize: 14, fontWeight: 600, color: annual ? "var(--text-primary)" : "var(--text-muted)" }}>
+        Anual{" "}
+        <motion.span
+          animate={{ opacity: annual ? 1 : 0, scale: annual ? 1 : 0.8 }}
+          style={{ display: "inline-block", fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.25)", color: "#22c55e", marginLeft: 4 }}
+        >
+          −20%
+        </motion.span>
+      </span>
+    </div>
+  );
+}
+
+/* ─── ANIMATED TESTIMONIALS ───────────────────────────────────────────────── */
+const allTestimonials = [
+  {
+    initials: "LB",
+    name: "Larry's Burgers",
+    location: "Real Smash Burgers · San Rafael, Mendoza",
+    img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/logo_url.png?t=1781289992571",
+    stars: 5,
+    badge: "Caso de Éxito",
+    quote: "Fuimos de los primeros en confiar en Takefyy. El resultado fue inmediato: pasamos de anotar pedidos a mano por WhatsApp a recibir todo ya detallado. Cero errores, clientes más felices y más tiempo para tirar las mejores smash burgers.",
+    highlights: ["⚡ Pedidos 100% automatizados", "🎯 Cero errores de envío", "📈 Mayor ticket promedio"],
+  },
+  {
+    initials: "RB",
+    name: "Riqq's Burgers",
+    location: "Amor a primera mordida · Catriel, Río Negro",
+    img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/riqqsburgers/logo_url.png",
+    stars: 5,
+    badge: "Caso de Éxito",
+    quote: "Takefyy nos cambió la forma de trabajar. Antes nos volvíamos locos atendiendo llamadas. Ahora los clientes arman el pedido solos y nos llega todo ordenado. El ticket promedio subió un 25% gracias al carrito.",
+    highlights: ["⚡ 2 horas/noche ahorradas en WhatsApp", "📈 +25% en el ticket promedio", "🍔 Menú digital visual y rápido"],
+  },
+  {
+    initials: "MG",
+    name: "Martina G.",
+    location: "Burguer Palace · Buenos Aires",
+    img: "",
+    stars: 5,
+    badge: "Cliente",
+    quote: "En un día ya estábamos tomando pedidos por WhatsApp. Mis clientes lo aman porque es simple y rápido. Dejé de perder tiempo en llamadas y ahora el negocio va solo.",
+    highlights: ["✅ Setup en menos de 1 día", "💬 Clientes más felices", "🚀 Negocio más autónomo"],
+  },
+];
+
+function AnimatedTestimonials() {
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(1);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDirection(1);
+      setCurrent((c) => (c + 1) % allTestimonials.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  function goTo(idx: number) {
+    setDirection(idx > current ? 1 : -1);
+    setCurrent(idx);
+  }
+
+  const t = allTestimonials[current];
+
+  return (
+    <div style={{ position: "relative" }}>
+      {/* Stacked avatar indicators */}
+      <div style={{ display: "flex", gap: 0, marginBottom: 32, alignItems: "center" }}>
+        {allTestimonials.map((item, i) => (
+          <motion.button
+            key={i}
+            onClick={() => goTo(i)}
+            animate={{
+              scale: i === current ? 1.2 : 1,
+              zIndex: i === current ? 10 : 3 - i,
+              x: i === 0 ? 0 : i === 1 ? -10 : -20,
+            }}
+            whileHover={{ scale: 1.35, zIndex: 20 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              border: i === current ? "2.5px solid var(--accent)" : "2.5px solid rgba(255,255,255,0.12)",
+              background: item.img ? "transparent" : "var(--accent)",
+              cursor: "pointer",
+              padding: 0,
+              position: "relative",
+              overflow: "hidden",
+              flexShrink: 0,
+              boxShadow: i === current ? "0 0 0 3px rgba(255,107,53,0.3)" : "none",
+            }}
+          >
+            {item.img ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.img} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>{item.initials}</span>
+            )}
+          </motion.button>
+        ))}
+        <div style={{ marginLeft: 20, display: "flex", gap: 8 }}>
+          {allTestimonials.map((_, i) => (
+            <motion.button
+              key={i}
+              onClick={() => goTo(i)}
+              animate={{ width: i === current ? 24 : 8, background: i === current ? "var(--accent)" : "rgba(255,107,53,0.25)" }}
+              style={{ height: 8, borderRadius: 999, border: "none", cursor: "pointer", padding: 0 }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Testimonial card with slide animation */}
+      <AnimatePresence mode="wait" custom={direction}>
+        <motion.div
+          key={current}
+          custom={direction}
+          initial={{ opacity: 0, x: direction * 60 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -direction * 60 }}
+          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background: "var(--brand-dark)",
+            border: "1px solid rgba(255,107,53,0.18)",
+            borderRadius: 24,
+            padding: "40px 36px",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Big quote mark */}
+          <span style={{ position: "absolute", top: -20, left: 24, fontSize: 120, fontFamily: "Georgia, serif", color: "var(--accent)", opacity: 0.07, lineHeight: 1, userSelect: "none", pointerEvents: "none" }}>&ldquo;</span>
+
+          <div style={{ position: "relative", zIndex: 1 }}>
+            {/* Stars + badge */}
+            <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 20 }}>
+              <div style={{ display: "flex" }}>
+                {"★★★★★".split("").map((s, si) => (
+                  <span key={si} style={{ color: "var(--accent)", fontSize: 18 }}>{s}</span>
+                ))}
+              </div>
+              <span style={{ background: "rgba(255,107,53,0.12)", color: "var(--accent)", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {t.badge}
+              </span>
+            </div>
+
+            {/* Quote */}
+            <p style={{ fontSize: 16, lineHeight: 1.7, color: "#fff", fontStyle: "italic", marginBottom: 28, maxWidth: 680 }}>
+              &ldquo;{t.quote}&rdquo;
+            </p>
+
+            {/* Highlights */}
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 28 }}>
+              {t.highlights.map((h) => (
+                <span key={h} style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "5px 12px", borderRadius: 8 }}>{h}</span>
+              ))}
+            </div>
+
+            {/* Author */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "2px solid rgba(255,107,53,0.3)", flexShrink: 0, background: t.img ? "transparent" : "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {t.img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={t.img} alt={t.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>{t.initials}</span>
+                )}
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{t.name}</div>
+                <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>{t.location}</div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -2390,11 +2713,12 @@ export default function HomeClient({
                     <span
                       style={{
                         color: "var(--accent)",
-                        fontSize: 15,
                         flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
                       }}
                     >
-                      ✓
+                      <Check size={14} strokeWidth={2.5} />
                     </span>
                     <span
                       style={{
@@ -2434,6 +2758,226 @@ export default function HomeClient({
               </Link>
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* ── EN 3 PASOS ──────────────────────────────────────────────────────── */}
+      <section style={{ background: "var(--bg)", padding: "100px 0" }}>
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease }}
+            className="text-center mb-16"
+          >
+            <SectionLabel>EN 3 PASOS</SectionLabel>
+            <h2
+              style={{
+                fontFamily: "var(--font-anton)",
+                fontSize: "clamp(2.2rem, 5vw, 3.8rem)",
+                letterSpacing: "0.01em",
+                color: "var(--text-primary)",
+                lineHeight: 1.0,
+              }}
+            >
+              Tu carta online en minutos.
+            </h2>
+            <p
+              style={{
+                marginTop: 16,
+                color: "var(--text-secondary)",
+                fontSize: 16,
+                maxWidth: 480,
+                margin: "16px auto 0",
+                lineHeight: 1.6,
+              }}
+            >
+              Sin técnicos, sin complicaciones. Hoy arrancás.
+            </p>
+          </motion.div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 24,
+              position: "relative",
+            }}
+          >
+            {/* Connecting line (desktop only) */}
+            <div
+              style={{
+                position: "absolute",
+                top: 44,
+                left: "calc(16% + 24px)",
+                right: "calc(16% + 24px)",
+                height: 2,
+                background:
+                  "linear-gradient(90deg, var(--accent), rgba(255,107,53,0.2))",
+                pointerEvents: "none",
+                zIndex: 0,
+              }}
+              className="hidden md:block"
+            />
+
+            {[
+              {
+                step: "01",
+                icon: <MessageCircle size={22} />,
+                title: "Nos escribís por WhatsApp",
+                desc: "Mandanos tu menú — fotos, lista o PDF. En minutos lo cargamos por vos.",
+                color: "var(--accent)",
+              },
+              {
+                step: "02",
+                icon: <Smartphone size={22} />,
+                title: "Armamos tu carta digital",
+                desc: "Tu menú queda publicado en takefyy.com/tunegocio con fotos y precios.",
+                color: "#f59e0b",
+              },
+              {
+                step: "03",
+                icon: <QrCode size={22} />,
+                title: "Compartís el link con tus clientes",
+                desc: "Escaneando el QR o con el link directo. Los pedidos te llegan por WhatsApp al instante.",
+                color: "#22c55e",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.55, delay: i * 0.12, ease }}
+                style={{ position: "relative", zIndex: 1 }}
+              >
+                <div
+                  style={{
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 20,
+                    padding: "28px 24px 24px",
+                    height: "100%",
+                    transition: "border-color 0.2s, transform 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(255,107,53,0.35)";
+                    e.currentTarget.style.transform = "translateY(-4px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  {/* Step badge */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      marginBottom: 20,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 14,
+                        background: `${item.color}18`,
+                        border: `1px solid ${item.color}30`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: item.color,
+                      }}
+                    >
+                      {item.icon}
+                    </div>
+                    <span
+                      style={{
+                        fontFamily: "var(--font-anton)",
+                        fontSize: "2.8rem",
+                        color: "var(--border)",
+                        lineHeight: 1,
+                        letterSpacing: "0.02em",
+                        userSelect: "none",
+                      }}
+                    >
+                      {item.step}
+                    </span>
+                  </div>
+
+                  <h3
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 700,
+                      color: "var(--text-primary)",
+                      marginBottom: 8,
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {item.title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 14,
+                      color: "var(--text-secondary)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {item.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Bottom CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4, ease }}
+            style={{ textAlign: "center", marginTop: 48 }}
+          >
+            <button
+              onClick={() =>
+                window.open(
+                  "https://wa.me/542994247985?text=" +
+                    encodeURIComponent(
+                      "Hola! Quiero crear mi carta digital con Takefyy 🚀",
+                    ),
+                  "_blank",
+                )
+              }
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "var(--accent)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 12,
+                padding: "14px 28px",
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: "pointer",
+                transition: "filter 0.15s, transform 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.filter = "brightness(1.1)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = "brightness(1)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              <MessageCircle size={16} />
+              Empezar ahora — es gratis
+            </button>
+          </motion.div>
         </div>
       </section>
 
@@ -2512,12 +3056,10 @@ export default function HomeClient({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 14,
-                    fontWeight: 700,
                     flexShrink: 0,
                   }}
                 >
-                  ✓
+                  <Check size={13} strokeWidth={2.5} />
                 </span>
               </div>
               <div
@@ -2548,9 +3090,9 @@ export default function HomeClient({
                     }}
                   >
                     <span
-                      style={{ color: "#22c55e", fontSize: 13, flexShrink: 0 }}
+                      style={{ color: "#22c55e", flexShrink: 0, display: "flex" }}
                     >
-                      ✓
+                      <Check size={13} strokeWidth={2.5} />
                     </span>
                     <span
                       style={{
@@ -2609,12 +3151,10 @@ export default function HomeClient({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 16,
-                    fontWeight: 700,
                     flexShrink: 0,
                   }}
                 >
-                  ✕
+                  <X size={13} strokeWidth={2.5} />
                 </span>
               </div>
               <div
@@ -2645,9 +3185,9 @@ export default function HomeClient({
                     }}
                   >
                     <span
-                      style={{ color: "#ef4444", fontSize: 13, flexShrink: 0 }}
+                      style={{ color: "#ef4444", flexShrink: 0, display: "flex" }}
                     >
-                      ✕
+                      <X size={13} strokeWidth={2.5} />
                     </span>
                     <span
                       style={{
@@ -2871,7 +3411,7 @@ export default function HomeClient({
                           "0 4px 16px rgba(255,107,53,0.5), 0 0 0 2px rgba(255,107,53,0.15)",
                       }}
                     >
-                      ⭐ MÁS POPULAR
+                      <Star size={9} fill="currentColor" style={{ marginRight: 4 }} /> MÁS POPULAR
                     </div>
                   )}
                   <div
@@ -2970,11 +3510,11 @@ export default function HomeClient({
                               color: plan.featured
                                 ? "rgba(255,255,255,0.9)"
                                 : "var(--accent)",
-                              fontSize: 14,
                               flexShrink: 0,
+                              display: "flex",
                             }}
                           >
-                            ✓
+                            <Check size={14} strokeWidth={2.5} />
                           </span>
                           <span
                             className="text-sm"
@@ -3174,21 +3714,30 @@ export default function HomeClient({
                     style={{ display: "flex", flexDirection: "column", gap: 8 }}
                   >
                     {[
-                      "⚡ Pedidos 100% automatizados por WhatsApp",
-                      "🎯 Reducción a cero de errores de envío",
-                      "📈 Mayor ticket promedio con el carrito",
-                    ].map((imp) => (
+                      { icon: <Zap size={13} />, text: "Pedidos 100% automatizados por WhatsApp" },
+                      { icon: <Target size={13} />, text: "Reducción a cero de errores de envío" },
+                      { icon: <TrendingUp size={13} />, text: "Mayor ticket promedio con el carrito" },
+                    ].map(({ icon, text }) => (
                       <div
-                        key={imp}
+                        key={text}
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 6,
+                          gap: 8,
                           fontSize: 13,
                           color: "rgba(255,255,255,0.75)",
                         }}
                       >
-                        <span>{imp}</span>
+                        <span
+                          style={{
+                            color: "var(--accent)",
+                            display: "flex",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {icon}
+                        </span>
+                        <span>{text}</span>
                       </div>
                     ))}
                   </div>
@@ -3466,21 +4015,30 @@ export default function HomeClient({
                     style={{ display: "flex", flexDirection: "column", gap: 8 }}
                   >
                     {[
-                      "⚡ Ahorro de más de 2 horas por noche en WhatsApp",
-                      "📈 Aumento del 25% en el ticket promedio",
-                      "🍔 Menú digital visual ultra rápido y fluido",
-                    ].map((imp) => (
+                      { icon: <Zap size={13} />, text: "Ahorro de más de 2 horas por noche en WhatsApp" },
+                      { icon: <TrendingUp size={13} />, text: "Aumento del 25% en el ticket promedio" },
+                      { icon: <Utensils size={13} />, text: "Menú digital visual ultra rápido y fluido" },
+                    ].map(({ icon, text }) => (
                       <div
-                        key={imp}
+                        key={text}
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 6,
+                          gap: 8,
                           fontSize: 13,
                           color: "rgba(255,255,255,0.75)",
                         }}
                       >
-                        <span>{imp}</span>
+                        <span
+                          style={{
+                            color: "var(--accent)",
+                            display: "flex",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {icon}
+                        </span>
+                        <span>{text}</span>
                       </div>
                     ))}
                   </div>
@@ -3858,6 +4416,74 @@ export default function HomeClient({
             "linear-gradient(90deg, transparent, rgba(255,107,53,0.35), transparent)",
         }}
       />
+
+      {/* ── FLOATING WHATSAPP CTA ───────────────────────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.7, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 2.5, ease }}
+        style={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 999,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 10,
+          pointerEvents: "none",
+        }}
+      >
+        <motion.div
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 3.2, ease }}
+          style={{
+            background: "var(--brand-dark)",
+            border: "1px solid rgba(255,107,53,0.25)",
+            borderRadius: 12,
+            padding: "8px 14px",
+            fontSize: 12,
+            fontWeight: 600,
+            color: "var(--text-primary)",
+            whiteSpace: "nowrap",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            pointerEvents: "auto",
+          }}
+        >
+          🔥 14 días gratis — sin tarjeta
+        </motion.div>
+        <motion.button
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() =>
+            window.open(
+              "https://wa.me/542994247985?text=" +
+                encodeURIComponent(
+                  "Hola! Quiero empezar con Takefyy 🚀",
+                ),
+              "_blank",
+            )
+          }
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: "#25D366",
+            border: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 8px 24px rgba(37,211,102,0.4), 0 2px 8px rgba(0,0,0,0.2)",
+            pointerEvents: "auto",
+            color: "#fff",
+          }}
+          aria-label="Contactar por WhatsApp"
+        >
+          <MessageCircle size={26} fill="currentColor" strokeWidth={0} />
+        </motion.button>
+      </motion.div>
 
       {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
       <footer
