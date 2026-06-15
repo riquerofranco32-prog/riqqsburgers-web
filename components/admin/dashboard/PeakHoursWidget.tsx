@@ -23,7 +23,7 @@ export function PeakHoursWidget({ orders }: PeakHoursWidgetProps) {
   const totalOrders = hourCounts.reduce((s, c) => s + c, 0);
 
   // Top 3 hours
-  const top3 = [...hourCounts.entries()]
+  const top3 = Array.from(hourCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .filter(([, c]) => c > 0)
