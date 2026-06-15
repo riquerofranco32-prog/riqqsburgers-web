@@ -433,7 +433,9 @@ function PhoneMockup() {
             marginTop: -8,
           }}
         />
-        <span style={{ fontSize: 9, color: "#F0EDE8", display: "flex", gap: 3 }}>
+        <span
+          style={{ fontSize: 9, color: "#F0EDE8", display: "flex", gap: 3 }}
+        >
           📶 🔋
         </span>
       </div>
@@ -474,7 +476,8 @@ function PhoneMockup() {
             style={{
               height: 105,
               position: "relative",
-              backgroundImage: "url('https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/banner_url.png?t=1781301346730')",
+              backgroundImage:
+                "url('https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/banner_url.png?t=1781301346730')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               flexShrink: 0,
@@ -485,7 +488,8 @@ function PhoneMockup() {
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(13,13,13,0.95) 100%)",
+                background:
+                  "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(13,13,13,0.95) 100%)",
               }}
             />
 
@@ -506,7 +510,15 @@ function PhoneMockup() {
                 gap: 2,
               }}
             >
-              <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#fff", display: "inline-block" }} />
+              <span
+                style={{
+                  width: 4,
+                  height: 4,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  display: "inline-block",
+                }}
+              />
               Abierto
             </div>
 
@@ -522,7 +534,8 @@ function PhoneMockup() {
                 borderRadius: 10,
                 border: "1.5px solid rgba(255,255,255,0.15)",
                 background: "#0D0D0D",
-                backgroundImage: "url('https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/logo_url.png?t=1781301339056')",
+                backgroundImage:
+                  "url('https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/logo_url.png?t=1781301339056')",
                 backgroundSize: "cover",
               }}
             />
@@ -538,15 +551,37 @@ function PhoneMockup() {
                 padding: "0 8px",
               }}
             >
-              <h3 style={{ fontSize: 13, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.01em" }}>
+              <h3
+                style={{
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: "#fff",
+                  margin: 0,
+                  letterSpacing: "-0.01em",
+                }}
+              >
                 Larry's Burgers
               </h3>
-              <p style={{ fontSize: 8, color: "rgba(255,255,255,0.6)", margin: "1px 0 3px" }}>
+              <p
+                style={{
+                  fontSize: 8,
+                  color: "rgba(255,255,255,0.6)",
+                  margin: "1px 0 3px",
+                }}
+              >
                 Real Smash Burgers · San Rafael
               </p>
-              
+
               {/* Info icons row */}
-              <div style={{ display: "flex", justifyContent: "center", gap: 8, fontSize: 7, color: "rgba(255,255,255,0.45)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: 8,
+                  fontSize: 7,
+                  color: "rgba(255,255,255,0.45)",
+                }}
+              >
                 <span>🕒 20:00 - 00:00</span>
                 <span>📍 San Rafael, Mza</span>
               </div>
@@ -554,7 +589,14 @@ function PhoneMockup() {
           </div>
 
           {/* Categories Horizontal Tabs */}
-          <div style={{ display: "flex", gap: 6, padding: "0 10px", flexShrink: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 6,
+              padding: "0 10px",
+              flexShrink: 0,
+            }}
+          >
             <div
               style={{
                 fontSize: 8,
@@ -598,14 +640,34 @@ function PhoneMockup() {
               flexShrink: 0,
             }}
           >
-            <span style={{ fontSize: 8, fontWeight: 800, color: "#F5C518", letterSpacing: "0.08em" }}>
+            <span
+              style={{
+                fontSize: 8,
+                fontWeight: 800,
+                color: "#F5C518",
+                letterSpacing: "0.08em",
+              }}
+            >
               🍔 BURGERS
             </span>
-            <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            <div
+              style={{
+                flex: 1,
+                height: 1,
+                background: "rgba(255,255,255,0.06)",
+              }}
+            />
           </div>
 
           {/* Products List */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "0 10px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+              padding: "0 10px",
+            }}
+          >
             {/* Product 1 — The Larry */}
             <div
               style={{
@@ -634,23 +696,57 @@ function PhoneMockup() {
                 >
                   ☆ Más pedido
                 </span>
-                <h4 style={{ fontSize: 10, fontWeight: 700, color: "#fff", margin: "4px 0 2px" }}>
+                <h4
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#fff",
+                    margin: "4px 0 2px",
+                  }}
+                >
                   The Larry
                 </h4>
-                <p style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", margin: "0 0 6px", lineHeight: 1.2 }}>
-                  1 medallon de 100gr - Cebolla caramelizada - 4 fetas de cheddar - Salsa Larry
+                <p
+                  style={{
+                    fontSize: 7,
+                    color: "rgba(255,255,255,0.55)",
+                    margin: "0 0 6px",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  1 medallon de 100gr - Cebolla caramelizada - 4 fetas de
+                  cheddar - Salsa Larry
                 </p>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", display: "block" }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: "var(--accent)",
+                    display: "block",
+                  }}
+                >
                   $ 8.500
                 </span>
               </div>
-              
+
               {/* Product Image + add button */}
-              <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+              <div
+                style={{
+                  position: "relative",
+                  width: 56,
+                  height: 56,
+                  flexShrink: 0,
+                }}
+              >
                 <img
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg"
                   alt="The Larry"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: 8,
+                  }}
                 />
                 <div
                   style={{
@@ -688,22 +784,56 @@ function PhoneMockup() {
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h4 style={{ fontSize: 10, fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>
+                <h4
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#fff",
+                    margin: "0 0 2px",
+                  }}
+                >
                   Ultra Chesse
                 </h4>
-                <p style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", margin: "0 0 6px", lineHeight: 1.2 }}>
-                  1 medallon de 100gr - 6 fetas de cheddar - Cebolla en cubitos - Salsa Larry
+                <p
+                  style={{
+                    fontSize: 7,
+                    color: "rgba(255,255,255,0.55)",
+                    margin: "0 0 6px",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  1 medallon de 100gr - 6 fetas de cheddar - Cebolla en cubitos
+                  - Salsa Larry
                 </p>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", display: "block" }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: "var(--accent)",
+                    display: "block",
+                  }}
+                >
                   $ 8.999
                 </span>
               </div>
-              
-              <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+
+              <div
+                style={{
+                  position: "relative",
+                  width: 56,
+                  height: 56,
+                  flexShrink: 0,
+                }}
+              >
                 <img
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg"
                   alt="Ultra Chesse"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: 8,
+                  }}
                 />
                 <div
                   style={{
@@ -741,24 +871,58 @@ function PhoneMockup() {
               }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h4 style={{ fontSize: 10, fontWeight: 700, color: "#fff", margin: "0 0 2px" }}>
+                <h4
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: "#fff",
+                    margin: "0 0 2px",
+                  }}
+                >
                   Bacon Larry
                 </h4>
-                <p style={{ fontSize: 7, color: "rgba(255,255,255,0.55)", margin: "0 0 6px", lineHeight: 1.2 }}>
-                  1 medallon de 100gr - 4 fetas de cheddar - 2 fetas bacon - Salsa Larry
+                <p
+                  style={{
+                    fontSize: 7,
+                    color: "rgba(255,255,255,0.55)",
+                    margin: "0 0 6px",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  1 medallon de 100gr - 4 fetas de cheddar - 2 fetas bacon -
+                  Salsa Larry
                 </p>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", display: "block" }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    color: "var(--accent)",
+                    display: "block",
+                  }}
+                >
                   $ 9.000
                 </span>
               </div>
-              
-              <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+
+              <div
+                style={{
+                  position: "relative",
+                  width: 56,
+                  height: 56,
+                  flexShrink: 0,
+                }}
+              >
                 <img
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg"
                   alt="Bacon Larry"
-                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: 8,
+                  }}
                 />
-                
+
                 {/* Quantity counter pill */}
                 <div
                   style={{
@@ -774,9 +938,15 @@ function PhoneMockup() {
                     boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
                   }}
                 >
-                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 700 }}>-</span>
-                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 900 }}>1</span>
-                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 700 }}>+</span>
+                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 700 }}>
+                    -
+                  </span>
+                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 900 }}>
+                    1
+                  </span>
+                  <span style={{ fontSize: 7, color: "#fff", fontWeight: 700 }}>
+                    +
+                  </span>
                 </div>
               </div>
             </div>
@@ -814,7 +984,9 @@ function PhoneMockup() {
               }}
             >
               <ShoppingCart size={9} color="#fff" />
-              <span style={{ fontSize: 8, color: "#fff", fontWeight: 800 }}>1</span>
+              <span style={{ fontSize: 8, color: "#fff", fontWeight: 800 }}>
+                1
+              </span>
             </div>
             <span style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>
               Bacon Larry
@@ -823,10 +995,23 @@ function PhoneMockup() {
 
           {/* Right: Price & Delivery */}
           <div style={{ textAlign: "right" }}>
-            <span style={{ fontSize: 9, color: "#fff", fontWeight: 800, display: "block" }}>
+            <span
+              style={{
+                fontSize: 9,
+                color: "#fff",
+                fontWeight: 800,
+                display: "block",
+              }}
+            >
               $ 9.000
             </span>
-            <span style={{ fontSize: 6, color: "rgba(255,255,255,0.7)", display: "block" }}>
+            <span
+              style={{
+                fontSize: 6,
+                color: "rgba(255,255,255,0.7)",
+                display: "block",
+              }}
+            >
               + envío $ 2.000
             </span>
           </div>
@@ -995,7 +1180,14 @@ export default function HomeClient({
               className="max-w-6xl mx-auto px-5 sm:px-8 flex items-center justify-center gap-3"
               style={{ padding: "10px 20px", minHeight: 44 }}
             >
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#fff", textAlign: "center" }}>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#fff",
+                  textAlign: "center",
+                }}
+              >
                 🎁 Probá Takefyy 14 días gratis — sin tarjeta de crédito
               </span>
               <a
@@ -1436,10 +1628,7 @@ export default function HomeClient({
               </motion.div>
 
               {/* Social proof */}
-              <motion.div
-                {...fadeUp(0.62)}
-                className="flex flex-col gap-3"
-              >
+              <motion.div {...fadeUp(0.62)} className="flex flex-col gap-3">
                 <div
                   style={{
                     background: "rgba(255, 107, 53, 0.08)",
@@ -1458,7 +1647,11 @@ export default function HomeClient({
                       href="/larryssburgers"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}
+                      style={{
+                        color: "#fff",
+                        fontWeight: 700,
+                        textDecoration: "underline",
+                      }}
                     >
                       Larry&apos;s Burgers
                     </a>{" "}
@@ -1620,14 +1813,15 @@ export default function HomeClient({
         transition={{ duration: 0.6, ease }}
         style={{ padding: "32px 20px" }}
       >
-        <div
-          className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-3"
-        >
+        <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-3">
           {[
             { icon: "🔒", text: "Pagos seguros con Mercado Pago" },
             { icon: "⚡", text: "Sin contrato ni permanencia" },
             { icon: "🛟", text: "Soporte en menos de 24hs" },
-            { icon: "✅", text: `+${restaurantCount} restaurantes en Argentina` },
+            {
+              icon: "✅",
+              text: `+${restaurantCount} restaurantes en Argentina`,
+            },
           ].map((badge) => (
             <div
               key={badge.text}
@@ -2508,7 +2702,8 @@ export default function HomeClient({
                     border: "8px solid rgba(255,255,255,0.12)",
                     background: "#0a0a0a",
                     overflow: "hidden",
-                    boxShadow: "0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
+                    boxShadow:
+                      "0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)",
                     position: "relative",
                   }}
                 >
@@ -2543,7 +2738,8 @@ export default function HomeClient({
                   style={{
                     position: "absolute",
                     inset: -40,
-                    background: "radial-gradient(ellipse at center, rgba(255,107,53,0.15) 0%, transparent 70%)",
+                    background:
+                      "radial-gradient(ellipse at center, rgba(255,107,53,0.15) 0%, transparent 70%)",
                     zIndex: -1,
                     pointerEvents: "none",
                   }}
@@ -2564,12 +2760,16 @@ export default function HomeClient({
                 style={{ color: "var(--dash-text)", lineHeight: 1.2 }}
               >
                 Así se ve tu carta{" "}
-                <span style={{ color: "var(--accent)" }}>en el celular</span>{" "}
-                de tus clientes
+                <span style={{ color: "var(--accent)" }}>en el celular</span> de
+                tus clientes
               </h2>
               <p
                 className="text-base mb-8"
-                style={{ color: "var(--dash-muted)", lineHeight: 1.75, maxWidth: 420 }}
+                style={{
+                  color: "var(--dash-muted)",
+                  lineHeight: 1.75,
+                  maxWidth: 420,
+                }}
               >
                 Una carta rápida, bonita y fácil de usar. Tus clientes eligen
                 sus productos, arman el pedido y te lo mandan directo por
@@ -2672,19 +2872,25 @@ export default function HomeClient({
                         fontWeight: 800,
                         padding: "5px 16px",
                         borderRadius: 20,
-                        background: "linear-gradient(90deg, #ff8c42 0%, #ff6b35 50%, #e85d23 100%)",
+                        background:
+                          "linear-gradient(90deg, #ff8c42 0%, #ff6b35 50%, #e85d23 100%)",
                         border: "1px solid rgba(255,255,255,0.35)",
                         whiteSpace: "nowrap",
                         zIndex: 10,
                         letterSpacing: "0.1em",
-                        boxShadow: "0 4px 16px rgba(255,107,53,0.5), 0 0 0 2px rgba(255,107,53,0.15)",
+                        boxShadow:
+                          "0 4px 16px rgba(255,107,53,0.5), 0 0 0 2px rgba(255,107,53,0.15)",
                       }}
                     >
                       ⭐ MÁS POPULAR
                     </div>
                   )}
                   <div
-                    className={plan.featured ? "animate-border-glow plan-featured-card" : ""}
+                    className={
+                      plan.featured
+                        ? "animate-border-glow plan-featured-card"
+                        : ""
+                    }
                     style={{
                       background: plan.featured
                         ? "linear-gradient(145deg, #FF6B35 0%, #d94f1e 100%)"
@@ -2920,11 +3126,22 @@ export default function HomeClient({
               {/* Left Side: Testimonial & Improvements */}
               <div className="flex flex-col justify-between gap-6 relative z-10">
                 <div>
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "center",
+                      marginBottom: 16,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     {/* Five stars */}
                     <div className="flex">
                       {"★★★★★".split("").map((s, si) => (
-                        <span key={si} style={{ color: "var(--accent)", fontSize: 16 }}>
+                        <span
+                          key={si}
+                          style={{ color: "var(--accent)", fontSize: 16 }}
+                        >
                           {s}
                         </span>
                       ))}
@@ -2954,17 +3171,32 @@ export default function HomeClient({
                       marginBottom: 20,
                     }}
                   >
-                    &ldquo;Fuimos de los primeros en confiar en Takefyy para automatizar nuestras ventas. El resultado fue inmediato: pasamos de anotar pedidos a mano por WhatsApp a recibir todo ya detallado. Cero errores, clientes más felices y más tiempo para tirar las mejores smash burgers.&rdquo;
+                    &ldquo;Fuimos de los primeros en confiar en Takefyy para
+                    automatizar nuestras ventas. El resultado fue inmediato:
+                    pasamos de anotar pedidos a mano por WhatsApp a recibir todo
+                    ya detallado. Cero errores, clientes más felices y más
+                    tiempo para tirar las mejores smash burgers.&rdquo;
                   </p>
 
                   {/* Improvements list */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                  >
                     {[
                       "⚡ Pedidos 100% automatizados por WhatsApp",
                       "🎯 Reducción a cero de errores de envío",
-                      "📈 Mayor ticket promedio con el carrito"
+                      "📈 Mayor ticket promedio con el carrito",
                     ].map((imp) => (
-                      <div key={imp} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
+                      <div
+                        key={imp}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          fontSize: 13,
+                          color: "rgba(255,255,255,0.75)",
+                        }}
+                      >
                         <span>{imp}</span>
                       </div>
                     ))}
@@ -2986,7 +3218,9 @@ export default function HomeClient({
                     }}
                   />
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                    <div
+                      style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}
+                    >
                       Larry&apos;s Burgers
                     </div>
                     <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>
@@ -3010,25 +3244,67 @@ export default function HomeClient({
                     boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      paddingBottom: 8,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        color: "var(--accent)",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       Muestra del Menú
                     </span>
                     <a
                       href="/larryssburgers"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
+                      style={{
+                        fontSize: 10,
+                        color: "#F5C518",
+                        fontWeight: 600,
+                        textDecoration: "none",
+                      }}
                     >
                       Ver real ↗
                     </a>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
                     {[
-                      { name: "The Larry", price: "$10.000", desc: "Doble smash, cheddar, salsa Larry", img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg" },
-                      { name: "Bacon Larry", price: "$10.500", desc: "Doble smash, cheddar, bacon caramelizado", img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg" },
-                      { name: "Ultra Chesse", price: "$10.500", desc: "Doble smash, cuádruple cheddar, alioli", img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg" }
+                      {
+                        name: "The Larry",
+                        price: "$10.000",
+                        desc: "Doble smash, cheddar, salsa Larry",
+                        img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg",
+                      },
+                      {
+                        name: "Bacon Larry",
+                        price: "$10.500",
+                        desc: "Doble smash, cheddar, bacon caramelizado",
+                        img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg",
+                      },
+                      {
+                        name: "Ultra Chesse",
+                        price: "$10.500",
+                        desc: "Doble smash, cuádruple cheddar, alioli",
+                        img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg",
+                      },
                     ].map((item) => (
                       <div
                         key={item.name}
@@ -3053,15 +3329,46 @@ export default function HomeClient({
                           }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "baseline",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "#fff",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
                               {item.name}
                             </span>
-                            <span style={{ fontSize: 10, fontWeight: 800, color: "#F5C518", marginLeft: 4 }}>
+                            <span
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 800,
+                                color: "#F5C518",
+                                marginLeft: 4,
+                              }}
+                            >
                               {item.price}
                             </span>
                           </div>
-                          <p style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                          <p
+                            style={{
+                              fontSize: 9,
+                              color: "rgba(255,255,255,0.45)",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              marginTop: 1,
+                            }}
+                          >
                             {item.desc}
                           </p>
                         </div>
@@ -3109,11 +3416,22 @@ export default function HomeClient({
               {/* Left Side: Testimonial & Improvements */}
               <div className="flex flex-col justify-between gap-6 relative z-10">
                 <div>
-                  <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16, flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 12,
+                      alignItems: "center",
+                      marginBottom: 16,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     {/* Five stars */}
                     <div className="flex">
                       {"★★★★★".split("").map((s, si) => (
-                        <span key={si} style={{ color: "var(--accent)", fontSize: 16 }}>
+                        <span
+                          key={si}
+                          style={{ color: "var(--accent)", fontSize: 16 }}
+                        >
                           {s}
                         </span>
                       ))}
@@ -3143,17 +3461,32 @@ export default function HomeClient({
                       marginBottom: 20,
                     }}
                   >
-                    &ldquo;Takefyy nos cambió la forma de trabajar en Catriel. Antes nos volvíamos locos atendiendo llamadas y copiando pedidos del chat. Ahora los clientes arman el pedido solos y nos llega todo ordenado para cocinar. El ticket promedio subió un 25% gracias a las sugerencias del carrito.&rdquo;
+                    &ldquo;Takefyy nos cambió la forma de trabajar en Catriel.
+                    Antes nos volvíamos locos atendiendo llamadas y copiando
+                    pedidos del chat. Ahora los clientes arman el pedido solos y
+                    nos llega todo ordenado para cocinar. El ticket promedio
+                    subió un 25% gracias a las sugerencias del carrito.&rdquo;
                   </p>
 
                   {/* Improvements list */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                  >
                     {[
                       "⚡ Ahorro de más de 2 horas por noche en WhatsApp",
                       "📈 Aumento del 25% en el ticket promedio",
-                      "🍔 Menú digital visual ultra rápido y fluido"
+                      "🍔 Menú digital visual ultra rápido y fluido",
                     ].map((imp) => (
-                      <div key={imp} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "rgba(255,255,255,0.75)" }}>
+                      <div
+                        key={imp}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          fontSize: 13,
+                          color: "rgba(255,255,255,0.75)",
+                        }}
+                      >
                         <span>{imp}</span>
                       </div>
                     ))}
@@ -3175,7 +3508,9 @@ export default function HomeClient({
                     }}
                   />
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>
+                    <div
+                      style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}
+                    >
                       Riqq&apos;s Burgers
                     </div>
                     <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>
@@ -3199,25 +3534,67 @@ export default function HomeClient({
                     boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
                   }}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      paddingBottom: 8,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        color: "var(--accent)",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                      }}
+                    >
                       Muestra del Menú
                     </span>
                     <a
                       href="/riqqsburgers"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ fontSize: 10, color: "#F5C518", fontWeight: 600, textDecoration: "none" }}
+                      style={{
+                        fontSize: 10,
+                        color: "#F5C518",
+                        fontWeight: 600,
+                        textDecoration: "none",
+                      }}
                     >
                       Ver real ↗
                     </a>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
                     {[
-                      { name: "Bacon", price: "$10.500", desc: "Smash, cheddar, panceta ahumada, cebolla crispy", img: "/bacon.jpeg" },
-                      { name: "American", price: "$9.500", desc: "Smash, cheddar, tomate, lechuga, cebolla morada", img: "/american.jpeg" },
-                      { name: "Paltum", price: "$11.000", desc: "Smash, cheddar, panceta ahumada y palta", img: "/paltum.jpeg" }
+                      {
+                        name: "Bacon",
+                        price: "$10.500",
+                        desc: "Smash, cheddar, panceta ahumada, cebolla crispy",
+                        img: "/bacon.jpeg",
+                      },
+                      {
+                        name: "American",
+                        price: "$9.500",
+                        desc: "Smash, cheddar, tomate, lechuga, cebolla morada",
+                        img: "/american.jpeg",
+                      },
+                      {
+                        name: "Paltum",
+                        price: "$11.000",
+                        desc: "Smash, cheddar, panceta ahumada y palta",
+                        img: "/paltum.jpeg",
+                      },
                     ].map((item) => (
                       <div
                         key={item.name}
@@ -3242,15 +3619,46 @@ export default function HomeClient({
                           }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "baseline",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "#fff",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                              }}
+                            >
                               {item.name}
                             </span>
-                            <span style={{ fontSize: 10, fontWeight: 800, color: "#F5C518", marginLeft: 4 }}>
+                            <span
+                              style={{
+                                fontSize: 10,
+                                fontWeight: 800,
+                                color: "#F5C518",
+                                marginLeft: 4,
+                              }}
+                            >
                               {item.price}
                             </span>
                           </div>
-                          <p style={{ fontSize: 9, color: "rgba(255,255,255,0.45)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                          <p
+                            style={{
+                              fontSize: 9,
+                              color: "rgba(255,255,255,0.45)",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              marginTop: 1,
+                            }}
+                          >
                             {item.desc}
                           </p>
                         </div>
@@ -3425,37 +3833,24 @@ export default function HomeClient({
             >
               Empezar gratis →
             </motion.button>
-            <motion.a
-              href="/riqqsburgers"
+            <Link
+              href="/larryssburgers"
               className="rounded-full font-semibold"
               style={{
                 border: "1.5px solid rgba(255,255,255,0.18)",
                 color: "#fff",
                 background: "transparent",
                 cursor: "pointer",
-            <Link
-              href="/demo/riqqsburgers"
-              style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 8,
-                color: "var(--accent)",
-                fontSize: 14,
-                fontWeight: 600,
+                justifyContent: "center",
+                padding: "18px 40px",
+                fontSize: 17,
                 textDecoration: "none",
-                marginTop: 28,
-                padding: "8px 0",
-                borderBottom: "1px solid rgba(255,107,53,0.3)",
-                transition: "border-color 0.2s",
+                transition: "border-color 0.2s, background 0.2s",
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.borderColor = "rgba(255,107,53,0.8)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)")
-              }
             >
-              Ver demo en vivo: Riqq&apos;s Burgers →
+              Ver demo en vivo →
             </Link>
           </motion.div>
         </div>
@@ -3613,7 +4008,8 @@ export default function HomeClient({
               © 2026 Takefyy &middot; Hecho con ❤️ en Argentina
             </p>
             <p style={{ color: "rgba(255,255,255,0.14)", fontSize: 11 }}>
-              Takefyy no cobra comisiones por pedido. Todos los pedidos se procesan directamente entre el restaurante y el cliente.
+              Takefyy no cobra comisiones por pedido. Todos los pedidos se
+              procesan directamente entre el restaurante y el cliente.
             </p>
           </div>
         </div>
