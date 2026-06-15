@@ -14,6 +14,8 @@ const ALLOWED_FIELDS = [
   "sort_order",
   "category_id",
   "extras",
+  "is_featured",
+  "featured_order",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -111,6 +113,27 @@ export async function PATCH(
     ) {
       return NextResponse.json(
         { error: "Descripción demasiado larga (máx. 1000 caracteres)" },
+        { status: 400 },
+      );
+    }
+  }
+  if ("is_featured" in patch) {
+    if (typeof patch.is_featured !== "boolean") {
+      return NextResponse.json(
+        { error: "is_featured debe ser boolean" },
+        { status: 400 },
+      );
+    }
+  }
+  if ("featured_order" in patch) {
+    const fo = patch.featured_order as unknown;
+    if (
+      typeof fo !== "number" ||
+      !isFinite(fo as number) ||
+      (fo as number) < 0
+    ) {
+      return NextResponse.json(
+        { error: "featured_order inválido" },
         { status: 400 },
       );
     }

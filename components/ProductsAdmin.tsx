@@ -159,6 +159,8 @@ interface ProductForm {
   badge: string;
   image_url: string;
   available: boolean;
+  is_featured: boolean;
+  featured_order: string;
   extras: Array<{ name: string; price: string }>;
 }
 
@@ -170,6 +172,8 @@ const emptyForm: ProductForm = {
   badge: "",
   image_url: "",
   available: true,
+  is_featured: false,
+  featured_order: "0",
   extras: [],
 };
 
@@ -198,6 +202,8 @@ function ProductModal({
           badge: product.badge ?? "",
           image_url: product.image_url ?? "",
           available: product.available,
+          is_featured: product.is_featured ?? false,
+          featured_order: String(product.featured_order ?? 0),
           extras: (product.extras ?? []).map(
             (e: { name: string; price: number }) => ({
               name: e.name,
@@ -419,6 +425,38 @@ function ProductModal({
               </div>
               <span className="text-sm text-white">Disponible</span>
             </label>
+
+            {/* Destacado en "Lo más pedido" */}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-3 cursor-pointer flex-1">
+                <div
+                  onClick={() => set("is_featured", !form.is_featured)}
+                  className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.is_featured ? "bg-orange-500" : "bg-zinc-700"}`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_featured ? "translate-x-5" : "translate-x-0.5"}`}
+                  />
+                </div>
+                <span className="text-sm text-white">
+                  ⭐ Destacado{" "}
+                  <span className="text-zinc-500">
+                    (aparece en &quot;Lo más pedido&quot;)
+                  </span>
+                </span>
+              </label>
+              {form.is_featured && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-zinc-500">Orden</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.featured_order}
+                    onChange={(e) => set("featured_order", e.target.value)}
+                    className="w-16 bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1 text-sm text-white text-center"
+                  />
+                </div>
+              )}
+            </div>
 
             {/* Opciones de tamaño */}
             <div>
@@ -848,6 +886,8 @@ export default function ProductsAdmin({
       badge: form.badge.trim() || null,
       image_url: form.image_url.trim() || null,
       available: form.available,
+      is_featured: form.is_featured,
+      featured_order: parseInt(form.featured_order, 10) || 0,
       extras: form.extras
         .filter(
           (e) =>
