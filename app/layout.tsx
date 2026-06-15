@@ -119,6 +119,9 @@ export const metadata: Metadata = {
     apple: "/takefyy-logo.png",
   },
   robots: { index: true, follow: true },
+  verification: {
+    google: "hOLlft_b-QqSqQPzBTVd6eEgyMok-R0tNb7TnvLHedI",
+  },
 };
 
 export default function RootLayout({
