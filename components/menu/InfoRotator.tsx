@@ -3,6 +3,44 @@
 interface InfoItem {
   icon: string;
   text: string;
+  href?: string;
+}
+
+function InfoChip({ item, textColor }: { item: InfoItem; textColor: string }) {
+  const content = (
+    <>
+      <span style={{ fontSize: 13 }}>{item.icon}</span>
+      <span>{item.text}</span>
+    </>
+  );
+
+  if (item.href) {
+    return (
+      <a
+        href={item.href}
+        target={item.href.startsWith("http") ? "_blank" : undefined}
+        rel={item.href.startsWith("http") ? "noopener noreferrer" : undefined}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 5,
+          color: textColor,
+          textDecoration: "none",
+          opacity: 0.9,
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+        onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.9")}
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+      {content}
+    </span>
+  );
 }
 
 export default function InfoRotator({
@@ -29,13 +67,11 @@ export default function InfoRotator({
           fontWeight: 500,
         }}
       >
-        <span style={{ fontSize: 13 }}>{items[0].icon}</span>
-        <span>{items[0].text}</span>
+        <InfoChip item={items[0]} textColor={textColor} />
       </div>
     );
   }
 
-  // Duplicate for seamless loop: animate translateX 0 → -50%
   const doubled = [...items, ...items];
   const duration = Math.max(items.length * 2, 6);
 
@@ -48,7 +84,6 @@ export default function InfoRotator({
         }
       `}</style>
 
-      {/* Left fade mask */}
       <div
         style={{
           position: "absolute",
@@ -61,7 +96,6 @@ export default function InfoRotator({
           pointerEvents: "none",
         }}
       />
-      {/* Right fade mask */}
       <div
         style={{
           position: "absolute",
@@ -97,8 +131,7 @@ export default function InfoRotator({
               padding: "0 14px",
             }}
           >
-            <span style={{ fontSize: 13 }}>{item.icon}</span>
-            <span>{item.text}</span>
+            <InfoChip item={item} textColor={textColor} />
             <span style={{ opacity: 0.4, fontSize: 10, marginLeft: 8 }}>·</span>
           </span>
         ))}

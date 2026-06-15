@@ -33,6 +33,7 @@ import {
   ShoppingBag,
   MessageCircle,
   ChevronRight,
+  Share2,
   type LucideIcon,
 } from "lucide-react";
 import type {
@@ -239,9 +240,23 @@ const ProductCard = memo(function ProductCard({
           opacity: soldOut ? 0.6 : 1,
           boxShadow:
             qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 6px rgba(0,0,0,0.07)",
-          transition: "box-shadow 0.2s, border-color 0.2s",
+          transition: "box-shadow 0.2s, border-color 0.2s, transform 0.15s",
           userSelect: "none",
           WebkitTapHighlightColor: "transparent",
+        }}
+        onMouseEnter={(e) => {
+          if (!soldOut) {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow =
+              qty > 0
+                ? `0 8px 24px ${accent}30`
+                : "0 6px 20px rgba(0,0,0,0.13)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "";
+          e.currentTarget.style.boxShadow =
+            qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 6px rgba(0,0,0,0.07)";
         }}
         onTouchStart={(e) => {
           if (!soldOut) e.currentTarget.style.transform = "scale(0.985)";
@@ -289,6 +304,27 @@ const ProductCard = memo(function ProductCard({
               {item.description}
             </p>
           )}
+          {item.extras && item.extras.length > 0 && !soldOut && (
+            <div style={{ marginBottom: 6 }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 3,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: accent,
+                  background: accent + "15",
+                  border: `1px solid ${accent}30`,
+                  borderRadius: 99,
+                  padding: "2px 7px",
+                  letterSpacing: "0.03em",
+                }}
+              >
+                ✦ Personalizable
+              </span>
+            </div>
+          )}
           <div
             style={{
               display: "flex",
@@ -297,7 +333,9 @@ const ProductCard = memo(function ProductCard({
             }}
           >
             <span style={{ fontWeight: 800, fontSize: 15, color: accent }}>
-              {fmt(item.price)}
+              {item.extras && item.extras.length > 0
+                ? `desde ${fmt(item.price)}`
+                : fmt(item.price)}
             </span>
             {!soldOut && (
               <div onClick={(e) => e.stopPropagation()}>
@@ -519,6 +557,7 @@ export default function CatalogClient({
     key: number;
   } | null>(null);
   const [cartBounce, setCartBounce] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [itemNotesDraft, setItemNotesDraft] = useState("");
   const [selectedExtraDraft, setSelectedExtraDraft] =
     useState<SelectedExtra | null>(null);
@@ -810,6 +849,26 @@ export default function CatalogClient({
     }, 800);
   }
 
+  // ── Share menu ───────────────────────────────────────────────────────────
+
+  async function handleShare() {
+    const url = window.location.href;
+    const shareData = {
+      title: restaurant.name,
+      text: `Mirá el menú de ${restaurant.name}`,
+      url,
+    };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    }
+  }
+
   // ── Swipe to dismiss (cart drawer) — con drag en tiempo real ────────────
 
   const swipeStart = useRef<number | null>(null);
@@ -868,10 +927,22 @@ export default function CatalogClient({
 
   const infoItems = [
     restaurant.schedule && { icon: "🕐", text: restaurant.schedule },
-    restaurant.address && { icon: "📍", text: restaurant.address },
-    restaurant.phone && { icon: "📞", text: restaurant.phone },
-    restaurant.instagram && { icon: "📸", text: `@${restaurant.instagram}` },
-  ].filter(Boolean) as { icon: string; text: string }[];
+    restaurant.address && {
+      icon: "📍",
+      text: restaurant.address,
+      href: `https://maps.google.com/?q=${encodeURIComponent(restaurant.address)}`,
+    },
+    restaurant.phone && {
+      icon: "📞",
+      text: restaurant.phone,
+      href: `tel:${restaurant.phone.replace(/\s/g, "")}`,
+    },
+    restaurant.instagram && {
+      icon: "📸",
+      text: `@${restaurant.instagram}`,
+      href: `https://instagram.com/${restaurant.instagram}`,
+    },
+  ].filter(Boolean) as { icon: string; text: string; href?: string }[];
 
   // All products flat for search
   const searchResults = restaurant.menu.categories
@@ -1067,15 +1138,61 @@ export default function CatalogClient({
             }}
           />
 
-          {/* Status badge */}
+          {/* Status badge + Share button */}
           <div
             style={{
               position: "absolute",
               top: 14,
               right: 16,
               zIndex: 10,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              aria-label="Compartir menú"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "5px 10px",
+                borderRadius: 999,
+                fontSize: 11,
+                fontWeight: 600,
+                background: "rgba(0,0,0,0.35)",
+                color: "#fff",
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                border: "none",
+                cursor: "pointer",
+                transition: "background 0.15s",
+                letterSpacing: "0.02em",
+                WebkitTapHighlightColor: "transparent",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(0,0,0,0.55)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "rgba(0,0,0,0.35)")
+              }
+            >
+              {shareCopied ? (
+                <>
+                  <CheckCircle2 size={11} strokeWidth={2.5} />
+                  ¡Copiado!
+                </>
+              ) : (
+                <>
+                  <Share2 size={11} strokeWidth={2.5} />
+                  Compartir
+                </>
+              )}
+            </button>
+
+            {/* Open/closed badge */}
             <span
               style={{
                 display: "inline-flex",
@@ -3736,7 +3853,6 @@ export default function CatalogClient({
             </a>
           </div>
         )}
-
         {/* ── Checkout ─────────────────────────────────────────────────────────── */}
         <CheckoutModal
           isOpen={checkoutOpen}
