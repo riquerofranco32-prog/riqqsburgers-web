@@ -16,6 +16,7 @@ interface CheckoutModalProps {
   onClose: () => void;
   cart: CheckoutCartItem[];
   onClearCart: () => void;
+  orderNotes?: string;
   tenant: {
     id: string;
     name: string;
@@ -42,6 +43,7 @@ export default function CheckoutModal({
   onClose,
   cart,
   onClearCart,
+  orderNotes,
   tenant,
 }: CheckoutModalProps) {
   const accent = tenant.primary_color || "#FF6B35";
@@ -205,6 +207,8 @@ export default function CheckoutModal({
         ];
       }),
       ``,
+      orderNotes ? `Aclaraciones del pedido: ${orderNotes}` : null,
+      orderNotes ? `` : null,
       `Subtotal: ${fmt(subtotal)}`,
       deliveryCost > 0 ? `Entrega: ${fmt(deliveryCost)}` : null,
       `Total: ${fmt(grandTotal)}`,
@@ -404,8 +408,12 @@ export default function CheckoutModal({
               WebkitTapHighlightColor: "transparent",
               transition: "background 0.15s",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--border)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "var(--border)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "var(--surface-2)")
+            }
             aria-label="Cerrar"
           >
             ×

@@ -34,6 +34,7 @@ import {
   MessageCircle,
   ChevronRight,
   Share2,
+  Heart,
   type LucideIcon,
 } from "lucide-react";
 import type {
@@ -45,6 +46,9 @@ import CheckoutModal from "@/components/CheckoutModal";
 import InfoRotator from "@/components/menu/InfoRotator";
 import MenuHeroShader from "@/components/menu/MenuHeroShader";
 import MenuBackground from "@/components/menu/MenuBackground";
+import RelatedProducts from "@/components/menu/RelatedProducts";
+import FavoritesSheet from "@/components/menu/FavoritesSheet";
+import { useFavorites } from "@/hooks/useFavorites";
 import { trackEvent } from "@/lib/analytics";
 
 type SelectedExtra = { name: string; price: number };
@@ -200,6 +204,8 @@ const ProductCard = memo(function ProductCard({
   onOpen,
   onAdd,
   onRemove,
+  isFavorite,
+  onToggleFavorite,
 }: {
   item: MenuItem;
   catEmoji: string;
@@ -215,6 +221,8 @@ const ProductCard = memo(function ProductCard({
   onOpen: (item: MenuItem) => void;
   onAdd: (item: MenuItem) => void;
   onRemove: (item: MenuItem) => void;
+  isFavorite: boolean;
+  onToggleFavorite: (item: MenuItem) => void;
 }) {
   const soldOut = item.badge === "Agotado";
   return (
@@ -522,6 +530,53 @@ const ProductCard = memo(function ProductCard({
               </span>
             </div>
           )}
+          {/* Favorite button */}
+          <button
+            aria-label={
+              isFavorite
+                ? `Quitar ${item.name} de favoritos`
+                : `Guardar ${item.name} en favoritos`
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(item);
+            }}
+            style={{
+              position: "absolute",
+              top: 4,
+              right: 4,
+              width: 26,
+              height: 26,
+              borderRadius: "50%",
+              background: isFavorite ? "#EF4444" : "rgba(0,0,0,0.35)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition:
+                "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
+              WebkitTapHighlightColor: "transparent",
+              zIndex: 5,
+            }}
+            onMouseDown={(e) =>
+              (e.currentTarget.style.transform = "scale(0.82)")
+            }
+            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            onTouchStart={(e) =>
+              (e.currentTarget.style.transform = "scale(0.82)")
+            }
+            onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            <Heart
+              size={13}
+              strokeWidth={isFavorite ? 0 : 2}
+              fill={isFavorite ? "#fff" : "rgba(255,255,255,0.85)"}
+              color={isFavorite ? "#fff" : "rgba(255,255,255,0.85)"}
+            />
+          </button>
         </div>
       </div>
     </div>
@@ -558,13 +613,23 @@ export default function CatalogClient({
   } | null>(null);
   const [cartBounce, setCartBounce] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+  const [shareProductCopied, setShareProductCopied] = useState(false);
   const [itemNotesDraft, setItemNotesDraft] = useState("");
   const [selectedExtraDraft, setSelectedExtraDraft] =
     useState<SelectedExtra | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [sheetImageLoaded, setSheetImageLoaded] = useState(false);
+  const [clearConfirm, setClearConfirm] = useState(false);
+  const [orderNotes, setOrderNotes] = useState("");
+  const [orderNotesOpen, setOrderNotesOpen] = useState(false);
+  const [favoritesOpen, setFavoritesOpen] = useState(false);
   const prevTotal = useRef(0);
+
+  // ── Favorites ─────────────────────────────────────────────────────────────
+  const { favorites, isFavorite, toggleFavorite } = useFavorites(
+    restaurant.slug,
+  );
 
   // ── Cart helpers ──────────────────────────────────────────────────────────
 
@@ -869,6 +934,26 @@ export default function CatalogClient({
     }
   }
 
+  // ── Share product ────────────────────────────────────────────────────────
+
+  async function handleShareProduct(productId: string, productName: string) {
+    const url = `${window.location.origin}${window.location.pathname}?producto=${productId}`;
+    const shareData = {
+      title: productName,
+      text: `Mirá ${productName} en ${restaurant.name}`,
+      url,
+    };
+    if (navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {});
+      setShareProductCopied(true);
+      setTimeout(() => setShareProductCopied(false), 2000);
+    }
+  }
+
   // ── Swipe to dismiss (cart drawer) — con drag en tiempo real ────────────
 
   const swipeStart = useRef<number | null>(null);
@@ -897,6 +982,7 @@ export default function CatalogClient({
     setDrawerDragOffset(0);
     if (delta > 120) {
       setCartOpen(false);
+      setClearConfirm(false);
       vibrate(30);
     }
   }
@@ -2078,6 +2164,8 @@ export default function CatalogClient({
                             onOpen={handleOpen}
                             onAdd={addItem}
                             onRemove={removeItem}
+                            isFavorite={isFavorite(item.id)}
+                            onToggleFavorite={toggleFavorite}
                           />
                         </Fragment>
                       ))}
@@ -2277,6 +2365,8 @@ export default function CatalogClient({
                                     onOpen={handleOpen}
                                     onAdd={addItem}
                                     onRemove={removeItem}
+                                    isFavorite={isFavorite(item.id)}
+                                    onToggleFavorite={toggleFavorite}
                                   />
                                 </Fragment>
                               ))}
@@ -2981,23 +3071,108 @@ export default function CatalogClient({
                       {totalItems}
                     </span>
                   </div>
-                  <button
-                    onClick={() => setCartOpen(false)}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      background: SURFACE2,
-                      border: "none",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: TEXT2,
-                    }}
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
                   >
-                    <X size={16} />
-                  </button>
+                    {cart.length > 0 && !clearConfirm && (
+                      <button
+                        onClick={() => setClearConfirm(true)}
+                        title="Vaciar carrito"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "5px 10px",
+                          borderRadius: 8,
+                          background: "transparent",
+                          border: "1px solid rgba(239,68,68,0.3)",
+                          color: "#ef4444",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          WebkitTapHighlightColor: "transparent",
+                        }}
+                      >
+                        <Trash2 size={12} />
+                        Vaciar
+                      </button>
+                    )}
+                    {clearConfirm && (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: TEXT2,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          ¿Seguro?
+                        </span>
+                        <button
+                          onClick={() => {
+                            setCart([]);
+                            setClearConfirm(false);
+                            setCartOpen(false);
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 7,
+                            background: "#ef4444",
+                            border: "none",
+                            color: "#fff",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            WebkitTapHighlightColor: "transparent",
+                          }}
+                        >
+                          Sí, vaciar
+                        </button>
+                        <button
+                          onClick={() => setClearConfirm(false)}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 7,
+                            background: SURFACE2,
+                            border: `1px solid ${BORDER}`,
+                            color: TEXT2,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            WebkitTapHighlightColor: "transparent",
+                          }}
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => {
+                        setCartOpen(false);
+                        setClearConfirm(false);
+                      }}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        background: SURFACE2,
+                        border: "none",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: TEXT2,
+                      }}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Items */}
@@ -3242,6 +3417,80 @@ export default function CatalogClient({
                   </div>
                 </div>
 
+                {/* Notas globales del pedido */}
+                <div
+                  style={{
+                    padding: "0 16px 12px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <button
+                    onClick={() => setOrderNotesOpen((v) => !v)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      color: TEXTM,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      padding: "4px 0",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                  >
+                    <MessageCircle size={13} />
+                    {orderNotesOpen
+                      ? "Cerrar aclaraciones"
+                      : "Agregar aclaraciones del pedido"}
+                  </button>
+                  {orderNotesOpen && (
+                    <div style={{ marginTop: 8, position: "relative" }}>
+                      <textarea
+                        value={orderNotes}
+                        onChange={(e) => {
+                          if (e.target.value.length <= 200)
+                            setOrderNotes(e.target.value);
+                        }}
+                        placeholder="Alérgenos, instrucciones especiales..."
+                        rows={3}
+                        style={{
+                          width: "100%",
+                          borderRadius: 10,
+                          border: `1.5px solid ${BORDER}`,
+                          padding: "10px 12px",
+                          fontSize: 13,
+                          color: TEXT1,
+                          background: SURFACE2,
+                          resize: "none",
+                          outline: "none",
+                          fontFamily: "inherit",
+                          boxSizing: "border-box",
+                          transition: "border-color 0.2s",
+                        }}
+                        onFocus={(e) =>
+                          (e.currentTarget.style.borderColor = accent)
+                        }
+                        onBlur={(e) =>
+                          (e.currentTarget.style.borderColor = BORDER)
+                        }
+                      />
+                      <span
+                        style={{
+                          position: "absolute",
+                          bottom: 8,
+                          right: 10,
+                          fontSize: 11,
+                          color: orderNotes.length >= 180 ? "#ef4444" : TEXTM,
+                        }}
+                      >
+                        {orderNotes.length}/200
+                      </span>
+                    </div>
+                  )}
+                </div>
+
                 {/* CTA */}
                 <div
                   style={{
@@ -3340,6 +3589,13 @@ export default function CatalogClient({
               restaurant.menu.categories.find((c) =>
                 c.items.some((i) => i.id === selectedItem.id),
               )?.emoji ?? "🍽️";
+            const selectedCategoryItems =
+              restaurant.menu.categories.find((c) =>
+                c.items.some((i) => i.id === selectedItem.id),
+              )?.items ?? [];
+            const isSoldOut =
+              selectedItem.badge === "Agotado" ||
+              selectedItem.available === false;
             return (
               <>
                 <div
@@ -3899,6 +4155,94 @@ export default function CatalogClient({
             </a>
           </div>
         )}
+        {/* ── Favorites floating button — visible only when there are favorites ── */}
+        {favorites.length > 0 && !cartOpen && !selectedItem && (
+          <button
+            aria-label={`Ver favoritos (${favorites.length})`}
+            onClick={() => setFavoritesOpen(true)}
+            style={{
+              position: "fixed",
+              bottom:
+                totalItems > 0
+                  ? `max(88px, calc(env(safe-area-inset-bottom, 0px) + 88px))`
+                  : `max(20px, env(safe-area-inset-bottom, 20px))`,
+              right: 16,
+              zIndex: 55,
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              background: SURFACE,
+              border: `1.5px solid ${BORDER}`,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.14)",
+              WebkitTapHighlightColor: "transparent",
+              transition:
+                "transform 0.15s cubic-bezier(0.34,1.56,0.64,1), bottom 0.25s ease",
+            }}
+            onMouseDown={(e) =>
+              (e.currentTarget.style.transform = "scale(0.88)")
+            }
+            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            onTouchStart={(e) =>
+              (e.currentTarget.style.transform = "scale(0.88)")
+            }
+            onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            <Heart size={18} fill="#EF4444" color="#EF4444" />
+            <span
+              style={{
+                position: "absolute",
+                top: -4,
+                right: -4,
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                background: "#EF4444",
+                color: "#fff",
+                fontSize: 10,
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: `2px solid ${SURFACE}`,
+              }}
+            >
+              {favorites.length}
+            </span>
+          </button>
+        )}
+        {/* ── Favorites sheet ──────────────────────────────────────────────────── */}
+        <FavoritesSheet
+          open={favoritesOpen}
+          onClose={() => setFavoritesOpen(false)}
+          favorites={favorites}
+          onToggleFavorite={toggleFavorite}
+          onAddToCart={(product) => {
+            addItem({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              image: product.image,
+              category_id: product.category_id ?? "",
+              badge: "",
+              description: "",
+              available: true,
+              extras: [],
+            } as unknown as import("@/lib/getRestaurant").MenuItem);
+            setFavoritesOpen(false);
+          }}
+          accent={accent}
+          onAccent={onAccent}
+          SURFACE={SURFACE}
+          SURFACE2={SURFACE2}
+          BORDER={BORDER}
+          TEXT1={TEXT1}
+          TEXT2={TEXT2}
+          TEXTM={TEXTM}
+        />
         {/* ── Checkout ─────────────────────────────────────────────────────────── */}
         <CheckoutModal
           isOpen={checkoutOpen}
@@ -3912,6 +4256,7 @@ export default function CatalogClient({
             selectedExtra: i.selectedExtra,
           }))}
           onClearCart={() => setCart([])}
+          orderNotes={orderNotes || undefined}
           tenant={{
             id: restaurant.id,
             name: restaurant.name,
