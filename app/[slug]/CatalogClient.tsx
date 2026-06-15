@@ -169,7 +169,8 @@ function AddedToast({ visible, name }: { visible: boolean; name: string }) {
         left: "50%",
         transform: `translateX(-50%) translateY(${visible ? 0 : 12}px)`,
         opacity: visible ? 1 : 0,
-        transition: "all 0.22s cubic-bezier(0.22,1,0.36,1)",
+        transition:
+          "opacity 0.22s cubic-bezier(0.22,1,0.36,1), transform 0.22s cubic-bezier(0.22,1,0.36,1)",
         background: "#111",
         color: "#fff",
         padding: "10px 18px",
@@ -302,6 +303,7 @@ const ProductCard = memo(function ProductCard({
                 color: TEXT2,
                 margin: "0 0 8px",
                 lineHeight: 1.4,
+                textWrap: "pretty",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient:
@@ -340,7 +342,14 @@ const ProductCard = memo(function ProductCard({
               justifyContent: "space-between",
             }}
           >
-            <span style={{ fontWeight: 800, fontSize: 15, color: accent }}>
+            <span
+              style={{
+                fontWeight: 800,
+                fontSize: 15,
+                color: accent,
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
               {item.extras && item.extras.length > 0
                 ? `desde ${fmt(item.price)}`
                 : fmt(item.price)}
@@ -428,6 +437,7 @@ const ProductCard = memo(function ProductCard({
                         textAlign: "center",
                         color: TEXT1,
                         display: "block",
+                        fontVariantNumeric: "tabular-nums",
                       }}
                     >
                       {qty}

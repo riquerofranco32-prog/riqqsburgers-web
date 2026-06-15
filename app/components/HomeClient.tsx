@@ -22,6 +22,7 @@ import {
   Fish,
   Wine,
   Truck,
+  ChevronRight,
 } from "lucide-react";
 import TakefyyLogo from "@/components/TakefyyLogo";
 
@@ -1526,12 +1527,20 @@ export default function HomeClient({
             {/* Left col */}
             <div>
               <motion.div {...fadeUp(0)} className="mb-6">
-                <span
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
+                <a
+                  href="#producto"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document
+                      .getElementById("producto")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
                   style={{
                     background: "rgba(255,107,53,0.1)",
                     border: "1px solid rgba(255,107,53,0.22)",
                     color: "var(--accent)",
+                    textDecoration: "none",
                   }}
                 >
                   <span
@@ -1545,7 +1554,12 @@ export default function HomeClient({
                     }}
                   />
                   Hecho para hamburgueserías, pizzerías y dark kitchens
-                </span>
+                  <ChevronRight
+                    size={13}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5"
+                    aria-hidden
+                  />
+                </a>
               </motion.div>
 
               {/* Anton headline */}
@@ -1580,6 +1594,7 @@ export default function HomeClient({
                   lineHeight: 1.75,
                   color: "var(--dash-muted)",
                   maxWidth: 450,
+                  textWrap: "pretty",
                 }}
               >
                 Tu menú digital en minutos, pedidos directo a tu WhatsApp. Sin
@@ -1936,6 +1951,7 @@ export default function HomeClient({
                 letterSpacing: "0.01em",
                 color: "#fff",
                 lineHeight: 1.0,
+                textWrap: "balance",
               }}
             >
               Para cada tipo de local gastronómico
@@ -2062,6 +2078,7 @@ export default function HomeClient({
                 letterSpacing: "0.01em",
                 color: "var(--text-primary)",
                 lineHeight: 1.0,
+                textWrap: "balance",
               }}
             >
               Tan simple que da
@@ -2510,6 +2527,7 @@ export default function HomeClient({
                 letterSpacing: "0.01em",
                 color: "var(--text-primary)",
                 lineHeight: 1.0,
+                textWrap: "balance",
               }}
             >
               Todo incluido. Sin comisiones. Sin sorpresas.
@@ -2880,6 +2898,7 @@ export default function HomeClient({
                 letterSpacing: "0.01em",
                 color: "var(--text-primary)",
                 lineHeight: 1.0,
+                textWrap: "balance",
               }}
             >
               Tres planes. Sin sorpresas.
@@ -2979,6 +2998,7 @@ export default function HomeClient({
                               : "var(--text-primary)",
                             lineHeight: 1,
                             letterSpacing: "0.01em",
+                            fontVariantNumeric: "tabular-nums",
                           }}
                         >
                           {plan.price}
@@ -3363,6 +3383,8 @@ export default function HomeClient({
                             height: 40,
                             borderRadius: 6,
                             objectFit: "cover",
+                            outline: "1px solid rgba(255,255,255,0.08)",
+                            outlineOffset: -1,
                           }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -3653,6 +3675,8 @@ export default function HomeClient({
                             height: 40,
                             borderRadius: 6,
                             objectFit: "cover",
+                            outline: "1px solid rgba(255,255,255,0.08)",
+                            outlineOffset: -1,
                           }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>

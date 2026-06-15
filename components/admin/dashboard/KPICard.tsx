@@ -1,6 +1,6 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
 
 interface KPICardProps {
@@ -46,11 +46,7 @@ function formatAnimated(original: string, animated: number): string {
 function AnimatedValue({ value }: { value: string }) {
   const numeric = parseNumericValue(value);
   const isLoading = value === "…";
-  const animated = useCountUp(
-    numeric ?? 0,
-    800,
-    !isLoading,
-  );
+  const animated = useCountUp(numeric ?? 0, 800, !isLoading);
 
   if (isLoading || numeric === null) return <>{value}</>;
   return <>{formatAnimated(value, animated)}</>;
@@ -97,9 +93,11 @@ export function KPICard({
   const isNegative = change !== null && change !== undefined && change < 0;
   const hasChange = change !== null && change !== undefined;
 
+  const DeltaIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus;
+
   return (
     <div
-      className="border border-dash-border rounded-2xl p-5 flex flex-col min-h-[128px]"
+      className="border border-dash-border rounded-2xl p-5 flex flex-col min-h-[128px] relative overflow-hidden"
       style={{
         background:
           "linear-gradient(145deg, var(--dash-surface) 0%, rgba(28,33,40,0.95) 100%)",
@@ -122,6 +120,10 @@ export function KPICard({
           "0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)";
       }}
     >
+      {/* Corner decorative circles */}
+      <span className="pointer-events-none absolute -right-6 -top-6 inline-flex h-16 w-16 rounded-full bg-white/[0.03]" />
+      <span className="pointer-events-none absolute -right-2 -top-2 inline-flex h-8 w-8 rounded-full bg-white/[0.04]" />
+
       {/* Top row: icon bubble + change badge */}
       <div className="flex items-start justify-between gap-2">
         {/* Icon bubble */}
@@ -137,7 +139,7 @@ export function KPICard({
           <Icon style={{ color: "var(--accent)", width: 18, height: 18 }} />
         </div>
 
-        {/* Change badge */}
+        {/* Change badge with trend icon */}
         {hasChange ? (
           <div
             className="flex items-center gap-1 flex-shrink-0"
@@ -158,7 +160,8 @@ export function KPICard({
                   : "var(--dash-muted)",
             }}
           >
-            <span>
+            <DeltaIcon style={{ width: 11, height: 11 }} aria-hidden />
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>
               {isPositive ? "+" : ""}
               {(change as number).toFixed(1)}%
             </span>
@@ -191,6 +194,7 @@ export function KPICard({
           letterSpacing: "-0.02em",
           lineHeight: 1,
           fontFamily: "var(--font-mono, monospace)",
+          fontVariantNumeric: "tabular-nums",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -216,6 +220,18 @@ export function KPICard({
           {sub}
         </p>
       )}
+
+      {/* Baseline accent bar */}
+      <div
+        style={{
+          marginTop: "auto",
+          paddingTop: 14,
+          height: 2,
+          width: 40,
+          borderRadius: 1,
+          background: "rgba(255,107,53,0.25)",
+        }}
+      />
     </div>
   );
 }
