@@ -1082,9 +1082,9 @@ export default function HomeClient({
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
   const isHoveringHero = useRef(false);
 
@@ -1105,7 +1105,7 @@ export default function HomeClient({
     localStorage.setItem("takefyy_banner_dismissed", "1");
   }
 
-  // Idle automatic mouse drift animation
+  // Idle automatic mouse drift animation — updates DOM directly to avoid re-renders
   useEffect(() => {
     let start = Date.now();
     let frame: number;
@@ -1113,10 +1113,12 @@ export default function HomeClient({
     const tick = () => {
       if (!isHoveringHero.current) {
         const elapsed = (Date.now() - start) / 1000;
-        // Smooth figure-8 (infinity) Lissajous curve around the center (0.5, 0.5)
         const x = 0.5 + 0.22 * Math.sin(elapsed * 0.7);
         const y = 0.5 + 0.22 * Math.cos(elapsed * 0.4);
-        setMousePos({ x, y });
+        if (glowRef.current) {
+          glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
+          glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
+        }
       }
       frame = requestAnimationFrame(tick);
     };
@@ -1131,10 +1133,12 @@ export default function HomeClient({
     rafRef.current = requestAnimationFrame(() => {
       const rect = heroRef.current?.getBoundingClientRect();
       if (!rect) return;
-      setMousePos({
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
-      });
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      if (glowRef.current) {
+        glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
+        glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
+      }
     });
   }
 
@@ -1488,12 +1492,13 @@ export default function HomeClient({
         {/* Shader background */}
         <HeroShader />
 
-        {/* Mouse-tracking glow */}
+        {/* Mouse-tracking glow — positioned via ref to skip React re-renders */}
         <div
+          ref={glowRef}
           style={{
             position: "absolute",
-            left: `calc(${mousePos.x * 100}% - 300px)`,
-            top: `calc(${mousePos.y * 100}% - 300px)`,
+            left: "calc(50% - 300px)",
+            top: "calc(50% - 300px)",
             width: 600,
             height: 600,
             background:
