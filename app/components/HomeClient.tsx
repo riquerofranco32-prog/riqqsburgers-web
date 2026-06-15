@@ -1166,76 +1166,7 @@ export default function HomeClient({
         fontFamily: "var(--font-sans)",
       }}
     >
-      {/* ── TRIAL BANNER ─────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {!bannerDismissed && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease }}
-            style={{
-              background: "linear-gradient(90deg, #FF6B35 0%, #FF8C00 100%)",
-              overflow: "hidden",
-              position: "relative",
-              zIndex: 60,
-            }}
-          >
-            <div
-              className="max-w-6xl mx-auto px-5 sm:px-8 flex items-center justify-center gap-3"
-              style={{ padding: "10px 20px", minHeight: 44 }}
-            >
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#fff",
-                  textAlign: "center",
-                }}
-              >
-                🎁 Probá Takefyy 14 días gratis — sin tarjeta de crédito
-              </span>
-              <a
-                href="https://wa.me/542994247985?text=Hola!%20Quiero%20probar%20Takefyy%20gratis%20🚀"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  background: "#fff",
-                  color: "#FF6B35",
-                  borderRadius: 6,
-                  padding: "4px 12px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  textDecoration: "none",
-                  flexShrink: 0,
-                }}
-              >
-                Empezar gratis →
-              </a>
-              <button
-                onClick={dismissBanner}
-                aria-label="Cerrar banner"
-                style={{
-                  position: "absolute",
-                  right: 16,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none",
-                  border: "none",
-                  color: "rgba(255,255,255,0.8)",
-                  cursor: "pointer",
-                  fontSize: 18,
-                  lineHeight: 1,
-                  padding: 4,
-                }}
-              >
-                ×
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* ── NAVBAR ──────────────────────────────────────────────────────────── */}
       <nav
@@ -1692,7 +1623,7 @@ export default function HomeClient({
               </motion.div>
 
               {/* Social proof */}
-              <motion.div {...fadeUp(0.62)} className="flex flex-col gap-3">
+              <motion.div {...fadeUp(0.62)} className="flex flex-row flex-wrap items-center gap-3">
                 <div
                   style={{
                     background: "rgba(255, 107, 53, 0.08)",
