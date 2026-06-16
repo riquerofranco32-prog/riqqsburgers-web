@@ -246,35 +246,42 @@ const ProductCard = memo(function ProductCard({
         onClick={() => !soldOut && onOpen(item)}
         style={{
           display: "flex",
-          alignItems: "flex-start",
-          gap: 12,
-          padding: "12px 14px",
-          background: hexToRgba(SURFACE, 0.8),
+          flexDirection: "column",
+          background: hexToRgba(SURFACE, 0.92),
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
-          borderRadius: 16,
+          borderRadius: 14,
           border: `1px solid ${qty > 0 ? accent + "30" : BORDER}`,
           cursor: soldOut ? "default" : "pointer",
-          opacity: soldOut ? 0.6 : 1,
+          opacity: soldOut ? 0.7 : 1,
           boxShadow:
-            qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 6px rgba(0,0,0,0.07)",
-          transition: "box-shadow 0.2s, border-color 0.2s, transform 0.15s",
+            qty > 0 ? `0 3px 16px ${accent}22` : "0 2px 8px rgba(0,0,0,0.07)",
+          transition:
+            "box-shadow 0.35s ease, border-color 0.2s, transform 0.2s",
           userSelect: "none",
           WebkitTapHighlightColor: "transparent",
+          overflow: "hidden",
+          position: "relative",
         }}
         onMouseEnter={(e) => {
           if (!soldOut) {
-            e.currentTarget.style.transform = "translateY(-2px)";
             e.currentTarget.style.boxShadow =
               qty > 0
                 ? `0 8px 24px ${accent}30`
                 : "0 6px 20px rgba(0,0,0,0.13)";
+            const img = e.currentTarget.querySelector(
+              ".card-img",
+            ) as HTMLElement | null;
+            if (img) img.style.transform = "scale(1.05)";
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "";
           e.currentTarget.style.boxShadow =
-            qty > 0 ? `0 3px 16px ${accent}22` : "0 1px 6px rgba(0,0,0,0.07)";
+            qty > 0 ? `0 3px 16px ${accent}22` : "0 2px 8px rgba(0,0,0,0.07)";
+          const img = e.currentTarget.querySelector(
+            ".card-img",
+          ) as HTMLElement | null;
+          if (img) img.style.transform = "scale(1)";
         }}
         onTouchStart={(e) => {
           if (!soldOut) e.currentTarget.style.transform = "scale(0.985)";
@@ -286,21 +293,181 @@ const ProductCard = memo(function ProductCard({
           e.currentTarget.style.transform = "";
         }}
       >
-        {/* Left: text + price + stepper */}
-        <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
-          {item.badge && item.badge !== "" && (
-            <div style={{ marginBottom: 4 }}>
+        {/* Image top */}
+        <div
+          className="img-skeleton"
+          style={{
+            width: "100%",
+            height: 160,
+            overflow: "hidden",
+            position: "relative",
+            flexShrink: 0,
+            background: `linear-gradient(135deg, ${accent}14, ${accent}06)`,
+          }}
+        >
+          {item.image ? (
+            <img
+              src={item.image}
+              alt={item.name}
+              loading="lazy"
+              decoding="async"
+              className="card-img"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                display: "block",
+                transition: "transform 0.35s ease",
+              }}
+              onLoad={(e) => {
+                (e.currentTarget.parentElement as HTMLElement).classList.remove(
+                  "img-skeleton",
+                );
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 38,
+                  fontWeight: 900,
+                  color: accent + "50",
+                  lineHeight: 1,
+                  userSelect: "none",
+                }}
+              >
+                {item.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )}
+          {/* Badge PROMO flotante sobre la imagen */}
+          {item.is_featured && !soldOut && (
+            <div
+              className="promo-badge-pulse"
+              style={{
+                position: "absolute",
+                top: 8,
+                left: 8,
+                background: accent,
+                color: onAccent,
+                fontSize: 9,
+                fontWeight: 800,
+                padding: "3px 8px",
+                borderRadius: 999,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                boxShadow: `0 2px 8px ${accent}55`,
+                zIndex: 3,
+              }}
+            >
+              PROMO
+            </div>
+          )}
+          {/* Overlay Agotado */}
+          {soldOut && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0,0,0,0.55)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 2,
+              }}
+            >
+              <span
+                style={{
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                Agotado
+              </span>
+            </div>
+          )}
+          {/* Favorite button */}
+          <button
+            aria-label={
+              isFavorite
+                ? `Quitar ${item.name} de favoritos`
+                : `Guardar ${item.name} en favoritos`
+            }
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(item);
+            }}
+            style={{
+              position: "absolute",
+              top: 6,
+              right: 6,
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              background: isFavorite ? "#EF4444" : "rgba(0,0,0,0.35)",
+              backdropFilter: "blur(6px)",
+              WebkitBackdropFilter: "blur(6px)",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition:
+                "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
+              WebkitTapHighlightColor: "transparent",
+              zIndex: 5,
+            }}
+            onMouseDown={(e) =>
+              (e.currentTarget.style.transform = "scale(0.82)")
+            }
+            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+            onTouchStart={(e) =>
+              (e.currentTarget.style.transform = "scale(0.82)")
+            }
+            onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            <Heart
+              size={13}
+              strokeWidth={isFavorite ? 0 : 2}
+              fill={isFavorite ? "#fff" : "rgba(255,255,255,0.85)"}
+              color={isFavorite ? "#fff" : "rgba(255,255,255,0.85)"}
+            />
+          </button>
+        </div>
+
+        {/* Content below image */}
+        <div
+          style={{
+            padding: "10px 12px 12px",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            position: "relative",
+          }}
+        >
+          {item.badge && item.badge !== "" && item.badge !== "Agotado" && (
+            <div>
               <Badge badge={item.badge} />
             </div>
           )}
           <span
             style={{
               fontWeight: 700,
-              fontSize: 14,
+              fontSize: 13,
               color: TEXT1,
               lineHeight: 1.3,
               display: "block",
-              marginBottom: 3,
             }}
           >
             {item.name}
@@ -308,11 +475,10 @@ const ProductCard = memo(function ProductCard({
           {item.description && (
             <p
               style={{
-                fontSize: 12,
+                fontSize: 11,
                 color: TEXT2,
-                margin: "0 0 8px",
+                margin: 0,
                 lineHeight: 1.4,
-                textWrap: "pretty",
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
                 WebkitBoxOrient:
@@ -323,32 +489,12 @@ const ProductCard = memo(function ProductCard({
               {item.description}
             </p>
           )}
-          {item.extras && item.extras.length > 0 && !soldOut && (
-            <div style={{ marginBottom: 6 }}>
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 3,
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: accent,
-                  background: accent + "15",
-                  border: `1px solid ${accent}30`,
-                  borderRadius: 99,
-                  padding: "2px 7px",
-                  letterSpacing: "0.03em",
-                }}
-              >
-                ✦ Personalizable
-              </span>
-            </div>
-          )}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
+              marginTop: 4,
             }}
           >
             <span
@@ -363,9 +509,13 @@ const ProductCard = memo(function ProductCard({
                 ? `desde ${fmt(item.price)}`
                 : fmt(item.price)}
             </span>
-            {!soldOut && (
-              <div onClick={(e) => e.stopPropagation()}>
-                {qty === 0 ? (
+          </div>
+
+          {/* Stepper or Add button */}
+          {!soldOut && (
+            <div style={{ marginTop: 6 }} onClick={(e) => e.stopPropagation()}>
+              {qty === 0 ? (
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
                   <button
                     aria-label={`Agregar ${item.name}`}
                     onClick={(e) => {
@@ -403,199 +553,81 @@ const ProductCard = memo(function ProductCard({
                   >
                     <Plus size={15} />
                   </button>
-                ) : (
-                  <div
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
+                    background: SURFACE2,
+                    borderRadius: 18,
+                    padding: "3px 4px",
+                    border: `1px solid ${accent}30`,
+                  }}
+                >
+                  <button
+                    aria-label={`Quitar uno de ${item.name}`}
+                    onClick={() => onRemove(item)}
                     style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      background: "transparent",
+                      border: "none",
+                      color: accent,
+                      fontSize: 16,
+                      cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      gap: 4,
-                      background: SURFACE2,
-                      borderRadius: 18,
-                      padding: "3px 4px",
-                      border: `1px solid ${accent}30`,
+                      justifyContent: "center",
+                      fontWeight: 700,
+                      WebkitTapHighlightColor: "transparent",
                     }}
                   >
-                    <button
-                      aria-label={`Quitar uno de ${item.name}`}
-                      onClick={() => onRemove(item)}
-                      style={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: "50%",
-                        background: "transparent",
-                        border: "none",
-                        color: accent,
-                        fontSize: 16,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 700,
-                        WebkitTapHighlightColor: "transparent",
-                      }}
-                    >
-                      −
-                    </button>
-                    <span
-                      key={qty}
-                      className="qty-flip"
-                      style={{
-                        fontWeight: 800,
-                        fontSize: 13,
-                        minWidth: 14,
-                        textAlign: "center",
-                        color: TEXT1,
-                        display: "block",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {qty}
-                    </span>
-                    <button
-                      aria-label={`Agregar otro ${item.name}`}
-                      onClick={() => onAdd(item)}
-                      style={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: "50%",
-                        background: accent,
-                        border: "none",
-                        color: onAccent,
-                        fontSize: 16,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 700,
-                        WebkitTapHighlightColor: "transparent",
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        {/* Right: image 88×88 con skeleton */}
-        <div
-          className="img-skeleton"
-          style={{
-            flexShrink: 0,
-            width: 88,
-            height: 88,
-            borderRadius: 12,
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
-          {item.image ? (
-            <img
-              src={item.image}
-              alt={item.name}
-              loading="lazy"
-              decoding="async"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                display: "block",
-              }}
-              onLoad={(e) => {
-                // remove skeleton shimmer once loaded
-                (e.currentTarget.parentElement as HTMLElement).classList.remove(
-                  "img-skeleton",
-                );
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: `linear-gradient(135deg, ${accent}16, ${accent}06)`,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 28,
-                  fontWeight: 900,
-                  color: accent + "50",
-                  lineHeight: 1,
-                  userSelect: "none",
-                }}
-              >
-                {item.name.charAt(0).toUpperCase()}
-              </span>
+                    −
+                  </button>
+                  <span
+                    key={qty}
+                    className="qty-flip"
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 13,
+                      minWidth: 14,
+                      textAlign: "center",
+                      color: TEXT1,
+                      display: "block",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {qty}
+                  </span>
+                  <button
+                    aria-label={`Agregar otro ${item.name}`}
+                    onClick={() => onAdd(item)}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      background: accent,
+                      border: "none",
+                      color: onAccent,
+                      fontSize: 16,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              )}
             </div>
           )}
-          {soldOut && (
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "rgba(0,0,0,0.45)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span style={{ color: "#fff", fontSize: 10, fontWeight: 700 }}>
-                Agotado
-              </span>
-            </div>
-          )}
-          {/* Favorite button */}
-          <button
-            aria-label={
-              isFavorite
-                ? `Quitar ${item.name} de favoritos`
-                : `Guardar ${item.name} en favoritos`
-            }
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(item);
-            }}
-            style={{
-              position: "absolute",
-              top: 4,
-              right: 4,
-              width: 26,
-              height: 26,
-              borderRadius: "50%",
-              background: isFavorite ? "#EF4444" : "rgba(0,0,0,0.35)",
-              backdropFilter: "blur(6px)",
-              WebkitBackdropFilter: "blur(6px)",
-              border: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition:
-                "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
-              WebkitTapHighlightColor: "transparent",
-              zIndex: 5,
-            }}
-            onMouseDown={(e) =>
-              (e.currentTarget.style.transform = "scale(0.82)")
-            }
-            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            onTouchStart={(e) =>
-              (e.currentTarget.style.transform = "scale(0.82)")
-            }
-            onTouchEnd={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          >
-            <Heart
-              size={13}
-              strokeWidth={isFavorite ? 0 : 2}
-              fill={isFavorite ? "#fff" : "rgba(255,255,255,0.85)"}
-              color={isFavorite ? "#fff" : "rgba(255,255,255,0.85)"}
-            />
-          </button>
         </div>
       </div>
     </div>
@@ -1699,55 +1731,76 @@ export default function CatalogClient({
 
               {/* Category pills — mobile only, desktop uses sidebar */}
               {!searchQuery && (
-                <div
-                  ref={catBarRef}
-                  className="lg:hidden"
-                  style={{
-                    display: "flex",
-                    gap: 6,
-                    padding: "6px 16px 10px",
-                    overflowX: "auto",
-                    scrollbarWidth: "none",
-                    WebkitOverflowScrolling: "touch",
-                  }}
-                >
-                  {restaurant.menu.categories.map((cat) => {
-                    const isActive = activeCategory === cat.id;
-                    return (
-                      <button
-                        key={cat.id}
-                        ref={(el) => {
-                          catBtnRefs.current[cat.id] = el;
-                        }}
-                        onClick={() => scrollToCategory(cat.id)}
-                        style={{
-                          flexShrink: 0,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "8px 16px",
-                          minHeight: 40,
-                          borderRadius: 999,
-                          border: "none",
-                          fontWeight: isActive ? 600 : 500,
-                          fontSize: 14,
-                          cursor: "pointer",
-                          transition: "all 0.18s ease",
-                          background: isActive ? accent : SURFACE2,
-                          color: isActive ? onAccent : TEXT2,
-                          WebkitTapHighlightColor: "transparent",
-                          letterSpacing: "-0.01em",
-                          fontFamily:
-                            "var(--font-dm, var(--font-sans, inherit))",
-                        }}
-                      >
-                        {cat.emoji && (
-                          <span style={{ fontSize: 14 }}>{cat.emoji}</span>
-                        )}
-                        {cat.name}
-                      </button>
-                    );
-                  })}
+                <div className="lg:hidden cat-pills-wrapper">
+                  {/* Fade overlays */}
+                  <div className="cat-pills-fade-left" />
+                  <div className="cat-pills-fade-right" />
+                  <div
+                    ref={catBarRef}
+                    style={{
+                      display: "flex",
+                      gap: 6,
+                      padding: "6px 16px 10px",
+                      overflowX: "auto",
+                      scrollbarWidth: "none" as const,
+                      WebkitOverflowScrolling: "touch",
+                    }}
+                  >
+                    {restaurant.menu.categories.map((cat) => {
+                      const isActive = activeCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          ref={(el) => {
+                            catBtnRefs.current[cat.id] = el;
+                          }}
+                          onClick={() => {
+                            scrollToCategory(cat.id);
+                            catBtnRefs.current[cat.id]?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "nearest",
+                              inline: "center",
+                            });
+                          }}
+                          style={{
+                            flexShrink: 0,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            padding: "8px 16px",
+                            minHeight: 36,
+                            borderRadius: 999,
+                            border: isActive ? "none" : `1px solid ${BORDER}`,
+                            fontWeight: isActive ? 700 : 500,
+                            fontSize: 14,
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                            background: isActive ? accent : SURFACE2,
+                            color: isActive ? onAccent : TEXT2,
+                            WebkitTapHighlightColor: "transparent",
+                            letterSpacing: "-0.01em",
+                            fontFamily:
+                              "var(--font-dm, var(--font-sans, inherit))",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.borderColor = accent;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.borderColor = BORDER;
+                            }
+                          }}
+                        >
+                          {cat.emoji && (
+                            <span style={{ fontSize: 14 }}>{cat.emoji}</span>
+                          )}
+                          {cat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -2449,13 +2502,7 @@ export default function CatalogClient({
                     &rdquo;
                   </p>
                   {searchResults.length > 0 ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 8,
-                      }}
-                    >
+                    <div className="product-grid-vertical">
                       {searchResults.map((item, idx) => (
                         <Fragment key={item.id}>
                           <ProductCard
@@ -2653,12 +2700,8 @@ export default function CatalogClient({
 
                           {cat.items.length > 0 ? (
                             <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 8,
-                                marginBottom: 4,
-                              }}
+                              className="product-grid-vertical"
+                              style={{ marginBottom: 4 }}
                             >
                               {cat.items.map((item, idx) => (
                                 <Fragment key={item.id}>
@@ -3199,90 +3242,75 @@ export default function CatalogClient({
                 style={
                   {
                     position: "fixed",
-                    bottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
-                    left: 16,
-                    right: 16,
+                    bottom: `calc(16px + env(safe-area-inset-bottom, 0px))`,
+                    left: "50%",
+                    transform: cartBounce
+                      ? "translateX(-50%) scale(1.04)"
+                      : "translateX(-50%) translateY(0)",
                     zIndex: 60,
                     display: "flex",
                     alignItems: "center",
-                    gap: 10,
+                    gap: 12,
                     background: accent,
                     color: onAccent,
                     border: "none",
-                    borderRadius: 16,
-                    padding: "14px 18px",
+                    borderRadius: 999,
+                    padding: "14px 24px",
                     cursor: "pointer",
-                    boxShadow: `0 6px 28px ${accent}50`,
+                    boxShadow: `0 4px 20px rgba(0,0,0,0.25), 0 2px 12px ${accent}55`,
                     WebkitTapHighlightColor: "transparent",
-                    maxWidth: 608,
-                    marginLeft: "auto",
-                    marginRight: "auto",
+                    whiteSpace: "nowrap",
                     animation: cartBounce
-                      ? "cartPop 0.35s cubic-bezier(0.36,0.07,0.19,0.97)"
+                      ? undefined
                       : "cartEnter 0.3s cubic-bezier(0.22,1,0.36,1)",
+                    transition:
+                      "transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s",
                   } as React.CSSProperties
                 }
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = `0 8px 28px rgba(0,0,0,0.28), 0 4px 16px ${accent}66`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = `0 4px 20px rgba(0,0,0,0.25), 0 2px 12px ${accent}55`;
+                }}
               >
-                {/* Icon + count */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    background: "rgba(255,255,255,0.2)",
-                    borderRadius: 10,
-                    padding: "5px 10px",
-                    flexShrink: 0,
-                  }}
-                >
-                  <ShoppingCart
-                    size={16}
-                    strokeWidth={2}
-                    style={{
-                      animation: cartBounce ? "badgePop 0.35s ease" : undefined,
-                    }}
-                  />
-                  <span style={{ fontSize: 13, fontWeight: 700 }}>
-                    {totalItems}
-                  </span>
-                </div>
+                {/* Cart icon */}
+                <ShoppingCart size={16} strokeWidth={2} />
                 {/* Label */}
                 <span
                   style={{
-                    flex: 1,
-                    textAlign: "center",
                     fontWeight: 600,
                     fontSize: 15,
                     letterSpacing: "-0.01em",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    maxWidth: 180,
                   }}
                 >
-                  {totalItems === 1
-                    ? (cart[0]?.name?.split(" ").slice(0, 3).join(" ") ??
-                      "Ver pedido")
-                    : `${totalItems} ítems`}
+                  Ver pedido
                 </span>
-                {/* Price */}
-                <div
+                {/* Badge cantidad */}
+                <span
+                  key={totalItems}
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-end",
-                    flexShrink: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "rgba(255,255,255,0.25)",
+                    borderRadius: 999,
+                    minWidth: 24,
+                    height: 24,
+                    padding: "0 6px",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    animation: cartBounce
+                      ? "badgePop 0.2s cubic-bezier(0.34,1.56,0.64,1)"
+                      : undefined,
                   }}
                 >
-                  <span style={{ fontWeight: 800, fontSize: 15 }}>
-                    {fmt(subtotal)}
-                  </span>
-                  {hasDelivery && (
-                    <span style={{ fontSize: 10, opacity: 0.7 }}>
-                      + envío {fmt(restaurant.delivery_cost)}
-                    </span>
-                  )}
-                </div>
+                  {totalItems}
+                </span>
+                {/* Precio */}
+                <span style={{ fontWeight: 800, fontSize: 15 }}>
+                  {fmt(subtotal)}
+                </span>
               </button>
             </>
           )}
@@ -4748,8 +4776,8 @@ export default function CatalogClient({
           to   { transform: translateY(0);    opacity: 1;   }
         }
         @keyframes cartEnter {
-          from { transform: translateY(20px); opacity: 0; }
-          to   { transform: translateY(0);    opacity: 1; }
+          from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+          to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
         }
         @keyframes cartPop {
           0%   { transform: scale(1); }

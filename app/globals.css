@@ -1125,6 +1125,62 @@ a {
   margin: 0;
 }
 
+/* ── Promo badge pulse ───────────────────────────────────────────────────── */
+@keyframes promoBadgePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+.promo-badge-pulse {
+  animation: promoBadgePulse 1.6s ease-in-out infinite;
+}
+
+/* ── Product card vertical grid ─────────────────────────────────────────── */
+.product-grid-vertical {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (min-width: 640px) {
+  .product-grid-vertical {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .product-grid-vertical {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ── Pill category fade overlays ─────────────────────────────────────────── */
+.cat-pills-wrapper {
+  position: relative;
+}
+.cat-pills-fade-left {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(to right, var(--surface, #fff), transparent);
+}
+.cat-pills-fade-right {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(to left, var(--surface, #fff), transparent);
+}
+
 /* ── HeroShader CSS aurora (GPU-compositor, zero CPU) ──────────────────── */
 @keyframes aurora-drift-1 {
   0% {
