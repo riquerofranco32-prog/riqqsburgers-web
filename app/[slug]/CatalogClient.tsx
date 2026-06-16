@@ -590,7 +590,7 @@ const ProductCard = memo(function ProductCard({
                   </button>
                   <span
                     key={qty}
-                    className="qty-flip"
+                    className="qty-pop"
                     style={{
                       fontWeight: 800,
                       fontSize: 13,
@@ -606,6 +606,7 @@ const ProductCard = memo(function ProductCard({
                   <button
                     aria-label={`Agregar otro ${item.name}`}
                     onClick={() => onAdd(item)}
+                    className="stepper-add-btn"
                     style={{
                       width: 26,
                       height: 26,
@@ -644,6 +645,7 @@ export default function CatalogClient({
   const catBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const catSectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const isScrollingToCat = useRef(false);
+  const [catPillsAtEnd, setCatPillsAtEnd] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const heroRafRef = useRef<number>(0);
   const glowRef = useRef<HTMLDivElement>(null);
@@ -836,6 +838,19 @@ export default function CatalogClient({
     }, 500);
     return () => clearTimeout(t);
   }, [searchQuery, restaurant.id]);
+
+  // ── Cat pills overflow check (hide arrow if no scroll needed) ──────────────
+
+  useEffect(() => {
+    const el = catBarRef.current;
+    if (!el) return;
+    const check = () => {
+      setCatPillsAtEnd(el.scrollWidth <= el.clientWidth + 4);
+    };
+    check();
+    window.addEventListener("resize", check, { passive: true });
+    return () => window.removeEventListener("resize", check);
+  }, [restaurant.menu.categories]);
 
   // ── Scroll restoration ───────────────────────────────────────────────────
 
@@ -1734,9 +1749,37 @@ export default function CatalogClient({
                 <div className="lg:hidden cat-pills-wrapper">
                   {/* Fade overlays */}
                   <div className="cat-pills-fade-left" />
-                  <div className="cat-pills-fade-right" />
+                  {!catPillsAtEnd && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 48,
+                        pointerEvents: "none",
+                        zIndex: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        paddingRight: 8,
+                        background: `linear-gradient(to left, ${BG}ee, transparent)`,
+                        transition: "opacity 0.2s",
+                      }}
+                    >
+                      <ChevronRight
+                        size={16}
+                        style={{ color: accent, opacity: 0.7 }}
+                      />
+                    </div>
+                  )}
                   <div
                     ref={catBarRef}
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
+                      setCatPillsAtEnd(atEnd);
+                    }}
                     style={{
                       display: "flex",
                       gap: 6,
@@ -2056,7 +2099,7 @@ export default function CatalogClient({
                               </button>
                               <span
                                 key={promoQty}
-                                className="qty-flip"
+                                className="qty-pop"
                                 style={{
                                   fontWeight: 800,
                                   fontSize: 16,
@@ -2533,37 +2576,59 @@ export default function CatalogClient({
                     <div
                       style={{
                         textAlign: "center",
-                        padding: "64px 0",
-                        color: TEXTM,
+                        padding: "56px 24px",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 12,
                       }}
                     >
                       <div
                         style={{
-                          width: 60,
-                          height: 60,
-                          borderRadius: "50%",
-                          background: SURFACE2,
-                          margin: "0 auto 14px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                          fontSize: 52,
+                          lineHeight: 1,
+                          marginBottom: 4,
                         }}
                       >
-                        <SearchX size={24} strokeWidth={1.5} color={TEXTM} />
+                        🔍
                       </div>
                       <p
                         style={{
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: 700,
-                          color: TEXT2,
-                          marginBottom: 6,
+                          color: TEXT1,
+                          margin: 0,
                         }}
                       >
-                        Sin resultados
+                        Sin resultados para &ldquo;{searchQuery}&rdquo;
                       </p>
-                      <p style={{ fontSize: 13 }}>
-                        No encontramos &ldquo;{searchQuery}&rdquo;
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: TEXT2,
+                          margin: 0,
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        Probá con otro término o revisá la ortografía
                       </p>
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        style={{
+                          marginTop: 8,
+                          padding: "10px 22px",
+                          borderRadius: 999,
+                          background: accent,
+                          color: onAccent,
+                          border: "none",
+                          fontSize: 14,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          WebkitTapHighlightColor: "transparent",
+                        }}
+                      >
+                        Limpiar búsqueda
+                      </button>
                     </div>
                   )}
                 </>
