@@ -1208,6 +1208,118 @@ a {
   background: linear-gradient(to left, var(--surface, #fff), transparent);
 }
 
+/* ── Sheet slide-up (product detail + cart drawer) ──────────────────────── */
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Cart pill enter ─────────────────────────────────────────────────────── */
+@keyframes cartEnter {
+  from {
+    transform: translateX(-50%) translateY(20px) scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── Badge pop (cantidad en cart pill) ───────────────────────────────────── */
+@keyframes badgePop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.45);
+  }
+  65% {
+    transform: scale(0.88);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ── Category header in ─────────────────────────────────────────────────── */
+@keyframes catHeaderIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ── Card scroll-reveal (IntersectionObserver) ───────────────────────────── */
+/* Estado inicial: invisible + desplazado hacia abajo */
+.card-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Cuando el observer detecta que es visible, añade esta clase */
+.card-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Stagger delays para grid */
+.card-reveal:nth-child(2) { transition-delay: 0.04s; }
+.card-reveal:nth-child(3) { transition-delay: 0.08s; }
+.card-reveal:nth-child(4) { transition-delay: 0.12s; }
+.card-reveal:nth-child(5) { transition-delay: 0.16s; }
+.card-reveal:nth-child(6) { transition-delay: 0.20s; }
+.card-reveal:nth-child(7) { transition-delay: 0.24s; }
+.card-reveal:nth-child(8) { transition-delay: 0.26s; }
+
+/* ── Search bar glow on focus ────────────────────────────────────────────── */
+.search-input-glow:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent) !important;
+  outline: none !important;
+}
+
+/* ── Category header pill ────────────────────────────────────────────────── */
+.cat-section-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent, #c00);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Product card desktop hover lift ─────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .product-card-lift {
+    transition:
+      transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.22s ease;
+    cursor: pointer;
+  }
+  .product-card-lift:hover {
+    transform: translateY(-5px);
+  }
+}
+
 /* ── HeroShader CSS aurora (GPU-compositor, zero CPU) ──────────────────── */
 @keyframes aurora-drift-1 {
   0% {

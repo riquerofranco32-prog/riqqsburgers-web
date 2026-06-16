@@ -236,12 +236,7 @@ const ProductCard = memo(function ProductCard({
 }) {
   const soldOut = item.badge === "Agotado";
   return (
-    <div
-      style={{
-        animation: `cardFadeIn 0.32s cubic-bezier(0.22,1,0.36,1) both`,
-        animationDelay: `${Math.min((idx ?? 0) * 0.04, 0.3)}s`,
-      }}
-    >
+    <div className="card-reveal product-card-lift">
       <div
         onClick={() => !soldOut && onOpen(item)}
         style={{
@@ -456,11 +451,24 @@ const ProductCard = memo(function ProductCard({
             position: "relative",
           }}
         >
-          {item.badge && item.badge !== "" && item.badge !== "Agotado" && (
-            <div>
+          {/* Badge row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+            {item.badge && item.badge !== "" && item.badge !== "Agotado" && (
               <Badge badge={item.badge} />
-            </div>
-          )}
+            )}
+            {catEmoji && (
+              <span
+                style={{
+                  fontSize: 10,
+                  lineHeight: 1,
+                  opacity: 0.55,
+                  userSelect: "none",
+                }}
+              >
+                {catEmoji}
+              </span>
+            )}
+          </div>
           <span
             style={{
               fontWeight: 700,
@@ -952,6 +960,29 @@ export default function CatalogClient({
     });
 
     return () => observers.forEach((o) => o.disconnect());
+  }, [restaurant.menu.categories, searchQuery]);
+
+  // ── Card reveal — IntersectionObserver stagger ───────────────────────────
+
+  useEffect(() => {
+    const cards = document.querySelectorAll<HTMLElement>(".card-reveal");
+    if (cards.length === 0) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).classList.add("visible");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -40px 0px" },
+    );
+
+    cards.forEach((card) => io.observe(card));
+    return () => io.disconnect();
+    // Re-run when cart changes (products re-render on qty change keys)
   }, [restaurant.menu.categories, searchQuery]);
 
   // ── Click on category pill → smooth scroll to section ────────────────────
@@ -1694,6 +1725,7 @@ export default function CatalogClient({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder={`Buscar en ${restaurant.name}...`}
+                      className="search-input-glow"
                       style={{
                         width: "100%",
                         borderRadius: 12,
@@ -1708,14 +1740,16 @@ export default function CatalogClient({
                         outline: "none",
                         boxSizing: "border-box",
                         fontFamily: "inherit",
-                        transition: "border-color 0.2s",
+                        transition: "border-color 0.2s, box-shadow 0.2s",
                       }}
-                      onFocus={(e) =>
-                        (e.currentTarget.style.borderColor = accent)
-                      }
-                      onBlur={(e) =>
-                        (e.currentTarget.style.borderColor = BORDER)
-                      }
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = accent;
+                        e.currentTarget.style.boxShadow = `0 0 0 3px ${hexToRgba(accent, 0.15)}, 0 1px 4px rgba(0,0,0,0.06)`;
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = BORDER;
+                        e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
+                      }}
                     />
                     {searchQuery && (
                       <button
@@ -1865,16 +1899,17 @@ export default function CatalogClient({
                   <div
                     style={{
                       margin: "16px 12px 0",
-                      borderRadius: 20,
+                      borderRadius: 22,
                       overflow: "hidden",
                       position: "relative",
-                      background: `linear-gradient(135deg, ${accent}22 0%, ${accent}08 100%)`,
-                      border: `1.5px solid ${accent}30`,
-                      boxShadow: `0 4px 24px ${accent}18`,
+                      background: `linear-gradient(135deg, ${accent}1a 0%, ${accent}06 100%)`,
+                      border: `1.5px solid ${accent}35`,
+                      boxShadow: `0 6px 32px ${accent}22, 0 1px 0 ${accent}15 inset`,
                     }}
                   >
-                    {/* Badge PROMO */}
+                    {/* Badge PROMO — con icono y pulse */}
                     <div
+                      className="promo-badge-pulse"
                       style={{
                         position: "absolute",
                         top: 14,
@@ -1884,14 +1919,18 @@ export default function CatalogClient({
                         color: onAccent,
                         fontSize: 10,
                         fontWeight: 800,
-                        padding: "4px 12px",
+                        padding: "5px 12px 5px 9px",
                         borderRadius: 999,
-                        letterSpacing: "0.08em",
+                        letterSpacing: "0.07em",
                         textTransform: "uppercase",
-                        boxShadow: `0 2px 10px ${accent}50`,
+                        boxShadow: `0 3px 12px ${accent}60`,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
                       }}
                     >
-                      ⭐ PROMO
+                      <Sparkles size={10} strokeWidth={2.5} />
+                      Destacado
                     </div>
 
                     <div
@@ -2726,14 +2765,14 @@ export default function CatalogClient({
                             catSectionRefs.current[cat.id] = el;
                           }}
                         >
-                          {/* Category section header */}
+                          {/* Category section header — mejorado */}
                           <div
                             id={`category-${cat.id}`}
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              gap: 12,
-                              padding: "24px 0 10px",
+                              gap: 10,
+                              padding: "24px 0 12px",
                               animation: "catHeaderIn 0.28s ease both",
                               animationDelay: `${catIndex * 0.06}s`,
                             }}
@@ -2741,27 +2780,43 @@ export default function CatalogClient({
                             <div
                               style={{ flex: 1, height: 1, background: BORDER }}
                             />
-                            <span
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 700,
-                                color: accent,
-                                letterSpacing: "0.12em",
-                                textTransform: "uppercase" as const,
-                                padding: "0 4px",
-                                fontFamily:
-                                  "var(--font-dm, var(--font-sans, inherit))",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
+                            {/* Pill con icono + nombre + count */}
+                            <div className="cat-section-pill">
+                              {(() => {
+                                const CatIcon = getCategoryIcon(cat.name);
+                                return <CatIcon size={11} strokeWidth={2.5} />;
+                              })()}
                               {cat.emoji
                                 ? `${cat.emoji} ${cat.name}`
                                 : cat.name}
-                            </span>
+                              {/* Count badge */}
+                              {(() => {
+                                const available = cat.items.filter(
+                                  (i) => i.badge !== "Agotado",
+                                ).length;
+                                return available > 0 ? (
+                                  <span
+                                    style={{
+                                      marginLeft: 2,
+                                      background: hexToRgba(accent, 0.15),
+                                      borderRadius: 999,
+                                      padding: "1px 6px",
+                                      fontSize: 9,
+                                      fontWeight: 800,
+                                      color: accent,
+                                      letterSpacing: "0.04em",
+                                    }}
+                                  >
+                                    {available}
+                                  </span>
+                                ) : null;
+                              })()}
+                            </div>
                             <div
                               style={{ flex: 1, height: 1, background: BORDER }}
                             />
                           </div>
+
 
                           {cat.items.length > 0 ? (
                             <div
@@ -4057,8 +4112,8 @@ export default function CatalogClient({
                     style={{
                       position: "relative",
                       width: "100%",
-                      aspectRatio: "16 / 9",
-                      maxHeight: 280,
+                      aspectRatio: "4 / 3",
+                      maxHeight: 320,
                       overflow: "hidden",
                       marginTop: 10,
                       cursor: selectedItem.image ? "zoom-in" : "default",
@@ -4078,8 +4133,8 @@ export default function CatalogClient({
                           display: "block",
                           transform: sheetImageLoaded
                             ? "scale(1)"
-                            : "scale(1.04)",
-                          transition: "transform 0.5s ease",
+                            : "scale(1.06)",
+                          transition: "transform 0.55s cubic-bezier(0.22,1,0.36,1)",
                         }}
                         onLoad={() => setSheetImageLoaded(true)}
                       />
@@ -4088,32 +4143,96 @@ export default function CatalogClient({
                         style={{
                           width: "100%",
                           height: "100%",
-                          background: `linear-gradient(135deg, ${accent}18, ${accent}06)`,
+                          background: `linear-gradient(135deg, ${accent}22, ${accent}08)`,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontSize: 60,
+                          fontSize: 72,
                         }}
                       >
                         {catEmoji}
                       </div>
                     )}
 
-                    {/* Bottom gradient so text below reads cleanly */}
+                    {/* Bottom gradient — más dramático */}
                     <div
                       style={{
                         position: "absolute",
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: "40%",
+                        height: "55%",
                         background:
-                          "linear-gradient(to top, rgba(0,0,0,0.25), transparent)",
+                          "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)",
                         pointerEvents: "none",
                       }}
                     />
 
-                    {/* Close button overlaid on image */}
+                    {/* Favorite button — top left sobre la imagen */}
+                    <button
+                      aria-label={
+                        isFavorite(selectedItem.id)
+                          ? `Quitar ${selectedItem.name} de favoritos`
+                          : `Guardar ${selectedItem.name} en favoritos`
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(selectedItem);
+                      }}
+                      style={{
+                        position: "absolute",
+                        top: 10,
+                        left: 10,
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        background: isFavorite(selectedItem.id)
+                          ? "#EF4444"
+                          : "rgba(0,0,0,0.42)",
+                        backdropFilter: "blur(8px)",
+                        WebkitBackdropFilter: "blur(8px)",
+                        border: isFavorite(selectedItem.id)
+                          ? "none"
+                          : "1px solid rgba(255,255,255,0.2)",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition:
+                          "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
+                        WebkitTapHighlightColor: "transparent",
+                        zIndex: 5,
+                      }}
+                      onMouseDown={(e) =>
+                        (e.currentTarget.style.transform = "scale(0.85)")
+                      }
+                      onMouseUp={(e) =>
+                        (e.currentTarget.style.transform = "scale(1)")
+                      }
+                      onTouchStart={(e) =>
+                        (e.currentTarget.style.transform = "scale(0.85)")
+                      }
+                      onTouchEnd={(e) =>
+                        (e.currentTarget.style.transform = "scale(1)")
+                      }
+                    >
+                      <Heart
+                        size={15}
+                        strokeWidth={isFavorite(selectedItem.id) ? 0 : 2.2}
+                        fill={
+                          isFavorite(selectedItem.id)
+                            ? "#fff"
+                            : "rgba(255,255,255,0.9)"
+                        }
+                        color={
+                          isFavorite(selectedItem.id)
+                            ? "#fff"
+                            : "rgba(255,255,255,0.9)"
+                        }
+                      />
+                    </button>
+
+                    {/* Close button — top right */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -4123,24 +4242,26 @@ export default function CatalogClient({
                         position: "absolute",
                         top: 10,
                         right: 10,
-                        width: 32,
-                        height: 32,
+                        width: 36,
+                        height: 36,
                         borderRadius: "50%",
-                        background: "rgba(0,0,0,0.40)",
-                        backdropFilter: "blur(6px)",
-                        WebkitBackdropFilter: "blur(6px)",
-                        border: "none",
+                        background: "rgba(0,0,0,0.42)",
+                        backdropFilter: "blur(8px)",
+                        WebkitBackdropFilter: "blur(8px)",
+                        border: "1px solid rgba(255,255,255,0.2)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         cursor: "pointer",
                         color: "#fff",
                         WebkitTapHighlightColor: "transparent",
+                        zIndex: 5,
                       }}
                     >
                       <X size={15} strokeWidth={2.5} />
                     </button>
                   </div>
+
 
                   <div
                     style={{
