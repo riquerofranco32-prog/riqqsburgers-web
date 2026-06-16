@@ -679,11 +679,11 @@ export default function CheckoutModal({
                         border: `2px solid ${form.delivery === opt.value ? accent : "var(--border)"}`,
                         background:
                           form.delivery === opt.value
-                            ? `${accent}18`
+                            ? accent
                             : "var(--surface-2)",
                         color:
                           form.delivery === opt.value
-                            ? accent
+                            ? onAccent
                             : "var(--text-secondary)",
                         cursor: "pointer",
                         textAlign: "left",
@@ -751,11 +751,11 @@ export default function CheckoutModal({
                         border: `2px solid ${form.payment === opt.value ? accent : "var(--border)"}`,
                         background:
                           form.payment === opt.value
-                            ? `${accent}18`
+                            ? accent
                             : "var(--surface-2)",
                         color:
                           form.payment === opt.value
-                            ? accent
+                            ? onAccent
                             : "var(--text-secondary)",
                         cursor: "pointer",
                         fontSize: 13,
@@ -844,7 +844,15 @@ export default function CheckoutModal({
                   }}
                 >
                   <span>Total</span>
-                  <span style={{ color: accent }}>
+                  <span
+                    style={{
+                      color:
+                        onAccent === "#fff" ? accent : "var(--text-primary)",
+                      background: `${accent}18`,
+                      padding: "2px 10px",
+                      borderRadius: 8,
+                    }}
+                  >
                     ${grandTotal.toLocaleString("es-AR")}
                   </span>
                 </div>
