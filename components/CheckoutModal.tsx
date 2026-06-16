@@ -47,6 +47,17 @@ export default function CheckoutModal({
   tenant,
 }: CheckoutModalProps) {
   const accent = tenant.primary_color || "#FF6B35";
+
+  // Calcular contraste para texto sobre el accent del tenant
+  function hexToLuma(hex: string): number {
+    const c = hex.replace("#", "").padEnd(6, "0");
+    const r = parseInt(c.slice(0, 2), 16);
+    const g = parseInt(c.slice(2, 4), 16);
+    const b = parseInt(c.slice(4, 6), 16);
+    return 0.299 * r + 0.587 * g + 0.114 * b;
+  }
+  const onAccent = hexToLuma(accent) < 140 ? "#fff" : "#111";
+
   const subtotal = cart.reduce(
     (s, i) => s + (i.price + (i.selectedExtra?.price ?? 0)) * i.quantity,
     0,
@@ -516,7 +527,7 @@ export default function CheckoutModal({
                 onClick={onClose}
                 style={{
                   background: accent,
-                  color: "white",
+                  color: onAccent,
                   border: "none",
                   borderRadius: 12,
                   padding: "14px 32px",
@@ -868,7 +879,7 @@ export default function CheckoutModal({
                   style={{
                     width: "100%",
                     background: loading ? "var(--surface-2)" : accent,
-                    color: loading ? "var(--text-muted)" : "white",
+                    color: loading ? "var(--text-muted)" : onAccent,
                     fontWeight: 700,
                     fontSize: 16,
                     padding: "16px",

@@ -124,6 +124,14 @@ export async function POST(req: NextRequest) {
 
   const supabase = createServerClient();
 
+  // Si se crea como featured, desmarcar todos los anteriores del tenant
+  if (body.is_featured) {
+    await supabase
+      .from("products")
+      .update({ is_featured: false })
+      .eq("tenant_id", tenantId);
+  }
+
   const { data, error } = await supabase
     .from("products")
     .insert({

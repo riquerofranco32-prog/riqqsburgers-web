@@ -696,9 +696,16 @@ function ProductMobileCard({
       <div className="p-3 flex flex-col gap-2">
         {/* Name + Toggle */}
         <div className="flex items-center gap-2">
-          <p className="font-semibold text-sm text-white flex-1 min-w-0 truncate leading-tight">
-            {product.name}
-          </p>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm text-white truncate leading-tight">
+              {product.name}
+            </p>
+            {product.is_featured && (
+              <span className="text-[9px] bg-orange-500/15 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-full font-bold inline-block mt-0.5">
+                ⭐ PROMO
+              </span>
+            )}
+          </div>
           <button
             onClick={() => onToggle(product)}
             style={
@@ -1251,6 +1258,11 @@ export default function ProductsAdmin({
                       <p className="font-semibold text-sm text-white">
                         {product.name}
                       </p>
+                      {product.is_featured && (
+                        <span className="text-[10px] bg-orange-500/15 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-full font-bold">
+                          ⭐ PROMO
+                        </span>
+                      )}
                       {product.badge && (
                         <span className="text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold">
                           {product.badge.replace(/^\S+\s/, "")}

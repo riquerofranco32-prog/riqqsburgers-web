@@ -805,6 +805,9 @@ a {
 .admin-table tr:last-child td {
   border-bottom: none;
 }
+.admin-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.015);
+}
 .admin-table tbody tr:hover td {
   background: var(--dash-surface-2);
 }

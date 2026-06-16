@@ -125,6 +125,22 @@ export async function PATCH(
       );
     }
   }
+
+  // Si se activa is_featured, desmarcar todos los demás del mismo tenant (un solo destacado)
+  if (patch.is_featured === true) {
+    const { data: productRow } = await supabase
+      .from("products")
+      .select("tenant_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (productRow?.tenant_id) {
+      await supabase
+        .from("products")
+        .update({ is_featured: false })
+        .eq("tenant_id", productRow.tenant_id)
+        .neq("id", id);
+    }
+  }
   if ("featured_order" in patch) {
     const fo = patch.featured_order as unknown;
     if (

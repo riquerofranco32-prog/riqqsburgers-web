@@ -256,6 +256,14 @@ export default function AdminShell({
         minHeight: "100vh",
         background: "var(--dash-bg)",
         fontFamily: "var(--font-sans, system-ui)",
+        // Asegurar que el admin NUNCA herede el accent del tenant del catálogo público
+        // Estas variables son del dash y sobreescriben cualquier inyección del CatalogClient
+        ["--accent" as string]: "#FF6B35",
+        ["--surface" as string]: "var(--dash-surface)",
+        ["--surface-2" as string]: "var(--dash-surface-2)",
+        ["--border" as string]: "var(--dash-border)",
+        ["--text-primary" as string]: "var(--dash-text)",
+        ["--text-secondary" as string]: "var(--dash-muted)",
       }}
     >
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────────────── */}

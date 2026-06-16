@@ -73,11 +73,20 @@ function vibrate(ms = 40) {
 }
 
 function hexToLuma(hex: string) {
-  const c = hex.replace("#", "");
+  const c = hex.replace("#", "").padEnd(6, "0");
   const r = parseInt(c.slice(0, 2), 16);
   const g = parseInt(c.slice(2, 4), 16);
   const b = parseInt(c.slice(4, 6), 16);
   return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+// Devuelve el color de texto con mejor contraste sobre el fondo dado
+function contrastText(
+  bgHex: string,
+  darkColor = "#111111",
+  lightColor = "#ffffff",
+): string {
+  return hexToLuma(bgHex) > 140 ? darkColor : lightColor;
 }
 
 function hexToRgba(hex: string, alpha: number) {
@@ -1742,6 +1751,299 @@ export default function CatalogClient({
                 </div>
               )}
             </div>
+
+            {/* ── PROMO HERO — producto destacado único ────────────────────────────── */}
+            {!searchQuery &&
+              (() => {
+                const promoProduct = restaurant.menu.categories
+                  .flatMap((c) => c.items)
+                  .filter((i) => i.is_featured && i.badge !== "Agotado")
+                  .sort(
+                    (a, b) => (a.featured_order ?? 0) - (b.featured_order ?? 0),
+                  )[0];
+
+                if (!promoProduct) return null;
+
+                const promoQty = getQty(promoProduct.id);
+                return (
+                  <div
+                    style={{
+                      margin: "16px 12px 0",
+                      borderRadius: 20,
+                      overflow: "hidden",
+                      position: "relative",
+                      background: `linear-gradient(135deg, ${accent}22 0%, ${accent}08 100%)`,
+                      border: `1.5px solid ${accent}30`,
+                      boxShadow: `0 4px 24px ${accent}18`,
+                    }}
+                  >
+                    {/* Badge PROMO */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 14,
+                        left: 14,
+                        zIndex: 3,
+                        background: accent,
+                        color: onAccent,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        padding: "4px 12px",
+                        borderRadius: 999,
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        boxShadow: `0 2px 10px ${accent}50`,
+                      }}
+                    >
+                      ⭐ PROMO
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 0,
+                      }}
+                    >
+                      {/* Imagen grande */}
+                      {promoProduct.image && (
+                        <div
+                          style={{
+                            position: "relative",
+                            height: 220,
+                            overflow: "hidden",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setSelectedItem(promoProduct)}
+                        >
+                          <img
+                            src={promoProduct.image}
+                            alt={promoProduct.name}
+                            loading="lazy"
+                            decoding="async"
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                              transition: "transform 0.4s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              (
+                                e.currentTarget as HTMLImageElement
+                              ).style.transform = "scale(1.03)";
+                            }}
+                            onMouseLeave={(e) => {
+                              (
+                                e.currentTarget as HTMLImageElement
+                              ).style.transform = "";
+                            }}
+                          />
+                          {/* Gradient overlay bottom */}
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              height: "50%",
+                              background: `linear-gradient(to top, ${hexToRgba(BG, 0.9)} 0%, transparent 100%)`,
+                              pointerEvents: "none",
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Contenido */}
+                      <div
+                        style={{
+                          padding: "14px 16px 16px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 8,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            justifyContent: "space-between",
+                            gap: 12,
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p
+                              style={{
+                                fontSize: 20,
+                                fontWeight: 800,
+                                color: TEXT1,
+                                margin: 0,
+                                lineHeight: 1.2,
+                                letterSpacing: "-0.02em",
+                              }}
+                            >
+                              {promoProduct.name}
+                            </p>
+                            {promoProduct.description && (
+                              <p
+                                style={{
+                                  fontSize: 13,
+                                  color: TEXT2,
+                                  margin: "6px 0 0",
+                                  lineHeight: 1.45,
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient:
+                                    "vertical" as React.CSSProperties["WebkitBoxOrient"],
+                                  overflow: "hidden",
+                                }}
+                              >
+                                {promoProduct.description}
+                              </p>
+                            )}
+                          </div>
+                          <span
+                            style={{
+                              fontSize: 22,
+                              fontWeight: 900,
+                              color: accent,
+                              flexShrink: 0,
+                              fontVariantNumeric: "tabular-nums",
+                              letterSpacing: "-0.02em",
+                            }}
+                          >
+                            {promoProduct.extras &&
+                            promoProduct.extras.length > 0
+                              ? `desde ${fmt(promoProduct.price)}`
+                              : fmt(promoProduct.price)}
+                          </span>
+                        </div>
+
+                        {/* Botón / stepper */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                            marginTop: 4,
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {promoQty === 0 ? (
+                            <button
+                              aria-label={`Agregar ${promoProduct.name}`}
+                              onClick={() => addItem(promoProduct)}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "10px 22px",
+                                borderRadius: 999,
+                                background: accent,
+                                color: onAccent,
+                                border: "none",
+                                fontWeight: 700,
+                                fontSize: 14,
+                                cursor: "pointer",
+                                boxShadow: `0 4px 14px ${accent}44`,
+                                transition:
+                                  "transform 0.15s cubic-bezier(0.34,1.56,0.64,1)",
+                                WebkitTapHighlightColor: "transparent",
+                              }}
+                              onMouseDown={(e) =>
+                                (e.currentTarget.style.transform =
+                                  "scale(0.95)")
+                              }
+                              onMouseUp={(e) =>
+                                (e.currentTarget.style.transform = "")
+                              }
+                              onTouchStart={(e) =>
+                                (e.currentTarget.style.transform =
+                                  "scale(0.95)")
+                              }
+                              onTouchEnd={(e) =>
+                                (e.currentTarget.style.transform = "")
+                              }
+                            >
+                              <Plus size={16} />
+                              Agregar al pedido
+                            </button>
+                          ) : (
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                                background: SURFACE2,
+                                borderRadius: 999,
+                                padding: "4px 6px",
+                                border: `1.5px solid ${accent}40`,
+                              }}
+                            >
+                              <button
+                                aria-label={`Quitar uno de ${promoProduct.name}`}
+                                onClick={() => removeItem(promoProduct)}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: "50%",
+                                  background: "transparent",
+                                  border: "none",
+                                  color: accent,
+                                  fontSize: 20,
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontWeight: 700,
+                                  WebkitTapHighlightColor: "transparent",
+                                }}
+                              >
+                                −
+                              </button>
+                              <span
+                                key={promoQty}
+                                className="qty-flip"
+                                style={{
+                                  fontWeight: 800,
+                                  fontSize: 16,
+                                  minWidth: 20,
+                                  textAlign: "center",
+                                  color: TEXT1,
+                                  fontVariantNumeric: "tabular-nums",
+                                }}
+                              >
+                                {promoQty}
+                              </span>
+                              <button
+                                aria-label={`Agregar otro ${promoProduct.name}`}
+                                onClick={() => addItem(promoProduct)}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: "50%",
+                                  background: accent,
+                                  border: "none",
+                                  color: onAccent,
+                                  fontSize: 20,
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontWeight: 700,
+                                  WebkitTapHighlightColor: "transparent",
+                                }}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
             {/* ── Lo más pedido / Populares ────────────────────────────────────────── */}
             {!searchQuery &&
