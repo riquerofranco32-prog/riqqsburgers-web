@@ -325,7 +325,7 @@ export default function CheckoutModal({
 
   const labelBase: React.CSSProperties = {
     display: "block",
-    color: "var(--text-muted)",
+    color: "var(--text-secondary)",
     fontSize: 11,
     fontWeight: 700,
     textTransform: "uppercase",
@@ -408,7 +408,7 @@ export default function CheckoutModal({
               borderRadius: "50%",
               background: "var(--surface-2)",
               border: "1px solid var(--border)",
-              color: "var(--text-muted)",
+              color: "var(--text-secondary)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -493,7 +493,7 @@ export default function CheckoutModal({
             >
               <p
                 style={{
-                  color: "var(--text-muted)",
+                  color: "var(--text-secondary)",
                   fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: "0.1em",
@@ -573,7 +573,7 @@ export default function CheckoutModal({
             </h2>
             <p
               style={{
-                color: "var(--text-muted)",
+                color: "var(--text-secondary)",
                 fontSize: 13,
                 marginBottom: 24,
               }}
@@ -822,7 +822,7 @@ export default function CheckoutModal({
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
-                      color: "var(--text-muted)",
+                      color: "var(--text-secondary)",
                       fontSize: 13,
                       marginBottom: 6,
                     }}
@@ -879,7 +879,7 @@ export default function CheckoutModal({
                   style={{
                     width: "100%",
                     background: loading ? "var(--surface-2)" : accent,
-                    color: loading ? "var(--text-muted)" : onAccent,
+                    color: loading ? "var(--text-secondary)" : onAccent,
                     fontWeight: 700,
                     fontSize: 16,
                     padding: "16px",
