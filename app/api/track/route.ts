@@ -3,6 +3,28 @@ import { createServerClient } from "@/lib/supabase";
 
 export const runtime = "edge";
 
+// Simple in-memory rate limiter per Edge instance.
+// 60 requests / minute per IP — enough for normal catalog usage,
+// prevents analytics spam from a single source.
+const trackHits = new Map<string, { count: number; resetAt: number }>();
+const TRACK_LIMIT = 60;
+const TRACK_WINDOW_MS = 60_000;
+
+function getIp(req: Request): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = trackHits.get(ip);
+  if (!entry || now > entry.resetAt) {
+    trackHits.set(ip, { count: 1, resetAt: now + TRACK_WINDOW_MS });
+    return false;
+  }
+  entry.count += 1;
+  return entry.count > TRACK_LIMIT;
+}
+
 // Whitelist of analytics events the public catalog is allowed to emit.
 // Any other event string is silently ignored to prevent data pollution.
 const ALLOWED_EVENTS = new Set([
@@ -15,6 +37,10 @@ const ALLOWED_EVENTS = new Set([
 ]);
 
 export async function POST(req: Request) {
+  if (isRateLimited(getIp(req))) {
+    return NextResponse.json({ ok: true }); // silencioso — no revelar rate limit al cliente
+  }
+
   try {
     const body = (await req.json()) as {
       tenantId?: string;

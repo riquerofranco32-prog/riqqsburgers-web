@@ -567,10 +567,13 @@ function ProductMobileCard({
   inlinePriceVal,
   inlinePriceRef,
   inlinePriceEscaped,
+  confirmDeleteId,
   deletingId,
   onToggle,
   onEdit,
   onDelete,
+  onConfirmDelete,
+  onCancelDelete,
   onInlinePriceStart,
   onInlinePriceSave,
   onInlinePriceValChange,
@@ -583,10 +586,13 @@ function ProductMobileCard({
   inlinePriceVal: string;
   inlinePriceRef: React.RefObject<HTMLInputElement>;
   inlinePriceEscaped: React.MutableRefObject<boolean>;
+  confirmDeleteId: string | null;
   deletingId: string | null;
   onToggle: (p: Product) => void;
   onEdit: (p: Product) => void;
   onDelete: (p: Product) => void;
+  onConfirmDelete: (p: Product) => void;
+  onCancelDelete: () => void;
   onInlinePriceStart: (p: Product) => void;
   onInlinePriceSave: (p: Product) => void;
   onInlinePriceValChange: (val: string) => void;
@@ -775,19 +781,48 @@ function ProductMobileCard({
           >
             Editar
           </button>
-          <button
-            onClick={() => onDelete(product)}
-            disabled={deletingId === product.id}
-            style={
-              {
-                WebkitTapHighlightColor: "transparent",
-                userSelect: "none",
-              } as React.CSSProperties
-            }
-            className="w-11 h-11 bg-zinc-800 hover:bg-red-950 active:bg-red-900 text-zinc-500 hover:text-red-400 rounded-xl transition-colors flex items-center justify-center disabled:opacity-40 text-sm"
-          >
-            {deletingId === product.id ? "…" : "🗑"}
-          </button>
+          {confirmDeleteId === product.id ? (
+            <div className="flex gap-1 flex-1">
+              <button
+                onClick={() => onConfirmDelete(product)}
+                style={
+                  {
+                    WebkitTapHighlightColor: "transparent",
+                    userSelect: "none",
+                  } as React.CSSProperties
+                }
+                className="flex-1 h-11 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors"
+              >
+                Sí, eliminar
+              </button>
+              <button
+                onClick={onCancelDelete}
+                style={
+                  {
+                    WebkitTapHighlightColor: "transparent",
+                    userSelect: "none",
+                  } as React.CSSProperties
+                }
+                className="w-11 h-11 bg-zinc-800 text-zinc-400 rounded-xl transition-colors flex items-center justify-center text-xs"
+              >
+                No
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => onDelete(product)}
+              disabled={deletingId === product.id}
+              style={
+                {
+                  WebkitTapHighlightColor: "transparent",
+                  userSelect: "none",
+                } as React.CSSProperties
+              }
+              className="w-11 h-11 bg-zinc-800 hover:bg-red-950 active:bg-red-900 text-zinc-500 hover:text-red-400 rounded-xl transition-colors flex items-center justify-center disabled:opacity-40 text-sm"
+            >
+              {deletingId === product.id ? "…" : "🗑"}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -819,6 +854,7 @@ export default function ProductsAdmin({
   const [sort, setSort] = useState<SortKey>("default");
   const [toast, setToast] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [inlinePriceId, setInlinePriceId] = useState<string | null>(null);
   const [inlinePriceVal, setInlinePriceVal] = useState("");
   const inlinePriceRef = useRef<HTMLInputElement>(null);
@@ -915,9 +951,13 @@ export default function ProductsAdmin({
             prev.map((p) => (p.id === editProduct.id ? updated : p)),
           );
           setToast("Producto actualizado");
+          setShowModal(false);
         } else {
           vibrate([50, 30, 50]);
-          setToast("Error al actualizar producto");
+          const data = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          setToast(data.error ?? "Error al actualizar producto");
         }
       } catch {
         vibrate([50, 30, 50]);
@@ -942,7 +982,10 @@ export default function ProductsAdmin({
           setShowModal(false);
         } else {
           vibrate([50, 30, 50]);
-          setToast("Error al crear producto");
+          const errData = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          setToast(errData.error ?? "Error al crear producto");
         }
       } catch {
         vibrate([50, 30, 50]);
@@ -951,11 +994,15 @@ export default function ProductsAdmin({
     }
   }
 
+  function requestDelete(product: Product) {
+    setConfirmDeleteId(product.id);
+    setTimeout(() => {
+      setConfirmDeleteId((prev) => (prev === product.id ? null : prev));
+    }, 3000);
+  }
+
   async function handleDelete(product: Product) {
-    if (
-      !confirm(`¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`)
-    )
-      return;
+    setConfirmDeleteId(null);
     setDeletingId(product.id);
     try {
       const res = await fetch(`/api/products/${product.id}`, {
@@ -1164,10 +1211,13 @@ export default function ProductsAdmin({
                   inlinePriceVal={inlinePriceVal}
                   inlinePriceRef={inlinePriceRef}
                   inlinePriceEscaped={inlinePriceEscaped}
+                  confirmDeleteId={confirmDeleteId}
                   deletingId={deletingId}
                   onToggle={toggleAvailable}
                   onEdit={openEdit}
-                  onDelete={handleDelete}
+                  onDelete={requestDelete}
+                  onConfirmDelete={handleDelete}
+                  onCancelDelete={() => setConfirmDeleteId(null)}
                   onInlinePriceStart={(p) => {
                     setInlinePriceVal(String(p.price));
                     setInlinePriceId(p.id);
@@ -1262,20 +1312,49 @@ export default function ProductsAdmin({
                     >
                       Editar
                     </button>
-                    <button
-                      onClick={() => handleDelete(product)}
-                      disabled={deletingId === product.id}
-                      title="Eliminar"
-                      style={
-                        {
-                          WebkitTapHighlightColor: "transparent",
-                          userSelect: "none",
-                        } as React.CSSProperties
-                      }
-                      className="text-xs text-zinc-600 hover:text-red-400 min-h-[44px] px-3 rounded-xl hover:bg-zinc-800 transition-all disabled:opacity-40 flex items-center"
-                    >
-                      {deletingId === product.id ? "…" : "🗑"}
-                    </button>
+                    {confirmDeleteId === product.id ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleDelete(product)}
+                          style={
+                            {
+                              WebkitTapHighlightColor: "transparent",
+                              userSelect: "none",
+                            } as React.CSSProperties
+                          }
+                          className="text-xs text-white bg-red-600 hover:bg-red-500 min-h-[36px] px-3 rounded-xl transition-all font-semibold"
+                        >
+                          Sí, eliminar
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          style={
+                            {
+                              WebkitTapHighlightColor: "transparent",
+                              userSelect: "none",
+                            } as React.CSSProperties
+                          }
+                          className="text-xs text-zinc-400 hover:text-white min-h-[36px] px-3 rounded-xl hover:bg-zinc-800 transition-all"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => requestDelete(product)}
+                        disabled={deletingId === product.id}
+                        title="Eliminar"
+                        style={
+                          {
+                            WebkitTapHighlightColor: "transparent",
+                            userSelect: "none",
+                          } as React.CSSProperties
+                        }
+                        className="text-xs text-zinc-600 hover:text-red-400 min-h-[44px] px-3 rounded-xl hover:bg-zinc-800 transition-all disabled:opacity-40 flex items-center"
+                      >
+                        {deletingId === product.id ? "…" : "🗑"}
+                      </button>
+                    )}
                   </div>
                 </div>
               );
