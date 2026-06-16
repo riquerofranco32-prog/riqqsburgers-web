@@ -955,7 +955,12 @@ export default function ProductsAdmin({
           vibrate(40);
           const updated: Product = { ...editProduct, ...fields };
           setProducts((prev) =>
-            prev.map((p) => (p.id === editProduct.id ? updated : p)),
+            prev.map((p) => {
+              if (p.id === editProduct.id) return updated;
+              // Si este producto queda como PROMO, desactivar is_featured en los demás
+              if (fields.is_featured) return { ...p, is_featured: false };
+              return p;
+            }),
           );
           setToast("Producto actualizado");
           setShowModal(false);
@@ -984,7 +989,12 @@ export default function ProductsAdmin({
         if (res.ok) {
           const data: Product = (await res.json()) as Product;
           vibrate(40);
-          setProducts((prev) => [...prev, data]);
+          setProducts((prev) => [
+            ...prev.map((p) =>
+              fields.is_featured ? { ...p, is_featured: false } : p,
+            ),
+            data,
+          ]);
           setToast("Producto creado");
           setShowModal(false);
         } else {
