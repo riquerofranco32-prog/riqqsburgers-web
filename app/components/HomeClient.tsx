@@ -2207,8 +2207,8 @@ export default function HomeClient({
               </motion.div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
 
 
       {/* ── MARQUEE ─────────────────────────────────────────────────────────── */}
