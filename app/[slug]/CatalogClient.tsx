@@ -268,14 +268,15 @@ const ProductCard = memo(function ProductCard({
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            const rotX = ((y / rect.height) - 0.5) * -10;
-            const rotY = ((x / rect.width) - 0.5) * 10;
+            const rotX = (y / rect.height - 0.5) * -10;
+            const rotY = (x / rect.width - 0.5) * 10;
             card.classList.remove("card-tilt-reset");
             card.classList.add("card-tilt");
             card.style.transform = `perspective(700px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
-            card.style.boxShadow = qty > 0
-              ? `0 14px 36px ${accent}38`
-              : "0 14px 32px rgba(0,0,0,0.18)";
+            card.style.boxShadow =
+              qty > 0
+                ? `0 14px 36px ${accent}38`
+                : "0 14px 32px rgba(0,0,0,0.18)";
             const img = card.querySelector(".card-img") as HTMLElement | null;
             if (img) img.style.transform = "scale(1.06)";
           }
@@ -425,6 +426,8 @@ const ProductCard = memo(function ProductCard({
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
               border: "none",
+              WebkitAppearance: "none",
+              appearance: "none",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -464,7 +467,14 @@ const ProductCard = memo(function ProductCard({
           }}
         >
           {/* Badge row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              flexWrap: "wrap",
+            }}
+          >
             {item.badge && item.badge !== "" && item.badge !== "Agotado" && (
               <Badge badge={item.badge} />
             )}
@@ -550,6 +560,8 @@ const ProductCard = memo(function ProductCard({
                       background: accent,
                       color: onAccent,
                       border: "none",
+                      WebkitAppearance: "none",
+                      appearance: "none",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -597,6 +609,8 @@ const ProductCard = memo(function ProductCard({
                       borderRadius: "50%",
                       background: "transparent",
                       border: "none",
+                      WebkitAppearance: "none",
+                      appearance: "none",
                       color: accent,
                       fontSize: 16,
                       cursor: "pointer",
@@ -634,6 +648,8 @@ const ProductCard = memo(function ProductCard({
                       borderRadius: "50%",
                       background: accent,
                       border: "none",
+                      WebkitAppearance: "none",
+                      appearance: "none",
                       color: onAccent,
                       fontSize: 16,
                       cursor: "pointer",
@@ -701,7 +717,8 @@ function ImmersiveView({
   }, [onClose]);
 
   if (products.length === 0) return null;
-  const progress = products.length > 1 ? (currentIdx / (products.length - 1)) * 100 : 100;
+  const progress =
+    products.length > 1 ? (currentIdx / (products.length - 1)) * 100 : 100;
 
   return createPortal(
     <div className="immersive-container">
@@ -759,9 +776,7 @@ function ImmersiveView({
                     loading="lazy"
                   />
                 ) : (
-                  <div className="immersive-emoji-wrap">
-                    {product.catEmoji}
-                  </div>
+                  <div className="immersive-emoji-wrap">{product.catEmoji}</div>
                 )}
               </div>
 
@@ -2008,7 +2023,8 @@ export default function CatalogClient({
                       }}
                       onBlur={(e) => {
                         e.currentTarget.style.borderColor = BORDER;
-                        e.currentTarget.style.boxShadow = "0 1px 4px rgba(0,0,0,0.06)";
+                        e.currentTarget.style.boxShadow =
+                          "0 1px 4px rgba(0,0,0,0.06)";
                       }}
                     />
                     {searchQuery && (
@@ -2071,7 +2087,8 @@ export default function CatalogClient({
                     ref={catBarRef}
                     onScroll={(e) => {
                       const el = e.currentTarget;
-                      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
+                      const atEnd =
+                        el.scrollLeft + el.clientWidth >= el.scrollWidth - 8;
                       setCatPillsAtEnd(atEnd);
                     }}
                     style={{
@@ -3076,7 +3093,6 @@ export default function CatalogClient({
                               style={{ flex: 1, height: 1, background: BORDER }}
                             />
                           </div>
-
 
                           {cat.items.length > 0 ? (
                             <div
@@ -4394,7 +4410,8 @@ export default function CatalogClient({
                           transform: sheetImageLoaded
                             ? "scale(1)"
                             : "scale(1.06)",
-                          transition: "transform 0.55s cubic-bezier(0.22,1,0.36,1)",
+                          transition:
+                            "transform 0.55s cubic-bezier(0.22,1,0.36,1)",
                         }}
                         onLoad={() => setSheetImageLoaded(true)}
                       />
@@ -4521,7 +4538,6 @@ export default function CatalogClient({
                       <X size={15} strokeWidth={2.5} />
                     </button>
                   </div>
-
 
                   <div
                     style={{
