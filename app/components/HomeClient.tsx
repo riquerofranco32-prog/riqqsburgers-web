@@ -1940,7 +1940,7 @@ export default function HomeClient({
         style={{
           position: "relative",
           background: "#0E1116",
-          overflow: "hidden",
+          overflowX: "clip", // prevent horizontal scrollbar but allow robot to breathe
           minHeight: "100vh",
           display: "flex",
           alignItems: "center",
@@ -1987,9 +1987,9 @@ export default function HomeClient({
           className="max-w-6xl mx-auto px-5 sm:px-8 w-full py-20 md:py-0"
           style={{ position: "relative", zIndex: 1 }}
         >
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left col */}
-            <div>
+          <div className="grid grid-cols-1 gap-12 items-center">
+            {/* Left col — text content, max 50% on desktop so robot has room */}
+            <div className="md:max-w-[50%]">
               <motion.div {...fadeUp(0)} className="mb-6">
                 <a
                   href="#producto"
@@ -2137,23 +2137,27 @@ export default function HomeClient({
               </motion.div>
             </div>
 
-            {/* Right col — interactive 3D robot */}
+            {/* Right col — robot as absolute overlay so Spline canvas is huge */}
             <div
-              className="hidden md:flex justify-center items-center"
+              className="hidden md:block"
               style={{
-                position: "relative",
-                height: "calc(100vh - 80px)",
-                minHeight: 700,
-                maxHeight: 900,
+                position: "absolute",
+                top: 0,
+                right: 0,
+                width: "55%",
+                height: "100%",
+                zIndex: 1,
+                pointerEvents: "none",
               }}
             >
-              {/* Robot — llena el contenedor limpiamente sin overflow */}
+              {/* Robot — full section height, no clipping */}
               <motion.div
                 {...fadeUp(0.4)}
                 style={{
                   position: "absolute",
                   inset: 0,
                   zIndex: 2,
+                  pointerEvents: "none",
                 }}
               >
                 <SplineScene
