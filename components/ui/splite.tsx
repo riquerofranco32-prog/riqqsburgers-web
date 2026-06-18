@@ -1,24 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const Spline = dynamic(() => import("@splinetool/react-spline"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <div
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: "50%",
-          border: "3px solid rgba(255,107,53,0.2)",
-          borderTopColor: "#FF6B35",
-          animation: "spin 0.8s linear infinite",
-        }}
-      />
-    </div>
-  ),
-});
+import { useEffect, useRef } from "react";
 
 interface SplineSceneProps {
   scene: string;
@@ -26,5 +8,46 @@ interface SplineSceneProps {
 }
 
 export function SplineScene({ scene, className }: SplineSceneProps) {
-  return <Spline scene={scene} className={className} />;
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    const canvas = canvasRef.current;
+    if (!wrapper || !canvas) return;
+
+    let disposed = false;
+    let app: { dispose?: () => void } | null = null;
+
+    const init = async () => {
+      const { Application } = await import("@splinetool/runtime");
+      if (disposed) return;
+
+      // Set pixel dimensions from the rendered wrapper size
+      const { offsetWidth, offsetHeight } = wrapper;
+      canvas.width = offsetWidth || 600;
+      canvas.height = offsetHeight || 520;
+
+      app = new Application(canvas);
+      await (app as unknown as { load(url: string): Promise<void> }).load(
+        scene,
+      );
+    };
+
+    init();
+
+    return () => {
+      disposed = true;
+      app?.dispose?.();
+    };
+  }, [scene]);
+
+  return (
+    <div ref={wrapperRef} className={className} style={{ overflow: "hidden" }}>
+      <canvas
+        ref={canvasRef}
+        style={{ width: "100%", height: "100%", display: "block" }}
+      />
+    </div>
+  );
 }

@@ -12,7 +12,6 @@
   "dependencies": {
     "@next/third-parties": "^14.2.35",
     "@radix-ui/react-slot": "^1.2.5",
-    "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.12.97",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
