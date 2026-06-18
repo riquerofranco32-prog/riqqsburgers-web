@@ -2133,15 +2133,118 @@ export default function HomeClient({
 
             {/* Right col — interactive 3D robot */}
             <div
-              className="hidden md:flex justify-center items-center"
-              style={{ position: "relative", height: 520 }}
+              className="hidden md:flex justify-center items-end"
+              style={{ position: "relative", height: 680, overflow: "visible" }}
             >
+              {/* Takefyy logo floating above the robot — robot "looks up" at it */}
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.85 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.55, ease }}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  zIndex: 10,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 8,
+                  pointerEvents: "none",
+                }}
+              >
+                {/* Glow halo behind the logo */}
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: -24,
+                    borderRadius: "50%",
+                    background:
+                      "radial-gradient(circle, rgba(255,107,53,0.22) 0%, transparent 70%)",
+                    filter: "blur(12px)",
+                    zIndex: -1,
+                  }}
+                />
+                {/* Logo pill */}
+                <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{
+                    duration: 3.2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1.5px solid rgba(255,107,53,0.35)",
+                    borderRadius: 20,
+                    padding: "10px 22px",
+                    backdropFilter: "blur(12px)",
+                    boxShadow:
+                      "0 0 0 1px rgba(255,255,255,0.04), 0 8px 32px rgba(255,107,53,0.2)",
+                    color: "#fff",
+                  }}
+                >
+                  <TakefyyLogo size="lg" />
+                </motion.div>
+
+                {/* Dashed line going down toward the robot */}
+                <svg
+                  width="2"
+                  height="44"
+                  viewBox="0 0 2 44"
+                  fill="none"
+                  style={{ opacity: 0.45 }}
+                >
+                  <line
+                    x1="1"
+                    y1="0"
+                    x2="1"
+                    y2="44"
+                    stroke="#FF6B35"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 4"
+                  />
+                </svg>
+
+                {/* Small chevron arrow pointing down */}
+                <motion.div
+                  animate={{ y: [0, 4, 0] }}
+                  transition={{
+                    duration: 1.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  style={{
+                    color: "#FF6B35",
+                    opacity: 0.7,
+                    marginTop: -4,
+                  }}
+                >
+                  <svg
+                    width="16"
+                    height="10"
+                    viewBox="0 0 16 10"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <polyline points="2,2 8,8 14,2" />
+                  </svg>
+                </motion.div>
+              </motion.div>
+
+              {/* Robot */}
               <motion.div
                 {...fadeUp(0.4)}
                 style={{
-                  position: "relative",
-                  width: "100%",
-                  height: "100%",
+                  position: "absolute",
+                  bottom: -60,
+                  left: 0,
+                  right: 0,
+                  height: "105%",
                   zIndex: 2,
                 }}
               >

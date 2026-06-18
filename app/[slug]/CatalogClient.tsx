@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   Fragment,
   memo,
@@ -35,6 +36,7 @@ import {
   ChevronRight,
   Share2,
   Heart,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import type {
@@ -216,6 +218,7 @@ const ProductCard = memo(function ProductCard({
   onRemove,
   isFavorite,
   onToggleFavorite,
+  onAddFly,
 }: {
   item: MenuItem;
   catEmoji: string;
@@ -233,6 +236,7 @@ const ProductCard = memo(function ProductCard({
   onRemove: (item: MenuItem) => void;
   isFavorite: boolean;
   onToggleFavorite: (item: MenuItem) => void;
+  onAddFly?: (item: MenuItem, el: HTMLElement) => void;
 }) {
   const soldOut = item.badge === "Agotado";
   return (
@@ -258,24 +262,32 @@ const ProductCard = memo(function ProductCard({
           overflow: "hidden",
           position: "relative",
         }}
-        onMouseEnter={(e) => {
-          if (!soldOut) {
-            e.currentTarget.style.boxShadow =
-              qty > 0
-                ? `0 8px 24px ${accent}30`
-                : "0 6px 20px rgba(0,0,0,0.13)";
-            const img = e.currentTarget.querySelector(
-              ".card-img",
-            ) as HTMLElement | null;
-            if (img) img.style.transform = "scale(1.05)";
+        onMouseMove={(e) => {
+          if (!soldOut && window.matchMedia("(hover: hover)").matches) {
+            const card = e.currentTarget;
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const rotX = ((y / rect.height) - 0.5) * -10;
+            const rotY = ((x / rect.width) - 0.5) * 10;
+            card.classList.remove("card-tilt-reset");
+            card.classList.add("card-tilt");
+            card.style.transform = `perspective(700px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-4px)`;
+            card.style.boxShadow = qty > 0
+              ? `0 14px 36px ${accent}38`
+              : "0 14px 32px rgba(0,0,0,0.18)";
+            const img = card.querySelector(".card-img") as HTMLElement | null;
+            if (img) img.style.transform = "scale(1.06)";
           }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.boxShadow =
+          const card = e.currentTarget;
+          card.classList.add("card-tilt-reset");
+          card.classList.remove("card-tilt");
+          card.style.transform = "";
+          card.style.boxShadow =
             qty > 0 ? `0 3px 16px ${accent}22` : "0 2px 8px rgba(0,0,0,0.07)";
-          const img = e.currentTarget.querySelector(
-            ".card-img",
-          ) as HTMLElement | null;
+          const img = card.querySelector(".card-img") as HTMLElement | null;
           if (img) img.style.transform = "scale(1)";
         }}
         onTouchStart={(e) => {
@@ -529,6 +541,7 @@ const ProductCard = memo(function ProductCard({
                     onClick={(e) => {
                       e.stopPropagation();
                       onAdd(item);
+                      onAddFly?.(item, e.currentTarget);
                     }}
                     style={{
                       width: 32,
@@ -643,6 +656,160 @@ const ProductCard = memo(function ProductCard({
   );
 });
 
+// ── ImmersiveView — "▶ Ver carta" stories de platos ─────────────────────────
+function ImmersiveView({
+  products,
+  accent,
+  onAccent,
+  SURFACE,
+  TEXTM,
+  onClose,
+  onAdd,
+  getQty,
+}: {
+  products: (MenuItem & { catEmoji: string })[];
+  accent: string;
+  onAccent: string;
+  SURFACE: string;
+  TEXTM: string;
+  onClose: () => void;
+  onAdd: (item: MenuItem) => void;
+  getQty: (id: string) => number;
+}) {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Track which slide is visible
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const idx = Math.round(el.scrollTop / window.innerHeight);
+      setCurrentIdx(Math.min(Math.max(idx, 0), products.length - 1));
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [products.length]);
+
+  // ESC to close
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  if (products.length === 0) return null;
+  const progress = products.length > 1 ? (currentIdx / (products.length - 1)) * 100 : 100;
+
+  return createPortal(
+    <div className="immersive-container">
+      {/* Close button */}
+      <button
+        className="immersive-close-btn"
+        onClick={onClose}
+        aria-label="Cerrar modo inmersivo"
+      >
+        <X size={17} strokeWidth={2.5} />
+      </button>
+
+      {/* Top bar: counter + progress */}
+      <div className="immersive-top-bar">
+        <div className="immersive-counter">
+          {currentIdx + 1} / {products.length}
+        </div>
+        <div className="immersive-progress-track">
+          <div
+            className="immersive-progress-fill"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Scroll-snap container */}
+      <div className="immersive-scroll" ref={scrollRef}>
+        {products.map((product) => {
+          const qty = getQty(product.id);
+          const isSoldOut = product.badge === "Agotado";
+          return (
+            <div key={product.id} className="immersive-slide">
+              {/* Blurred background */}
+              {product.image ? (
+                <div
+                  className="immersive-bg"
+                  style={{ backgroundImage: `url(${product.image})` }}
+                />
+              ) : (
+                <div
+                  className="immersive-bg-fallback"
+                  style={{
+                    background: `linear-gradient(135deg, ${accent}30 0%, #000 100%)`,
+                  }}
+                />
+              )}
+
+              {/* Foreground product image */}
+              <div className="immersive-img-wrap">
+                {product.image ? (
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="immersive-img"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="immersive-emoji-wrap">
+                    {product.catEmoji}
+                  </div>
+                )}
+              </div>
+
+              {/* Info card — glassmorphism */}
+              <div
+                className="immersive-info-card"
+                style={{ background: hexToRgba(SURFACE, 0.12) }}
+              >
+                {product.badge && product.badge !== "Agotado" && (
+                  <div className="immersive-badge-pill">{product.badge}</div>
+                )}
+                <h2 className="immersive-title">{product.name}</h2>
+                {product.description && (
+                  <p className="immersive-desc">{product.description}</p>
+                )}
+                <div className="immersive-bottom">
+                  <span className="immersive-price">{fmt(product.price)}</span>
+                  {isSoldOut ? (
+                    <div className="immersive-soldout">Agotado</div>
+                  ) : qty > 0 ? (
+                    <div className="immersive-in-cart">
+                      <ShoppingCart size={13} />
+                      En carrito: {qty}
+                    </div>
+                  ) : (
+                    <button
+                      className="immersive-add-btn"
+                      style={{ background: accent, color: onAccent }}
+                      onClick={() => {
+                        vibrate(45);
+                        onAdd(product);
+                      }}
+                    >
+                      <Plus size={16} strokeWidth={2.5} />
+                      Agregar
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export default function CatalogClient({
   restaurant,
 }: {
@@ -686,6 +853,7 @@ export default function CatalogClient({
   const [orderNotesOpen, setOrderNotesOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const prevTotal = useRef(0);
+  const [immersiveMode, setImmersiveMode] = useState(false);
 
   // ── Favorites ─────────────────────────────────────────────────────────────
   const { favorites, isFavorite, toggleFavorite } = useFavorites(
@@ -875,7 +1043,7 @@ export default function CatalogClient({
   // ── Body scroll lock ──────────────────────────────────────────────────────
 
   useEffect(() => {
-    const locked = cartOpen || !!selectedItem || checkoutOpen;
+    const locked = cartOpen || !!selectedItem || checkoutOpen || immersiveMode;
     if (locked) {
       document.body.style.overflow = "hidden";
       document.body.style.touchAction = "none";
@@ -887,7 +1055,7 @@ export default function CatalogClient({
       document.body.style.overflow = "";
       document.body.style.touchAction = "";
     };
-  }, [cartOpen, selectedItem, checkoutOpen]);
+  }, [cartOpen, selectedItem, checkoutOpen, immersiveMode]);
 
   // ── ESC key ───────────────────────────────────────────────────────────────
 
@@ -1107,6 +1275,98 @@ export default function CatalogClient({
   const TEXT1 = b?.text_primary ?? "#111111";
   const TEXT2 = b?.text_secondary ?? "#555555";
   const TEXTM = "#999999";
+
+  // ── All products flat for immersive mode ────────────────────────────────
+  const allProducts = useMemo(
+    () =>
+      restaurant.menu.categories.flatMap((c) =>
+        c.items
+          .filter((i) => i.badge !== "Agotado")
+          .map((i) => ({ ...i, catEmoji: c.emoji })),
+      ),
+    [restaurant.menu.categories],
+  );
+
+  // ── Flying cart animation ────────────────────────────────────────────────
+  function flyToCart(imgSrc: string, emoji: string, sourceEl: HTMLElement) {
+    if (typeof window === "undefined") return;
+    const srcRect = sourceEl.getBoundingClientRect();
+    const size = Math.min(srcRect.width, 74);
+
+    const el = document.createElement("div");
+    el.style.cssText = [
+      `position:fixed`,
+      `left:${srcRect.left + (srcRect.width - size) / 2}px`,
+      `top:${srcRect.top}px`,
+      `width:${size}px`,
+      `height:${size}px`,
+      `border-radius:12px`,
+      `overflow:hidden`,
+      `pointer-events:none`,
+      `z-index:9999`,
+      `will-change:transform,opacity`,
+      `box-shadow:0 8px 32px rgba(0,0,0,0.35)`,
+    ].join(";");
+
+    if (imgSrc) {
+      const img = document.createElement("img");
+      img.src = imgSrc;
+      img.style.cssText = "width:100%;height:100%;object-fit:cover;";
+      el.appendChild(img);
+    } else {
+      el.style.background = accent;
+      el.style.fontSize = "28px";
+      el.style.display = "flex";
+      el.style.alignItems = "center";
+      el.style.justifyContent = "center";
+      el.textContent = emoji;
+    }
+
+    document.body.appendChild(el);
+
+    // Target: cart pill if visible, else bottom-center (where pill will appear)
+    const cartPill = document.querySelector<HTMLElement>("[data-cart-pill]");
+    const tgtX = cartPill
+      ? cartPill.getBoundingClientRect().left +
+        cartPill.getBoundingClientRect().width / 2
+      : window.innerWidth / 2;
+    const tgtY = cartPill
+      ? cartPill.getBoundingClientRect().top +
+        cartPill.getBoundingClientRect().height / 2
+      : window.innerHeight - 58;
+
+    const srcCenterX = srcRect.left + srcRect.width / 2;
+    const srcCenterY = srcRect.top + size / 2;
+    const dx = tgtX - srcCenterX;
+    const dy = tgtY - srcCenterY;
+
+    const anim = el.animate(
+      [
+        {
+          transform: "translate(0,0) scale(1)",
+          opacity: 1,
+          borderRadius: "12px",
+        },
+        {
+          transform: `translate(${dx * 0.36}px, ${dy * 0.2 - 76}px) scale(0.68)`,
+          opacity: 0.9,
+          borderRadius: "20px",
+          offset: 0.44,
+        },
+        {
+          transform: `translate(${dx}px, ${dy}px) scale(0.06)`,
+          opacity: 0,
+          borderRadius: "50%",
+        },
+      ],
+      {
+        duration: 700,
+        easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        fill: "forwards",
+      },
+    );
+    anim.onfinish = () => el.remove();
+  }
 
   const infoItems = [
     restaurant.schedule && { icon: "🕐", text: restaurant.schedule },

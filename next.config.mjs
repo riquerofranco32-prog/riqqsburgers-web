@@ -15,6 +15,8 @@ const securityHeaders = [
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://prod.spline.design https://*.spline.design https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com",
       "worker-src 'self' blob:",
       "font-src 'self' data:",
+      "frame-src 'self' https://vercel.live https://*.vercel.live",
+      "media-src 'self' data: blob:",
       "frame-ancestors 'self'",
     ].join("; "),
   },
