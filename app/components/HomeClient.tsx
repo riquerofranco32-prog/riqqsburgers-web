@@ -1856,62 +1856,98 @@ export default function HomeClient({
               transition={{ duration: 0.28, ease }}
               className="md:hidden overflow-hidden"
               style={{
-                background: "rgba(14,17,22,0.98)",
-                backdropFilter: "blur(20px)",
-                borderTop: "1px solid rgba(255,107,53,0.1)",
+                background: "rgba(10,12,17,0.99)",
+                backdropFilter: "blur(24px)",
+                borderTop: "1px solid rgba(255,107,53,0.15)",
               }}
             >
-              <div style={{ padding: "28px 24px 36px" }}>
+              <div style={{ padding: "12px 0 32px" }}>
                 {navLinks.map((l, i) => (
                   <motion.button
                     key={l.id}
-                    initial={{ opacity: 0, x: -16 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.06, duration: 0.25 }}
+                    transition={{ delay: i * 0.06, duration: 0.22 }}
                     onClick={() => scrollTo(l.id)}
                     style={{
-                      display: "block",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
                       width: "100%",
                       textAlign: "left",
-                      fontSize: 28,
+                      fontSize: 20,
                       fontFamily: "var(--font-anton)",
-                      color: "var(--dash-text)",
+                      letterSpacing: "0.05em",
+                      color: "rgba(255,255,255,0.8)",
                       background: "none",
                       border: "none",
+                      borderRadius: 0,
+                      borderBottom: "1px solid rgba(255,255,255,0.05)",
                       cursor: "pointer",
-                      padding: "10px 0",
+                      padding: "18px 24px",
+                      transition: "color 0.15s, background 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLButtonElement;
+                      el.style.color = "#FF6B35";
+                      el.style.background = "rgba(255,107,53,0.05)";
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLButtonElement;
+                      el.style.color = "rgba(255,255,255,0.8)";
+                      el.style.background = "none";
                     }}
                   >
-                    {l.label}
+                    <span>{l.label}</span>
+                    <span
+                      style={{
+                        fontSize: 16,
+                        color: "rgba(255,107,53,0.5)",
+                        lineHeight: 1,
+                      }}
+                    >
+                      →
+                    </span>
                   </motion.button>
                 ))}
+
+                {/* Blog link */}
                 <motion.div
-                  initial={{ opacity: 0, x: -16 }}
+                  initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: navLinks.length * 0.06, duration: 0.25 }}
+                  transition={{ delay: navLinks.length * 0.06, duration: 0.22 }}
                 >
                   <Link
                     href="/blog"
                     onClick={() => setMobileOpen(false)}
                     style={{
-                      display: "block",
-                      fontSize: 28,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      fontSize: 20,
                       fontFamily: "var(--font-anton)",
-                      color: "var(--accent)",
-                      padding: "10px 0",
+                      letterSpacing: "0.05em",
+                      color: "#FF6B35",
+                      padding: "18px 24px",
                       textDecoration: "none",
+                      borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      transition: "opacity 0.15s",
                     }}
                   >
-                    Blog
+                    <span>Blog</span>
+                    <span style={{ fontSize: 16, opacity: 0.6 }}>→</span>
                   </Link>
                 </motion.div>
+
+                {/* CTA */}
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
                   transition={{
                     delay: (navLinks.length + 1) * 0.06,
                     duration: 0.25,
                   }}
+                  style={{ padding: "28px 24px 0" }}
                 >
                   <a
                     href={
@@ -1923,19 +1959,23 @@ export default function HomeClient({
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      display: "block",
-                      marginTop: 32,
-                      padding: "16px",
-                      background: "var(--accent)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "15px 20px",
+                      background: "#FF6B35",
                       color: "white",
-                      borderRadius: 12,
-                      textAlign: "center",
+                      borderRadius: 10,
                       fontWeight: 700,
-                      fontSize: 16,
+                      fontSize: 15,
+                      letterSpacing: "0.03em",
                       textDecoration: "none",
+                      boxShadow: "0 4px 24px rgba(255,107,53,0.35)",
                     }}
                   >
-                    Empezar gratis →
+                    Empezar gratis
+                    <span style={{ fontSize: 18 }}>→</span>
                   </a>
                 </motion.div>
               </div>
