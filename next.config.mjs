@@ -12,7 +12,8 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://i.postimg.cc https://postimg.cc",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.spline.design https://prod.spline.design",
+      "worker-src 'self' blob:",
       "font-src 'self' data:",
       "frame-ancestors 'self'",
     ].join("; "),
@@ -20,6 +21,7 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  transpilePackages: ['@splinetool/react-spline', '@splinetool/runtime'],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
