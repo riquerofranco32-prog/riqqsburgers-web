@@ -1,28 +1,30 @@
 "use client";
 
+import dynamic from "next/dynamic";
+
+const Spline = dynamic(() => import("@splinetool/react-spline"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex items-center justify-center">
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: "50%",
+          border: "3px solid rgba(255,107,53,0.2)",
+          borderTopColor: "#FF6B35",
+          animation: "spin 0.8s linear infinite",
+        }}
+      />
+    </div>
+  ),
+});
+
 interface SplineSceneProps {
   scene: string;
   className?: string;
 }
 
 export function SplineScene({ scene, className }: SplineSceneProps) {
-  // Convert .splinecode URL to Spline embed URL
-  // https://prod.spline.design/{id}/scene.splinecode → https://my.spline.design/{id}/
-  const embedUrl = scene
-    .replace("https://prod.spline.design/", "https://my.spline.design/")
-    .replace("/scene.splinecode", "/");
-
-  return (
-    <div className={className} style={{ position: "relative" }}>
-      <iframe
-        src={embedUrl}
-        frameBorder="0"
-        width="100%"
-        height="100%"
-        title="Spline 3D Scene"
-        style={{ display: "block", border: "none" }}
-        loading="lazy"
-      />
-    </div>
-  );
+  return <Spline scene={scene} className={className} />;
 }
