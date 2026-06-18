@@ -2162,7 +2162,7 @@ export default function HomeClient({
                 style={{
                   position: "absolute",
                   top: "44%",
-                  left: "50%",
+                  left: "34%",
                   transform: "translate(-50%, -50%)",
                   zIndex: 10,
                   pointerEvents: "none",
