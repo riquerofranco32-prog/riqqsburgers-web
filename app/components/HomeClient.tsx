@@ -1940,10 +1940,11 @@ export default function HomeClient({
         style={{
           position: "relative",
           background: "#0E1116",
-          overflowX: "clip", // prevent horizontal scrollbar but allow robot to breathe
+          overflowX: "clip",
           minHeight: "100vh",
           display: "flex",
-          alignItems: "center",
+          flexDirection: "column",
+          justifyContent: "center",
           paddingTop: 64,
           paddingBottom: 40,
         }}
@@ -1987,8 +1988,73 @@ export default function HomeClient({
           className="max-w-6xl mx-auto px-5 sm:px-8 w-full py-20 md:py-0"
           style={{ position: "relative", zIndex: 1 }}
         >
-          <div className="grid grid-cols-1 gap-12 items-center">
-            {/* Left col — text content, max 50% on desktop so robot has room */}
+          <div className="flex flex-col gap-0">
+
+            {/* Robot — visible on ALL screens via .hero-robot CSS class */}
+            {/* Mobile: in-flow at top. Desktop: position:absolute on right 55% */}
+            <div className="hero-robot">
+              {/* Spline 3D robot */}
+              <motion.div
+                {...fadeUp(0.4)}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  zIndex: 2,
+                  pointerEvents: "none",
+                }}
+              >
+                <SplineScene
+                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                  className="w-full h-full"
+                />
+              </motion.div>
+
+              {/* Takefyy logo — en los brazos del robot */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.7, delay: 0.7, ease }}
+                style={{
+                  position: "absolute",
+                  top: "44%",
+                  left: "22%",
+                  transform: "translate(-50%, -50%)",
+                  zIndex: 10,
+                  pointerEvents: "none",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: -32,
+                    borderRadius: "50%",
+                    background:
+                      "radial-gradient(circle, rgba(255,107,53,0.28) 0%, transparent 70%)",
+                    filter: "blur(16px)",
+                    zIndex: -1,
+                  }}
+                />
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    background: "rgba(14,17,22,0.72)",
+                    border: "1.5px solid rgba(255,107,53,0.5)",
+                    borderRadius: 22,
+                    padding: "10px 20px",
+                    backdropFilter: "blur(16px)",
+                    boxShadow:
+                      "0 0 0 1px rgba(255,255,255,0.06), 0 12px 40px rgba(255,107,53,0.25), 0 2px 8px rgba(0,0,0,0.6)",
+                    color: "#fff",
+                  }}
+                >
+                  <TakefyyLogo size="md" className="md:hidden" />
+                  <TakefyyLogo size="lg" className="hidden md:flex" />
+                </motion.div>
+              </motion.div>
+            </div>
+
+            {/* Text content — below robot on mobile, left 50% on desktop */}
             <div className="md:max-w-[50%]">
               <motion.div {...fadeUp(0)} className="mb-6">
                 <a
@@ -2136,88 +2202,10 @@ export default function HomeClient({
                 </p>
               </motion.div>
             </div>
-
-            {/* Right col — robot as absolute overlay so Spline canvas is huge */}
-            <div
-              className="hidden md:block"
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: "55%",
-                height: "100%",
-                zIndex: 1,
-                pointerEvents: "none",
-              }}
-            >
-              {/* Robot — full section height, no clipping */}
-              <motion.div
-                {...fadeUp(0.4)}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  zIndex: 2,
-                  pointerEvents: "none",
-                }}
-              >
-                <SplineScene
-                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                  className="w-full h-full"
-                />
-              </motion.div>
-
-              {/* Takefyy logo — en los brazos del robot, a la altura del pecho */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.7, delay: 0.7, ease }}
-                style={{
-                  position: "absolute",
-                  top: "44%",
-                  left: "22%",
-                  transform: "translate(-50%, -50%)",
-                  zIndex: 10,
-                  pointerEvents: "none",
-                }}
-              >
-                {/* Glow detrás del logo */}
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: -32,
-                    borderRadius: "50%",
-                    background:
-                      "radial-gradient(circle, rgba(255,107,53,0.28) 0%, transparent 70%)",
-                    filter: "blur(16px)",
-                    zIndex: -1,
-                  }}
-                />
-                {/* Logo pill — flota suavemente como si lo sostuviera */}
-                <motion.div
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{
-                    duration: 3.5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  style={{
-                    background: "rgba(14,17,22,0.72)",
-                    border: "1.5px solid rgba(255,107,53,0.5)",
-                    borderRadius: 22,
-                    padding: "12px 28px",
-                    backdropFilter: "blur(16px)",
-                    boxShadow:
-                      "0 0 0 1px rgba(255,255,255,0.06), 0 12px 40px rgba(255,107,53,0.25), 0 2px 8px rgba(0,0,0,0.6)",
-                    color: "#fff",
-                  }}
-                >
-                  <TakefyyLogo size="lg" />
-                </motion.div>
-              </motion.div>
-            </div>
           </div>
         </div>
       </section>
+
 
       {/* ── MARQUEE ─────────────────────────────────────────────────────────── */}
       <div

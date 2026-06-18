@@ -124,7 +124,12 @@ export function WebGLShader({
 
     // Throttle to ~30fps — shader is decorative, 60fps is overkill
     let frame = 0;
+    let isVisible = true;
     const animate = () => {
+      if (!isVisible) {
+        refs.animationId = null;
+        return; // stop the loop when off-screen
+      }
       refs.animationId = requestAnimationFrame(animate);
       frame++;
       if (frame % 2 !== 0) return; // skip every other frame → ~30fps
@@ -135,8 +140,24 @@ export function WebGLShader({
     };
     animate();
 
+
+    // Pause rAF completely when shader is off-screen — eliminates scroll lag
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        // Resume animation loop when coming back into view
+        if (isVisible && !refs.animationId) {
+          animate();
+        }
+      },
+      { threshold: 0 },
+    );
+    io.observe(canvas);
+
     return () => {
       if (refs.animationId) cancelAnimationFrame(refs.animationId);
+      refs.animationId = null;
+      io.disconnect();
       ro.disconnect();
       if (refs.mesh) {
         refs.scene?.remove(refs.mesh);

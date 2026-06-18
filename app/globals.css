@@ -627,6 +627,42 @@ a {
   animation-play-state: paused;
 }
 
+/* ── Hero robot — responsive positioning ─────────────────────────────────── */
+/* Mobile: in-flow above the text, fixed height */
+.hero-robot {
+  position: relative;
+  width: 100%;
+  height: 72vw;
+  max-height: 420px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+/* Desktop: absolute overlay on right half of section */
+@media (min-width: 768px) {
+  .hero-robot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 55%;
+    height: 100%;
+    max-height: none;
+    flex-shrink: unset;
+  }
+}
+
+/* Spline canvas wrapper — promote to GPU composite layer */
+.spline-wrapper {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ── Off-screen sections — skip render until near viewport ───────────────── */
+.landing-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+
+
 /* ── Animated gradient text ─────────────────────────────────────────────── */
 @keyframes gradientText {
   0% {
