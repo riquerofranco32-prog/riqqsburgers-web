@@ -9,7 +9,6 @@ import {
   useSpring,
 } from "framer-motion";
 import { SplineScene } from "@/components/ui/splite";
-import { Spotlight } from "@/components/ui/spotlight";
 import Link from "next/link";
 import HeroShader from "@/components/HeroShader";
 import {
@@ -2135,16 +2134,17 @@ export default function HomeClient({
             {/* Right col — interactive 3D robot */}
             <div
               className="hidden md:flex justify-center items-center"
-              style={{ position: "relative" }}
+              style={{ position: "relative", height: 520 }}
             >
               <motion.div
                 {...fadeUp(0.4)}
-                style={{ position: "relative", width: "100%", height: 520 }}
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 2,
+                }}
               >
-                <Spotlight
-                  className="-top-40 left-0 md:left-20 md:-top-20"
-                  fill="rgba(255,107,53,0.6)"
-                />
                 <SplineScene
                   scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                   className="w-full h-full"
