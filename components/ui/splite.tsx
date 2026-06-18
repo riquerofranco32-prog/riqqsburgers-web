@@ -1,15 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const Spline = dynamic(() => import("@splinetool/react-spline/next"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <span className="loader"></span>
-    </div>
-  ),
-});
+import { useEffect, useRef } from "react";
 
 interface SplineSceneProps {
   scene: string;
@@ -17,5 +8,23 @@ interface SplineSceneProps {
 }
 
 export function SplineScene({ scene, className }: SplineSceneProps) {
-  return <Spline scene={scene} className={className} />;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    let app: { dispose?: () => void } | null = null;
+
+    import("@splinetool/runtime").then(({ Application }) => {
+      if (!canvasRef.current) return;
+      app = new Application(canvasRef.current);
+      (app as { load: (url: string) => void }).load(scene);
+    });
+
+    return () => {
+      app?.dispose?.();
+    };
+  }, [scene]);
+
+  return <canvas ref={canvasRef} className={className} />;
 }
