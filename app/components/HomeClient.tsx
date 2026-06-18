@@ -1614,6 +1614,7 @@ export default function HomeClient({
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
+  const robotRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
   const isHoveringHero = useRef(false);
 
@@ -1668,11 +1669,22 @@ export default function HomeClient({
         glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
         glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
       }
+      if (robotRef.current) {
+        const ry = (x - 0.5) * 22;
+        const rx = -(y - 0.5) * 14;
+        robotRef.current.style.transition = "transform 0.08s ease-out";
+        robotRef.current.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      }
     });
   }
 
   function handleHeroMouseLeave() {
     isHoveringHero.current = false;
+    if (robotRef.current) {
+      robotRef.current.style.transition = "transform 0.8s ease";
+      robotRef.current.style.transform =
+        "perspective(900px) rotateX(0deg) rotateY(0deg)";
+    }
   }
 
   function scrollTo(id: string) {
@@ -1990,30 +2002,39 @@ export default function HomeClient({
                      relative to THIS SECTION (full viewport height + right edge)
         ─────────────────────────────────────────────────────────────────────── */}
         <div className="hero-robot" style={{ zIndex: 1 }}>
-          {/* Spline 3D robot */}
-          <motion.div
-            {...fadeUp(0.4)}
+          {/* Spline 3D robot — wrapper rotates to follow mouse */}
+          <div
+            ref={robotRef}
             style={{
               position: "absolute",
               inset: 0,
-              zIndex: 2,
+              transformStyle: "preserve-3d",
             }}
           >
-            <SplineScene
-              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-              className="w-full h-full"
-            />
-          </motion.div>
+            <motion.div
+              {...fadeUp(0.4)}
+              style={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 2,
+              }}
+            >
+              <SplineScene
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
+            </motion.div>
+          </div>
 
-          {/* Takefyy logo — en los brazos del robot */}
+          {/* Takefyy logo — centrado en el robot */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.7, ease }}
             style={{
               position: "absolute",
-              top: "44%",
-              left: "28%",
+              top: "50%",
+              left: "50%",
               transform: "translate(-50%, -50%)",
               zIndex: 10,
               pointerEvents: "none",
@@ -2032,7 +2053,11 @@ export default function HomeClient({
             />
             <motion.div
               animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              transition={{
+                duration: 3.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
               style={{
                 background: "rgba(14,17,22,0.72)",
                 border: "1.5px solid rgba(255,107,53,0.5)",
@@ -2059,157 +2084,151 @@ export default function HomeClient({
           style={{ position: "relative", zIndex: 2 }}
         >
           <div className="md:max-w-[50%] py-6 md:py-0">
-
-              <motion.div {...fadeUp(0)} className="mb-6">
-                <a
-                  href="#producto"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    document
-                      .getElementById("producto")
-                      ?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
+            <motion.div {...fadeUp(0)} className="mb-6">
+              <a
+                href="#producto"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document
+                    .getElementById("producto")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="group inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold"
+                style={{
+                  background: "rgba(255,107,53,0.1)",
+                  border: "1px solid rgba(255,107,53,0.22)",
+                  color: "var(--accent)",
+                  textDecoration: "none",
+                }}
+              >
+                <span
                   style={{
-                    background: "rgba(255,107,53,0.1)",
-                    border: "1px solid rgba(255,107,53,0.22)",
-                    color: "var(--accent)",
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#22c55e",
+                    display: "inline-block",
+                    animation: "pulse-dot 2s ease-in-out infinite",
+                  }}
+                />
+                Hecho para hamburgueserías, pizzerías y dark kitchens
+                <ChevronRight
+                  size={13}
+                  className="transition-transform duration-300 group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              </a>
+            </motion.div>
+
+            {/* Anton headline */}
+            <h1
+              className="hero-heading mb-5 md:mb-7"
+              style={{
+                fontFamily: "var(--font-anton)",
+                fontSize: "clamp(3rem, 8.5vw, 7.5rem)",
+                lineHeight: 0.93,
+                letterSpacing: "0.01em",
+                color: "#fff",
+                fontWeight: 400,
+                margin: "0 0 1.25rem",
+              }}
+            >
+              <motion.span style={{ display: "block" }} {...fadeUp(0.08)}>
+                Tu carta,
+              </motion.span>
+              <motion.span style={{ display: "block" }} {...fadeUp(0.16)}>
+                <span className="gradient-text-animate">online</span>
+              </motion.span>
+              <motion.span style={{ display: "block" }} {...fadeUp(0.24)}>
+                en minutos.
+              </motion.span>
+            </h1>
+
+            <motion.p
+              {...fadeUp(0.34)}
+              className="mb-8 md:mb-10"
+              style={{
+                fontSize: "clamp(0.95rem, 3.5vw, 1.1rem)",
+                lineHeight: 1.7,
+                color: "var(--dash-muted)",
+                maxWidth: 450,
+                textWrap: "pretty",
+              }}
+            >
+              Tu menú digital en minutos, pedidos directo a tu WhatsApp. Sin
+              comisiones, sin módulos, sin costos en dólares. Todo incluido en
+              un precio en pesos.
+            </motion.p>
+
+            <motion.div {...fadeUp(0.43)} className="mb-6">
+              <div className="hero-cta-group flex flex-wrap gap-3 mb-3">
+                <motion.button
+                  onClick={() =>
+                    window.open(
+                      "https://wa.me/542994247985?text=" +
+                        encodeURIComponent(
+                          "Hola! Me interesa Takefyy para mi negocio 🚀",
+                        ),
+                      "_blank",
+                    )
+                  }
+                  className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
+                  style={{
+                    background: "var(--accent)",
+                    border: "none",
+                    cursor: "pointer",
+                    position: "relative",
+                  }}
+                  whileHover={{
+                    scale: 1.05,
+                    filter: "brightness(1.12)",
+                    boxShadow: "0 6px 32px rgba(255,107,53,0.45)",
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                >
+                  Empezar gratis →
+                </motion.button>
+                <motion.a
+                  href="/larryssburgers"
+                  className="rounded-full px-7 py-3.5 text-sm font-semibold"
+                  style={{
+                    border: "1.5px solid rgba(255,255,255,0.16)",
+                    color: "#fff",
+                    background: "transparent",
+                    cursor: "pointer",
                     textDecoration: "none",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      background: "#22c55e",
-                      display: "inline-block",
-                      animation: "pulse-dot 2s ease-in-out infinite",
-                    }}
-                  />
-                  Hecho para hamburgueserías, pizzerías y dark kitchens
-                  <ChevronRight
-                    size={13}
-                    className="transition-transform duration-300 group-hover:translate-x-0.5"
-                    aria-hidden
-                  />
-                </a>
-              </motion.div>
-
-              {/* Anton headline */}
-              <h1
-                className="hero-heading mb-5 md:mb-7"
-                style={{
-                  fontFamily: "var(--font-anton)",
-                  fontSize: "clamp(3rem, 8.5vw, 7.5rem)",
-                  lineHeight: 0.93,
-                  letterSpacing: "0.01em",
-                  color: "#fff",
-                  fontWeight: 400,
-                  margin: "0 0 1.25rem",
-                }}
-              >
-                <motion.span style={{ display: "block" }} {...fadeUp(0.08)}>
-                  Tu carta,
-                </motion.span>
-                <motion.span style={{ display: "block" }} {...fadeUp(0.16)}>
-                  <span className="gradient-text-animate">online</span>
-                </motion.span>
-                <motion.span style={{ display: "block" }} {...fadeUp(0.24)}>
-                  en minutos.
-                </motion.span>
-              </h1>
-
-              <motion.p
-                {...fadeUp(0.34)}
-                className="mb-8 md:mb-10"
-                style={{
-                  fontSize: "clamp(0.95rem, 3.5vw, 1.1rem)",
-                  lineHeight: 1.7,
-                  color: "var(--dash-muted)",
-                  maxWidth: 450,
-                  textWrap: "pretty",
-                }}
-              >
-                Tu menú digital en minutos, pedidos directo a tu WhatsApp. Sin
-                comisiones, sin módulos, sin costos en dólares. Todo incluido en
-                un precio en pesos.
-              </motion.p>
-
-              <motion.div {...fadeUp(0.43)} className="mb-6">
-                <div className="hero-cta-group flex flex-wrap gap-3 mb-3">
-                  <motion.button
-                    onClick={() =>
-                      window.open(
-                        "https://wa.me/542994247985?text=" +
-                          encodeURIComponent(
-                            "Hola! Me interesa Takefyy para mi negocio 🚀",
-                          ),
-                        "_blank",
-                      )
-                    }
-                    className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
-                    style={{
-                      background: "var(--accent)",
-                      border: "none",
-                      cursor: "pointer",
-                      position: "relative",
-                    }}
-                    whileHover={{
-                      scale: 1.05,
-                      filter: "brightness(1.12)",
-                      boxShadow: "0 6px 32px rgba(255,107,53,0.45)",
-                    }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  >
-                    Empezar gratis →
-                  </motion.button>
-                  <motion.a
-                    href="/larryssburgers"
-                    className="rounded-full px-7 py-3.5 text-sm font-semibold"
-                    style={{
-                      border: "1.5px solid rgba(255,255,255,0.16)",
-                      color: "#fff",
-                      background: "transparent",
-                      cursor: "pointer",
-                      textDecoration: "none",
-                      display: "inline-flex",
-                      alignItems: "center",
-                    }}
-                    whileHover={{
-                      background: "rgba(255,255,255,0.07)",
-                      borderColor: "rgba(255,255,255,0.3)",
-                    }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  >
-                    Ver demo
-                  </motion.a>
-                </div>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: "rgba(240,237,232,0.4)",
-                    margin: 0,
-                    display: "flex",
+                    display: "inline-flex",
                     alignItems: "center",
-                    gap: 6,
                   }}
+                  whileHover={{
+                    background: "rgba(255,255,255,0.07)",
+                    borderColor: "rgba(255,255,255,0.3)",
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
-                  <Check
-                    size={11}
-                    style={{ color: "#22c55e", flexShrink: 0 }}
-                  />
-                  Sin tarjeta de crédito · Setup en 3 minutos · Cancelás cuando
-                  querés
-                </p>
-              </motion.div>
-            </div>
+                  Ver demo
+                </motion.a>
+              </div>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "rgba(240,237,232,0.4)",
+                  margin: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                <Check size={11} style={{ color: "#22c55e", flexShrink: 0 }} />
+                Sin tarjeta de crédito · Setup en 3 minutos · Cancelás cuando
+                querés
+              </p>
+            </motion.div>
           </div>
-        </section>
-
-
+        </div>
+      </section>
 
       {/* ── MARQUEE ─────────────────────────────────────────────────────────── */}
       <div
