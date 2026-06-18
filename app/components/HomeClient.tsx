@@ -2033,26 +2033,12 @@ export default function HomeClient({
                      relative to THIS SECTION (full viewport height + right edge)
         ─────────────────────────────────────────────────────────────────────── */}
         <div className="hero-robot" style={{ zIndex: 1 }}>
-          {/* Spline 3D robot */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-            }}
-          >
-            <motion.div
-              {...fadeUp(0.4)}
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 2,
-              }}
-            >
-              <SplineScene
-                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-                className="w-full h-full"
-              />
-            </motion.div>
+          {/* Spline 3D robot — single wrapper, no transform stacking */}
+          <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
+            <SplineScene
+              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+              className="w-full h-full"
+            />
           </div>
 
           {/* Takefyy logo — centrado en el robot */}
