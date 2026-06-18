@@ -635,7 +635,7 @@ a {
   height: 72vw;
   max-height: 420px;
   flex-shrink: 0;
-  pointer-events: none;
+  /* pointer-events intentionally NOT disabled — Spline needs mouse events */
 }
 /* Desktop: absolute overlay on right half of section */
 @media (min-width: 768px) {

@@ -2000,7 +2000,6 @@ export default function HomeClient({
                   position: "absolute",
                   inset: 0,
                   zIndex: 2,
-                  pointerEvents: "none",
                 }}
               >
                 <SplineScene
