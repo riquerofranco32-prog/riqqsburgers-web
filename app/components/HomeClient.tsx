@@ -1940,6 +1940,7 @@ export default function HomeClient({
           display: "flex",
           alignItems: "center",
           paddingTop: 64,
+          paddingBottom: 40,
         }}
       >
         {/* Shader background */}
@@ -2133,18 +2134,20 @@ export default function HomeClient({
 
             {/* Right col — interactive 3D robot */}
             <div
-              className="hidden md:flex justify-center items-end"
-              style={{ position: "relative", height: 680, overflow: "visible" }}
+              className="hidden md:flex justify-center items-center"
+              style={{
+                position: "relative",
+                height: "calc(100vh - 80px)",
+                minHeight: 700,
+                maxHeight: 900,
+              }}
             >
-              {/* Robot */}
+              {/* Robot — llena el contenedor limpiamente sin overflow */}
               <motion.div
                 {...fadeUp(0.4)}
                 style={{
                   position: "absolute",
-                  bottom: -60,
-                  left: 0,
-                  right: 0,
-                  height: "105%",
+                  inset: 0,
                   zIndex: 2,
                 }}
               >
