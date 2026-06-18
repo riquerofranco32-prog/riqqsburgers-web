@@ -26,5 +26,9 @@ interface SplineSceneProps {
 }
 
 export function SplineScene({ scene, className }: SplineSceneProps) {
-  return <Spline scene={scene} className={className} />;
+  return (
+    <div className={`spline-wrapper ${className ?? ""}`}>
+      <Spline scene={scene} />
+    </div>
+  );
 }
