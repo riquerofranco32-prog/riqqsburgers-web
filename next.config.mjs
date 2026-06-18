@@ -23,8 +23,26 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  compress: true, // gzip/brotli compression
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      // Security headers for all routes
+      { source: "/(.*)", headers: securityHeaders },
+      // Aggressive cache for hashed static assets (JS, CSS, fonts)
+      {
+        source: "/_next/static/(.*)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      // Cache images for 30 days
+      {
+        source: "/(.*)\\.(png|jpg|jpeg|gif|webp|svg|ico)",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=2592000, stale-while-revalidate=86400" },
+        ],
+      },
+    ];
   },
   images: {
     remotePatterns: [
@@ -33,6 +51,11 @@ const nextConfig = {
       { protocol: 'https', hostname: 'i.postimg.cc' },
       { protocol: 'https', hostname: '*.supabase.co' },
     ],
+    formats: ['image/avif', 'image/webp'], // prefer avif → smaller files
+  },
+  experimental: {
+    // Tree-shake icon libs — only import what's actually used
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 };
 export default nextConfig;

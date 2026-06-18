@@ -72,8 +72,13 @@ export function WebGLShader({
     `;
 
     refs.scene = new THREE.Scene();
-    refs.renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
-    refs.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    refs.renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      powerPreference: "low-power", // hint GPU to use integrated graphics
+    });
+    // Cap at 1x — the shader is decorative, no need for retina resolution
+    refs.renderer.setPixelRatio(1);
     refs.renderer.setClearColor(new THREE.Color(0x000000));
     refs.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, -1);
 
@@ -117,12 +122,16 @@ export function WebGLShader({
     const ro = new ResizeObserver(handleResize);
     ro.observe(canvas);
 
+    // Throttle to ~30fps — shader is decorative, 60fps is overkill
+    let frame = 0;
     const animate = () => {
-      if (refs.uniforms) (refs.uniforms.time.value as number) += 0.01;
+      refs.animationId = requestAnimationFrame(animate);
+      frame++;
+      if (frame % 2 !== 0) return; // skip every other frame → ~30fps
+      if (refs.uniforms) (refs.uniforms.time.value as number) += 0.02;
       if (refs.renderer && refs.scene && refs.camera) {
         refs.renderer.render(refs.scene, refs.camera);
       }
-      refs.animationId = requestAnimationFrame(animate);
     };
     animate();
 

@@ -8,9 +8,14 @@ import {
   useTransform,
   useSpring,
 } from "framer-motion";
+import dynamic from "next/dynamic";
 import { SplineScene } from "@/components/ui/splite";
 import Link from "next/link";
-import HeroShader from "@/components/HeroShader";
+// Lazy-load the WebGL shader so it never blocks the hero render
+const HeroShader = dynamic(() => import("@/components/HeroShader"), {
+  ssr: false,
+  loading: () => null,
+});
 import {
   ShoppingCart,
   CheckCircle,

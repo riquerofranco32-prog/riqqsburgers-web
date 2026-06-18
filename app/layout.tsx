@@ -36,6 +36,7 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500"],
   variable: "--font-mono",
   display: "swap",
+  preload: false, // only used in code blocks, not critical path
 });
 
 const playfair = Playfair_Display({
@@ -43,6 +44,7 @@ const playfair = Playfair_Display({
   weight: ["700", "800"],
   variable: "--font-playfair",
   display: "swap",
+  preload: false, // only used in CatalogClient tenant theme
 });
 
 const dmSans = DM_Sans({
@@ -50,6 +52,7 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
   variable: "--font-dm",
   display: "swap",
+  preload: false, // only used in CatalogClient tenant theme
 });
 
 export const viewport: Viewport = {
