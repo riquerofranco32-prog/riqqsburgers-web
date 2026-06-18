@@ -29,6 +29,7 @@ const config: Config = {
         "spin-slow": "spin 5s linear infinite",
         "fade-up": "fadeUp 0.2s ease-out forwards",
         "glow-pulse": "glowPulse 2s ease-in-out infinite",
+        spotlight: "spotlight 2s ease .75s 1 forwards",
       },
       keyframes: {
         fadeUp: {
@@ -38,6 +39,10 @@ const config: Config = {
         glowPulse: {
           "0%, 100%": { boxShadow: "0 0 8px rgba(255,107,53,0.3)" },
           "50%": { boxShadow: "0 0 20px rgba(255,107,53,0.6)" },
+        },
+        spotlight: {
+          "0%": { opacity: "0", transform: "translate(-72%, -62%) scale(0.5)" },
+          "100%": { opacity: "1", transform: "translate(-50%, -40%) scale(1)" },
         },
       },
       boxShadow: {

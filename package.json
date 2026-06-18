@@ -12,6 +12,8 @@
   "dependencies": {
     "@next/third-parties": "^14.2.35",
     "@radix-ui/react-slot": "^1.2.5",
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.12.97",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
     "@types/three": "^0.184.1",
@@ -26,6 +28,7 @@
     "recharts": "^3.8.1",
     "shaders": "^2.5.128",
     "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
     "three": "^0.184.0",
     "xlsx": "^0.18.5"
   },
