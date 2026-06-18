@@ -1614,8 +1614,6 @@ export default function HomeClient({
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
-  const robotRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>(0);
   const isHoveringHero = useRef(false);
 
   useEffect(() => {
@@ -1659,17 +1657,12 @@ export default function HomeClient({
 
   function handleHeroMouseMove(e: React.MouseEvent<HTMLElement>) {
     isHoveringHero.current = true;
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(() => {
-      const rect = heroRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-      if (glowRef.current) {
-        glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
-        glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
-      }
-    });
+    const rect = heroRef.current?.getBoundingClientRect();
+    if (!rect || !glowRef.current) return;
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
+    glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
   }
 
   function handleHeroMouseLeave() {
