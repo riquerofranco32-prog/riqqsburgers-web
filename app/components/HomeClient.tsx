@@ -1669,22 +1669,11 @@ export default function HomeClient({
         glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
         glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
       }
-      if (robotRef.current) {
-        const ry = (x - 0.5) * 22;
-        const rx = -(y - 0.5) * 14;
-        robotRef.current.style.transition = "transform 0.08s ease-out";
-        robotRef.current.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
-      }
     });
   }
 
   function handleHeroMouseLeave() {
     isHoveringHero.current = false;
-    if (robotRef.current) {
-      robotRef.current.style.transition = "transform 0.8s ease";
-      robotRef.current.style.transform =
-        "perspective(900px) rotateX(0deg) rotateY(0deg)";
-    }
   }
 
   function scrollTo(id: string) {
@@ -2042,13 +2031,11 @@ export default function HomeClient({
                      relative to THIS SECTION (full viewport height + right edge)
         ─────────────────────────────────────────────────────────────────────── */}
         <div className="hero-robot" style={{ zIndex: 1 }}>
-          {/* Spline 3D robot — wrapper rotates to follow mouse */}
+          {/* Spline 3D robot */}
           <div
-            ref={robotRef}
             style={{
               position: "absolute",
               inset: 0,
-              transformStyle: "preserve-3d",
             }}
           >
             <motion.div
@@ -2073,8 +2060,8 @@ export default function HomeClient({
             transition={{ duration: 0.7, delay: 0.7, ease }}
             style={{
               position: "absolute",
-              top: "50%",
-              left: "50%",
+              top: "48%",
+              left: "32%",
               transform: "translate(-50%, -50%)",
               zIndex: 10,
               pointerEvents: "none",
