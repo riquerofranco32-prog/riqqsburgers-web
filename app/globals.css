@@ -1723,3 +1723,101 @@ a {
   height: 100% !important;
   display: block;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE LANDING — UX & LAYOUT IMPROVEMENTS  (max-width: 767px)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* ── Hero text — tighten up font size for small screens ─────────────────── */
+  .hero-heading {
+    font-size: clamp(2.6rem, 13vw, 3.8rem) !important;
+    line-height: 0.95 !important;
+  }
+
+  /* ── All landing sections — halve vertical padding ───────────────────────── */
+  section[style*="padding: \"100px 0\""],
+  section[style*="padding: \"80px 0\""] {
+    padding-top: 56px !important;
+    padding-bottom: 56px !important;
+  }
+
+  /* ── CTA buttons — full width on mobile ─────────────────────────────────── */
+  .hero-cta-group {
+    flex-direction: column !important;
+  }
+  .hero-cta-group > * {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* ── Bento cards — reduce inner padding on mobile ───────────────────────── */
+  .bento-card {
+    padding: 24px 20px !important;
+    border-radius: 20px !important;
+  }
+
+  /* ── Stats grid — compact ────────────────────────────────────────────────── */
+  .stats-cell {
+    padding: 18px 10px !important;
+  }
+
+  /* ── Feature tags — smaller on mobile ───────────────────────────────────── */
+  .feature-tag {
+    font-size: 12px !important;
+    padding: 5px 11px !important;
+  }
+
+  /* ── Pricing cards — full width ─────────────────────────────────────────── */
+  .pricing-stack {
+    flex-direction: column !important;
+  }
+
+  /* ── Testimonials — hide horizontal overflow hint ───────────────────────── */
+  .testimonial-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Section headings — tighter ─────────────────────────────────────────── */
+  .section-heading {
+    font-size: clamp(1.8rem, 7vw, 2.6rem) !important;
+    line-height: 1.05 !important;
+  }
+
+  /* ── Reduce mb-16 / mb-12 heavy spacing in mobile sections ─────────────── */
+  .section-header {
+    margin-bottom: 32px !important;
+  }
+}
+
+/* ── Mobile touch micro-improvements ────────────────────────────────────── */
+@media (max-width: 767px) {
+
+  /* Ensure all interactive elements have generous tap targets */
+  button, a[href], [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Remove hover-only effects (they flicker on touch) */
+  .restaurant-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: rgba(255, 107, 53, 0.15);
+  }
+
+  /* Marquee — slightly faster on mobile (less lag) */
+  .marquee-track {
+    animation-duration: 22s !important;
+  }
+
+  /* FAQ items — bigger tap area */
+  .faq-item button {
+    padding: 18px 0 !important;
+  }
+
+  /* Scroll to top of section when navigating */
+  html {
+    scroll-padding-top: 64px;
+  }
+}
