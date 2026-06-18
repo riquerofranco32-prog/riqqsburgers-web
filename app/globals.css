@@ -399,6 +399,12 @@ a,
   user-select: none;
 }
 
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
 /* ── will-change en elementos animados ───────────────────────────────────── */
 .product-sheet,
 .cart-drawer,
@@ -661,7 +667,6 @@ a {
   content-visibility: auto;
   contain-intrinsic-size: 0 600px;
 }
-
 
 /* ── Animated gradient text ─────────────────────────────────────────────── */
 @keyframes gradientText {
@@ -1311,13 +1316,27 @@ a {
   transform: translateY(0);
 }
 /* Stagger delays para grid */
-.card-reveal:nth-child(2) { transition-delay: 0.04s; }
-.card-reveal:nth-child(3) { transition-delay: 0.08s; }
-.card-reveal:nth-child(4) { transition-delay: 0.12s; }
-.card-reveal:nth-child(5) { transition-delay: 0.16s; }
-.card-reveal:nth-child(6) { transition-delay: 0.20s; }
-.card-reveal:nth-child(7) { transition-delay: 0.24s; }
-.card-reveal:nth-child(8) { transition-delay: 0.26s; }
+.card-reveal:nth-child(2) {
+  transition-delay: 0.04s;
+}
+.card-reveal:nth-child(3) {
+  transition-delay: 0.08s;
+}
+.card-reveal:nth-child(4) {
+  transition-delay: 0.12s;
+}
+.card-reveal:nth-child(5) {
+  transition-delay: 0.16s;
+}
+.card-reveal:nth-child(6) {
+  transition-delay: 0.2s;
+}
+.card-reveal:nth-child(7) {
+  transition-delay: 0.24s;
+}
+.card-reveal:nth-child(8) {
+  transition-delay: 0.26s;
+}
 
 /* ── Search bar glow on focus ────────────────────────────────────────────── */
 .search-input-glow:focus {
@@ -1517,8 +1536,14 @@ a {
   animation: immersiveImgIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @keyframes immersiveImgIn {
-  from { opacity: 0; transform: scale(0.9) translateY(16px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 /* Info card at bottom — glassmorphism */
@@ -1534,8 +1559,14 @@ a {
   animation-delay: 0.06s;
 }
 @keyframes immersiveCardIn {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .immersive-badge-pill {
@@ -1594,7 +1625,9 @@ a {
   white-space: nowrap;
   letter-spacing: -0.01em;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
-  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s;
   -webkit-tap-highlight-color: transparent;
 }
 .immersive-add-btn:active {
@@ -1691,7 +1724,9 @@ a {
   cursor: pointer;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
+  transition:
+    transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.15s;
   flex-shrink: 0;
 }
 .explore-mode-btn:active {
@@ -1711,7 +1746,6 @@ a {
     box-shadow 0.3s ease !important;
 }
 
-
 /* Spline 3D scene — force canvas to fill wrapper */
 .spline-wrapper,
 .spline-wrapper > div {
@@ -1728,7 +1762,6 @@ a {
    MOBILE LANDING — UX & LAYOUT IMPROVEMENTS  (max-width: 767px)
    ═══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
-
   /* ── Hero text — tighten up font size for small screens ─────────────────── */
   .hero-heading {
     font-size: clamp(2.6rem, 13vw, 3.8rem) !important;
@@ -1736,8 +1769,8 @@ a {
   }
 
   /* ── All landing sections — halve vertical padding ───────────────────────── */
-  section[style*="padding: \"100px 0\""],
-  section[style*="padding: \"80px 0\""] {
+  section[style*='padding: "100px 0"'],
+  section[style*='padding: "80px 0"'] {
     padding-top: 56px !important;
     padding-bottom: 56px !important;
   }
@@ -1793,9 +1826,10 @@ a {
 
 /* ── Mobile touch micro-improvements ────────────────────────────────────── */
 @media (max-width: 767px) {
-
   /* Ensure all interactive elements have generous tap targets */
-  button, a[href], [role="button"] {
+  button,
+  a[href],
+  [role="button"] {
     min-height: 44px;
   }
 

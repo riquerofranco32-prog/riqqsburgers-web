@@ -1871,6 +1871,8 @@ export default function HomeClient({
                       background: "none",
                       border: "none",
                       borderRadius: 0,
+                      WebkitAppearance: "none",
+                      appearance: "none",
                       borderBottom: "1px solid rgba(255,255,255,0.05)",
                       cursor: "pointer",
                       padding: "18px 24px",
