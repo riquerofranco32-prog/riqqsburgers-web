@@ -400,8 +400,8 @@ a,
 }
 
 button {
-  -webkit-appearance: none;
-  appearance: none;
+  -webkit-appearance: none !important;
+  appearance: none !important;
   border-radius: 0;
 }
 
@@ -1826,8 +1826,10 @@ a {
 
 /* ── Mobile touch micro-improvements ────────────────────────────────────── */
 @media (max-width: 767px) {
-  /* Ensure all interactive elements have generous tap targets */
-  button,
+  /* Solo aplicar min-height a links y elements con rol button.
+     Los <button> no lo necesitan: los que tienen sizing fijo (steppers,
+     circulares, pills) se deforman con border-radius alto si se fuerza
+     una altura mínima. Los CTAs grandes ya tienen padding suficiente. */
   a[href],
   [role="button"] {
     min-height: 44px;

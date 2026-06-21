@@ -1721,6 +1721,8 @@ export default function HomeClient({
                   minHeight: 44,
                   display: "flex",
                   alignItems: "center",
+                  WebkitAppearance: "none",
+                  appearance: "none",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.color = "var(--dash-text)")
@@ -1791,6 +1793,8 @@ export default function HomeClient({
                 background: "var(--accent)",
                 border: "none",
                 cursor: "pointer",
+                WebkitAppearance: "none",
+                appearance: "none",
               }}
               whileHover={{ scale: 1.05, filter: "brightness(1.1)" }}
               whileTap={{ scale: 0.97 }}
@@ -1804,6 +1808,8 @@ export default function HomeClient({
                 background: "none",
                 border: "none",
                 cursor: "pointer",
+                WebkitAppearance: "none",
+                appearance: "none",
               }}
               onClick={() => setMobileOpen((v) => !v)}
               aria-label="Menu"
@@ -2186,6 +2192,8 @@ export default function HomeClient({
                     border: "none",
                     cursor: "pointer",
                     position: "relative",
+                    WebkitAppearance: "none",
+                    appearance: "none",
                   }}
                   whileHover={{
                     scale: 1.05,
@@ -4612,6 +4620,8 @@ export default function HomeClient({
                 cursor: "pointer",
                 padding: "18px 52px",
                 fontSize: 18,
+                WebkitAppearance: "none",
+                appearance: "none",
               }}
               whileHover={{
                 scale: 1.05,

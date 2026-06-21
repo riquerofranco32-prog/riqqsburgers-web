@@ -77,22 +77,26 @@ export default function FavoritesSheet({
               right: 0,
               zIndex: 201,
               background: SURFACE,
-              borderRadius: "20px 20px 0 0",
-              maxHeight: "80vh",
+              borderRadius: "24px 24px 0 0",
+              maxHeight: "82vh",
               display: "flex",
               flexDirection: "column",
-              boxShadow: "0 -8px 40px rgba(0,0,0,0.18)",
+              boxShadow:
+                "0 -12px 60px rgba(0,0,0,0.28), 0 -1px 0 rgba(255,255,255,0.06)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
             }}
           >
             {/* Handle */}
             <div
               style={{
-                width: 36,
+                width: 40,
                 height: 4,
                 borderRadius: 2,
                 background: BORDER,
-                margin: "12px auto 0",
+                margin: "14px auto 0",
                 flexShrink: 0,
+                opacity: 0.6,
               }}
             />
 
@@ -102,41 +106,60 @@ export default function FavoritesSheet({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "16px 20px 14px",
+                padding: "18px 20px 16px",
                 borderBottom: `1px solid ${BORDER}`,
                 flexShrink: 0,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Heart size={18} style={{ color: "#EF4444" }} fill="#EF4444" />
-                <span style={{ fontWeight: 700, fontSize: 16, color: TEXT1 }}>
-                  Mis favoritos
-                </span>
-                {favorites.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: "#EF444412",
+                    border: "1px solid #EF444425",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Heart
+                    size={17}
+                    style={{ color: "#EF4444" }}
+                    fill="#EF4444"
+                  />
+                </div>
+                <div>
                   <span
                     style={{
-                      fontSize: 11,
                       fontWeight: 700,
-                      background: "#EF444418",
-                      color: "#EF4444",
-                      border: "1px solid #EF444430",
-                      borderRadius: 999,
-                      padding: "1px 7px",
+                      fontSize: 16,
+                      color: TEXT1,
+                      display: "block",
+                      lineHeight: 1.2,
                     }}
                   >
-                    {favorites.length}
+                    Mis favoritos
                   </span>
-                )}
+                  {favorites.length > 0 && (
+                    <span style={{ fontSize: 12, color: TEXTM }}>
+                      {favorites.length}{" "}
+                      {favorites.length === 1 ? "producto" : "productos"}
+                    </span>
+                  )}
+                </div>
               </div>
               <button
                 onClick={onClose}
                 aria-label="Cerrar favoritos"
                 style={{
-                  width: 32,
-                  height: 32,
+                  width: 34,
+                  height: 34,
                   borderRadius: "50%",
                   background: SURFACE2,
-                  border: "none",
+                  border: `1px solid ${BORDER}`,
                   WebkitAppearance: "none",
                   appearance: "none",
                   cursor: "pointer",
@@ -146,13 +169,13 @@ export default function FavoritesSheet({
                   WebkitTapHighlightColor: "transparent",
                 }}
               >
-                <X size={16} color={TEXT2} />
+                <X size={15} color={TEXT2} />
               </button>
             </div>
 
             {/* Content */}
             <div
-              style={{ flex: 1, overflowY: "auto", padding: "12px 16px 24px" }}
+              style={{ flex: 1, overflowY: "auto", padding: "14px 16px 32px" }}
             >
               {favorites.length === 0 ? (
                 <div
@@ -161,44 +184,52 @@ export default function FavoritesSheet({
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "48px 24px",
+                    padding: "52px 24px",
                     textAlign: "center",
-                    gap: 12,
+                    gap: 16,
                   }}
                 >
                   <div
                     style={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: "50%",
+                      width: 72,
+                      height: 72,
+                      borderRadius: 20,
                       background: SURFACE2,
+                      border: `1px solid ${BORDER}`,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    <Heart size={28} strokeWidth={1.5} color={TEXTM} />
+                    <Heart size={30} strokeWidth={1.5} color={TEXTM} />
                   </div>
                   <div>
                     <p
                       style={{
-                        fontSize: 15,
+                        fontSize: 16,
                         fontWeight: 700,
-                        color: TEXT2,
+                        color: TEXT1,
                         marginBottom: 6,
                       }}
                     >
                       Sin favoritos aún
                     </p>
-                    <p style={{ fontSize: 13, color: TEXTM, lineHeight: 1.5 }}>
-                      Guardá tus productos favoritos tocando el ❤️ en cada
-                      producto
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: TEXTM,
+                        lineHeight: 1.6,
+                        maxWidth: 220,
+                        margin: "0 auto",
+                      }}
+                    >
+                      Tocá el ❤️ en cualquier producto para guardarlo acá
                     </p>
                   </div>
                 </div>
               ) : (
                 <div
-                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
                 >
                   <AnimatePresence initial={false}>
                     {favorites.map((product) => (
@@ -212,19 +243,21 @@ export default function FavoritesSheet({
                           display: "flex",
                           alignItems: "center",
                           gap: 12,
-                          padding: "10px 12px",
+                          padding: "12px 14px",
                           background: SURFACE2,
-                          borderRadius: 14,
+                          borderRadius: 16,
                           border: `1px solid ${BORDER}`,
+                          backdropFilter: "blur(8px)",
+                          WebkitBackdropFilter: "blur(8px)",
                         }}
                       >
                         {/* Image or placeholder */}
                         <div
                           style={{
                             flexShrink: 0,
-                            width: 56,
-                            height: 56,
-                            borderRadius: 10,
+                            width: 60,
+                            height: 60,
+                            borderRadius: 12,
                             overflow: "hidden",
                             background: `${accent}14`,
                             display: "flex",
@@ -246,7 +279,7 @@ export default function FavoritesSheet({
                           ) : (
                             <span
                               style={{
-                                fontSize: 22,
+                                fontSize: 24,
                                 fontWeight: 900,
                                 color: accent + "60",
                                 userSelect: "none",
@@ -261,23 +294,25 @@ export default function FavoritesSheet({
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p
                             style={{
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: 700,
                               color: TEXT1,
-                              margin: "0 0 2px",
+                              margin: "0 0 3px",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
+                              letterSpacing: "-0.01em",
                             }}
                           >
                             {product.name}
                           </p>
                           <p
                             style={{
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: 800,
                               color: accent,
                               margin: 0,
+                              fontVariantNumeric: "tabular-nums",
                             }}
                           >
                             {fmt(product.price)}
@@ -289,7 +324,7 @@ export default function FavoritesSheet({
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 6,
+                            gap: 8,
                           }}
                         >
                           {/* Remove from favorites */}
@@ -298,11 +333,11 @@ export default function FavoritesSheet({
                             onClick={() => onToggleFavorite(product)}
                             whileTap={{ scale: 0.82 }}
                             style={{
-                              width: 34,
-                              height: 34,
+                              width: 36,
+                              height: 36,
                               borderRadius: "50%",
-                              background: "#EF444418",
-                              border: "none",
+                              background: "#EF444415",
+                              border: "1px solid #EF444425",
                               WebkitAppearance: "none",
                               appearance: "none",
                               cursor: "pointer",
@@ -321,8 +356,8 @@ export default function FavoritesSheet({
                             onClick={() => onAddToCart(product)}
                             whileTap={{ scale: 0.82 }}
                             style={{
-                              width: 34,
-                              height: 34,
+                              width: 36,
+                              height: 36,
                               borderRadius: "50%",
                               background: accent,
                               border: "none",
@@ -333,7 +368,7 @@ export default function FavoritesSheet({
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              boxShadow: `0 2px 8px ${accent}44`,
+                              boxShadow: `0 3px 10px ${accent}50`,
                               WebkitTapHighlightColor: "transparent",
                             }}
                           >
