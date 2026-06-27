@@ -15,6 +15,7 @@ import {
   ArrowLeftFromLine,
   ChevronLeft,
   ChevronRight,
+  QrCode,
   type LucideIcon,
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -34,6 +35,7 @@ const NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
   { href: "/productos", label: "Productos", icon: Package },
   { href: "/categorias", label: "Categorías", icon: Tag },
+  { href: "/qr", label: "Código QR", icon: QrCode },
   { href: "/configuracion", label: "Configuración", icon: Settings },
   { href: "/plan", label: "Mi Plan", icon: Crown },
 ];

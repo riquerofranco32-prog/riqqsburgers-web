@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { createServerClient } from "@/lib/supabase";
 import type { Tenant } from "@/types/supabase";
 import BackButton from "@/components/BackButton";
+import QRActions from "@/components/admin/QRActions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Código QR" };
@@ -41,9 +42,12 @@ export default async function QRPage({
         gap: 24,
       }}
     >
-      <BackButton href={`/${slug}/admin`} label="Dashboard" />
+      {/* BackButton oculto en impresión */}
+      <div className="no-print">
+        <BackButton href={`/${slug}/admin`} label="Dashboard" />
+      </div>
 
-      <div>
+      <div className="no-print">
         <h1
           style={{
             fontSize: 22,
@@ -62,7 +66,7 @@ export default async function QRPage({
 
       {/* QR Card — diseño imprimible */}
       <div
-        id="qr-card"
+        id="qr-card-print"
         style={{
           background: "#FFFAF7",
           border: `2px solid ${accent}`,
@@ -134,79 +138,32 @@ export default async function QRPage({
         </p>
       </div>
 
-      {/* Acciones */}
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <a
-          href={qrApiUrl}
-          download={`qr-${slug}.png`}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "12px 20px",
-            borderRadius: 12,
-            background: accent,
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 600,
-            textDecoration: "none",
-            cursor: "pointer",
-          }}
-        >
-          Descargar PNG
-        </a>
-
-        <button
-          onClick={() => window.print()}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "12px 20px",
-            borderRadius: 12,
-            background: "var(--dash-surface-2)",
-            color: "var(--dash-text)",
-            border: "1px solid var(--dash-border)",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Imprimir
-        </button>
-
-        <button
-          onClick={() => {
-            navigator.clipboard.writeText(menuUrl).catch(() => {});
-          }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "12px 20px",
-            borderRadius: 12,
-            background: "var(--dash-surface-2)",
-            color: "var(--dash-text)",
-            border: "1px solid var(--dash-border)",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          Copiar link
-        </button>
+      {/* Acciones interactivas (Client Component) */}
+      <div className="no-print">
+        <QRActions
+          qrApiUrl={qrApiUrl}
+          menuUrl={menuUrl}
+          slug={slug}
+          accent={accent}
+        />
       </div>
 
-      {/* Print styles */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
+          .no-print { }
           @media print {
-            body > *:not(#qr-card) { display: none !important; }
-            #qr-card {
-              border: 2px solid #ccc !important;
+            .no-print { display: none !important; }
+            body { margin: 0; background: #fff; }
+            body > * { display: none !important; }
+            #qr-card-print {
+              display: flex !important;
+              position: fixed;
+              inset: 0;
+              margin: auto;
+              width: fit-content;
+              height: fit-content;
+              border-radius: 20px !important;
               page-break-inside: avoid;
             }
           }
