@@ -74,7 +74,12 @@ export default async function AdminLayout({
   if (!directAccess && !superAdminAccess) redirect("/login");
 
   return (
-    <AdminShell slug={slug} tenantName={tenant.name} tenantId={tenant.id}>
+    <AdminShell
+      slug={slug}
+      tenantName={tenant.name}
+      tenantId={tenant.id}
+      userEmail={user.email ?? ""}
+    >
       {children}
       <Toaster
         position="bottom-right"

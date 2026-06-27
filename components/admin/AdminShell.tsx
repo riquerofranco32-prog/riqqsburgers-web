@@ -26,6 +26,7 @@ interface AdminShellProps {
   tenantName: string;
   slug: string;
   tenantId: string;
+  userEmail: string;
 }
 
 const NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
@@ -48,6 +49,7 @@ interface DesktopNavLinksProps {
   collapsed: boolean;
   pathname: string;
   onLogout: () => void;
+  loggingOut: boolean;
 }
 
 function DesktopNavLinks({
@@ -56,6 +58,7 @@ function DesktopNavLinks({
   collapsed,
   pathname,
   onLogout,
+  loggingOut,
 }: DesktopNavLinksProps) {
   return (
     <>
@@ -188,6 +191,7 @@ function DesktopNavLinks({
         </Link>
         <button
           onClick={onLogout}
+          disabled={loggingOut}
           title={collapsed ? "Cerrar sesión" : undefined}
           style={{
             display: "flex",
@@ -200,20 +204,27 @@ function DesktopNavLinks({
             border: "none",
             borderRadius: 8,
             fontSize: 13,
-            color: "var(--dash-muted)",
-            cursor: "pointer",
+            color: loggingOut ? "#f87171" : "var(--dash-muted)",
+            cursor: loggingOut ? "default" : "pointer",
             whiteSpace: "nowrap",
             transition: "color 0.15s",
             WebkitTapHighlightColor: "transparent",
             userSelect: "none",
+            opacity: loggingOut ? 0.7 : 1,
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.color = "var(--dash-muted)")
-          }
+          onMouseEnter={(e) => {
+            if (!loggingOut) e.currentTarget.style.color = "#f87171";
+          }}
+          onMouseLeave={(e) => {
+            if (!loggingOut) e.currentTarget.style.color = "var(--dash-muted)";
+          }}
         >
-          <LogOut size={14} strokeWidth={1.8} />
-          {!collapsed && "Cerrar sesión"}
+          <LogOut
+            size={14}
+            strokeWidth={1.8}
+            style={loggingOut ? { animation: "spin 1s linear infinite" } : {}}
+          />
+          {!collapsed && (loggingOut ? "Cerrando..." : "Cerrar sesión")}
         </button>
       </div>
     </>
@@ -225,11 +236,13 @@ export default function AdminShell({
   tenantName,
   slug,
   tenantId,
+  userEmail,
 }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Lock body scroll while mobile dropdown menu is open
   useEffect(() => {
@@ -240,9 +253,16 @@ export default function AdminShell({
   }, [mobileOpen]);
 
   async function handleLogout() {
-    const supabase = createSupabaseBrowser();
-    await supabase.auth.signOut();
-    router.push("/login");
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      router.push("/login");
+    } catch {
+      setLoggingOut(false);
+    }
   }
 
   function closeMobile() {
@@ -453,6 +473,21 @@ export default function AdminShell({
             gap: 8,
           }}
         >
+          {userEmail && (
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--dash-muted)",
+                textAlign: "center",
+                padding: "0 4px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {userEmail}
+            </p>
+          )}
           <div style={{ display: "flex", gap: 8 }}>
             <Link
               href="/admin"
@@ -503,6 +538,7 @@ export default function AdminShell({
           </div>
           <button
             onClick={handleLogout}
+            disabled={loggingOut}
             style={{
               display: "flex",
               alignItems: "center",
@@ -516,11 +552,15 @@ export default function AdminShell({
               fontSize: 13,
               fontWeight: 600,
               color: "#f87171",
-              cursor: "pointer",
+              cursor: loggingOut ? "default" : "pointer",
+              opacity: loggingOut ? 0.7 : 1,
             }}
           >
-            <LogOut size={14} />
-            Cerrar sesión
+            <LogOut
+              size={14}
+              style={loggingOut ? { animation: "spin 1s linear infinite" } : {}}
+            />
+            {loggingOut ? "Cerrando..." : "Cerrar sesión"}
           </button>
         </div>
       </div>
@@ -636,6 +676,20 @@ export default function AdminShell({
                 >
                   {tenantName}
                 </p>
+                {userEmail && (
+                  <p
+                    style={{
+                      color: "var(--dash-muted)",
+                      fontSize: 10,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      marginTop: 1,
+                    }}
+                  >
+                    {userEmail}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -647,6 +701,7 @@ export default function AdminShell({
           collapsed={collapsed}
           pathname={pathname}
           onLogout={handleLogout}
+          loggingOut={loggingOut}
         />
       </aside>
 
@@ -745,6 +800,10 @@ export default function AdminShell({
             margin-left: ${collapsed ? 64 : 240}px;
             transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
       <main className="admin-shell-main">{children}</main>
