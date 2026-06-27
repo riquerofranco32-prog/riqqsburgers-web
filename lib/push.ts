@@ -1,12 +1,6 @@
 import webpush from "web-push";
 import { createServerClient } from "@/lib/supabase";
 
-webpush.setVapidDetails(
-  process.env.VAPID_EMAIL!,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-);
-
 interface PushPayload {
   title: string;
   body: string;
@@ -17,6 +11,12 @@ export async function sendPushToTenant(
   tenantId: string,
   payload: PushPayload,
 ): Promise<void> {
+  webpush.setVapidDetails(
+    process.env.VAPID_EMAIL!,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!,
+  );
+
   const db = createServerClient();
   const { data: subs } = await db
     .from("push_subscriptions")
