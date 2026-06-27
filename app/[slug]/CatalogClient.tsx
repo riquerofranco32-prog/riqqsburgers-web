@@ -74,6 +74,11 @@ function vibrate(ms = 40) {
   }
 }
 
+function normalize(str: string) {
+  // eslint-disable-next-line no-misleading-character-class
+  return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
 function hexToLuma(hex: string) {
   const c = hex.replace("#", "").padEnd(6, "0");
   const r = parseInt(c.slice(0, 2), 16);
@@ -835,6 +840,7 @@ export default function CatalogClient({
   const catBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const catSectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const isScrollingToCat = useRef(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [catPillsAtEnd, setCatPillsAtEnd] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const heroRafRef = useRef<number>(0);
@@ -861,6 +867,7 @@ export default function CatalogClient({
   const [selectedExtraDraft, setSelectedExtraDraft] =
     useState<SelectedExtra | null>(null);
   const [showSearch, setShowSearch] = useState(false);
+  const [searchForced, setSearchForced] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [sheetImageLoaded, setSheetImageLoaded] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
@@ -1411,11 +1418,13 @@ export default function CatalogClient({
         _catName: c.name,
       })),
     )
-    .filter(
-      (i) =>
-        i.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        i.description?.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    .filter((i) => {
+      const q = normalize(searchQuery);
+      return (
+        normalize(i.name).includes(q) ||
+        (i.description && normalize(i.description).includes(q))
+      );
+    });
 
   // ProductCard is defined outside as a memo'd component — see top of file
   // Helpers bound to this component instance, passed as props to ProductCard
@@ -1966,12 +1975,13 @@ export default function CatalogClient({
                 boxShadow: `0 1px 0 ${BORDER}`,
               }}
             >
-              {/* Search — aparece al hacer scroll >80px */}
+              {/* Search — aparece al hacer scroll >80px o al activar botón */}
               <div
                 style={{
                   overflow: "hidden",
-                  maxHeight: showSearch || !!searchQuery ? 62 : 0,
-                  opacity: showSearch || !!searchQuery ? 1 : 0,
+                  maxHeight:
+                    showSearch || searchForced || !!searchQuery ? 62 : 0,
+                  opacity: showSearch || searchForced || !!searchQuery ? 1 : 0,
                   transition:
                     "max-height 0.25s cubic-bezier(0.22,1,0.36,1), opacity 0.2s ease",
                 }}
@@ -1996,6 +2006,7 @@ export default function CatalogClient({
                       }}
                     />
                     <input
+                      ref={searchInputRef}
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -2029,7 +2040,10 @@ export default function CatalogClient({
                     />
                     {searchQuery && (
                       <button
-                        onClick={() => setSearchQuery("")}
+                        onClick={() => {
+                          setSearchQuery("");
+                          setSearchForced(false);
+                        }}
                         style={{
                           position: "absolute",
                           right: 12,
@@ -2056,7 +2070,10 @@ export default function CatalogClient({
 
               {/* Category pills — mobile only, desktop uses sidebar */}
               {!searchQuery && (
-                <div className="lg:hidden cat-pills-wrapper">
+                <div
+                  className="lg:hidden cat-pills-wrapper"
+                  style={{ position: "relative" }}
+                >
                   {/* Fade overlays */}
                   <div className="cat-pills-fade-left" />
                   {!catPillsAtEnd && (
@@ -2154,6 +2171,39 @@ export default function CatalogClient({
                         </button>
                       );
                     })}
+                    {/* Search trigger — siempre visible en mobile */}
+                    <button
+                      aria-label="Buscar productos"
+                      onClick={() => {
+                        setSearchForced(true);
+                        setTimeout(() => searchInputRef.current?.focus(), 50);
+                      }}
+                      style={{
+                        flexShrink: 0,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        border: `1px solid ${BORDER}`,
+                        background: SURFACE2,
+                        color: TEXT2,
+                        cursor: "pointer",
+                        WebkitTapHighlightColor: "transparent",
+                        transition: "background 0.15s, border-color 0.15s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = accent;
+                        e.currentTarget.style.background = `${accent}14`;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = BORDER;
+                        e.currentTarget.style.background = SURFACE2;
+                      }}
+                    >
+                      <Search size={15} strokeWidth={2.5} />
+                    </button>
                   </div>
                 </div>
               )}
@@ -2929,7 +2979,10 @@ export default function CatalogClient({
                         Probá con otro término o revisá la ortografía
                       </p>
                       <button
-                        onClick={() => setSearchQuery("")}
+                        onClick={() => {
+                          setSearchQuery("");
+                          setSearchForced(false);
+                        }}
                         style={{
                           marginTop: 8,
                           padding: "10px 22px",
