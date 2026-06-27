@@ -21,6 +21,7 @@ import {
 import { createSupabaseBrowser } from "@/lib/supabase";
 import TakefyyLogo from "@/components/TakefyyLogo";
 import PendingOrdersBadge from "@/components/admin/PendingOrdersBadge";
+import NotificationToggle from "@/components/admin/NotificationToggle";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -191,6 +192,7 @@ function DesktopNavLinks({
           <ExternalLink size={14} strokeWidth={1.8} />
           {!collapsed && "Ver menú"}
         </Link>
+        <NotificationToggle tenantId={tenantId} collapsed={collapsed} />
         <button
           onClick={onLogout}
           disabled={loggingOut}
@@ -490,6 +492,7 @@ export default function AdminShell({
               {userEmail}
             </p>
           )}
+          <NotificationToggle tenantId={tenantId} />
           <div style={{ display: "flex", gap: 8 }}>
             <Link
               href="/admin"

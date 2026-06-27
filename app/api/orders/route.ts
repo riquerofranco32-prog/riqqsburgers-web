@@ -2,6 +2,7 @@ import { randomBytes } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { safeDbError } from "@/lib/db-error";
+import { sendPushToTenant } from "@/lib/push";
 
 interface OrderItem {
   product_id: string;
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest) {
   // Verificar que el tenant existe y está activo
   const { data: tenant, error: tenantError } = await supabase
     .from("tenants")
-    .select("id, delivery_cost, active")
+    .select("id, slug, delivery_cost, active")
     .eq("id", tenant_id)
     .single();
 
@@ -225,6 +226,14 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+
+  // Fire-and-forget push — no bloquea la respuesta al cliente
+  const itemCount = enrichedItems.reduce((s, i) => s + i.quantity, 0);
+  sendPushToTenant(tenant_id, {
+    title: "🛎️ Nuevo pedido",
+    body: `${customer_name.trim()} · ${itemCount} ${itemCount === 1 ? "producto" : "productos"} · $${total.toLocaleString("es-AR")}`,
+    url: `/${tenant.slug}/admin/pedidos`,
+  }).catch(() => {});
 
   return NextResponse.json(
     {
