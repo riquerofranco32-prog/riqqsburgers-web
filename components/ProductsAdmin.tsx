@@ -92,8 +92,8 @@ function ProductImageCell({
             src={displayUrl}
             alt={product.name}
             fill
+            sizes="56px"
             className="object-cover object-center"
-            unoptimized
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = "none";
               const parent = e.currentTarget.parentElement;
@@ -380,12 +380,11 @@ function ProductModal({
               <div className="flex gap-3 items-start">
                 {form.image_url && (
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-700">
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={form.image_url}
                       alt="preview"
-                      fill
-                      className="object-cover"
-                      unoptimized
+                      className="object-cover w-full h-full"
                     />
                   </div>
                 )}
@@ -639,8 +638,8 @@ function ProductMobileCard({
             src={displayUrl}
             alt={product.name}
             fill
+            sizes="(max-width: 640px) 50vw, 300px"
             className="object-cover"
-            unoptimized
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl">

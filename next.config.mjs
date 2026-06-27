@@ -52,6 +52,7 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.supabase.co' },
     ],
     formats: ['image/avif', 'image/webp'], // prefer avif → smaller files
+    minimumCacheTTL: 86400, // 24h cache for optimized images (default: 60s)
   },
   experimental: {
     // Tree-shake icon libs — only import what's actually used

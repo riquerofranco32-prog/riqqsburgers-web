@@ -2281,7 +2281,8 @@ export default function CatalogClient({
                           <img
                             src={promoProduct.image}
                             alt={promoProduct.name}
-                            loading="lazy"
+                            loading="eager"
+                            fetchPriority="high"
                             decoding="async"
                             style={{
                               width: "100%",
