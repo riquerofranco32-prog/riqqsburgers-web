@@ -1,7 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 interface InfoItem {
-  icon: string;
+  icon: ReactNode;
   text: string;
   href?: string;
 }
@@ -9,7 +11,16 @@ interface InfoItem {
 function InfoChip({ item, textColor }: { item: InfoItem; textColor: string }) {
   const content = (
     <>
-      <span style={{ fontSize: 13 }}>{item.icon}</span>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          flexShrink: 0,
+          opacity: 0.85,
+        }}
+      >
+        {item.icon}
+      </span>
       <span>{item.text}</span>
     </>
   );

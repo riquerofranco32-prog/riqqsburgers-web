@@ -37,6 +37,10 @@ import {
   Share2,
   Heart,
   Zap,
+  Clock,
+  MapPin,
+  Phone,
+  AtSign,
   type LucideIcon,
 } from "lucide-react";
 import type {
@@ -1403,23 +1407,30 @@ export default function CatalogClient({
   }
 
   const infoItems = [
-    restaurant.schedule && { icon: "🕐", text: restaurant.schedule },
+    restaurant.schedule && {
+      icon: <Clock size={13} />,
+      text: restaurant.schedule,
+    },
     restaurant.address && {
-      icon: "📍",
+      icon: <MapPin size={13} />,
       text: restaurant.address,
       href: `https://maps.google.com/?q=${encodeURIComponent(restaurant.address)}`,
     },
     restaurant.phone && {
-      icon: "📞",
+      icon: <Phone size={13} />,
       text: restaurant.phone,
       href: `tel:${restaurant.phone.replace(/\s/g, "")}`,
     },
     restaurant.instagram && {
-      icon: "📸",
+      icon: <AtSign size={13} />,
       text: `@${restaurant.instagram}`,
       href: `https://instagram.com/${restaurant.instagram}`,
     },
-  ].filter(Boolean) as { icon: string; text: string; href?: string }[];
+  ].filter(Boolean) as {
+    icon: React.ReactNode;
+    text: string;
+    href?: string;
+  }[];
 
   // All products flat for search
   const searchResults = restaurant.menu.categories
@@ -1801,8 +1812,8 @@ export default function CatalogClient({
             {restaurant.tagline && (
               <p
                 style={{
-                  fontSize: 12,
-                  color: "rgba(255,255,255,0.78)",
+                  fontSize: 14,
+                  color: "rgba(255,255,255,0.88)",
                   fontStyle: "italic",
                   textAlign: "center",
                   marginBottom: 12,
@@ -4969,93 +4980,111 @@ export default function CatalogClient({
                       <div
                         style={{
                           display: "flex",
-                          gap: 12,
-                          alignItems: "center",
+                          flexDirection: "column",
+                          gap: 8,
                         }}
                       >
                         <div
                           style={{
                             display: "flex",
-                            alignItems: "center",
                             gap: 12,
-                            background: SURFACE2,
-                            borderRadius: 12,
-                            padding: "8px 14px",
-                            flex: 1,
-                            justifyContent: "space-between",
-                            border: `1px solid ${BORDER}`,
+                            alignItems: "center",
                           }}
                         >
-                          <button
-                            onClick={() => removeItem(selectedItem)}
+                          <div
                             style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: "50%",
-                              background: BORDER,
-                              border: "none",
-                              color: TEXT1,
-                              fontSize: 22,
-                              cursor: "pointer",
                               display: "flex",
                               alignItems: "center",
-                              justifyContent: "center",
-                              fontWeight: 700,
+                              gap: 12,
+                              background: SURFACE2,
+                              borderRadius: 12,
+                              padding: "8px 14px",
+                              flex: 1,
+                              justifyContent: "space-between",
+                              border: `1px solid ${BORDER}`,
+                            }}
+                          >
+                            <button
+                              onClick={() => removeItem(selectedItem)}
+                              style={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: "50%",
+                                background: BORDER,
+                                border: "none",
+                                color: TEXT1,
+                                fontSize: 22,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: 700,
+                                WebkitTapHighlightColor: "transparent",
+                              }}
+                            >
+                              −
+                            </button>
+                            <span
+                              style={{
+                                fontWeight: 800,
+                                fontSize: 18,
+                                minWidth: 28,
+                                textAlign: "center",
+                                color: TEXT1,
+                              }}
+                            >
+                              {qty}
+                            </span>
+                            <button
+                              onClick={() => addItem(selectedItem)}
+                              style={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: "50%",
+                                background: accent,
+                                border: "none",
+                                color: onAccent,
+                                fontSize: 22,
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: 700,
+                                WebkitTapHighlightColor: "transparent",
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => setSelectedItem(null)}
+                            style={{
+                              padding: "0 20px",
+                              height: 54,
+                              background: SURFACE2,
+                              border: `1px solid ${BORDER}`,
+                              borderRadius: 12,
+                              fontSize: 14,
+                              fontWeight: 600,
+                              color: TEXT2,
+                              cursor: "pointer",
+                              whiteSpace: "nowrap",
                               WebkitTapHighlightColor: "transparent",
                             }}
                           >
-                            −
-                          </button>
-                          <span
-                            style={{
-                              fontWeight: 800,
-                              fontSize: 18,
-                              minWidth: 28,
-                              textAlign: "center",
-                              color: TEXT1,
-                            }}
-                          >
-                            {qty}
-                          </span>
-                          <button
-                            onClick={() => addItem(selectedItem)}
-                            style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: "50%",
-                              background: accent,
-                              border: "none",
-                              color: onAccent,
-                              fontSize: 22,
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontWeight: 700,
-                              WebkitTapHighlightColor: "transparent",
-                            }}
-                          >
-                            +
+                            Listo ✓
                           </button>
                         </div>
-                        <button
-                          onClick={() => setSelectedItem(null)}
+                        <p
                           style={{
-                            padding: "0 20px",
-                            height: 54,
-                            background: SURFACE2,
-                            border: `1px solid ${BORDER}`,
-                            borderRadius: 12,
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: TEXT2,
-                            cursor: "pointer",
-                            whiteSpace: "nowrap",
-                            WebkitTapHighlightColor: "transparent",
+                            fontSize: 12,
+                            color: TEXTM,
+                            textAlign: "center",
+                            margin: 0,
                           }}
                         >
-                          Listo ✓
-                        </button>
+                          Ya tenés {qty} en el carrito
+                        </p>
                       </div>
                     )}
 
