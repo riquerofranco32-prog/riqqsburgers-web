@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import Link from "next/link";
 import {
   ShoppingCart,
   DollarSign,
@@ -121,12 +122,32 @@ function computeSalesLast7Days(orders: Order[]): DailyRevenue[] {
   return result;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  Burgers: "#facc15",
-  Promos: "#fb923c",
-  Bebidas: "#60a5fa",
-  Otros: "#52525b",
-};
+// TODO: unificar fuente de datos KPIs — "hoy" se computa client-side sobre `orders`
+// (para mantener real-time via Supabase channel), mientras "week" y "month" van al
+// endpoint /api/tenant/[slug]/analytics. Para unificar completamente habría que agregar
+// polling al rango "today" o aceptar perder actualizaciones live sin refetch manual.
+// ANALYTICS_RANGES exportada para facilitar esta tarea cuando se encare.
+export const ANALYTICS_RANGES = ["today", "week", "month"] as const;
+
+const CATEGORY_PALETTE = [
+  "#f97316",
+  "#3b82f6",
+  "#22c55e",
+  "#a855f7",
+  "#eab308",
+  "#ec4899",
+  "#14b8a6",
+  "#f43f5e",
+] as const;
+
+function categoryColor(name: string): string {
+  if (!name) return "#71717a";
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length];
+}
 
 function computeCategoryRevenue(
   orders: Order[],
@@ -149,7 +170,7 @@ function computeCategoryRevenue(
     .map(([name, value]) => ({
       name,
       value,
-      color: CATEGORY_COLORS[name] ?? "#52525b",
+      color: categoryColor(name),
     }))
     .sort((a, b) => b.value - a.value);
 }
@@ -546,7 +567,7 @@ export default function AdminDashboard({
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-2">
-        <a
+        <Link
           href={`/${slug}/admin/productos?new=1`}
           className="stagger-item"
           style={{
@@ -578,8 +599,8 @@ export default function AdminDashboard({
         >
           <Plus style={{ width: 14, height: 14 }} />
           Agregar producto
-        </a>
-        <a
+        </Link>
+        <Link
           href={`/${slug}/admin/pedidos`}
           className="stagger-item"
           style={{
@@ -613,8 +634,8 @@ export default function AdminDashboard({
         >
           <ClipboardList style={{ width: 14, height: 14 }} />
           Ver pedidos
-        </a>
-        <a
+        </Link>
+        <Link
           href={`/${slug}/admin/preview`}
           className="stagger-item"
           style={{
@@ -648,7 +669,7 @@ export default function AdminDashboard({
         >
           <Eye style={{ width: 14, height: 14 }} />
           Ver menú
-        </a>
+        </Link>
       </div>
 
       {/* Control rápido de la tienda */}
