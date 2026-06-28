@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   useState,
@@ -18,11 +18,8 @@ import {
   Search,
   SearchX,
   ShoppingCart,
-  Flame,
   Sparkles,
-  Tag,
   XCircle,
-  Star,
   UtensilsCrossed,
   CheckCircle2,
   Beef,
@@ -53,8 +50,9 @@ import CheckoutModal from "@/components/CheckoutModal";
 import InfoRotator from "@/components/menu/InfoRotator";
 import MenuHeroShader from "@/components/menu/MenuHeroShader";
 import MenuBackground from "@/components/menu/MenuBackground";
-import RelatedProducts from "@/components/menu/RelatedProducts";
 import FavoritesSheet from "@/components/menu/FavoritesSheet";
+import Badge from "@/components/menu/Badge";
+import ProductDetailSheet from "@/components/menu/ProductDetailSheet";
 import { useFavorites } from "@/hooks/useFavorites";
 import { trackEvent } from "@/lib/analytics";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -108,47 +106,6 @@ function hexToRgba(hex: string, alpha: number) {
   const g = parseInt(c.slice(2, 4), 16) || 0;
   const b = parseInt(c.slice(4, 6), 16) || 0;
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-const BADGE_META: Record<string, { color: string; label: string }> = {
-  Popular: { color: "#EA580C", label: "Popular" },
-  Nuevo: { color: "#2563EB", label: "Nuevo" },
-  Promo: { color: "#DC2626", label: "Promo" },
-  Agotado: { color: "#6B7280", label: "Agotado" },
-  "Más pedido": { color: "#B45309", label: "Más pedido" },
-};
-
-const BADGE_ICONS: Record<string, LucideIcon> = {
-  Popular: Flame,
-  Nuevo: Sparkles,
-  Promo: Tag,
-  Agotado: XCircle,
-  "Más pedido": Star,
-};
-
-function Badge({ badge }: { badge: string }) {
-  const meta = BADGE_META[badge];
-  const Icon = BADGE_ICONS[badge];
-  if (!meta) return null;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 3,
-        fontSize: 10,
-        fontWeight: 600,
-        padding: "2px 8px",
-        borderRadius: 999,
-        background: meta.color + "18",
-        color: meta.color,
-        border: `1px solid ${meta.color}30`,
-      }}
-    >
-      {Icon && <Icon size={9} strokeWidth={2.5} />}
-      {meta.label}
-    </span>
-  );
 }
 
 function getCategoryIcon(name: string): LucideIcon {
@@ -913,21 +870,16 @@ export default function CatalogClient({
   } | null>(null);
   const [cartBounce, setCartBounce] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
-  const [shareProductCopied, setShareProductCopied] = useState(false);
-  const [itemNotesDraft, setItemNotesDraft] = useState("");
-  const [selectedExtraDraft, setSelectedExtraDraft] =
-    useState<SelectedExtra | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchForced, setSearchForced] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
-  const [sheetImageLoaded, setSheetImageLoaded] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
   const [orderNotes, setOrderNotes] = useState("");
   const [orderNotesOpen, setOrderNotesOpen] = useState(false);
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const prevTotal = useRef(0);
   const [immersiveMode, setImmersiveMode] = useState(false);
-  const [isOpen, setIsOpen] = useState(isOpen);
+  const [isOpen, setIsOpen] = useState(restaurant.is_open);
 
   // ── Shared product link (?producto=<id>) ──────────────────────────────────
   const searchParams = useSearchParams();
@@ -1031,17 +983,6 @@ export default function CatalogClient({
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  // ── Sync notes draft when selected item changes ───────────────────────────
-
-  useEffect(() => {
-    if (!selectedItem) return;
-    const existing = cart.find((i) => i.id === selectedItem.id);
-    setItemNotesDraft(existing?.notes ?? "");
-    setSelectedExtraDraft(existing?.selectedExtra ?? null);
-    setSheetImageLoaded(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedItem?.id]);
 
   // ── Toast auto-hide ───────────────────────────────────────────────────────
 
@@ -1309,26 +1250,6 @@ export default function CatalogClient({
       await navigator.clipboard.writeText(url).catch(() => {});
       setShareCopied(true);
       setTimeout(() => setShareCopied(false), 2000);
-    }
-  }
-
-  // ── Share product ────────────────────────────────────────────────────────
-
-  async function handleShareProduct(productId: string, productName: string) {
-    const url = `${window.location.origin}${window.location.pathname}?producto=${productId}`;
-    const shareData = {
-      title: productName,
-      text: `Mirá ${productName} en ${restaurant.name}`,
-      url,
-    };
-    if (navigator.share && navigator.canShare?.(shareData)) {
-      try {
-        await navigator.share(shareData);
-      } catch {}
-    } else {
-      await navigator.clipboard.writeText(url).catch(() => {});
-      setShareProductCopied(true);
-      setTimeout(() => setShareProductCopied(false), 2000);
     }
   }
 
@@ -4470,748 +4391,52 @@ export default function CatalogClient({
         </div>{" "}
         {/* end contents lg:hidden — cart drawer */}
         {/* ── Product detail sheet ─────────────────────────────────────────────── */}
-        {selectedItem &&
-          (() => {
-            const qty = getQty(selectedItem.id);
-            const extraPrice = selectedExtraDraft?.price ?? 0;
-            const totalPriceDisplay = selectedItem.price + extraPrice;
-            const catEmoji =
+        {selectedItem && (
+          <ProductDetailSheet
+            key={selectedItem.id}
+            item={selectedItem}
+            qty={getQty(selectedItem.id)}
+            catEmoji={
               restaurant.menu.categories.find((c) =>
                 c.items.some((i) => i.id === selectedItem.id),
-              )?.emoji ?? "🍽️";
-            const selectedCategoryItems =
+              )?.emoji ?? "🍽️"
+            }
+            categoryItems={
               restaurant.menu.categories.find((c) =>
                 c.items.some((i) => i.id === selectedItem.id),
-              )?.items ?? [];
-            const isSoldOut = selectedItem.badge === "Agotado";
-            return (
-              <>
-                <div
-                  style={{
-                    position: "fixed",
-                    inset: 0,
-                    zIndex: 40,
-                    background: "rgba(0,0,0,0.45)",
-                    backdropFilter: "blur(4px)",
-                  }}
-                  onClick={() => setSelectedItem(null)}
-                />
-                <div
-                  role="dialog"
-                  aria-modal="true"
-                  aria-label={selectedItem?.name}
-                  className="product-sheet-modal"
-                  style={{
-                    position: "fixed",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 50,
-                    background: SURFACE,
-                    borderRadius: "24px 24px 0 0",
-                    maxHeight: "84dvh",
-                    overflowY: "auto",
-                    maxWidth: 640,
-                    margin: "0 auto",
-                    boxShadow: "0 -8px 48px rgba(0,0,0,0.2)",
-                    borderTop: `2px solid ${accent}`,
-                    animation: "sheetUp 0.3s cubic-bezier(0.22,1,0.36,1)",
-                    WebkitOverflowScrolling: "touch",
-                  }}
-                >
-                  {/* Drag handle */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      padding: "12px 0 0",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 36,
-                        height: 4,
-                        borderRadius: 2,
-                        background: BORDER,
-                      }}
-                    />
-                  </div>
-
-                  {/* Image hero — tappable for lightbox */}
-                  <div
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      aspectRatio: "4 / 3",
-                      maxHeight: 320,
-                      overflow: "hidden",
-                      marginTop: 10,
-                      cursor: selectedItem.image ? "zoom-in" : "default",
-                    }}
-                    onClick={() =>
-                      selectedItem.image && setLightboxSrc(selectedItem.image)
-                    }
-                  >
-                    {selectedItem.image ? (
-                      <img
-                        src={selectedItem.image}
-                        alt={selectedItem.name}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          display: "block",
-                          transform: sheetImageLoaded
-                            ? "scale(1)"
-                            : "scale(1.06)",
-                          transition:
-                            "transform 0.55s cubic-bezier(0.22,1,0.36,1)",
-                        }}
-                        onLoad={() => setSheetImageLoaded(true)}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          background: `linear-gradient(135deg, ${accent}22, ${accent}08)`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 72,
-                        }}
-                      >
-                        {catEmoji}
-                      </div>
-                    )}
-
-                    {/* Bottom gradient — más dramático */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: "55%",
-                        background:
-                          "linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 60%, transparent 100%)",
-                        pointerEvents: "none",
-                      }}
-                    />
-
-                    {/* Favorite button — top left sobre la imagen */}
-                    <button
-                      aria-label={
-                        isFavorite(selectedItem.id)
-                          ? `Quitar ${selectedItem.name} de favoritos`
-                          : `Guardar ${selectedItem.name} en favoritos`
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(selectedItem);
-                      }}
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        left: 10,
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        background: isFavorite(selectedItem.id)
-                          ? "#EF4444"
-                          : "rgba(0,0,0,0.42)",
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                        border: isFavorite(selectedItem.id)
-                          ? "none"
-                          : "1px solid rgba(255,255,255,0.2)",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition:
-                          "transform 0.18s cubic-bezier(0.34,1.56,0.64,1), background 0.15s",
-                        WebkitTapHighlightColor: "transparent",
-                        zIndex: 5,
-                      }}
-                      onMouseDown={(e) =>
-                        (e.currentTarget.style.transform = "scale(0.85)")
-                      }
-                      onMouseUp={(e) =>
-                        (e.currentTarget.style.transform = "scale(1)")
-                      }
-                      onTouchStart={(e) =>
-                        (e.currentTarget.style.transform = "scale(0.85)")
-                      }
-                      onTouchEnd={(e) =>
-                        (e.currentTarget.style.transform = "scale(1)")
-                      }
-                    >
-                      <Heart
-                        size={15}
-                        strokeWidth={isFavorite(selectedItem.id) ? 0 : 2.2}
-                        fill={
-                          isFavorite(selectedItem.id)
-                            ? "#fff"
-                            : "rgba(255,255,255,0.9)"
-                        }
-                        color={
-                          isFavorite(selectedItem.id)
-                            ? "#fff"
-                            : "rgba(255,255,255,0.9)"
-                        }
-                      />
-                    </button>
-
-                    {/* Close button — top right */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedItem(null);
-                      }}
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        background: "rgba(0,0,0,0.42)",
-                        backdropFilter: "blur(8px)",
-                        WebkitBackdropFilter: "blur(8px)",
-                        border: "1px solid rgba(255,255,255,0.2)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        color: "#fff",
-                        WebkitTapHighlightColor: "transparent",
-                        zIndex: 5,
-                      }}
-                    >
-                      <X size={15} strokeWidth={2.5} />
-                    </button>
-                  </div>
-
-                  <div
-                    style={{
-                      padding: "20px 20px",
-                      paddingBottom: `max(28px, env(safe-area-inset-bottom, 28px))`,
-                    }}
-                  >
-                    {/* Feature 3: Banner agotado / badge de disponibilidad mejorado */}
-                    {isSoldOut ? (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          padding: "10px 14px",
-                          borderRadius: 10,
-                          background: "rgba(239,68,68,0.09)",
-                          border: "1px solid rgba(239,68,68,0.22)",
-                          marginBottom: 14,
-                        }}
-                      >
-                        <span style={{ fontSize: 15 }}>🚫</span>
-                        <span
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#dc2626",
-                          }}
-                        >
-                          Agotado temporalmente
-                        </span>
-                      </div>
-                    ) : selectedItem.badge === "Popular" ||
-                      selectedItem.badge === "Más pedido" ? (
-                      <div
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "5px 12px",
-                          borderRadius: 999,
-                          background: "rgba(22,163,74,0.10)",
-                          border: "1px solid rgba(22,163,74,0.25)",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <span style={{ fontSize: 13 }}>🔥</span>
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: "#16a34a",
-                          }}
-                        >
-                          El más pedido
-                        </span>
-                      </div>
-                    ) : selectedItem.badge === "Nuevo" ? (
-                      <div
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 6,
-                          padding: "5px 12px",
-                          borderRadius: 999,
-                          background: "rgba(59,130,246,0.10)",
-                          border: "1px solid rgba(59,130,246,0.25)",
-                          marginBottom: 10,
-                        }}
-                      >
-                        <span style={{ fontSize: 13 }}>✨</span>
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: "#2563eb",
-                          }}
-                        >
-                          Nuevo
-                        </span>
-                      </div>
-                    ) : selectedItem.badge ? (
-                      <div style={{ marginBottom: 10 }}>
-                        <Badge badge={selectedItem.badge} />
-                      </div>
-                    ) : null}
-
-                    {/* Título + Feature 2: botón compartir producto */}
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        justifyContent: "space-between",
-                        gap: 10,
-                        marginBottom: 8,
-                      }}
-                    >
-                      <h2
-                        style={{
-                          fontWeight: 800,
-                          fontSize: 22,
-                          color: TEXT1,
-                          lineHeight: 1.2,
-                          flex: 1,
-                          margin: 0,
-                        }}
-                      >
-                        {selectedItem.name}
-                      </h2>
-                      <button
-                        onClick={() =>
-                          void handleShareProduct(
-                            selectedItem.id,
-                            selectedItem.name,
-                          )
-                        }
-                        aria-label="Compartir este producto"
-                        style={{
-                          flexShrink: 0,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 5,
-                          padding: "6px 12px",
-                          borderRadius: 999,
-                          border: `1.5px solid ${shareProductCopied ? "rgba(22,163,74,0.4)" : BORDER}`,
-                          background: "transparent",
-                          color: shareProductCopied ? "#16a34a" : TEXT2,
-                          fontSize: 12,
-                          fontWeight: 600,
-                          cursor: "pointer",
-                          transition: "all 0.18s",
-                          WebkitTapHighlightColor: "transparent",
-                          marginTop: 2,
-                        }}
-                      >
-                        {shareProductCopied ? (
-                          <>
-                            <CheckCircle2 size={12} strokeWidth={2.5} />
-                            Copiado
-                          </>
-                        ) : (
-                          <>
-                            <Share2 size={12} strokeWidth={2.5} />
-                            Compartir
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    {selectedItem.description && (
-                      <p
-                        style={{
-                          fontSize: 14,
-                          color: TEXT2,
-                          lineHeight: 1.65,
-                          marginBottom: 16,
-                        }}
-                      >
-                        {selectedItem.description}
-                      </p>
-                    )}
-
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: 20,
-                      }}
-                    >
-                      <span
-                        style={{ fontWeight: 900, fontSize: 28, color: accent }}
-                      >
-                        {fmt(totalPriceDisplay)}
-                      </span>
-                      {qty > 0 && (
-                        <span
-                          style={{
-                            fontSize: 12,
-                            color: TEXTM,
-                            background: SURFACE2,
-                            borderRadius: 8,
-                            padding: "4px 10px",
-                          }}
-                        >
-                          En carrito: {qty}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Extras — opciones de tamaño */}
-                    {selectedItem.extras && selectedItem.extras.length > 0 && (
-                      <div style={{ marginBottom: 20 }}>
-                        <label
-                          style={{
-                            fontSize: 11,
-                            color: TEXTM,
-                            fontWeight: 700,
-                            display: "block",
-                            marginBottom: 10,
-                            letterSpacing: "0.07em",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          Tamaño
-                        </label>
-                        <div
-                          style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
-                        >
-                          {/* Opción Simple = precio base */}
-                          <button
-                            type="button"
-                            onClick={() => setSelectedExtraDraft(null)}
-                            style={{
-                              padding: "8px 18px",
-                              borderRadius: 999,
-                              border: "1.5px solid",
-                              fontSize: 14,
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              background:
-                                selectedExtraDraft === null
-                                  ? accent
-                                  : "transparent",
-                              color:
-                                selectedExtraDraft === null ? onAccent : TEXT2,
-                              borderColor:
-                                selectedExtraDraft === null ? accent : BORDER,
-                              transition: "all 0.15s",
-                            }}
-                          >
-                            Simple
-                          </button>
-                          {selectedItem.extras.map((extra) => {
-                            const isSelected =
-                              selectedExtraDraft?.name === extra.name;
-                            return (
-                              <button
-                                type="button"
-                                key={extra.name}
-                                onClick={() =>
-                                  setSelectedExtraDraft(
-                                    isSelected ? null : extra,
-                                  )
-                                }
-                                style={{
-                                  padding: "8px 18px",
-                                  borderRadius: 999,
-                                  border: "1.5px solid",
-                                  fontSize: 14,
-                                  fontWeight: 600,
-                                  cursor: "pointer",
-                                  background: isSelected
-                                    ? accent
-                                    : "transparent",
-                                  color: isSelected ? onAccent : TEXT2,
-                                  borderColor: isSelected ? accent : BORDER,
-                                  transition: "all 0.15s",
-                                }}
-                              >
-                                {extra.name}{" "}
-                                <span style={{ opacity: 0.8, fontSize: 12 }}>
-                                  +{fmt(extra.price)}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Notes field */}
-                    <div style={{ marginBottom: 20 }}>
-                      <label
-                        style={{
-                          fontSize: 11,
-                          color: TEXTM,
-                          fontWeight: 700,
-                          display: "block",
-                          marginBottom: 6,
-                          letterSpacing: "0.07em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Aclaraciones
-                      </label>
-                      <textarea
-                        value={itemNotesDraft}
-                        onChange={(e) => {
-                          setItemNotesDraft(e.target.value);
-                          if (qty > 0)
-                            updateNotes(selectedItem.id, e.target.value);
-                        }}
-                        placeholder="Ej: sin bacon, sin aderezos..."
-                        rows={2}
-                        style={{
-                          width: "100%",
-                          borderRadius: 10,
-                          border: `1.5px solid ${BORDER}`,
-                          padding: "10px 12px",
-                          fontSize: 14,
-                          color: TEXT1,
-                          background: SURFACE2,
-                          resize: "none",
-                          outline: "none",
-                          fontFamily: "inherit",
-                          boxSizing: "border-box",
-                          transition: "border-color 0.2s",
-                        }}
-                        onFocus={(e) =>
-                          (e.currentTarget.style.borderColor = accent)
-                        }
-                        onBlur={(e) =>
-                          (e.currentTarget.style.borderColor = BORDER)
-                        }
-                      />
-                    </div>
-
-                    {isSoldOut ? (
-                      <div
-                        style={{
-                          width: "100%",
-                          padding: "14px",
-                          borderRadius: 14,
-                          background: SURFACE2,
-                          border: `1px solid ${BORDER}`,
-                          textAlign: "center",
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: TEXTM,
-                          cursor: "default",
-                        }}
-                      >
-                        No disponible
-                      </div>
-                    ) : qty === 0 ? (
-                      <button
-                        onClick={() => {
-                          addItemWithNotes(
-                            selectedItem,
-                            itemNotesDraft || undefined,
-                            selectedExtraDraft ?? undefined,
-                          );
-                          setSelectedItem(null);
-                        }}
-                        style={{
-                          width: "100%",
-                          background: accent,
-                          color: onAccent,
-                          border: "none",
-                          borderRadius: 14,
-                          padding: "16px",
-                          fontSize: 16,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          WebkitTapHighlightColor: "transparent",
-                        }}
-                        onTouchStart={(e) =>
-                          (e.currentTarget.style.opacity = "0.88")
-                        }
-                        onTouchEnd={(e) =>
-                          (e.currentTarget.style.opacity = "1")
-                        }
-                      >
-                        Agregar al pedido →
-                      </button>
-                    ) : (
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 8,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 12,
-                            alignItems: "center",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 12,
-                              background: SURFACE2,
-                              borderRadius: 12,
-                              padding: "8px 14px",
-                              flex: 1,
-                              justifyContent: "space-between",
-                              border: `1px solid ${BORDER}`,
-                            }}
-                          >
-                            <button
-                              onClick={() => removeItem(selectedItem)}
-                              style={{
-                                width: 38,
-                                height: 38,
-                                borderRadius: "50%",
-                                background: BORDER,
-                                border: "none",
-                                color: TEXT1,
-                                fontSize: 22,
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: 700,
-                                WebkitTapHighlightColor: "transparent",
-                              }}
-                            >
-                              −
-                            </button>
-                            <span
-                              style={{
-                                fontWeight: 800,
-                                fontSize: 18,
-                                minWidth: 28,
-                                textAlign: "center",
-                                color: TEXT1,
-                              }}
-                            >
-                              {qty}
-                            </span>
-                            <button
-                              onClick={() => addItem(selectedItem)}
-                              style={{
-                                width: 38,
-                                height: 38,
-                                borderRadius: "50%",
-                                background: accent,
-                                border: "none",
-                                color: onAccent,
-                                fontSize: 22,
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: 700,
-                                WebkitTapHighlightColor: "transparent",
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => setSelectedItem(null)}
-                            style={{
-                              padding: "0 20px",
-                              height: 54,
-                              background: SURFACE2,
-                              border: `1px solid ${BORDER}`,
-                              borderRadius: 12,
-                              fontSize: 14,
-                              fontWeight: 600,
-                              color: TEXT2,
-                              cursor: "pointer",
-                              whiteSpace: "nowrap",
-                              WebkitTapHighlightColor: "transparent",
-                            }}
-                          >
-                            Listo ✓
-                          </button>
-                        </div>
-                        <p
-                          style={{
-                            fontSize: 12,
-                            color: TEXTM,
-                            textAlign: "center",
-                            margin: 0,
-                          }}
-                        >
-                          Ya tenés {qty} en el carrito
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Feature 1: También te puede gustar */}
-                    <RelatedProducts
-                      currentId={selectedItem.id}
-                      categoryItems={selectedCategoryItems}
-                      accent={accent}
-                      onAccent={onAccent}
-                      SURFACE={SURFACE}
-                      SURFACE2={SURFACE2}
-                      BORDER={BORDER}
-                      TEXT1={TEXT1}
-                      TEXT2={TEXT2}
-                      TEXTM={TEXTM}
-                      onOpen={(item) => {
-                        setSelectedItem(item);
-                        void trackEvent(restaurant.id, "product_viewed", {
-                          product_id: item.id,
-                        });
-                      }}
-                      onAdd={addItem}
-                      fmt={fmt}
-                      hexToRgba={hexToRgba}
-                    />
-                  </div>
-                </div>
-                {/* Fade gradient — Mejora 9: indica scroll cuando el contenido es largo */}
-                <div
-                  style={{
-                    position: "fixed",
-                    bottom: 0,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "100%",
-                    maxWidth: 640,
-                    height: 64,
-                    background: `linear-gradient(to top, ${SURFACE} 15%, transparent)`,
-                    pointerEvents: "none",
-                    zIndex: 51,
-                  }}
-                />
-              </>
-            );
-          })()}
+              )?.items ?? []
+            }
+            accent={accent}
+            onAccent={onAccent}
+            SURFACE={SURFACE}
+            SURFACE2={SURFACE2}
+            BORDER={BORDER}
+            TEXT1={TEXT1}
+            TEXT2={TEXT2}
+            restaurantName={restaurant.name}
+            restaurantId={restaurant.id}
+            initialNotes={
+              cart.find((i) => i.id === selectedItem.id)?.notes ?? ""
+            }
+            initialExtra={
+              cart.find((i) => i.id === selectedItem.id)?.selectedExtra ?? null
+            }
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            onClose={() => setSelectedItem(null)}
+            onOpen={(item) => {
+              setSelectedItem(item);
+              void trackEvent(restaurant.id, "product_viewed", {
+                product_id: item.id,
+              });
+            }}
+            addItem={addItem}
+            removeItem={removeItem}
+            addItemWithNotes={addItemWithNotes}
+            updateNotes={updateNotes}
+            onLightbox={setLightboxSrc}
+          />
+        )}
         {/* ── Powered by Takefyy (solo móvil — desktop usa sidebar) ──────────── */}
         {totalItems === 0 && (
           <div
