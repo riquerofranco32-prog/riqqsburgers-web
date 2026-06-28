@@ -56,6 +56,7 @@ export interface Restaurant {
   address: string;
   schedule: string;
   is_open: boolean;
+  min_order_amount: number | null;
   brand: RestaurantBrand | null;
   menu: {
     categories: MenuCategory[];
@@ -119,6 +120,7 @@ function mapToRestaurant(
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
     is_open: tenant.is_open ?? true,
+    min_order_amount: tenant.min_order_amount ?? null,
     brand: (tenant.brand as RestaurantBrand | null) ?? null,
     menu: {
       categories: (() => {

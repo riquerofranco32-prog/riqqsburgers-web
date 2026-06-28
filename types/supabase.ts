@@ -19,6 +19,7 @@ export interface Tenant {
   active: boolean;
   brand: Record<string, string> | null;
   plan: string;
+  min_order_amount: number | null;
   created_at: string;
 }
 

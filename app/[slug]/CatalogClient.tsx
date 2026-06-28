@@ -5363,6 +5363,7 @@ export default function CatalogClient({
             whatsapp_number: restaurant.phone,
             delivery_cost: restaurant.delivery_cost,
             primary_color: restaurant.primary_color,
+            min_order_amount: restaurant.min_order_amount,
           }}
         />
         <style

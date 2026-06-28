@@ -24,6 +24,7 @@ interface CheckoutModalProps {
     whatsapp_number: string;
     delivery_cost?: number;
     primary_color?: string;
+    min_order_amount?: number | null;
   };
 }
 
@@ -82,6 +83,12 @@ export default function CheckoutModal({
   const deliveryCost =
     form.delivery === "delivery" ? (tenant.delivery_cost ?? 0) : 0;
   const grandTotal = subtotal + deliveryCost;
+
+  const minOrderAmount = tenant.min_order_amount ?? null;
+  const belowMinOrder =
+    minOrderAmount !== null &&
+    form.delivery === "delivery" &&
+    subtotal < minOrderAmount;
 
   useEffect(() => {
     if (!isOpen) {
@@ -152,6 +159,12 @@ export default function CheckoutModal({
     }
     if (form.delivery === "delivery" && !form.address) {
       setError("Ingresá la dirección de entrega");
+      return;
+    }
+    if (belowMinOrder) {
+      setError(
+        `El monto mínimo para delivery es $${minOrderAmount!.toLocaleString("es-AR")}`,
+      );
       return;
     }
 
@@ -481,6 +494,26 @@ export default function CheckoutModal({
             >
               Guardá el código para hacer el seguimiento.
             </p>
+            {orderRef && (
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "var(--text-secondary)",
+                  marginBottom: 8,
+                  marginTop: -16,
+                }}
+              >
+                Seguí tu pedido en{" "}
+                <a
+                  href={`/pedido/${orderRef}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: accent, textDecoration: "underline" }}
+                >
+                  takefyy.com/pedido/{orderRef}
+                </a>
+              </p>
+            )}
             <div
               style={{
                 background: "var(--surface-2)",
@@ -856,6 +889,20 @@ export default function CheckoutModal({
                     ${grandTotal.toLocaleString("es-AR")}
                   </span>
                 </div>
+                {belowMinOrder && (
+                  <p
+                    style={{
+                      color: "#ef4444",
+                      fontSize: 13,
+                      marginTop: 8,
+                      marginBottom: 0,
+                    }}
+                  >
+                    Pedido mínimo para delivery: $
+                    {minOrderAmount!.toLocaleString("es-AR")}. Te faltan $
+                    {(minOrderAmount! - subtotal).toLocaleString("es-AR")}.
+                  </p>
+                )}
               </div>
 
               {error && (
@@ -883,17 +930,22 @@ export default function CheckoutModal({
               >
                 <button
                   onClick={handleConfirm}
-                  disabled={loading}
+                  disabled={loading || belowMinOrder}
                   style={{
                     width: "100%",
-                    background: loading ? "var(--surface-2)" : accent,
-                    color: loading ? "var(--text-secondary)" : onAccent,
+                    background:
+                      loading || belowMinOrder ? "var(--surface-2)" : accent,
+                    color:
+                      loading || belowMinOrder
+                        ? "var(--text-secondary)"
+                        : onAccent,
                     fontWeight: 700,
                     fontSize: 16,
                     padding: "16px",
                     borderRadius: 14,
                     border: "none",
-                    cursor: loading ? "not-allowed" : "pointer",
+                    cursor:
+                      loading || belowMinOrder ? "not-allowed" : "pointer",
                     transition: "all 0.15s",
                     display: "flex",
                     alignItems: "center",
