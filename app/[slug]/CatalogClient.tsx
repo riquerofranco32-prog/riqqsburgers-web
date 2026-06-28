@@ -716,6 +716,13 @@ function ImmersiveView({
   const [currentIdx, setCurrentIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // ── Mejora 10: swipe hint ──────────────────────────────────────────────────
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setShowSwipeHint(false), 2500);
+    return () => clearTimeout(t);
+  }, []);
+
   // Track which slide is visible
   useEffect(() => {
     const el = scrollRef.current;
@@ -763,6 +770,25 @@ function ImmersiveView({
             style={{ width: `${progress}%` }}
           />
         </div>
+      </div>
+
+      {/* Swipe hint — Mejora 10 */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 80,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          color: "rgba(255,255,255,0.75)",
+          fontSize: 13,
+          pointerEvents: "none",
+          opacity: showSwipeHint ? 1 : 0,
+          transition: "opacity 0.5s",
+          zIndex: 10,
+        }}
+      >
+        Deslizá para ver más
       </div>
 
       {/* Scroll-snap container */}
@@ -3279,6 +3305,7 @@ export default function CatalogClient({
                 </div>
                 {totalItems > 0 && (
                   <div
+                    key={totalItems}
                     style={{
                       width: 22,
                       height: 22,
@@ -3290,6 +3317,9 @@ export default function CatalogClient({
                       justifyContent: "center",
                       fontSize: 11,
                       fontWeight: 700,
+                      animation: cartBounce
+                        ? "badgePop 0.3s cubic-bezier(0.34,1.56,0.64,1)"
+                        : undefined,
                     }}
                   >
                     {totalItems}
@@ -5112,6 +5142,21 @@ export default function CatalogClient({
                     />
                   </div>
                 </div>
+                {/* Fade gradient — Mejora 9: indica scroll cuando el contenido es largo */}
+                <div
+                  style={{
+                    position: "fixed",
+                    bottom: 0,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "100%",
+                    maxWidth: 640,
+                    height: 64,
+                    background: `linear-gradient(to top, ${SURFACE} 15%, transparent)`,
+                    pointerEvents: "none",
+                    zIndex: 51,
+                  }}
+                />
               </>
             );
           })()}
