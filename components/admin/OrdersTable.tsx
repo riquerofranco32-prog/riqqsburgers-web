@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -974,6 +974,37 @@ export function OrdersTable({
   >("all");
   const isMobile = useIsMobile();
 
+  const notifPermissionRef = useRef<NotificationPermission>("default");
+  const unseenCountRef = useRef(0);
+
+  // Request browser notification permission once on mount
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+      notifPermissionRef.current = "granted";
+    } else if (Notification.permission !== "denied") {
+      void Notification.requestPermission().then((perm) => {
+        notifPermissionRef.current = perm;
+      });
+    } else {
+      notifPermissionRef.current = "denied";
+    }
+  }, []);
+
+  // Reset tab title badge when user returns to the tab
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const handleVisibility = () => {
+      if (!document.hidden && unseenCountRef.current > 0) {
+        unseenCountRef.current = 0;
+        document.title = "Pedidos — Admin";
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
   useEffect(() => {
     const supabase = createSupabaseBrowser();
     const uniqueId = Math.random().toString(36).substring(7);
@@ -1022,6 +1053,26 @@ export function OrdersTable({
             osc.start(ctx.currentTime);
             osc.stop(ctx.currentTime + 0.4);
           } catch {}
+          // Tab title badge when tab is in background
+          if (typeof document !== "undefined" && document.hidden) {
+            unseenCountRef.current += 1;
+            document.title = `(${unseenCountRef.current}) Nuevo pedido — Admin`;
+          }
+          // Browser push notification
+          if (
+            typeof window !== "undefined" &&
+            "Notification" in window &&
+            notifPermissionRef.current === "granted"
+          ) {
+            try {
+              new Notification("Nuevo pedido", {
+                body: incoming.customer_name
+                  ? `${incoming.customer_name} — $ ${incoming.total.toLocaleString("es-AR")}`
+                  : `Pedido por $ ${incoming.total.toLocaleString("es-AR")}`,
+                icon: "/favicon.ico",
+              });
+            } catch {}
+          }
         },
       )
       .on(

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { MessageCircle } from "lucide-react";
+import { trackGA4Event } from "@/lib/analytics";
 
 export interface CheckoutCartItem {
   id: string;
@@ -287,6 +289,11 @@ export default function CheckoutModal({
       setOrderRef(tempRef);
     }
 
+    trackGA4Event("purchase", {
+      transaction_id: tempRef,
+      value: grandTotal,
+      items: cart.length,
+    });
     setDone(true);
     onClearCart();
     setLoading(false);
@@ -575,6 +582,33 @@ export default function CheckoutModal({
               >
                 Cerrar
               </button>
+              {tenant.whatsapp_number && (
+                <a
+                  href={`https://wa.me/${tenant.whatsapp_number.replace(/\D/g, "")}?text=${encodeURIComponent(
+                    `Hola! Hice un pedido (#${orderRef}) y queria consultar el estado.`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    background: "#25D366",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "14px 32px",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    textAlign: "center",
+                  }}
+                >
+                  <MessageCircle size={16} strokeWidth={2.5} />
+                  Consultar por WhatsApp
+                </a>
+              )}
               <a
                 href={`/${tenant.slug}`}
                 style={{

@@ -1,3 +1,22 @@
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
+/** Dispara un evento GA4 via window.gtag. Silencioso si GA4 no está cargado. */
+export function trackGA4Event(
+  eventName: string,
+  params?: Record<string, unknown>,
+): void {
+  try {
+    if (typeof window === "undefined" || !window.gtag) return;
+    window.gtag("event", eventName, params ?? {});
+  } catch {
+    // silencioso — nunca romper la UX por analytics
+  }
+}
+
 function getSessionId(): string {
   if (typeof window === "undefined") return "";
   let id = sessionStorage.getItem("tak_session");
