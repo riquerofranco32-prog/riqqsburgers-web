@@ -78,13 +78,6 @@ const jsonLd = {
       url: "https://takefyy.com",
       description:
         "Menú digital para restaurantes argentinos. Pedidos directo a WhatsApp, panel admin incluido, URL propia, sin comisiones por pedido.",
-      aggregateRating: {
-        "@type": "AggregateRating",
-        ratingValue: "4.9",
-        reviewCount: "12",
-        bestRating: "5",
-        worstRating: "1",
-      },
       offers: [
         {
           "@type": "Offer",

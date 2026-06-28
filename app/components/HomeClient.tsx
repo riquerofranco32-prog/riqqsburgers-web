@@ -43,6 +43,7 @@ import {
   Shield,
 } from "lucide-react";
 import TakefyyLogo from "@/components/TakefyyLogo";
+import { WHATSAPP_URL, WHATSAPP_BASE, trackLandingEvent } from "@/lib/contact";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -298,6 +299,7 @@ const testimonials = [
 const plans = [
   {
     name: "Starter",
+    priceMonthly: null as number | null,
     price: "Gratis",
     period: "para siempre",
     desc: "Para arrancar sin riesgo",
@@ -313,6 +315,7 @@ const plans = [
   },
   {
     name: "Pro",
+    priceMonthly: 17000,
     price: "$17.000",
     period: "/mes",
     desc: "Para negocios que quieren crecer",
@@ -329,6 +332,7 @@ const plans = [
   },
   {
     name: "Growth",
+    priceMonthly: 27000,
     price: "$27.000",
     period: "/mes",
     desc: "Para locales con alto volumen",
@@ -1217,8 +1221,13 @@ function MagneticButton({
 }
 
 /* ─── PRICING TOGGLE ──────────────────────────────────────────────────────── */
-function PricingToggle() {
-  const [annual, setAnnual] = useState(false);
+function PricingToggle({
+  annual,
+  onToggle,
+}: {
+  annual: boolean;
+  onToggle: () => void;
+}) {
   return (
     <div
       style={{
@@ -1239,7 +1248,7 @@ function PricingToggle() {
         Mensual
       </span>
       <button
-        onClick={() => setAnnual((v) => !v)}
+        onClick={onToggle}
         style={{
           width: 52,
           height: 28,
@@ -1612,6 +1621,7 @@ export default function HomeClient({
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [annual, setAnnual] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const isHoveringHero = useRef(false);
@@ -1779,15 +1789,16 @@ export default function HomeClient({
               Iniciar sesión
             </Link>
             <motion.button
-              onClick={() =>
+              onClick={() => {
+                trackLandingEvent("cta_click", {
+                  label: "empezar",
+                  section: "navbar",
+                });
                 window.open(
-                  "https://wa.me/542994247985?text=" +
-                    encodeURIComponent(
-                      "Hola! Me interesa Takefyy para mi negocio 🚀",
-                    ),
+                  WHATSAPP_URL("Hola! Me interesa Takefyy para mi negocio 🚀"),
                   "_blank",
-                )
-              }
+                );
+              }}
               className="px-5 py-2 rounded-full text-sm font-semibold text-white"
               style={{
                 background: "var(--accent)",
@@ -1940,12 +1951,9 @@ export default function HomeClient({
                   style={{ padding: "28px 24px 0" }}
                 >
                   <a
-                    href={
-                      "https://wa.me/542994247985?text=" +
-                      encodeURIComponent(
-                        "Hola! Me interesa Takefyy para mi negocio 🚀",
-                      )
-                    }
+                    href={WHATSAPP_URL(
+                      "Hola! Me interesa Takefyy para mi negocio 🚀",
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
@@ -2177,15 +2185,18 @@ export default function HomeClient({
             <motion.div {...fadeUp(0.43)} className="mb-6">
               <div className="hero-cta-group flex flex-wrap gap-3 mb-3">
                 <motion.button
-                  onClick={() =>
+                  onClick={() => {
+                    trackLandingEvent("cta_click", {
+                      label: "empezar_gratis",
+                      section: "hero",
+                    });
                     window.open(
-                      "https://wa.me/542994247985?text=" +
-                        encodeURIComponent(
-                          "Hola! Me interesa Takefyy para mi negocio 🚀",
-                        ),
+                      WHATSAPP_URL(
+                        "Hola! Me interesa Takefyy para mi negocio 🚀",
+                      ),
                       "_blank",
-                    )
-                  }
+                    );
+                  }}
                   className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
                   style={{
                     background: "var(--accent)",
@@ -3135,15 +3146,18 @@ export default function HomeClient({
             style={{ textAlign: "center", marginTop: 48 }}
           >
             <button
-              onClick={() =>
+              onClick={() => {
+                trackLandingEvent("cta_click", {
+                  label: "empezar_ahora",
+                  section: "como_funciona",
+                });
                 window.open(
-                  "https://wa.me/542994247985?text=" +
-                    encodeURIComponent(
-                      "Hola! Quiero crear mi carta digital con Takefyy 🚀",
-                    ),
+                  WHATSAPP_URL(
+                    "Hola! Quiero crear mi carta digital con Takefyy 🚀",
+                  ),
                   "_blank",
-                )
-              }
+                );
+              }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -3525,7 +3539,7 @@ export default function HomeClient({
                   Ver demo en vivo →
                 </a>
                 <a
-                  href="https://wa.me/542994247985?text=Hola!%20Quiero%20probar%20Takefyy%20🚀"
+                  href={WHATSAPP_URL("Hola! Quiero probar Takefyy 🚀")}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -3601,207 +3615,243 @@ export default function HomeClient({
             </div>
           </motion.div>
 
+          <PricingToggle
+            annual={annual}
+            onToggle={() => setAnnual((v) => !v)}
+          />
+
           <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
-            {plans.map((plan, i) => (
-              <motion.div
-                key={plan.name}
-                initial={{ opacity: 0, y: 28 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.55, delay: i * 0.1, ease }}
-              >
-                <TiltCard style={{ height: "100%", position: "relative" }}>
-                  {plan.featured && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: -14,
-                        left: "50%",
-                        transform: "translateX(-50%) translateZ(10px)",
-                        color: "#fff",
-                        fontSize: 10,
-                        fontWeight: 800,
-                        padding: "5px 16px",
-                        borderRadius: 20,
-                        background:
-                          "linear-gradient(90deg, #ff8c42 0%, #ff6b35 50%, #e85d23 100%)",
-                        border: "1px solid rgba(255,255,255,0.35)",
-                        whiteSpace: "nowrap",
-                        zIndex: 10,
-                        letterSpacing: "0.1em",
-                        boxShadow:
-                          "0 4px 16px rgba(255,107,53,0.5), 0 0 0 2px rgba(255,107,53,0.15)",
-                      }}
-                    >
-                      <Star
-                        size={9}
-                        fill="currentColor"
-                        style={{ marginRight: 4 }}
-                      />{" "}
-                      MÁS POPULAR
-                    </div>
-                  )}
-                  <div
-                    className={
-                      plan.featured
-                        ? "animate-border-glow plan-featured-card"
-                        : ""
-                    }
-                    style={{
-                      background: plan.featured
-                        ? "linear-gradient(145deg, #FF6B35 0%, #d94f1e 100%)"
-                        : "var(--surface)",
-                      border: `1px solid ${plan.featured ? "transparent" : "var(--border)"}`,
-                      borderRadius: 22,
-                      padding: "32px 28px",
-                      position: "relative",
-                      overflow: "hidden",
-                      transform: plan.featured ? "scale(1.03)" : "scale(1)",
-                      height: "100%",
-                    }}
-                  >
+            {plans.map((plan, i) => {
+              const monthly =
+                plan.priceMonthly !== null && annual
+                  ? Math.round(plan.priceMonthly * 0.8)
+                  : null;
+              const displayPrice =
+                monthly !== null
+                  ? `$${monthly.toLocaleString("es-AR")}`
+                  : plan.price;
+              const annualNote =
+                plan.priceMonthly !== null && annual
+                  ? "facturado anualmente"
+                  : null;
+              return (
+                <motion.div
+                  key={plan.name}
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.55, delay: i * 0.1, ease }}
+                >
+                  <TiltCard style={{ height: "100%", position: "relative" }}>
                     {plan.featured && (
-                      <>
-                        <div
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            opacity: 0.06,
-                            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                            backgroundSize: "120px 120px",
-                            pointerEvents: "none",
-                          }}
-                        />
-                      </>
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: -14,
+                          left: "50%",
+                          transform: "translateX(-50%) translateZ(10px)",
+                          color: "#fff",
+                          fontSize: 10,
+                          fontWeight: 800,
+                          padding: "5px 16px",
+                          borderRadius: 20,
+                          background:
+                            "linear-gradient(90deg, #ff8c42 0%, #ff6b35 50%, #e85d23 100%)",
+                          border: "1px solid rgba(255,255,255,0.35)",
+                          whiteSpace: "nowrap",
+                          zIndex: 10,
+                          letterSpacing: "0.1em",
+                          boxShadow:
+                            "0 4px 16px rgba(255,107,53,0.5), 0 0 0 2px rgba(255,107,53,0.15)",
+                        }}
+                      >
+                        <Star
+                          size={9}
+                          fill="currentColor"
+                          style={{ marginRight: 4 }}
+                        />{" "}
+                        MÁS POPULAR
+                      </div>
                     )}
                     <div
-                      className="mb-6"
-                      style={{ position: "relative", zIndex: 1 }}
+                      className={
+                        plan.featured
+                          ? "animate-border-glow plan-featured-card"
+                          : ""
+                      }
+                      style={{
+                        background: plan.featured
+                          ? "linear-gradient(145deg, #FF6B35 0%, #d94f1e 100%)"
+                          : "var(--surface)",
+                        border: `1px solid ${plan.featured ? "transparent" : "var(--border)"}`,
+                        borderRadius: 22,
+                        padding: "32px 28px",
+                        position: "relative",
+                        overflow: "hidden",
+                        transform: plan.featured ? "scale(1.03)" : "scale(1)",
+                        height: "100%",
+                      }}
                     >
+                      {plan.featured && (
+                        <>
+                          <div
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              opacity: 0.06,
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                              backgroundSize: "120px 120px",
+                              pointerEvents: "none",
+                            }}
+                          />
+                        </>
+                      )}
                       <div
-                        className="text-xs font-bold tracking-widest mb-2"
-                        style={{
-                          color: plan.featured
-                            ? "rgba(255,255,255,0.65)"
-                            : "var(--accent)",
-                          letterSpacing: "0.1em",
-                        }}
+                        className="mb-6"
+                        style={{ position: "relative", zIndex: 1 }}
                       >
-                        {plan.name.toUpperCase()}
-                      </div>
-                      <div className="flex items-end gap-1 mb-2">
-                        <span
-                          style={{
-                            fontFamily: "var(--font-anton)",
-                            fontSize: "2.8rem",
-                            color: plan.featured
-                              ? "#fff"
-                              : "var(--text-primary)",
-                            lineHeight: 1,
-                            letterSpacing: "0.01em",
-                            fontVariantNumeric: "tabular-nums",
-                          }}
-                        >
-                          {plan.price}
-                        </span>
-                        <span
-                          className="text-sm mb-1"
+                        <div
+                          className="text-xs font-bold tracking-widest mb-2"
                           style={{
                             color: plan.featured
-                              ? "rgba(255,255,255,0.6)"
-                              : "var(--text-muted)",
+                              ? "rgba(255,255,255,0.65)"
+                              : "var(--accent)",
+                            letterSpacing: "0.1em",
                           }}
                         >
-                          {plan.period}
-                        </span>
-                      </div>
-                      <p
-                        className="text-sm"
-                        style={{
-                          color: plan.featured
-                            ? "rgba(255,255,255,0.7)"
-                            : "var(--text-secondary)",
-                        }}
-                      >
-                        {plan.desc}
-                      </p>
-                    </div>
-                    <div
-                      className="flex flex-col gap-2.5 mb-8"
-                      style={{ position: "relative", zIndex: 1 }}
-                    >
-                      {plan.features.map((f) => (
-                        <div key={f} className="flex items-center gap-2.5">
+                          {plan.name.toUpperCase()}
+                        </div>
+                        <div className="flex items-end gap-1 mb-2">
                           <span
                             style={{
+                              fontFamily: "var(--font-anton)",
+                              fontSize: "2.8rem",
                               color: plan.featured
-                                ? "rgba(255,255,255,0.9)"
-                                : "var(--accent)",
-                              flexShrink: 0,
-                              display: "flex",
+                                ? "#fff"
+                                : "var(--text-primary)",
+                              lineHeight: 1,
+                              letterSpacing: "0.01em",
+                              fontVariantNumeric: "tabular-nums",
                             }}
                           >
-                            <Check size={14} strokeWidth={2.5} />
+                            {displayPrice}
                           </span>
                           <span
-                            className="text-sm"
+                            className="text-sm mb-1"
                             style={{
                               color: plan.featured
-                                ? "rgba(255,255,255,0.82)"
-                                : "var(--text-secondary)",
+                                ? "rgba(255,255,255,0.6)"
+                                : "var(--text-muted)",
                             }}
                           >
-                            {f}
+                            {plan.period}
                           </span>
                         </div>
-                      ))}
-                    </div>
-                    <button
-                      className="w-full py-3 rounded-xl text-sm font-semibold"
-                      style={{
-                        position: "relative",
-                        zIndex: 1,
-                        background: plan.featured
-                          ? "rgba(255,255,255,0.16)"
-                          : "transparent",
-                        color: plan.featured ? "#fff" : "var(--accent)",
-                        border: plan.featured
-                          ? "1.5px solid rgba(255,255,255,0.28)"
-                          : "1.5px solid var(--accent)",
-                        cursor: "pointer",
-                        transition:
-                          "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = plan.featured
-                          ? "rgba(255,255,255,0.26)"
-                          : "var(--accent)";
-                        if (!plan.featured)
-                          e.currentTarget.style.color = "#fff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = plan.featured
-                          ? "rgba(255,255,255,0.16)"
-                          : "transparent";
-                        if (!plan.featured)
-                          e.currentTarget.style.color = "var(--accent)";
-                      }}
-                      onClick={() => {
-                        window.open(
-                          "https://wa.me/542994247985?text=" +
-                            encodeURIComponent(
+                        {annualNote && (
+                          <p
+                            style={{
+                              fontSize: 11,
+                              color: plan.featured
+                                ? "rgba(255,255,255,0.55)"
+                                : "var(--text-muted)",
+                              marginBottom: 4,
+                            }}
+                          >
+                            {annualNote}
+                          </p>
+                        )}
+                        <p
+                          className="text-sm"
+                          style={{
+                            color: plan.featured
+                              ? "rgba(255,255,255,0.7)"
+                              : "var(--text-secondary)",
+                          }}
+                        >
+                          {plan.desc}
+                        </p>
+                      </div>
+                      <div
+                        className="flex flex-col gap-2.5 mb-8"
+                        style={{ position: "relative", zIndex: 1 }}
+                      >
+                        {plan.features.map((f) => (
+                          <div key={f} className="flex items-center gap-2.5">
+                            <span
+                              style={{
+                                color: plan.featured
+                                  ? "rgba(255,255,255,0.9)"
+                                  : "var(--accent)",
+                                flexShrink: 0,
+                                display: "flex",
+                              }}
+                            >
+                              <Check size={14} strokeWidth={2.5} />
+                            </span>
+                            <span
+                              className="text-sm"
+                              style={{
+                                color: plan.featured
+                                  ? "rgba(255,255,255,0.82)"
+                                  : "var(--text-secondary)",
+                              }}
+                            >
+                              {f}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        className="w-full py-3 rounded-xl text-sm font-semibold"
+                        style={{
+                          position: "relative",
+                          zIndex: 1,
+                          background: plan.featured
+                            ? "rgba(255,255,255,0.16)"
+                            : "transparent",
+                          color: plan.featured ? "#fff" : "var(--accent)",
+                          border: plan.featured
+                            ? "1.5px solid rgba(255,255,255,0.28)"
+                            : "1.5px solid var(--accent)",
+                          cursor: "pointer",
+                          transition:
+                            "background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = plan.featured
+                            ? "rgba(255,255,255,0.26)"
+                            : "var(--accent)";
+                          if (!plan.featured)
+                            e.currentTarget.style.color = "#fff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = plan.featured
+                            ? "rgba(255,255,255,0.16)"
+                            : "transparent";
+                          if (!plan.featured)
+                            e.currentTarget.style.color = "var(--accent)";
+                        }}
+                        onClick={() => {
+                          trackLandingEvent("cta_click", {
+                            label: "plan_cta",
+                            section: "precios",
+                            plan: plan.name.toLowerCase(),
+                          });
+                          window.open(
+                            WHATSAPP_URL(
                               "Hola! Me interesa Takefyy para mi negocio 🚀",
                             ),
-                          "_blank",
-                        );
-                      }}
-                    >
-                      {plan.cta}
-                    </button>
-                  </div>
-                </TiltCard>
-              </motion.div>
-            ))}
+                            "_blank",
+                          );
+                        }}
+                      >
+                        {plan.cta}
+                      </button>
+                    </div>
+                  </TiltCard>
+                </motion.div>
+              );
+            })}
           </div>
 
           <p
@@ -4604,15 +4654,16 @@ export default function HomeClient({
             className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
           >
             <motion.button
-              onClick={() =>
+              onClick={() => {
+                trackLandingEvent("cta_click", {
+                  label: "empezar_gratis",
+                  section: "final_cta",
+                });
                 window.open(
-                  "https://wa.me/542994247985?text=" +
-                    encodeURIComponent(
-                      "Hola! Me interesa Takefyy para mi negocio 🚀",
-                    ),
+                  WHATSAPP_URL("Hola! Me interesa Takefyy para mi negocio 🚀"),
                   "_blank",
-                )
-              }
+                );
+              }}
               className="rounded-full font-bold text-white"
               style={{
                 background: "var(--accent)",
@@ -4770,13 +4821,16 @@ export default function HomeClient({
         <motion.button
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() =>
+          onClick={() => {
+            trackLandingEvent("cta_click", {
+              label: "whatsapp_flotante",
+              section: "floating",
+            });
             window.open(
-              "https://wa.me/542994247985?text=" +
-                encodeURIComponent("Hola! Quiero empezar con Takefyy 🚀"),
+              WHATSAPP_URL("Hola! Quiero empezar con Takefyy 🚀"),
               "_blank",
-            )
-          }
+            );
+          }}
           style={{
             width: 56,
             height: 56,
@@ -4835,7 +4889,7 @@ export default function HomeClient({
                   Instagram
                 </a>
                 <a
-                  href="https://wa.me/542994247985"
+                  href={WHATSAPP_BASE}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -4909,7 +4963,7 @@ export default function HomeClient({
                     Instagram
                   </a>
                   <a
-                    href="https://wa.me/542994247985"
+                    href={WHATSAPP_BASE}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm"
