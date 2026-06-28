@@ -176,12 +176,20 @@ function getCategoryIcon(name: string): LucideIcon {
 }
 
 // Mini toast for "Agregado"
-function AddedToast({ visible, name }: { visible: boolean; name: string }) {
+function AddedToast({
+  visible,
+  name,
+  hasCart,
+}: {
+  visible: boolean;
+  name: string;
+  hasCart?: boolean;
+}) {
   return (
     <div
       style={{
         position: "fixed",
-        bottom: 90,
+        bottom: hasCart ? 120 : 90,
         left: "50%",
         transform: `translateX(-50%) translateY(${visible ? 0 : 12}px)`,
         opacity: visible ? 1 : 0,
@@ -545,6 +553,10 @@ const ProductCard = memo(function ProductCard({
                 : fmt(item.price)}
             </span>
           </div>
+
+          {item.extras && item.extras.length > 0 && (
+            <span style={{ fontSize: 11, color: TEXT2 }}>• Personalizá</span>
+          )}
 
           {/* Stepper or Add button */}
           {!soldOut && (
@@ -2074,8 +2086,7 @@ export default function CatalogClient({
                   className="lg:hidden cat-pills-wrapper"
                   style={{ position: "relative" }}
                 >
-                  {/* Fade overlays */}
-                  <div className="cat-pills-fade-left" />
+                  {/* Fade overlay — solo derecha; padding-left=20px resuelve el corte del primer pill */}
                   {!catPillsAtEnd && (
                     <div
                       style={{
@@ -2111,7 +2122,7 @@ export default function CatalogClient({
                     style={{
                       display: "flex",
                       gap: 6,
-                      padding: "6px 16px 10px",
+                      padding: "6px 20px 10px",
                       overflowX: "auto",
                       scrollbarWidth: "none" as const,
                       WebkitOverflowScrolling: "touch",
@@ -2950,15 +2961,7 @@ export default function CatalogClient({
                         gap: 12,
                       }}
                     >
-                      <div
-                        style={{
-                          fontSize: 52,
-                          lineHeight: 1,
-                          marginBottom: 4,
-                        }}
-                      >
-                        🔍
-                      </div>
+                      <SearchX size={48} strokeWidth={1.5} color={TEXTM} />
                       <p
                         style={{
                           fontSize: 16,
@@ -3666,7 +3669,11 @@ export default function CatalogClient({
           </button>
         )}
         {/* ── Toast ────────────────────────────────────────────────────────────── */}
-        <AddedToast visible={!!addedToast} name={addedToast?.name ?? ""} />
+        <AddedToast
+          visible={!!addedToast}
+          name={addedToast?.name ?? ""}
+          hasCart={totalItems > 0}
+        />
         {/* ── Cart bar — mobile only ────────────────────────────────────────────── */}
         <div className="contents lg:hidden">
           {totalItems > 0 && !selectedItem && !cartOpen && (
