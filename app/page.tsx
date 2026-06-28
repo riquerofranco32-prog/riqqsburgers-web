@@ -189,7 +189,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClient restaurantCount={count ?? 0} />
+      <HomeClient restaurantCount={Math.floor((count ?? 0) / 5) * 5} />
     </>
   );
 }

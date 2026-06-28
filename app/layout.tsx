@@ -114,7 +114,9 @@ export default function RootLayout({
     >
       <body className="min-h-screen antialiased">
         {children}
-        <GoogleAnalytics gaId="G-TFXZJ347RM" />
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );

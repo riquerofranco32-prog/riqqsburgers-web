@@ -1629,12 +1629,35 @@ export default function HomeClient({
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [annual, setAnnual] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showSpline, setShowSpline] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const isHoveringHero = useRef(false);
 
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
+    const isMobileDevice = window.innerWidth < 768;
+    setIsMobile(isMobileDevice);
+
+    if (!isMobileDevice) {
+      // Desktop: montar Spline inmediatamente después del primer render
+      setShowSpline(true);
+    } else {
+      // Mobile: diferir hasta primer scroll o 3 segundos, lo que ocurra antes
+      const cleanup = () => {
+        clearTimeout(timer);
+        window.removeEventListener("scroll", onScroll);
+      };
+      const onScroll = () => {
+        setShowSpline(true);
+        cleanup();
+      };
+      const timer = setTimeout(() => {
+        setShowSpline(true);
+        window.removeEventListener("scroll", onScroll);
+      }, 3000);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      return cleanup;
+    }
   }, []);
 
   useEffect(() => {
@@ -2051,9 +2074,17 @@ export default function HomeClient({
                      relative to THIS SECTION (full viewport height + right edge)
         ─────────────────────────────────────────────────────────────────────── */}
         <div className="hero-robot" style={{ zIndex: 1 }}>
-          {/* Spline 3D robot — single wrapper, no transform stacking. Skip on mobile to improve LCP/TBT */}
-          <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
-            {!isMobile && (
+          {/* Spline 3D robot — lazy: desktop carga post-mount, mobile difiere hasta scroll o 3s */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 2,
+              opacity: showSpline ? 1 : 0,
+              transition: "opacity 0.7s",
+            }}
+          >
+            {showSpline && (
               <SplineScene
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
