@@ -380,6 +380,9 @@ export default function CheckoutModal({
       `}</style>
       <div
         className="checkout-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={done ? "Pedido enviado" : "Completá tu pedido"}
         style={{
           background: "var(--surface)",
           borderRadius: "20px 20px 0 0",
@@ -889,20 +892,6 @@ export default function CheckoutModal({
                     ${grandTotal.toLocaleString("es-AR")}
                   </span>
                 </div>
-                {belowMinOrder && (
-                  <p
-                    style={{
-                      color: "#ef4444",
-                      fontSize: 13,
-                      marginTop: 8,
-                      marginBottom: 0,
-                    }}
-                  >
-                    Pedido mínimo para delivery: $
-                    {minOrderAmount!.toLocaleString("es-AR")}. Te faltan $
-                    {(minOrderAmount! - subtotal).toLocaleString("es-AR")}.
-                  </p>
-                )}
               </div>
 
               {error && (
@@ -919,6 +908,24 @@ export default function CheckoutModal({
                 >
                   {error}
                 </div>
+              )}
+
+              {belowMinOrder && (
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#d97706",
+                    background: "#fffbeb",
+                    border: "1px solid #fde68a",
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    margin: 0,
+                  }}
+                >
+                  Mínimo ${minOrderAmount!.toLocaleString("es-AR")} para
+                  delivery. Te faltan $
+                  {(minOrderAmount! - subtotal).toLocaleString("es-AR")}.
+                </p>
               )}
 
               <div

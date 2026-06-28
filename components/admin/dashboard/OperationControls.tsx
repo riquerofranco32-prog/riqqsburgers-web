@@ -106,7 +106,14 @@ export function OperationControls({
               animation: "pulse-green 1.5s infinite ease-in-out",
             }}
           />
-          <span style={{ fontSize: 9, fontWeight: 700, color: "#4ade80", letterSpacing: "0.02em" }}>
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: "#4ade80",
+              letterSpacing: "0.02em",
+            }}
+          >
             LIVE
           </span>
         </div>
@@ -133,11 +140,15 @@ export function OperationControls({
               width: 32,
               height: 32,
               borderRadius: 8,
-              background: isOpen ? "rgba(34, 197, 94, 0.12)" : "rgba(239, 68, 68, 0.12)",
+              background: isOpen
+                ? "rgba(34, 197, 94, 0.12)"
+                : "rgba(239, 68, 68, 0.12)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              border: isOpen ? "1px solid rgba(34, 197, 94, 0.2)" : "1px solid rgba(239, 68, 68, 0.2)",
+              border: isOpen
+                ? "1px solid rgba(34, 197, 94, 0.2)"
+                : "1px solid rgba(239, 68, 68, 0.2)",
               color: isOpen ? "#4ade80" : "#f87171",
               flexShrink: 0,
             }}
@@ -157,7 +168,13 @@ export function OperationControls({
             >
               {isOpen ? "Abierto" : "Cerrado"}
             </p>
-            <p style={{ fontSize: 10, color: "var(--dash-muted)", lineHeight: 1.2 }}>
+            <p
+              style={{
+                fontSize: 10,
+                color: "var(--dash-muted)",
+                lineHeight: 1.2,
+              }}
+            >
               {isOpen
                 ? "Carta abierta y recibiendo pedidos."
                 : "Pedidos desactivados por ahora."}
@@ -231,11 +248,23 @@ export function OperationControls({
         className="flex-shrink-0 w-full sm:w-auto sm:min-w-[200px]"
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ color: soundEnabled ? "var(--accent)" : "var(--dash-muted)", display: "flex", alignItems: "center" }}>
+          <div
+            style={{
+              color: soundEnabled ? "var(--accent)" : "var(--dash-muted)",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </div>
           <div>
-            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--dash-text)" }}>
+            <p
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--dash-text)",
+              }}
+            >
               Timbre de cocina
             </p>
             <p style={{ fontSize: 10, color: "var(--dash-muted)" }}>
@@ -287,9 +316,11 @@ export function OperationControls({
       >
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <Wifi size={11} className="text-emerald-400" />
-          <span style={{ fontWeight: 600, color: "var(--dash-text)" }}>WebSocket activo</span>
+          <span style={{ fontWeight: 600, color: "var(--dash-text)" }}>
+            WebSocket activo
+          </span>
         </div>
-        <span>Servidor Mendoza-1</span>
+        <span>Tiempo real activo</span>
       </div>
     </div>
   );

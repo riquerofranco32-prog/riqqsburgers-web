@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAllTenants } from "@/lib/tenants";
+import { createServerClient } from "@/lib/supabase";
 import HomeClient from "./components/HomeClient";
 
 export const metadata: Metadata = {
@@ -178,14 +178,18 @@ const jsonLd = {
 };
 
 export default async function HomePage() {
-  const tenants = await getAllTenants();
+  const supabase = createServerClient();
+  const { count } = await supabase
+    .from("tenants")
+    .select("*", { count: "exact", head: true })
+    .eq("active", true);
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <HomeClient restaurantCount={tenants.length} />
+      <HomeClient restaurantCount={count ?? 0} />
     </>
   );
 }

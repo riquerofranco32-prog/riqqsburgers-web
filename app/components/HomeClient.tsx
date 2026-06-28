@@ -9,13 +9,18 @@ import {
   useSpring,
 } from "framer-motion";
 import dynamic from "next/dynamic";
-import { SplineScene } from "@/components/ui/splite";
 import Link from "next/link";
 // Lazy-load the WebGL shader so it never blocks the hero render
 const HeroShader = dynamic(() => import("@/components/HeroShader"), {
   ssr: false,
   loading: () => null,
 });
+// Lazy-load the Spline 3D scene — heavy WebGL asset, skip on mobile to improve LCP/TBT
+const SplineScene = dynamic(
+  () =>
+    import("@/components/ui/splite").then((m) => ({ default: m.SplineScene })),
+  { ssr: false, loading: () => null },
+);
 import {
   ShoppingCart,
   CheckCircle,
@@ -106,6 +111,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
     <div style={{ borderBottom: "1px solid var(--border)" }}>
       <button
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         style={{
           width: "100%",
           display: "flex",
@@ -1622,9 +1628,14 @@ export default function HomeClient({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [annual, setAnnual] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const isHoveringHero = useRef(false);
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+  }, []);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20);
@@ -2040,12 +2051,14 @@ export default function HomeClient({
                      relative to THIS SECTION (full viewport height + right edge)
         ─────────────────────────────────────────────────────────────────────── */}
         <div className="hero-robot" style={{ zIndex: 1 }}>
-          {/* Spline 3D robot — single wrapper, no transform stacking */}
+          {/* Spline 3D robot — single wrapper, no transform stacking. Skip on mobile to improve LCP/TBT */}
           <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
-            <SplineScene
-              scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
-              className="w-full h-full"
-            />
+            {!isMobile && (
+              <SplineScene
+                scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                className="w-full h-full"
+              />
+            )}
           </div>
 
           {/* Takefyy logo — centrado en el robot */}

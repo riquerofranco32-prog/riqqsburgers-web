@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getRestaurant } from "@/lib/getRestaurant";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -99,7 +100,9 @@ export default async function RestaurantPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
       />
-      <CatalogClient restaurant={restaurant} />
+      <Suspense fallback={null}>
+        <CatalogClient restaurant={restaurant} />
+      </Suspense>
     </>
   );
 }

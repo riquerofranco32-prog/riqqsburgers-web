@@ -218,8 +218,8 @@ function paymentLabel(method: string) {
 
 function deliveryLabel(type: string) {
   return type === "delivery" || type === "domicilio"
-    ? "🚚 Delivery"
-    : "🏠 Retiro";
+    ? "Delivery"
+    : "Retiro en local";
 }
 
 function matchesFilter(order: Order, filter: FilterKey): boolean {
@@ -962,6 +962,9 @@ export function OrdersTable({
   tenantId: string;
 }) {
   const [orders, setOrders] = useState(initialOrders);
+  const [offset, setOffset] = useState(initialOrders.length);
+  const [hasMore, setHasMore] = useState(initialOrders.length === 50);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -1109,6 +1112,33 @@ export function OrdersTable({
         err instanceof Error ? err.message : "No se pudo eliminar el pedido.",
       );
       vibrate([100, 50, 100]);
+    }
+  }
+
+  async function loadMore() {
+    setLoadingMore(true);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + 49);
+      const incoming = (data ?? []) as Order[];
+      if (incoming.length > 0) {
+        setOrders((prev) => {
+          const existingIds = new Set(prev.map((o) => o.id));
+          const fresh = incoming.filter((o) => !existingIds.has(o.id));
+          return [...prev, ...fresh];
+        });
+        setOffset((prev) => prev + incoming.length);
+      }
+      if (incoming.length < 50) setHasMore(false);
+    } catch {
+      // silently fail — la tabla sigue mostrando los pedidos actuales
+    } finally {
+      setLoadingMore(false);
     }
   }
 
@@ -1638,6 +1668,36 @@ export function OrdersTable({
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Cargar más pedidos */}
+        {hasMore && (
+          <div
+            style={{
+              padding: "12px 20px",
+              borderTop: "1px solid var(--dash-border)",
+              textAlign: "center",
+            }}
+          >
+            <button
+              onClick={() => void loadMore()}
+              disabled={loadingMore}
+              style={{
+                padding: "8px 20px",
+                borderRadius: 8,
+                border: "1px solid var(--dash-border)",
+                background: "var(--dash-surface-2)",
+                color: loadingMore ? "var(--dash-muted)" : "var(--dash-text)",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: loadingMore ? "not-allowed" : "pointer",
+                opacity: loadingMore ? 0.6 : 1,
+                transition: "all 0.15s",
+              }}
+            >
+              {loadingMore ? "Cargando..." : "Cargar más pedidos"}
+            </button>
           </div>
         )}
       </div>

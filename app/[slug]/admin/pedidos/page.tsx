@@ -29,7 +29,7 @@ export default async function PedidosPage({
     .select("*")
     .eq("tenant_id", tenant.id)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(50);
 
   const orders = (rawOrders ?? []) as Order[];
 

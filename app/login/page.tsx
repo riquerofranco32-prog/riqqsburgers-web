@@ -12,6 +12,39 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [resetMode, setResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetError, setResetError] = useState("");
+
+  async function handleResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!resetEmail.trim()) return;
+    setResetLoading(true);
+    setResetError("");
+    try {
+      const supabase = createSupabaseBrowser();
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(
+        resetEmail.trim(),
+        {
+          redirectTo:
+            (typeof window !== "undefined" ? window.location.origin : "") +
+            "/reset-password",
+        },
+      );
+      if (resetErr) {
+        setResetError("No pudimos enviar el email. Intentá de nuevo.");
+      } else {
+        setResetSent(true);
+      }
+    } catch {
+      setResetError("Error de conexión. Intentá de nuevo.");
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -243,6 +276,157 @@ export default function LoginPage() {
             {loading ? "Ingresando..." : "Ingresar →"}
           </button>
         </form>
+
+        {/* Reset password */}
+        {!resetMode && (
+          <button
+            onClick={() => {
+              setResetMode(true);
+              setResetEmail(email);
+            }}
+            style={{
+              marginTop: 20,
+              width: "100%",
+              background: "none",
+              border: "none",
+              color: "var(--dash-muted, #8A8D95)",
+              fontSize: 13,
+              cursor: "pointer",
+              textAlign: "center",
+              padding: "4px 0",
+              transition: "color 0.15s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--accent, #FF6B35)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--dash-muted, #8A8D95)")
+            }
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        )}
+
+        {resetMode && !resetSent && (
+          <form
+            onSubmit={handleResetPassword}
+            style={{
+              marginTop: 20,
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              borderTop: "1px solid var(--dash-border, #2A2D35)",
+              paddingTop: 20,
+            }}
+          >
+            <p
+              style={{
+                color: "var(--dash-muted, #8A8D95)",
+                fontSize: 13,
+                textAlign: "center",
+              }}
+            >
+              Ingresá tu email y te enviamos un link para restablecer tu
+              contraseña.
+            </p>
+            <input
+              type="email"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+              required
+              placeholder="tu@email.com"
+              style={{
+                width: "100%",
+                background: "var(--dash-surface, #1A1D24)",
+                border: "1px solid var(--dash-border, #2A2D35)",
+                borderRadius: 10,
+                padding: "12px 16px",
+                color: "var(--dash-text, #F0EDE8)",
+                fontSize: 14,
+                outline: "none",
+                boxSizing: "border-box",
+                transition: "border-color 0.15s",
+              }}
+              onFocus={(e) =>
+                (e.target.style.borderColor = "var(--accent, #FF6B35)")
+              }
+              onBlur={(e) =>
+                (e.target.style.borderColor = "var(--dash-border, #2A2D35)")
+              }
+            />
+            {resetError && (
+              <p
+                style={{
+                  color: "#f87171",
+                  fontSize: 13,
+                  textAlign: "center",
+                }}
+              >
+                {resetError}
+              </p>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setResetMode(false);
+                  setResetError("");
+                }}
+                style={{
+                  flex: 1,
+                  background: "var(--dash-surface, #1A1D24)",
+                  border: "1px solid var(--dash-border, #2A2D35)",
+                  borderRadius: 10,
+                  padding: "11px",
+                  color: "var(--dash-muted, #8A8D95)",
+                  fontSize: 13,
+                  cursor: "pointer",
+                  fontWeight: 500,
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={resetLoading}
+                style={{
+                  flex: 2,
+                  background: resetLoading
+                    ? "var(--dash-border)"
+                    : "var(--accent, #FF6B35)",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "11px",
+                  color: "#fff",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: resetLoading ? "not-allowed" : "pointer",
+                }}
+              >
+                {resetLoading ? "Enviando..." : "Enviar link"}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {resetSent && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: "14px 16px",
+              borderRadius: 10,
+              background: "rgba(74,222,128,0.08)",
+              border: "1px solid rgba(74,222,128,0.25)",
+              color: "#4ade80",
+              fontSize: 13,
+              textAlign: "center",
+              lineHeight: 1.5,
+            }}
+          >
+            Te enviamos un email para restablecer tu contraseña. Revisá tu
+            bandeja de entrada.
+          </div>
+        )}
       </div>
     </div>
   );

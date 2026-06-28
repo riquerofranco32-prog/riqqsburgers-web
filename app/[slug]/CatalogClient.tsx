@@ -43,6 +43,7 @@ import {
   AtSign,
   type LucideIcon,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import type {
   Restaurant,
   MenuItem,
@@ -56,6 +57,7 @@ import RelatedProducts from "@/components/menu/RelatedProducts";
 import FavoritesSheet from "@/components/menu/FavoritesSheet";
 import { useFavorites } from "@/hooks/useFavorites";
 import { trackEvent } from "@/lib/analytics";
+import { createSupabaseBrowser } from "@/lib/supabase";
 
 type SelectedExtra = { name: string; price: number };
 type CartItem = MenuItem & {
@@ -703,6 +705,7 @@ function ImmersiveView({
   onClose,
   onAdd,
   getQty,
+  onOpenDetail,
 }: {
   products: (MenuItem & { catEmoji: string })[];
   accent: string;
@@ -712,6 +715,7 @@ function ImmersiveView({
   onClose: () => void;
   onAdd: (item: MenuItem) => void;
   getQty: (id: string) => number;
+  onOpenDetail?: (item: MenuItem) => void;
 }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -854,7 +858,12 @@ function ImmersiveView({
                       style={{ background: accent, color: onAccent }}
                       onClick={() => {
                         vibrate(45);
-                        onAdd(product);
+                        if (product.extras && product.extras.length > 0) {
+                          onOpenDetail?.(product);
+                          onClose();
+                        } else {
+                          onAdd(product);
+                        }
                       }}
                     >
                       <Plus size={16} strokeWidth={2.5} />
@@ -918,6 +927,19 @@ export default function CatalogClient({
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const prevTotal = useRef(0);
   const [immersiveMode, setImmersiveMode] = useState(false);
+  const [isOpen, setIsOpen] = useState(isOpen);
+
+  // ── Shared product link (?producto=<id>) ──────────────────────────────────
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const productId = searchParams.get("producto");
+    if (!productId) return;
+    const item = restaurant.menu.categories
+      .flatMap((c) => c.items)
+      .find((i) => i.id === productId);
+    if (item) setSelectedItem(item);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // solo al montar — el param no cambia en runtime
 
   // ── Favorites ─────────────────────────────────────────────────────────────
   const { favorites, isFavorite, toggleFavorite } = useFavorites(
@@ -1066,6 +1088,33 @@ export default function CatalogClient({
     void trackEvent(restaurant.id, "menu_view");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── is_open realtime — actualiza el badge sin recargar la página ─────────
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    const channel = supabase
+      .channel(`tenant-open-${restaurant.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "tenants",
+          filter: `id=eq.${restaurant.id}`,
+        },
+        (payload) => {
+          const updated = payload.new as { is_open?: boolean };
+          if (typeof updated.is_open === "boolean") {
+            setIsOpen(updated.is_open);
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [restaurant.id]);
 
   // ── Analytics — search (debounced 500ms) ─────────────────────────────────
 
@@ -1718,7 +1767,7 @@ export default function CatalogClient({
                 borderRadius: 999,
                 fontSize: 11,
                 fontWeight: 600,
-                background: restaurant.is_open
+                background: isOpen
                   ? "rgba(22,163,74,0.85)"
                   : "rgba(100,100,100,0.75)",
                 color: "#fff",
@@ -1727,12 +1776,12 @@ export default function CatalogClient({
                 letterSpacing: "0.02em",
               }}
             >
-              {restaurant.is_open ? (
+              {isOpen ? (
                 <CheckCircle2 size={11} strokeWidth={2.5} />
               ) : (
                 <XCircle size={11} strokeWidth={2.5} />
               )}
-              {restaurant.is_open ? "Abierto" : "Cerrado"}
+              {isOpen ? "Abierto" : "Cerrado"}
             </span>
           </div>
 
@@ -1881,7 +1930,7 @@ export default function CatalogClient({
           />
         </header>
         {/* Closed notice */}
-        {!restaurant.is_open && (
+        {!isOpen && (
           <div
             style={{
               background: "rgba(220,38,38,0.07)",
@@ -3588,7 +3637,7 @@ export default function CatalogClient({
                       )}
                     </span>
                   </div>
-                  {!restaurant.is_open ? (
+                  {!isOpen ? (
                     <div
                       style={{
                         padding: "12px",
@@ -3829,6 +3878,9 @@ export default function CatalogClient({
                 onClick={() => setCartOpen(false)}
               />
               <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Tu pedido"
                 onTouchStart={onDrawerTouchStart}
                 onTouchMove={onDrawerTouchMove}
                 onTouchEnd={onDrawerTouchEnd}
@@ -4337,7 +4389,7 @@ export default function CatalogClient({
                     flexShrink: 0,
                   }}
                 >
-                  {!restaurant.is_open ? (
+                  {!isOpen ? (
                     <div
                       style={{
                         width: "100%",

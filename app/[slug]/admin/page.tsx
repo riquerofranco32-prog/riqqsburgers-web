@@ -2,12 +2,7 @@ import { createServerClient } from "@/lib/supabase";
 import { getTenant } from "@/lib/tenants";
 import type { Metadata } from "next";
 import type { Category, Product, Order, OrderItem } from "@/types/supabase";
-import type {
-  DashboardKPIs,
-  DailyRevenue,
-  CategoryRevenue,
-  TopProduct,
-} from "@/types/dashboard";
+import type { CategoryRevenue, TopProduct } from "@/types/dashboard";
 import AdminDashboard from "@/components/AdminDashboard";
 import BackButton from "@/components/BackButton";
 
@@ -15,95 +10,9 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Panel Admin" };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function startOfDay(d: Date): Date {
-  const r = new Date(d);
-  r.setHours(0, 0, 0, 0);
-  return r;
-}
-
-function computeKPIs(orders: Order[], products: Product[]): DashboardKPIs {
-  const today = startOfDay(new Date());
-  const yesterday = new Date(today.getTime() - 86_400_000);
-
-  const todayOrders = orders.filter((o) => new Date(o.created_at) >= today);
-  const yesterdayOrders = orders.filter((o) => {
-    const d = new Date(o.created_at);
-    return d >= yesterday && d < today;
-  });
-
-  const ordersToday = todayOrders.length;
-  const ordersYesterday = yesterdayOrders.length;
-  const ordersTodayChange =
-    ordersYesterday > 0
-      ? ((ordersToday - ordersYesterday) / ordersYesterday) * 100
-      : null;
-
-  const revenueToday = todayOrders.reduce((s, o) => s + o.total, 0);
-  const revenueYesterday = yesterdayOrders.reduce((s, o) => s + o.total, 0);
-  const revenueTodayChange =
-    revenueYesterday > 0
-      ? ((revenueToday - revenueYesterday) / revenueYesterday) * 100
-      : null;
-
-  const avgTicketToday =
-    ordersToday > 0 ? Math.round(revenueToday / ordersToday) : 0;
-  const avgTicketYesterday =
-    ordersYesterday > 0 ? Math.round(revenueYesterday / ordersYesterday) : 0;
-  const avgTicketChange =
-    avgTicketYesterday > 0
-      ? ((avgTicketToday - avgTicketYesterday) / avgTicketYesterday) * 100
-      : null;
-
-  const itemMap: Record<string, { name: string; qty: number }> = {};
-  for (const order of todayOrders) {
-    for (const item of order.items as OrderItem[]) {
-      if (!itemMap[item.product_id])
-        itemMap[item.product_id] = { name: item.name, qty: 0 };
-      itemMap[item.product_id].qty += item.quantity;
-    }
-  }
-  const topProductToday =
-    Object.values(itemMap).sort((a, b) => b.qty - a.qty)[0] ?? null;
-
-  const activeProducts = products.filter((p) => p.available).length;
-
-  return {
-    ordersToday,
-    ordersTodayChange,
-    revenueToday,
-    revenueTodayChange,
-    avgTicketToday,
-    avgTicketChange,
-    topProductToday,
-    activeProducts,
-  };
-}
-
-function computeSalesLast7Days(orders: Order[]): DailyRevenue[] {
-  const result: DailyRevenue[] = [];
-  for (let i = 6; i >= 0; i--) {
-    const day = startOfDay(new Date());
-    day.setDate(day.getDate() - i);
-    const nextDay = new Date(day.getTime() + 86_400_000);
-
-    const dayTotal = orders
-      .filter((o) => {
-        const d = new Date(o.created_at);
-        return d >= day && d < nextDay;
-      })
-      .reduce((s, o) => s + o.total, 0);
-
-    // Label: "Lun", "Mar", ..., "Hoy"
-    const isToday = i === 0;
-    const raw = day.toLocaleDateString("es-AR", { weekday: "short" });
-    const label = isToday
-      ? "Hoy"
-      : raw.charAt(0).toUpperCase() + raw.slice(1).replace(".", "");
-    result.push({ date: label, total: dayTotal });
-  }
-  return result;
-}
+// NOTE: computeKPIs y computeSalesLast7Days se eliminaron — los KPIs de "hoy"
+// ahora se calculan únicamente en AdminDashboard (client-side) para garantizar
+// que el filtro de pedidos cancelados sea consistente entre SSR y hydration.
 
 const CATEGORY_COLORS: Record<string, string> = {
   Burgers: "#facc15",
@@ -276,9 +185,9 @@ export default async function AdminPage({
   const products = (rawProducts ?? []) as Product[];
   const categories = (rawCategories ?? []) as Category[];
 
-  // Compute all dashboard data server-side
-  const kpis = computeKPIs(orders, products);
-  const salesData = computeSalesLast7Days(orders);
+  // Compute category/product breakdowns server-side (used for week/month ranges in the dashboard).
+  // KPIs de "hoy" se calculan en el cliente para consistencia con el filtro de cancelados.
+  // TODO: unificar categoryData y topProducts también al cliente cuando analytics API los soporte.
   const categoryData = computeCategoryRevenue(orders, products, categories);
   const topProducts = computeTopProducts(orders, products, categories);
   const recentOrders = orders.slice(0, 10);
@@ -294,8 +203,6 @@ export default async function AdminPage({
         slug={slug}
         tenantId={tenant.id}
         isOpen={tenant.is_open}
-        kpis={kpis}
-        salesData={salesData}
         categoryData={categoryData}
         recentOrders={recentOrders}
         allOrders={orders}

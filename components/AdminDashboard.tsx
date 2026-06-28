@@ -10,6 +10,7 @@ import {
   Plus,
   ClipboardList,
   Eye,
+  RefreshCw,
 } from "lucide-react";
 import { KPICard } from "@/components/admin/dashboard/KPICard";
 import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
@@ -273,8 +274,9 @@ interface AdminDashboardProps {
   slug: string;
   tenantId: string;
   isOpen: boolean;
-  kpis: DashboardKPIs;
-  salesData: DailyRevenue[];
+  // kpis y salesData eliminados: los KPIs de "hoy" se calculan solo en el cliente
+  // (via currentKPIs/currentSalesData) para evitar mismatch SSR↔hydration con cancelados.
+  // TODO: cuando analytics API soporte categoryData/topProducts por rango, mover esos al cliente también.
   categoryData: CategoryRevenue[];
   recentOrders: Order[];
   allOrders: Order[];
@@ -289,8 +291,6 @@ export default function AdminDashboard({
   slug,
   tenantId,
   isOpen: isOpenInitial,
-  kpis,
-  salesData,
   categoryData,
   recentOrders,
   allOrders,
@@ -309,6 +309,7 @@ export default function AdminDashboard({
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(
     null,
   );
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const [isOpen, setIsOpen] = useState(isOpenInitial);
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -412,6 +413,7 @@ export default function AdminDashboard({
         if (!res.ok) throw new Error("Error al cargar analytics");
         const data: AnalyticsResponse = await res.json();
         setAnalyticsData(data);
+        setLastUpdated(new Date());
       } catch {
         setAnalyticsData(null);
       } finally {
@@ -425,6 +427,7 @@ export default function AdminDashboard({
     setRange(r);
     if (r === "today") {
       setAnalyticsData(null);
+      setLastUpdated(null);
     } else {
       void fetchAnalytics(r);
     }
@@ -457,6 +460,8 @@ export default function AdminDashboard({
       : range === "week"
         ? "Ventas por día — 7 días"
         : "Ventas por día — 30 días";
+
+  const isNewTenant = allOrders.length === 0 && products.length === 0;
 
   return (
     <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
@@ -528,257 +533,457 @@ export default function AdminDashboard({
           <div
             style={{
               display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
               gap: 4,
-              background: "var(--dash-surface-2)",
-              borderRadius: 10,
-              padding: 4,
-              border: "1px solid var(--dash-border)",
             }}
           >
-            {RANGES.map((r) => (
-              <button
-                key={r}
-                onClick={() => handleRangeChange(r)}
+            <div
+              style={{
+                display: "flex",
+                gap: 4,
+                background: "var(--dash-surface-2)",
+                borderRadius: 10,
+                padding: 4,
+                border: "1px solid var(--dash-border)",
+              }}
+            >
+              {RANGES.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => handleRangeChange(r)}
+                  style={{
+                    padding: "8px 14px",
+                    minHeight: 36,
+                    borderRadius: 7,
+                    border: "none",
+                    fontSize: 12,
+                    fontWeight: range === r ? 700 : 500,
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    background:
+                      range === r
+                        ? "linear-gradient(135deg, var(--accent), #ff8c5a)"
+                        : "transparent",
+                    color: range === r ? "#fff" : "var(--dash-muted)",
+                    boxShadow:
+                      range === r ? "0 2px 8px rgba(255,107,53,0.3)" : "none",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  {RANGE_LABELS[r]}
+                </button>
+              ))}
+            </div>
+
+            {range !== "today" && lastUpdated && (
+              <div
                 style={{
-                  padding: "8px 14px",
-                  minHeight: 36,
-                  borderRadius: 7,
-                  border: "none",
-                  fontSize: 12,
-                  fontWeight: range === r ? 700 : 500,
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                  background:
-                    range === r
-                      ? "linear-gradient(135deg, var(--accent), #ff8c5a)"
-                      : "transparent",
-                  color: range === r ? "#fff" : "var(--dash-muted)",
-                  boxShadow:
-                    range === r ? "0 2px 8px rgba(255,107,53,0.3)" : "none",
-                  WebkitTapHighlightColor: "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                 }}
               >
-                {RANGE_LABELS[r]}
-              </button>
+                <span style={{ fontSize: 11, color: "var(--dash-muted)" }}>
+                  Actualizado a las{" "}
+                  {lastUpdated.toLocaleTimeString("es-AR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+                <button
+                  onClick={() => void fetchAnalytics(range as "week" | "month")}
+                  disabled={analyticsLoading}
+                  title="Actualizar datos"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 4,
+                    background: "none",
+                    border: "1px solid var(--dash-border)",
+                    borderRadius: 6,
+                    cursor: analyticsLoading ? "not-allowed" : "pointer",
+                    color: "var(--dash-muted)",
+                    opacity: analyticsLoading ? 0.6 : 1,
+                    transition: "border-color 0.15s, color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!analyticsLoading) {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,107,53,0.4)";
+                      e.currentTarget.style.color = "var(--dash-text)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--dash-border)";
+                    e.currentTarget.style.color = "var(--dash-muted)";
+                  }}
+                >
+                  <RefreshCw
+                    style={{ width: 14, height: 14 }}
+                    className={analyticsLoading ? "animate-spin" : ""}
+                  />
+                </button>
+              </div>
+            )}
+          </div>
+          <ExportReportButton slug={slug} />
+        </div>
+      </div>
+
+      {/* Empty state — tenant nuevo sin productos ni pedidos */}
+      {isNewTenant && (
+        <div
+          className="stagger-item"
+          style={{
+            textAlign: "center",
+            padding: "48px 24px",
+            maxWidth: 480,
+            margin: "0 auto",
+            animationDelay: "80ms",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 22,
+              fontWeight: 700,
+              color: "var(--dash-text)",
+              marginBottom: 8,
+            }}
+          >
+            Bienvenido a Takefyy
+          </h2>
+          <p
+            style={{
+              color: "var(--dash-muted)",
+              marginBottom: 32,
+              fontSize: 14,
+            }}
+          >
+            Seguí estos pasos para empezar a recibir pedidos
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              textAlign: "left",
+            }}
+          >
+            {[
+              {
+                step: 1,
+                label: "Cargá tus productos",
+                sub: "Creá las categorías y los platos de tu carta",
+                href: `/${slug}/admin/productos`,
+              },
+              {
+                step: 2,
+                label: "Compartí el link de tu menú",
+                sub: `Tu menú público está en takefyy.com/${slug}`,
+                href: `/${slug}`,
+              },
+              {
+                step: 3,
+                label: "Recibí tu primer pedido",
+                sub: "Los pedidos llegan aquí y por WhatsApp",
+                href: `/${slug}/admin/pedidos`,
+              },
+            ].map((item) => (
+              <Link
+                key={item.step}
+                href={item.href}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  border: "1px solid var(--dash-border)",
+                  textDecoration: "none",
+                  color: "inherit",
+                  background: "var(--dash-surface)",
+                  transition: "border-color 0.15s, box-shadow 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(255,107,53,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "var(--dash-border)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+              >
+                <span
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background:
+                      "linear-gradient(135deg, var(--accent), #ff8c5a)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    color: "#fff",
+                    flexShrink: 0,
+                  }}
+                >
+                  {item.step}
+                </span>
+                <div>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      fontSize: 14,
+                      color: "var(--dash-text)",
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "var(--dash-muted)",
+                      marginTop: 2,
+                    }}
+                  >
+                    {item.sub}
+                  </div>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Quick actions */}
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href={`/${slug}/admin/productos?new=1`}
-          className="stagger-item"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "8px 14px",
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 500,
-            background:
-              "linear-gradient(135deg, var(--accent) 0%, #ff8c5a 100%)",
-            color: "#fff",
-            textDecoration: "none",
-            transition:
-              "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease",
-            animationDelay: "80ms",
-            boxShadow: "0 2px 8px rgba(255,107,53,0.2)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-1.5px) scale(1.02)";
-            e.currentTarget.style.boxShadow =
-              "0 6px 16px rgba(255,107,53,0.35)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "none";
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(255,107,53,0.2)";
-          }}
-        >
-          <Plus style={{ width: 14, height: 14 }} />
-          Agregar producto
-        </Link>
-        <Link
-          href={`/${slug}/admin/pedidos`}
-          className="stagger-item"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "8px 14px",
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 500,
-            background: "var(--dash-surface-2)",
-            color: "var(--dash-muted)",
-            border: "1px solid var(--dash-border)",
-            textDecoration: "none",
-            transition:
-              "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
-            animationDelay: "120ms",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "rgba(255,107,53,0.4)";
-            e.currentTarget.style.color = "var(--dash-text)";
-            e.currentTarget.style.transform = "translateY(-1.5px) scale(1.02)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "var(--dash-border)";
-            e.currentTarget.style.color = "var(--dash-muted)";
-            e.currentTarget.style.transform = "none";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          <ClipboardList style={{ width: 14, height: 14 }} />
-          Ver pedidos
-        </Link>
-        <Link
-          href={`/${slug}/admin/preview`}
-          className="stagger-item"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "8px 14px",
-            borderRadius: 8,
-            fontSize: 13,
-            fontWeight: 500,
-            background: "var(--dash-surface-2)",
-            color: "var(--dash-muted)",
-            border: "1px solid var(--dash-border)",
-            textDecoration: "none",
-            transition:
-              "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
-            animationDelay: "160ms",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "rgba(255,107,53,0.4)";
-            e.currentTarget.style.color = "var(--dash-text)";
-            e.currentTarget.style.transform = "translateY(-1.5px) scale(1.02)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "var(--dash-border)";
-            e.currentTarget.style.color = "var(--dash-muted)";
-            e.currentTarget.style.transform = "none";
-            e.currentTarget.style.boxShadow = "none";
-          }}
-        >
-          <Eye style={{ width: 14, height: 14 }} />
-          Ver menú
-        </Link>
-      </div>
+      {!isNewTenant && (
+        <>
+          {/* Quick actions */}
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/${slug}/admin/productos?new=1`}
+              className="stagger-item"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 14px",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 500,
+                background:
+                  "linear-gradient(135deg, var(--accent) 0%, #ff8c5a 100%)",
+                color: "#fff",
+                textDecoration: "none",
+                transition:
+                  "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, opacity 0.2s ease",
+                animationDelay: "80ms",
+                boxShadow: "0 2px 8px rgba(255,107,53,0.2)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform =
+                  "translateY(-1.5px) scale(1.02)";
+                e.currentTarget.style.boxShadow =
+                  "0 6px 16px rgba(255,107,53,0.35)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow =
+                  "0 2px 8px rgba(255,107,53,0.2)";
+              }}
+            >
+              <Plus style={{ width: 14, height: 14 }} />
+              Agregar producto
+            </Link>
+            <Link
+              href={`/${slug}/admin/pedidos`}
+              className="stagger-item"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 14px",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 500,
+                background: "var(--dash-surface-2)",
+                color: "var(--dash-muted)",
+                border: "1px solid var(--dash-border)",
+                textDecoration: "none",
+                transition:
+                  "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
+                animationDelay: "120ms",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,107,53,0.4)";
+                e.currentTarget.style.color = "var(--dash-text)";
+                e.currentTarget.style.transform =
+                  "translateY(-1.5px) scale(1.02)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--dash-border)";
+                e.currentTarget.style.color = "var(--dash-muted)";
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <ClipboardList style={{ width: 14, height: 14 }} />
+              Ver pedidos
+            </Link>
+            <Link
+              href={`/${slug}/admin/preview`}
+              className="stagger-item"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 14px",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 500,
+                background: "var(--dash-surface-2)",
+                color: "var(--dash-muted)",
+                border: "1px solid var(--dash-border)",
+                textDecoration: "none",
+                transition:
+                  "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease",
+                animationDelay: "160ms",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(255,107,53,0.4)";
+                e.currentTarget.style.color = "var(--dash-text)";
+                e.currentTarget.style.transform =
+                  "translateY(-1.5px) scale(1.02)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--dash-border)";
+                e.currentTarget.style.color = "var(--dash-muted)";
+                e.currentTarget.style.transform = "none";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <Eye style={{ width: 14, height: 14 }} />
+              Ver menú
+            </Link>
+          </div>
 
-      {/* Control rápido de la tienda */}
-      <div className="stagger-item w-full" style={{ animationDelay: "180ms" }}>
-        <OperationControls
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          soundEnabled={soundEnabled}
-          setSoundEnabled={setSoundEnabled}
-          slug={slug}
-        />
-      </div>
+          {/* Control rápido de la tienda */}
+          <div
+            className="stagger-item w-full"
+            style={{ animationDelay: "180ms" }}
+          >
+            <OperationControls
+              isOpen={isOpen}
+              setIsOpen={setIsOpen}
+              soundEnabled={soundEnabled}
+              setSoundEnabled={setSoundEnabled}
+              slug={slug}
+            />
+          </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="stagger-item" style={{ animationDelay: "240ms" }}>
-          <KPICard
-            loading={analyticsLoading}
-            label={`Pedidos${range === "today" ? " hoy" : ""}`}
-            value={String(activeOrderCount)}
-            change={range === "today" ? kpis.ordersTodayChange : null}
-            changeLabel={rangeLabel}
-            icon={ShoppingCart}
-          />
-        </div>
-        <div className="stagger-item" style={{ animationDelay: "300ms" }}>
-          <KPICard
-            loading={analyticsLoading}
-            label={`Ventas${range === "today" ? " hoy" : ""}`}
-            value={fmtARS(activeRevenue)}
-            change={range === "today" ? kpis.revenueTodayChange : null}
-            changeLabel={rangeLabel}
-            icon={DollarSign}
-          />
-        </div>
-        <div className="stagger-item" style={{ animationDelay: "360ms" }}>
-          <KPICard
-            loading={analyticsLoading}
-            label="Ticket promedio"
-            value={activeAvgTicket > 0 ? fmtARS(activeAvgTicket) : "—"}
-            change={range === "today" ? kpis.avgTicketChange : null}
-            changeLabel={rangeLabel}
-            icon={TrendingUp}
-          />
-        </div>
-        <div className="stagger-item" style={{ animationDelay: "420ms" }}>
-          <KPICard
-            loading={analyticsLoading}
-            label="Productos activos"
-            value={String(kpis.activeProducts)}
-            sub={
-              kpis.activeProducts === 1
-                ? "1 producto en carta"
-                : `${kpis.activeProducts} productos en carta`
-            }
-            icon={Package}
-          />
-        </div>
-      </div>
+          {/* KPIs */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="stagger-item" style={{ animationDelay: "240ms" }}>
+              <KPICard
+                loading={analyticsLoading}
+                label={`Pedidos${range === "today" ? " hoy" : ""}`}
+                value={String(activeOrderCount)}
+                change={
+                  range === "today" ? currentKPIs.ordersTodayChange : null
+                }
+                changeLabel={rangeLabel}
+                icon={ShoppingCart}
+              />
+            </div>
+            <div className="stagger-item" style={{ animationDelay: "300ms" }}>
+              <KPICard
+                loading={analyticsLoading}
+                label={`Ventas${range === "today" ? " hoy" : ""}`}
+                value={fmtARS(activeRevenue)}
+                change={
+                  range === "today" ? currentKPIs.revenueTodayChange : null
+                }
+                changeLabel={rangeLabel}
+                icon={DollarSign}
+              />
+            </div>
+            <div className="stagger-item" style={{ animationDelay: "360ms" }}>
+              <KPICard
+                loading={analyticsLoading}
+                label="Ticket promedio"
+                value={activeAvgTicket > 0 ? fmtARS(activeAvgTicket) : "—"}
+                change={range === "today" ? currentKPIs.avgTicketChange : null}
+                changeLabel={rangeLabel}
+                icon={TrendingUp}
+              />
+            </div>
+            <div className="stagger-item" style={{ animationDelay: "420ms" }}>
+              <KPICard
+                loading={analyticsLoading}
+                label="Productos activos"
+                value={String(currentKPIs.activeProducts)}
+                sub={
+                  currentKPIs.activeProducts === 1
+                    ? "1 producto en carta"
+                    : `${currentKPIs.activeProducts} productos en carta`
+                }
+                icon={Package}
+              />
+            </div>
+          </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
-        <div className="stagger-item" style={{ animationDelay: "500ms" }}>
-          <SalesAreaChart
-            data={activeSalesData}
-            loading={analyticsLoading}
-            chartHeight={isMobile ? 200 : 280}
-            title={chartTitle}
-          />
-        </div>
-        <div className="stagger-item" style={{ animationDelay: "560ms" }}>
-          <CategoryDonut
-            data={range === "today" ? currentCategoryData : categoryData}
-            compact={isMobile}
-          />
-        </div>
-      </div>
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+            <div className="stagger-item" style={{ animationDelay: "500ms" }}>
+              <SalesAreaChart
+                data={activeSalesData}
+                loading={analyticsLoading}
+                chartHeight={isMobile ? 200 : 280}
+                title={chartTitle}
+              />
+            </div>
+            <div className="stagger-item" style={{ animationDelay: "560ms" }}>
+              <CategoryDonut
+                data={range === "today" ? currentCategoryData : categoryData}
+                compact={isMobile}
+              />
+            </div>
+          </div>
 
-      {/* Horas pico + Top productos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="stagger-item" style={{ animationDelay: "640ms" }}>
-          <PeakHoursWidget orders={orders} />
-        </div>
-        <div className="stagger-item" style={{ animationDelay: "700ms" }}>
-          <TopProductsList
-            products={range === "today" ? currentTopProducts : topProducts}
-            showRevenue={!isMobile}
-          />
-        </div>
-      </div>
+          {/* Horas pico + Top productos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="stagger-item" style={{ animationDelay: "640ms" }}>
+              <PeakHoursWidget orders={orders} />
+            </div>
+            <div className="stagger-item" style={{ animationDelay: "700ms" }}>
+              <TopProductsList
+                products={range === "today" ? currentTopProducts : topProducts}
+                showRevenue={!isMobile}
+              />
+            </div>
+          </div>
 
-      {/* Tables */}
-      <div className="stagger-item w-full" style={{ animationDelay: "780ms" }}>
-        <RecentOrdersTable
-          orders={currentRecentOrders}
-          slug={slug}
-          tenantId={tenantId}
-          maxRows={isMobile ? 5 : 10}
-          soundEnabled={soundEnabled}
-        />
-      </div>
-
-      {/* Export — mobile fallback */}
-      <div
-        className="sm:hidden stagger-item"
-        style={{ animationDelay: "840ms" }}
-      >
-        <ExportReportButton slug={slug} />
-      </div>
+          {/* Tables */}
+          <div
+            className="stagger-item w-full"
+            style={{ animationDelay: "780ms" }}
+          >
+            <RecentOrdersTable
+              orders={currentRecentOrders}
+              slug={slug}
+              tenantId={tenantId}
+              maxRows={isMobile ? 5 : 10}
+              soundEnabled={soundEnabled}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }

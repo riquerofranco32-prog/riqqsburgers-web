@@ -244,7 +244,12 @@ export default function AdminShell({
 }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("sidebar_collapsed") === "true";
+    }
+    return false;
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -601,7 +606,11 @@ export default function AdminShell({
         >
           {!collapsed && <TakefyyLogo size="sm" />}
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => {
+              const next = !collapsed;
+              setCollapsed(next);
+              localStorage.setItem("sidebar_collapsed", String(next));
+            }}
             style={{
               background: "none",
               border: "none",

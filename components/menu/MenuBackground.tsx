@@ -15,16 +15,24 @@ function hexToRgb(hex: string): RGB {
 
 type Props = {
   accentColor?: string;
+  /** Omitir animación canvas (usar CSS fallback). Activar en mobile para evitar jank. */
+  disableAnimation?: boolean;
 };
 
-export default function MenuBackground({ accentColor = "#FF6B35" }: Props) {
+export default function MenuBackground({
+  accentColor = "#FF6B35",
+  disableAnimation = false,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [useCss, setUseCss] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      disableAnimation ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setUseCss(true);
       return;
     }

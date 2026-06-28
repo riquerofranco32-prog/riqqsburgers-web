@@ -19,6 +19,7 @@ const ALLOWED_FIELDS = [
   "delivery_cost",
   "is_open",
   "hero_video_url",
+  "min_order_amount",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -111,6 +112,23 @@ export async function PATCH(
           { status: 400 },
         );
       }
+    }
+  }
+
+  // Validate min_order_amount — must be null or a non-negative integer
+  if ("min_order_amount" in patch) {
+    const val = patch["min_order_amount"];
+    if (
+      val !== null &&
+      (typeof val !== "number" || !Number.isFinite(val) || val < 0)
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "min_order_amount inválido: debe ser un número positivo o vacío",
+        },
+        { status: 400 },
+      );
     }
   }
 

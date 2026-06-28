@@ -139,13 +139,13 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
     delivery_cost: tenant.delivery_cost ?? 0,
+    min_order_amount: tenant.min_order_amount ?? null,
     primary_color: tenant.primary_color ?? "#FF6B35",
     secondary_color: tenant.secondary_color ?? "#2D1B0E",
     background_color: tenant.background_color ?? "#FFFAF7",
     logo_url: tenant.logo_url ?? "",
     banner_url: tenant.banner_url ?? "",
-    hero_video_url:
-      (tenant as { hero_video_url?: string | null }).hero_video_url ?? "",
+    hero_video_url: tenant.hero_video_url ?? "",
     is_open: tenant.is_open,
   });
 
@@ -315,6 +315,39 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 }}
               >
                 En pesos ARS. Poné 0 para delivery gratuito.
+              </p>
+            </div>
+
+            <div>
+              <label style={labelStyle}>Monto mínimo de pedido</label>
+              <input
+                type="number"
+                min={0}
+                step={1}
+                value={form.min_order_amount ?? ""}
+                onChange={(e) =>
+                  set(
+                    "min_order_amount",
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
+                }
+                placeholder="Sin mínimo"
+                style={inputStyle}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--accent)")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--dash-border)")
+                }
+              />
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--dash-muted)",
+                  marginTop: 4,
+                }}
+              >
+                En pesos ARS. Dejá vacío para no exigir mínimo.
               </p>
             </div>
 
