@@ -1977,6 +1977,38 @@ export default function CatalogClient({
                         </button>
                       );
                     })}
+                    {/* Immersive mode trigger */}
+                    {allProducts.length > 0 && (
+                      <button
+                        aria-label="Vista inmersiva"
+                        onClick={() => setImmersiveMode(true)}
+                        style={{
+                          flexShrink: 0,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          border: `1px solid ${BORDER}`,
+                          background: SURFACE2,
+                          color: TEXT2,
+                          cursor: "pointer",
+                          WebkitTapHighlightColor: "transparent",
+                          transition: "background 0.15s, border-color 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = accent;
+                          e.currentTarget.style.background = `${accent}14`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = BORDER;
+                          e.currentTarget.style.background = SURFACE2;
+                        }}
+                      >
+                        <Sparkles size={15} strokeWidth={2.5} />
+                      </button>
+                    )}
                     {/* Search trigger — siempre visible en mobile */}
                     <button
                       aria-label="Buscar productos"
@@ -3842,6 +3874,25 @@ export default function CatalogClient({
           TEXT2={TEXT2}
           TEXTM={TEXTM}
         />
+        {/* ── Immersive mode ───────────────────────────────────────────────────── */}
+        {immersiveMode && (
+          <ImmersiveView
+            products={allProducts}
+            accent={accent}
+            onAccent={onAccent}
+            SURFACE={SURFACE}
+            TEXTM={TEXTM}
+            onClose={() => setImmersiveMode(false)}
+            onAdd={(item) => {
+              addItem(item);
+              setImmersiveMode(false);
+            }}
+            getQty={getQty}
+            onOpenDetail={(item) => {
+              setSelectedItem(item);
+            }}
+          />
+        )}
         {/* ── Checkout ─────────────────────────────────────────────────────────── */}
         <CheckoutModal
           isOpen={checkoutOpen}
