@@ -1641,23 +1641,8 @@ export default function HomeClient({
     if (!isMobileDevice) {
       // Desktop: montar Spline inmediatamente después del primer render
       setShowSpline(true);
-    } else {
-      // Mobile: diferir hasta primer scroll o 3 segundos, lo que ocurra antes
-      const cleanup = () => {
-        clearTimeout(timer);
-        window.removeEventListener("scroll", onScroll);
-      };
-      const onScroll = () => {
-        setShowSpline(true);
-        cleanup();
-      };
-      const timer = setTimeout(() => {
-        setShowSpline(true);
-        window.removeEventListener("scroll", onScroll);
-      }, 3000);
-      window.addEventListener("scroll", onScroll, { passive: true });
-      return cleanup;
     }
+    // ponytail: mobile no carga Spline — WebGL bloquea LCP; agregar si se pide feature mobile
   }, []);
 
   useEffect(() => {
