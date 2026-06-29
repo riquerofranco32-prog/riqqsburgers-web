@@ -4,6 +4,20 @@ import { createServerClient } from "@/lib/supabase";
 import { safeDbError } from "@/lib/db-error";
 import { sendPushToTenant } from "@/lib/push";
 
+// ponytail: in-memory rate limit per IP, resets on cold start. Upgrade to Upstash if abuse is reported.
+const ipBucket = new Map<string, number[]>();
+const RATE_WINDOW_MS = 60_000;
+const RATE_MAX = 10;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const hits = (ipBucket.get(ip) ?? []).filter((t) => now - t < RATE_WINDOW_MS);
+  if (hits.length >= RATE_MAX) return false;
+  hits.push(now);
+  ipBucket.set(ip, hits);
+  return true;
+}
+
 interface OrderItem {
   product_id: string;
   quantity: number;
@@ -28,6 +42,15 @@ function generateRef(): string {
 }
 
 export async function POST(req: NextRequest) {
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { error: "Demasiados pedidos. Esperá un momento e intentá de nuevo." },
+      { status: 429 },
+    );
+  }
+
   let body: CreateOrderBody;
   try {
     body = (await req.json()) as CreateOrderBody;
