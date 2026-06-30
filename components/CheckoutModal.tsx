@@ -586,16 +586,41 @@ export default function CheckoutModal({
                 padding: "0 4px",
               }}
             >
+              {orderRef && (
+                <a
+                  href={`/pedido/${orderRef}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    background: accent,
+                    color: onAccent,
+                    borderRadius: 12,
+                    padding: "14px 32px",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                    textAlign: "center",
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  Seguí tu pedido en vivo →
+                </a>
+              )}
               <button
                 onClick={onClose}
                 style={{
-                  background: accent,
-                  color: onAccent,
-                  border: "none",
+                  background: "var(--surface-2)",
+                  color: "var(--text-secondary)",
+                  border: "1px solid var(--border)",
                   borderRadius: 12,
                   padding: "14px 32px",
-                  fontSize: 15,
-                  fontWeight: 700,
+                  fontSize: 14,
+                  fontWeight: 600,
                   cursor: "pointer",
                   width: "100%",
                 }}
