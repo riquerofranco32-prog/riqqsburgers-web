@@ -1633,6 +1633,7 @@ export default function HomeClient({
   const [annual, setAnnual] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showSpline, setShowSpline] = useState(false);
+  const [splineLoaded, setSplineLoaded] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
   const isHoveringHero = useRef(false);
@@ -1642,7 +1643,6 @@ export default function HomeClient({
     setIsMobile(isMobileDevice);
 
     if (!isMobileDevice) {
-      // Desktop: montar Spline inmediatamente después del primer render
       setShowSpline(true);
     }
     // ponytail: mobile no carga Spline — WebGL bloquea LCP; agregar si se pide feature mobile
@@ -1665,22 +1665,22 @@ export default function HomeClient({
     localStorage.setItem("takefyy_banner_dismissed", "1");
   }
 
-  // Idle automatic mouse drift animation — updates DOM directly to avoid re-renders
+  // Idle automatic mouse drift — uses transform (compositor-only) to avoid layout recalcs
   useEffect(() => {
     let start = Date.now();
     let frame: number;
+    let tick_i = 0;
 
     const tick = () => {
-      if (!isHoveringHero.current) {
-        const elapsed = (Date.now() - start) / 1000;
-        const x = 0.5 + 0.22 * Math.sin(elapsed * 0.7);
-        const y = 0.5 + 0.22 * Math.cos(elapsed * 0.4);
-        if (glowRef.current) {
-          glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
-          glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
-        }
-      }
       frame = requestAnimationFrame(tick);
+      tick_i++;
+      if (tick_i % 3 !== 0) return; // ~20fps — decorative, 60fps is wasteful
+      if (!isHoveringHero.current && glowRef.current) {
+        const elapsed = (Date.now() - start) / 1000;
+        const x = 0.22 * Math.sin(elapsed * 0.7);
+        const y = 0.22 * Math.cos(elapsed * 0.4);
+        glowRef.current.style.transform = `translate3d(${x * 600}px, ${y * 600}px, 0)`;
+      }
     };
 
     frame = requestAnimationFrame(tick);
@@ -1691,10 +1691,9 @@ export default function HomeClient({
     isHoveringHero.current = true;
     const rect = heroRef.current?.getBoundingClientRect();
     if (!rect || !glowRef.current) return;
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    glowRef.current.style.left = `calc(${x * 100}% - 300px)`;
-    glowRef.current.style.top = `calc(${y * 100}% - 300px)`;
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    glowRef.current.style.transform = `translate3d(${x * 400}px, ${y * 400}px, 0)`;
   }
 
   function handleHeroMouseLeave() {
@@ -2024,7 +2023,7 @@ export default function HomeClient({
         {/* Shader background */}
         <HeroShader />
 
-        {/* Mouse-tracking glow — positioned via ref to skip React re-renders */}
+        {/* Mouse-tracking glow — transform-only updates stay on compositor thread */}
         <div
           ref={glowRef}
           style={{
@@ -2035,9 +2034,9 @@ export default function HomeClient({
             height: 600,
             background:
               "radial-gradient(circle, rgba(255,107,53,0.09) 0%, transparent 70%)",
-            transition: "left 0.6s ease, top 0.6s ease",
             pointerEvents: "none",
             zIndex: 0,
+            willChange: "transform",
           }}
         />
 
@@ -2068,14 +2067,15 @@ export default function HomeClient({
               position: "absolute",
               inset: 0,
               zIndex: 2,
-              opacity: showSpline ? 1 : 0,
-              transition: "opacity 0.7s",
+              opacity: splineLoaded ? 1 : 0,
+              transition: "opacity 0.9s ease",
             }}
           >
             {showSpline && (
               <SplineScene
                 scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                 className="w-full h-full"
+                onLoad={() => setSplineLoaded(true)}
               />
             )}
           </div>

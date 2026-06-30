@@ -105,6 +105,7 @@ export default function AdminDashboard({
   const [kpisLoading, setKpisLoading] = useState(false);
 
   const [isOpen, setIsOpen] = useState(isOpenInitial);
+  const [newOrderFlash, setNewOrderFlash] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("kitchen_chime_enabled");
@@ -156,6 +157,8 @@ export default function AdminDashboard({
             return [incoming, ...prev];
           });
           void fetchKPIs();
+          setNewOrderFlash(true);
+          setTimeout(() => setNewOrderFlash(false), 2500);
         },
       )
       .on(
@@ -687,7 +690,23 @@ export default function AdminDashboard({
 
           {/* KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="stagger-item" style={{ animationDelay: "240ms" }}>
+            <div
+              className="stagger-item"
+              style={{ animationDelay: "240ms", position: "relative" }}
+            >
+              {newOrderFlash && (
+                <span
+                  style={{
+                    position: "absolute",
+                    inset: -4,
+                    borderRadius: 20,
+                    border: "2px solid rgba(255,107,53,0.6)",
+                    animation: "order-ring 1.1s ease-out forwards",
+                    pointerEvents: "none",
+                    zIndex: 10,
+                  }}
+                />
+              )}
               <KPICard
                 loading={range === "today" ? kpisLoading : analyticsLoading}
                 label={`Pedidos${range === "today" ? " hoy" : ""}`}
