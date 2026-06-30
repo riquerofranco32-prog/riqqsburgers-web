@@ -81,6 +81,40 @@ function normalize(str: string) {
   return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
+function highlightText(
+  text: string,
+  query: string,
+  accent: string,
+): React.ReactNode {
+  if (!query) return text;
+  const q = normalize(query);
+  if (!q) return text;
+  const lowerText = normalize(text);
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  let start = lowerText.indexOf(q);
+  while (start !== -1) {
+    if (start > last) parts.push(text.slice(last, start));
+    parts.push(
+      <span
+        key={start}
+        style={{
+          background: accent + "30",
+          color: accent,
+          borderRadius: 3,
+          padding: "0 1px",
+        }}
+      >
+        {text.slice(start, start + q.length)}
+      </span>,
+    );
+    last = start + q.length;
+    start = lowerText.indexOf(q, last);
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return <>{parts}</>;
+}
+
 function hexToLuma(hex: string) {
   const c = hex.replace("#", "").padEnd(6, "0");
   const r = parseInt(c.slice(0, 2), 16);
@@ -193,6 +227,7 @@ const ProductCard = memo(function ProductCard({
   isFavorite,
   onToggleFavorite,
   onAddFly,
+  highlightQuery,
 }: {
   item: MenuItem;
   catEmoji: string;
@@ -211,6 +246,7 @@ const ProductCard = memo(function ProductCard({
   isFavorite: boolean;
   onToggleFavorite: (item: MenuItem) => void;
   onAddFly?: (item: MenuItem, el: HTMLElement) => void;
+  highlightQuery?: string;
 }) {
   const soldOut = item.badge === "Agotado";
   return (
@@ -474,7 +510,9 @@ const ProductCard = memo(function ProductCard({
               display: "block",
             }}
           >
-            {item.name}
+            {highlightQuery
+              ? highlightText(item.name, highlightQuery, accent)
+              : item.name}
           </span>
           {item.description && (
             <p
@@ -684,6 +722,7 @@ export default function CatalogClient({
   const [shareCopied, setShareCopied] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchForced, setSearchForced] = useState(false);
+  const [showExplorePill, setShowExplorePill] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [orderNotes, setOrderNotes] = useState("");
   const [favoritesOpen, setFavoritesOpen] = useState(false);
@@ -1880,6 +1919,8 @@ export default function CatalogClient({
                         onClick={() => {
                           setSearchQuery("");
                           setSearchForced(false);
+                          setShowExplorePill(true);
+                          setTimeout(() => setShowExplorePill(false), 1500);
                         }}
                         style={{
                           position: "absolute",
@@ -1900,6 +1941,29 @@ export default function CatalogClient({
                       >
                         <X size={11} />
                       </button>
+                    )}
+                    {showExplorePill && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: "50%",
+                          marginTop: 6,
+                          background: accent + "20",
+                          color: accent,
+                          border: `1px solid ${accent}40`,
+                          borderRadius: 999,
+                          padding: "4px 12px",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          pointerEvents: "none",
+                          whiteSpace: "nowrap",
+                          zIndex: 10,
+                          animation: "explorePill 1.5s ease both",
+                        }}
+                      >
+                        Explorá el menú completo
+                      </div>
                     )}
                   </div>
                 </div>

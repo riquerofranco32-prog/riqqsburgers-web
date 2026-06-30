@@ -1586,6 +1586,35 @@ a {
   }
 }
 
+@keyframes urgentBlink {
+  0%,
+  100% {
+    border-left-color: #f87171;
+  }
+  50% {
+    border-left-color: transparent;
+  }
+}
+
+@keyframes explorePill {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.95);
+  }
+}
+
 .immersive-badge-pill {
   display: inline-block;
   margin-bottom: 8px;
