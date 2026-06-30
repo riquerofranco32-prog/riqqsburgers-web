@@ -691,6 +691,10 @@ export default function CatalogClient({
   const [immersiveMode, setImmersiveMode] = useState(false);
   const [isOpen, setIsOpen] = useState(restaurant.is_open);
   const [pillIndicator, setPillIndicator] = useState({ left: 0, width: 0 });
+  const [lastOrderPill, setLastOrderPill] = useState<{
+    ref: string;
+    tenantSlug: string;
+  } | null>(null);
 
   // ── Shared product link (?producto=<id>) ──────────────────────────────────
   const searchParams = useSearchParams();
@@ -880,6 +884,24 @@ export default function CatalogClient({
     if (!btn) return;
     setPillIndicator({ left: btn.offsetLeft, width: btn.offsetWidth });
   }, [activeCategory]);
+
+  // ── Last order tracking pill ──────────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("tak_last_order");
+      if (!raw) return;
+      const data = JSON.parse(raw) as {
+        ref: string;
+        tenantSlug: string;
+        createdAt: number;
+      };
+      if (data.tenantSlug !== restaurant.slug) return;
+      if (Date.now() - data.createdAt > 2 * 60 * 60 * 1000) return;
+      if (localStorage.getItem(`tak_last_order_dismissed_${data.ref}`)) return;
+      setLastOrderPill({ ref: data.ref, tenantSlug: data.tenantSlug });
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Analytics — search (debounced 500ms) ─────────────────────────────────
 
@@ -3824,6 +3846,79 @@ export default function CatalogClient({
             </a>
           </div>
         )}
+        {/* ── Last order tracking pill ─────────────────────────────────────────── */}
+        {lastOrderPill && !cartOpen && !selectedItem && !checkoutOpen && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: totalItems > 0 ? 80 : 20,
+              left: 16,
+              zIndex: 55,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "rgba(0,0,0,0.85)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 999,
+              padding: "10px 14px 10px 12px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
+              animation: "orderPillIn 0.3s cubic-bezier(0.22,1,0.36,1) both",
+              transition: "bottom 0.25s ease",
+              maxWidth: "calc(100vw - 80px)",
+            }}
+          >
+            <span style={{ fontSize: 15, lineHeight: 1, flexShrink: 0 }}>
+              📦
+            </span>
+            <a
+              href={`/pedido/${lastOrderPill.ref}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              Pedido #{lastOrderPill.ref} — Seguirlo →
+            </a>
+            <button
+              aria-label="Cerrar seguimiento de pedido"
+              onClick={() => {
+                try {
+                  localStorage.setItem(
+                    `tak_last_order_dismissed_${lastOrderPill.ref}`,
+                    "1",
+                  );
+                } catch {}
+                setLastOrderPill(null);
+              }}
+              style={{
+                background: "rgba(255,255,255,0.15)",
+                border: "none",
+                borderRadius: "50%",
+                width: 20,
+                height: 20,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "#fff",
+                fontSize: 11,
+                flexShrink: 0,
+                WebkitTapHighlightColor: "transparent",
+              }}
+            >
+              ×
+            </button>
+          </div>
+        )}
         {/* ── Favorites floating button — visible only when there are favorites ── */}
         {favorites.length > 0 && !cartOpen && !selectedItem && (
           <button
@@ -4034,6 +4129,10 @@ export default function CatalogClient({
         @keyframes lightboxEnter {
           from { opacity: 0; transform: scale(0.88); }
           to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes orderPillIn {
+          from { opacity: 0; transform: translateX(-16px); }
+          to   { opacity: 1; transform: translateX(0); }
         }
       `,
           }}

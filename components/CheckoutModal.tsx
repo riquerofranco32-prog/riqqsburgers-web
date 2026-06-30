@@ -259,6 +259,7 @@ export default function CheckoutModal({
 
     // Guardar la orden server-side — los precios se calculan en el servidor
     // con los valores reales de la DB, no los del estado del cliente.
+    let finalRef = tempRef;
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -283,6 +284,7 @@ export default function CheckoutModal({
 
       if (res.ok) {
         const data = (await res.json()) as { order_ref: string; total: number };
+        finalRef = data.order_ref;
         setOrderRef(data.order_ref);
       } else {
         setOrderRef(tempRef);
@@ -326,6 +328,18 @@ export default function CheckoutModal({
         date: new Date().toISOString(),
       });
       localStorage.setItem(histKey, JSON.stringify(history.slice(0, 10)));
+    } catch {}
+
+    // Guardar último pedido para el pill de seguimiento en el catálogo
+    try {
+      localStorage.setItem(
+        "tak_last_order",
+        JSON.stringify({
+          ref: finalRef,
+          tenantSlug: tenant.slug,
+          createdAt: Date.now(),
+        }),
+      );
     } catch {}
   }
 

@@ -66,21 +66,35 @@ function ColorField({
     <div>
       <label style={labelStyle}>{label}</label>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <input
-          type="color"
-          value={/^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "#000000"}
-          onChange={(e) => handleColorPicker(e.target.value)}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 10,
-            border: "1.5px solid var(--dash-border)",
-            background: "none",
-            cursor: "pointer",
-            padding: 2,
-            flexShrink: 0,
-          }}
-        />
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          {/* Swatch circular visible */}
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: "50%",
+              background: /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "#000000",
+              border: "2px solid var(--dash-border)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+              cursor: "pointer",
+              pointerEvents: "none",
+            }}
+          />
+          <input
+            type="color"
+            value={/^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "#000000"}
+            onChange={(e) => handleColorPicker(e.target.value)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: 0,
+              width: "100%",
+              height: "100%",
+              cursor: "pointer",
+              borderRadius: "50%",
+            }}
+          />
+        </div>
         <input
           type="text"
           value={hex}
@@ -523,6 +537,83 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 onChange={(v) => set("background_color", v)}
               />
             </div>
+
+            {/* Mini preview del accent */}
+            <div
+              style={{
+                marginTop: 4,
+                borderRadius: 12,
+                overflow: "hidden",
+                border: "1.5px solid var(--dash-border)",
+              }}
+            >
+              <div
+                style={{
+                  background: /^#[0-9A-Fa-f]{6}$/.test(form.primary_color)
+                    ? form.primary_color
+                    : "#FF6B35",
+                  padding: "10px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: "#fff",
+                    opacity: 0.85,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {form.name || "Tu restaurante"}
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "#fff",
+                    background: "rgba(0,0,0,0.2)",
+                    borderRadius: 999,
+                    padding: "3px 10px",
+                  }}
+                >
+                  Abierto
+                </span>
+              </div>
+              <div
+                style={{
+                  background: "var(--dash-surface-2)",
+                  padding: "10px 14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 13,
+                    color: "var(--dash-text)",
+                    fontWeight: 500,
+                  }}
+                >
+                  Hamburguesa clásica
+                </span>
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color: /^#[0-9A-Fa-f]{6}$/.test(form.primary_color)
+                      ? form.primary_color
+                      : "#FF6B35",
+                  }}
+                >
+                  $2.500
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Imágenes */}
@@ -744,13 +835,24 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
         </div>
       </div>
 
-      {/* Acciones */}
-      <div style={{ display: "flex", gap: 10 }}>
+      {/* Acciones — sticky en mobile */}
+      <div
+        className="sticky bottom-0 md:relative md:bottom-auto"
+        style={{
+          display: "flex",
+          gap: 10,
+          padding: "12px 0",
+          background: "var(--dash-bg, #F0EDE8)",
+          borderTop: "1px solid var(--dash-border)",
+          marginTop: 4,
+        }}
+      >
         <button
           type="submit"
           disabled={loading}
           style={{
-            padding: "11px 28px",
+            flex: 1,
+            padding: "13px 28px",
             borderRadius: 10,
             background: "var(--accent)",
             color: "#fff",
