@@ -2894,6 +2894,7 @@ export default function CatalogClient({
                                 el,
                               )
                             }
+                            highlightQuery={searchQuery}
                           />
                         </Fragment>
                       ))}
