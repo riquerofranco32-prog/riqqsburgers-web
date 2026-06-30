@@ -245,6 +245,8 @@ export default function CheckoutModal({
       paymentLabel,
       ``,
       `${E.point} Envíanos este mensaje. En cuanto lo recibamos estaremos atendiéndote.`,
+      ``,
+      `Seguí tu pedido en vivo: ${window.location.origin}/pedido/${tempRef}`,
     ]
       .filter(Boolean)
       .join("\n");

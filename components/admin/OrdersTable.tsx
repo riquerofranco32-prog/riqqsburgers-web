@@ -214,14 +214,15 @@ function StatusBadge({ status }: { status: string }) {
     <span
       style={{
         display: "inline-block",
-        padding: "3px 9px",
+        padding: "4px 12px",
         borderRadius: 999,
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: 700,
         background: meta.bg,
         color: meta.color,
         border: `1px solid ${meta.border}`,
         whiteSpace: "nowrap",
+        letterSpacing: "0.01em",
       }}
     >
       {meta.label}

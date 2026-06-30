@@ -1947,13 +1947,15 @@ export default function CatalogClient({
                             padding: "8px 16px",
                             minHeight: 36,
                             borderRadius: 999,
-                            border: isActive ? "none" : `1px solid ${BORDER}`,
+                            border: isActive
+                              ? `1px solid ${accent}35`
+                              : `1px solid ${BORDER}`,
                             fontWeight: isActive ? 700 : 500,
                             fontSize: 14,
                             cursor: "pointer",
                             transition: "all 0.2s ease",
-                            background: isActive ? accent : SURFACE2,
-                            color: isActive ? onAccent : TEXT2,
+                            background: isActive ? `${accent}1a` : SURFACE2,
+                            color: isActive ? accent : TEXT2,
                             WebkitTapHighlightColor: "transparent",
                             letterSpacing: "-0.01em",
                             fontFamily:

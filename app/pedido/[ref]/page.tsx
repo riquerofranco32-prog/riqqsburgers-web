@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { Order } from "@/types/supabase";
 import Link from "next/link";
+import TrackingClient from "./TrackingClient";
 
 export const dynamic = "force-dynamic";
 
@@ -17,16 +18,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     robots: { index: false },
   };
 }
-
-const STATUS_LABEL: Record<
-  string,
-  { label: string; color: string; bg: string }
-> = {
-  pending: { label: "Recibido", color: "#B45309", bg: "#FEF3C7" },
-  preparing: { label: "En preparación", color: "#1D4ED8", bg: "#DBEAFE" },
-  ready: { label: "Listo para entregar", color: "#15803D", bg: "#DCFCE7" },
-  delivered: { label: "Entregado", color: "#6B7280", bg: "#F3F4F6" },
-};
 
 const DELIVERY_LABEL: Record<string, string> = {
   domicilio: "Delivery",
@@ -70,11 +61,6 @@ export default async function TrackingPage({ params }: Props) {
     .eq("id", o.tenant_id)
     .single();
 
-  const statusInfo = STATUS_LABEL[o.status] ?? {
-    label: o.status,
-    color: "#374151",
-    bg: "#F9FAFB",
-  };
   const deliveryLabel = DELIVERY_LABEL[o.delivery_type] ?? o.delivery_type;
   const accent = (tenant?.primary_color as string) ?? "#FF6B35";
 
@@ -161,34 +147,12 @@ export default async function TrackingPage({ params }: Props) {
         </div>
 
         <div style={{ padding: "20px 24px" }}>
-          {/* Estado */}
-          <div style={{ marginBottom: 20 }}>
-            <p
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "#A8998C",
-                marginBottom: 8,
-              }}
-            >
-              Estado
-            </p>
-            <span
-              style={{
-                display: "inline-block",
-                background: statusInfo.bg,
-                color: statusInfo.color,
-                fontWeight: 700,
-                fontSize: 14,
-                padding: "6px 16px",
-                borderRadius: 999,
-              }}
-            >
-              {statusInfo.label}
-            </span>
-          </div>
+          {/* Real-time tracking stepper */}
+          <TrackingClient
+            orderId={o.id}
+            initialStatus={o.status}
+            accent={accent}
+          />
 
           {/* Info row */}
           <div
