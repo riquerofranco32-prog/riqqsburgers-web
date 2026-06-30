@@ -332,6 +332,71 @@ export default function CartDrawer({
                 WebkitOverflowScrolling: "touch",
               }}
             >
+              {cart.length === 0 && (
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "48px 24px",
+                    textAlign: "center",
+                    gap: 14,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 52,
+                      lineHeight: 1,
+                      animation: "float 3s ease-in-out infinite",
+                      display: "block",
+                    }}
+                  >
+                    🛒
+                  </div>
+                  <div>
+                    <p
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: TEXT1,
+                        marginBottom: 6,
+                      }}
+                    >
+                      Tu carrito está vacío
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: TEXTM,
+                        lineHeight: 1.6,
+                        maxWidth: 200,
+                        margin: "0 auto",
+                      }}
+                    >
+                      Explorá el menú y agregá tus productos favoritos
+                    </p>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    style={{
+                      marginTop: 4,
+                      padding: "10px 22px",
+                      borderRadius: 12,
+                      background: accent,
+                      border: "none",
+                      color: onAccent,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                  >
+                    Ver menú →
+                  </button>
+                </div>
+              )}
               {cart.map((item, index) => {
                 const catEmoji =
                   restaurantCategories.find((c) =>
@@ -501,26 +566,14 @@ export default function CartDrawer({
             </div>
 
             {/* Totals */}
-            <div
-              style={{
-                borderTop: `1px solid ${BORDER}`,
-                flexShrink: 0,
-                padding: "12px 20px",
-              }}
-            >
+            {cart.length > 0 && (
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: 4,
+                  borderTop: `1px solid ${BORDER}`,
+                  flexShrink: 0,
+                  padding: "12px 20px",
                 }}
               >
-                <span style={{ fontSize: 13, color: TEXTM }}>Subtotal</span>
-                <span style={{ fontSize: 13, color: TEXT2, fontWeight: 600 }}>
-                  {fmt(subtotal)}
-                </span>
-              </div>
-              {hasDelivery && (
                 <div
                   style={{
                     display: "flex",
@@ -528,175 +581,199 @@ export default function CartDrawer({
                     marginBottom: 4,
                   }}
                 >
-                  <span style={{ fontSize: 13, color: TEXTM }}>Envío</span>
-                  <span style={{ fontSize: 13, color: TEXT2 }}>
-                    {fmt(deliveryCost)}
+                  <span style={{ fontSize: 13, color: TEXTM }}>Subtotal</span>
+                  <span style={{ fontSize: 13, color: TEXT2, fontWeight: 600 }}>
+                    {fmt(subtotal)}
                   </span>
                 </div>
-              )}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  paddingTop: 8,
-                  borderTop: `1px solid ${BORDER}`,
-                  marginTop: 4,
-                }}
-              >
-                <span style={{ fontWeight: 800, fontSize: 18, color: TEXT1 }}>
-                  Total
-                </span>
-                <span style={{ fontWeight: 900, fontSize: 20, color: accent }}>
-                  {fmt(subtotal + (hasDelivery ? deliveryCost : 0))}
-                </span>
-              </div>
-            </div>
-
-            {/* Notas globales del pedido */}
-            <div style={{ padding: "0 16px 12px", flexShrink: 0 }}>
-              <button
-                onClick={() => setOrderNotesOpen((v) => !v)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: TEXTM,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  padding: "4px 0",
-                  WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                <MessageCircle size={13} />
-                {orderNotesOpen
-                  ? "Cerrar aclaraciones"
-                  : "Agregar aclaraciones del pedido"}
-              </button>
-              {orderNotesOpen && (
-                <div style={{ marginTop: 8, position: "relative" }}>
-                  <textarea
-                    value={orderNotes}
-                    onChange={(e) => {
-                      if (e.target.value.length <= 200)
-                        onOrderNotesChange(e.target.value);
-                    }}
-                    placeholder="Alérgenos, instrucciones especiales..."
-                    rows={3}
+                {hasDelivery && (
+                  <div
                     style={{
-                      width: "100%",
-                      borderRadius: 10,
-                      border: `1.5px solid ${BORDER}`,
-                      padding: "10px 12px",
-                      fontSize: 13,
-                      color: TEXT1,
-                      background: SURFACE2,
-                      resize: "none",
-                      outline: "none",
-                      fontFamily: "inherit",
-                      boxSizing: "border-box",
-                      transition: "border-color 0.2s",
-                    }}
-                    onFocus={(e) =>
-                      (e.currentTarget.style.borderColor = accent)
-                    }
-                    onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
-                  />
-                  <span
-                    style={{
-                      position: "absolute",
-                      bottom: 8,
-                      right: 10,
-                      fontSize: 11,
-                      color: orderNotes.length >= 180 ? "#ef4444" : TEXTM,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: 4,
                     }}
                   >
-                    {orderNotes.length}/200
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* CTA */}
-            <div
-              style={{
-                padding: `12px 16px`,
-                paddingBottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
-                flexShrink: 0,
-              }}
-            >
-              {!isOpen ? (
+                    <span style={{ fontSize: 13, color: TEXTM }}>Envío</span>
+                    <span style={{ fontSize: 13, color: TEXT2 }}>
+                      {fmt(deliveryCost)}
+                    </span>
+                  </div>
+                )}
                 <div
                   style={{
-                    width: "100%",
-                    padding: "16px",
-                    borderRadius: 16,
-                    background: "rgba(239,68,68,0.12)",
-                    border: "1px solid rgba(239,68,68,0.35)",
-                    color: "#f87171",
-                    textAlign: "center",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingTop: 8,
+                    borderTop: `1px solid ${BORDER}`,
+                    marginTop: 4,
                   }}
                 >
-                  <span style={{ fontSize: 15, fontWeight: 700 }}>
-                    Local cerrado ahora
+                  <span style={{ fontWeight: 800, fontSize: 18, color: TEXT1 }}>
+                    Total
                   </span>
-                  {restaurantSchedule && (
-                    <span
-                      style={{
-                        color: TEXT2,
-                        fontWeight: 400,
-                        fontSize: 13,
-                      }}
-                    >
-                      {restaurantSchedule}
-                    </span>
-                  )}
-                  {restaurantPhone && (
-                    <a
-                      href={`https://wa.me/${restaurantPhone.replace(/\D/g, "")}?text=${encodeURIComponent("Hola! ¿A qué hora abren hoy?")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "inline-block",
-                        color: "#25d366",
-                        fontWeight: 600,
-                        fontSize: 14,
-                        textDecoration: "none",
-                      }}
-                    >
-                      Preguntar horario por WhatsApp →
-                    </a>
-                  )}
+                  <span
+                    style={{ fontWeight: 900, fontSize: 20, color: accent }}
+                  >
+                    {fmt(subtotal + (hasDelivery ? deliveryCost : 0))}
+                  </span>
                 </div>
-              ) : (
+              </div>
+            )}
+
+            {/* Notas globales del pedido */}
+            {cart.length > 0 && (
+              <div style={{ padding: "0 16px 12px", flexShrink: 0 }}>
                 <button
-                  onClick={onCheckout}
+                  onClick={() => setOrderNotesOpen((v) => !v)}
                   style={{
-                    width: "100%",
-                    padding: "16px",
-                    borderRadius: 16,
-                    background: accent,
-                    color: onAccent,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "transparent",
                     border: "none",
-                    fontSize: 16,
-                    fontWeight: 800,
                     cursor: "pointer",
-                    letterSpacing: "0.01em",
+                    color: TEXTM,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    padding: "4px 0",
                     WebkitTapHighlightColor: "transparent",
                   }}
-                  onTouchStart={(e) => (e.currentTarget.style.opacity = "0.88")}
-                  onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
                 >
-                  Hacer pedido · {fmt(subtotal)} →
+                  <MessageCircle size={13} />
+                  {orderNotesOpen
+                    ? "Cerrar aclaraciones"
+                    : "Agregar aclaraciones del pedido"}
                 </button>
-              )}
-            </div>
+                {orderNotesOpen && (
+                  <div style={{ marginTop: 8, position: "relative" }}>
+                    <textarea
+                      value={orderNotes}
+                      onChange={(e) => {
+                        if (e.target.value.length <= 200)
+                          onOrderNotesChange(e.target.value);
+                      }}
+                      placeholder="Alérgenos, instrucciones especiales..."
+                      rows={3}
+                      style={{
+                        width: "100%",
+                        borderRadius: 10,
+                        border: `1.5px solid ${BORDER}`,
+                        padding: "10px 12px",
+                        fontSize: 13,
+                        color: TEXT1,
+                        background: SURFACE2,
+                        resize: "none",
+                        outline: "none",
+                        fontFamily: "inherit",
+                        boxSizing: "border-box",
+                        transition: "border-color 0.2s",
+                      }}
+                      onFocus={(e) =>
+                        (e.currentTarget.style.borderColor = accent)
+                      }
+                      onBlur={(e) =>
+                        (e.currentTarget.style.borderColor = BORDER)
+                      }
+                    />
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: 8,
+                        right: 10,
+                        fontSize: 11,
+                        color: orderNotes.length >= 180 ? "#ef4444" : TEXTM,
+                      }}
+                    >
+                      {orderNotes.length}/200
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CTA */}
+            {cart.length > 0 && (
+              <div
+                style={{
+                  padding: `12px 16px`,
+                  paddingBottom: `max(16px, env(safe-area-inset-bottom, 16px))`,
+                  flexShrink: 0,
+                }}
+              >
+                {!isOpen ? (
+                  <div
+                    style={{
+                      width: "100%",
+                      padding: "16px",
+                      borderRadius: 16,
+                      background: "rgba(239,68,68,0.12)",
+                      border: "1px solid rgba(239,68,68,0.35)",
+                      color: "#f87171",
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                    }}
+                  >
+                    <span style={{ fontSize: 15, fontWeight: 700 }}>
+                      Local cerrado ahora
+                    </span>
+                    {restaurantSchedule && (
+                      <span
+                        style={{
+                          color: TEXT2,
+                          fontWeight: 400,
+                          fontSize: 13,
+                        }}
+                      >
+                        {restaurantSchedule}
+                      </span>
+                    )}
+                    {restaurantPhone && (
+                      <a
+                        href={`https://wa.me/${restaurantPhone.replace(/\D/g, "")}?text=${encodeURIComponent("Hola! ¿A qué hora abren hoy?")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: "inline-block",
+                          color: "#25d366",
+                          fontWeight: 600,
+                          fontSize: 14,
+                          textDecoration: "none",
+                        }}
+                      >
+                        Preguntar horario por WhatsApp →
+                      </a>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={onCheckout}
+                    style={{
+                      width: "100%",
+                      padding: "16px",
+                      borderRadius: 16,
+                      background: accent,
+                      color: onAccent,
+                      border: "none",
+                      fontSize: 16,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      letterSpacing: "0.01em",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                    onTouchStart={(e) =>
+                      (e.currentTarget.style.opacity = "0.88")
+                    }
+                    onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
+                  >
+                    Hacer pedido · {fmt(subtotal)} →
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </>
       )}

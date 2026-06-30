@@ -1886,6 +1886,12 @@ export default function CatalogClient({
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          setSearchQuery("");
+                          searchInputRef.current?.blur();
+                        }
+                      }}
                       placeholder={`Buscar en ${restaurant.name}...`}
                       className="search-input-glow"
                       style={{
