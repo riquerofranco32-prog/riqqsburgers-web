@@ -690,6 +690,7 @@ export default function CatalogClient({
   const prevTotal = useRef(0);
   const [immersiveMode, setImmersiveMode] = useState(false);
   const [isOpen, setIsOpen] = useState(restaurant.is_open);
+  const [pillIndicator, setPillIndicator] = useState({ left: 0, width: 0 });
 
   // ── Shared product link (?producto=<id>) ──────────────────────────────────
   const searchParams = useSearchParams();
@@ -872,6 +873,13 @@ export default function CatalogClient({
       supabase.removeChannel(channel);
     };
   }, [restaurant.id]);
+
+  // ── Sliding category indicator ─────────────────────────────────────────────
+  useEffect(() => {
+    const btn = catBtnRefs.current[activeCategory];
+    if (!btn) return;
+    setPillIndicator({ left: btn.offsetLeft, width: btn.offsetWidth });
+  }, [activeCategory]);
 
   // ── Analytics — search (debounced 500ms) ─────────────────────────────────
 
@@ -1575,7 +1583,7 @@ export default function CatalogClient({
 
             <h1
               style={{
-                fontSize: 30,
+                fontSize: 36,
                 fontWeight: 800,
                 color: "#fff",
                 textAlign: "center",
@@ -1915,6 +1923,7 @@ export default function CatalogClient({
                       setCatPillsAtEnd(atEnd);
                     }}
                     style={{
+                      position: "relative",
                       display: "flex",
                       gap: 6,
                       padding: "6px 20px 10px",
@@ -1923,6 +1932,22 @@ export default function CatalogClient({
                       WebkitOverflowScrolling: "touch",
                     }}
                   >
+                    {/* Sliding active indicator */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: pillIndicator.left,
+                        width: pillIndicator.width,
+                        height: 2,
+                        background: accent,
+                        borderRadius: 999,
+                        transition:
+                          "left 0.28s cubic-bezier(0.22,1,0.36,1), width 0.28s cubic-bezier(0.22,1,0.36,1)",
+                        pointerEvents: "none",
+                        opacity: pillIndicator.width > 0 ? 1 : 0,
+                      }}
+                    />
                     {restaurant.menu.categories.map((cat) => {
                       const isActive = activeCategory === cat.id;
                       return (
