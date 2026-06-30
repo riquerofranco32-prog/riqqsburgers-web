@@ -280,7 +280,7 @@ const ProductCard = memo(function ProductCard({
           className="img-skeleton"
           style={{
             width: "100%",
-            height: 176,
+            aspectRatio: "4/3",
             overflow: "hidden",
             position: "relative",
             flexShrink: 0,
@@ -321,7 +321,7 @@ const ProductCard = memo(function ProductCard({
                 style={{
                   fontSize: 38,
                   fontWeight: 900,
-                  color: accent + "50",
+                  color: accent + "99",
                   lineHeight: 1,
                   userSelect: "none",
                 }}
@@ -1676,7 +1676,7 @@ export default function CatalogClient({
               <div style={{ padding: "20px 12px" }}>
                 <p
                   style={{
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
                     textTransform: "uppercase" as const,
                     letterSpacing: "0.12em",
@@ -1828,7 +1828,7 @@ export default function CatalogClient({
                         backdropFilter: "blur(8px)",
                         WebkitBackdropFilter: "blur(8px)",
                         boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
-                        fontSize: 14,
+                        fontSize: 16,
                         color: TEXT1,
                         outline: "none",
                         boxSizing: "border-box",

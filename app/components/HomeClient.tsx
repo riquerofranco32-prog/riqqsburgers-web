@@ -1175,6 +1175,7 @@ function MagneticButton({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={handleClick}
+      className="focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500"
       style={{
         x: springX,
         y: springY,
@@ -1249,6 +1250,7 @@ function PricingToggle({
           fontSize: 14,
           fontWeight: 600,
           color: annual ? "var(--text-muted)" : "var(--text-primary)",
+          transition: "color 0.25s",
         }}
       >
         Mensual
@@ -1288,6 +1290,7 @@ function PricingToggle({
           fontSize: 14,
           fontWeight: 600,
           color: annual ? "var(--text-primary)" : "var(--text-muted)",
+          transition: "color 0.25s",
         }}
       >
         Anual{" "}
@@ -2336,7 +2339,7 @@ export default function HomeClient({
         className="py-14 md:py-20"
         style={{
           background: "#0E1116",
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          borderBottom: "1px solid rgba(255,255,255,0.09)",
         }}
       >
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
@@ -2422,7 +2425,7 @@ export default function HomeClient({
         style={{
           background: "#0E1116",
           padding: "80px 0",
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          borderBottom: "1px solid rgba(255,255,255,0.09)",
         }}
       >
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
@@ -2482,7 +2485,7 @@ export default function HomeClient({
                   style={{
                     fontSize: 13,
                     fontWeight: 600,
-                    color: "var(--dash-muted)",
+                    color: "rgba(255,255,255,0.65)",
                     lineHeight: 1.3,
                   }}
                 >
@@ -2652,7 +2655,7 @@ export default function HomeClient({
               style={{
                 background: "var(--surface)",
                 borderRadius: 24,
-                padding: 32,
+                padding: 36,
                 border: "1px solid var(--border)",
                 position: "relative",
                 overflow: "hidden",
@@ -2672,7 +2675,7 @@ export default function HomeClient({
               </div>
               <h3
                 style={{
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: 700,
                   color: "var(--text-primary)",
                   marginBottom: 10,

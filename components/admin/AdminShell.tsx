@@ -91,13 +91,15 @@ function DesktopNavLinks({
                 alignItems: "center",
                 gap: 10,
                 padding: collapsed ? "10px 0" : "10px 12px",
+                paddingLeft:
+                  collapsed && isActive ? "calc(0px - 3px)" : undefined,
                 justifyContent: collapsed ? "center" : "flex-start",
                 borderRadius: 10,
                 fontSize: 14,
                 fontWeight: isActive ? 600 : 400,
                 color: isActive ? "#fff" : "var(--dash-muted)",
                 background: isActive
-                  ? `linear-gradient(135deg, var(--accent), #ff8c5a)`
+                  ? `linear-gradient(135deg, var(--accent), var(--accent-hover))`
                   : "transparent",
                 textDecoration: "none",
                 transition: "all 0.15s",
@@ -106,6 +108,11 @@ function DesktopNavLinks({
                 userSelect: "none",
                 boxShadow: isActive
                   ? `0 4px 12px rgba(255,107,53,0.3)`
+                  : "none",
+                borderLeft: collapsed
+                  ? isActive
+                    ? "3px solid var(--accent)"
+                    : "3px solid transparent"
                   : "none",
               }}
               onMouseEnter={(e) => {
@@ -443,7 +450,7 @@ export default function AdminShell({
                   fontWeight: isActive ? 700 : 500,
                   color: isActive ? "#fff" : "var(--dash-text)",
                   background: isActive
-                    ? `linear-gradient(135deg, var(--accent), #ff8c5a)`
+                    ? `linear-gradient(135deg, var(--accent), var(--accent-hover))`
                     : "var(--dash-surface-2)",
                   border: isActive ? "none" : "1px solid var(--dash-border)",
                   textDecoration: "none",

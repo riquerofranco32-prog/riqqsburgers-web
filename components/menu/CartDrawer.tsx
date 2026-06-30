@@ -188,7 +188,7 @@ export default function CartDrawer({
                   width: 36,
                   height: 4,
                   borderRadius: 2,
-                  background: BORDER,
+                  background: "rgba(0,0,0,0.12)",
                 }}
               />
             </div>

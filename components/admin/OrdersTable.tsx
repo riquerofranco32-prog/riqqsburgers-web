@@ -426,7 +426,7 @@ function OrderDetailView({
                   background: "rgba(251,146,60,0.1)",
                   borderLeft: "3px solid #fb923c",
                   borderRadius: 4,
-                  color: "#ffedd5",
+                  color: "var(--dash-text)",
                   fontSize: 12,
                   marginTop: 4,
                 }}
@@ -1474,7 +1474,7 @@ export function OrdersTable({
                   flexShrink: 0,
                   padding: "7px 16px",
                   borderRadius: 999,
-                  fontSize: isMobile ? 14 : 13,
+                  fontSize: 13,
                   fontWeight: 600,
                   border: "1px solid",
                   cursor: "pointer",
@@ -1539,7 +1539,7 @@ export function OrdersTable({
                   flexShrink: 0,
                   padding: "5px 13px",
                   borderRadius: 999,
-                  fontSize: isMobile ? 13 : 12,
+                  fontSize: 13,
                   fontWeight: 600,
                   border: "1px solid",
                   cursor: "pointer",
@@ -1801,6 +1801,16 @@ export function OrdersTable({
                 cursor: loadingMore ? "not-allowed" : "pointer",
                 opacity: loadingMore ? 0.6 : 1,
                 transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                if (!loadingMore) {
+                  e.currentTarget.style.borderColor = "var(--accent)";
+                  e.currentTarget.style.background = "rgba(255,107,53,0.05)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--dash-border)";
+                e.currentTarget.style.background = "var(--dash-surface-2)";
               }}
             >
               {loadingMore ? "Cargando..." : "Cargar más pedidos"}
