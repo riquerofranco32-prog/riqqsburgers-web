@@ -92,15 +92,6 @@ export function CategoryDonut({
   }
 
   const total = data.reduce((s, d) => s + d.value, 0);
-  // Total de pedidos: sum de count si existe, fallback a value como proxy
-  const totalCount = data.reduce(
-    (s, d) =>
-      s +
-      ("count" in d && typeof (d as { count?: number }).count === "number"
-        ? (d as { count: number }).count
-        : d.value),
-    0,
-  );
   const enriched = data.map((d) => ({ ...d, total }));
 
   return (
@@ -147,11 +138,11 @@ export function CategoryDonut({
               <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
-          {/* Center label: total pedidos */}
+          {/* Center label: total revenue */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <span
               style={{
-                fontSize: 28,
+                fontSize: compact ? 16 : 20,
                 fontWeight: 800,
                 color: "var(--dash-text)",
                 lineHeight: 1,
@@ -159,12 +150,12 @@ export function CategoryDonut({
                 letterSpacing: "-0.02em",
               }}
             >
-              {totalCount.toLocaleString("es-AR")}
+              {fmtARS(total)}
             </span>
             <span
-              style={{ fontSize: 11, color: "var(--dash-muted)", marginTop: 4 }}
+              style={{ fontSize: 10, color: "var(--dash-muted)", marginTop: 4 }}
             >
-              pedidos
+              total
             </span>
           </div>
         </div>

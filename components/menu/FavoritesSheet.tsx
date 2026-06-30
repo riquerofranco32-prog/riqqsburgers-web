@@ -18,6 +18,7 @@ type Props = {
   favorites: FavoriteProduct[];
   onToggleFavorite: (product: FavoriteProduct) => void;
   onAddToCart: (product: FavoriteProduct) => void;
+  onAddAll?: (products: FavoriteProduct[]) => void;
   accent: string;
   onAccent: string;
   SURFACE: string;
@@ -34,6 +35,7 @@ export default function FavoritesSheet({
   favorites,
   onToggleFavorite,
   onAddToCart,
+  onAddAll,
   accent,
   onAccent,
   SURFACE,
@@ -43,6 +45,7 @@ export default function FavoritesSheet({
   TEXT2,
   TEXTM,
 }: Props) {
+  const favTotal = favorites.reduce((s, p) => s + p.price, 0);
   return (
     <AnimatePresence>
       {open && (
@@ -175,7 +178,7 @@ export default function FavoritesSheet({
 
             {/* Content */}
             <div
-              style={{ flex: 1, overflowY: "auto", padding: "14px 16px 32px" }}
+              style={{ flex: 1, overflowY: "auto", padding: "14px 16px 16px" }}
             >
               {favorites.length === 0 ? (
                 <div
@@ -381,6 +384,63 @@ export default function FavoritesSheet({
                 </div>
               )}
             </div>
+
+            {/* Footer — add all to cart */}
+            {favorites.length > 1 && onAddAll && (
+              <div
+                style={{
+                  padding: "12px 16px",
+                  paddingBottom: "max(16px, env(safe-area-inset-bottom, 16px))",
+                  borderTop: `1px solid ${BORDER}`,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 11, color: TEXTM, margin: 0 }}>
+                    Total favoritos
+                  </p>
+                  <p
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: accent,
+                      margin: 0,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {fmt(favTotal)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    onAddAll(favorites);
+                    onClose();
+                  }}
+                  style={{
+                    padding: "11px 18px",
+                    borderRadius: 14,
+                    background: accent,
+                    border: "none",
+                    color: onAccent,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    boxShadow: `0 4px 16px ${accent}40`,
+                    WebkitTapHighlightColor: "transparent",
+                    flexShrink: 0,
+                  }}
+                >
+                  <ShoppingCart size={14} />
+                  Agregar todo
+                </button>
+              </div>
+            )}
           </motion.div>
         </>
       )}

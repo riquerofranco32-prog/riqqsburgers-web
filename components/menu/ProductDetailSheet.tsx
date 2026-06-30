@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { X, Heart, Share2, CheckCircle2 } from "lucide-react";
 import type { MenuItem } from "@/lib/getRestaurant";
 import RelatedProducts from "@/components/menu/RelatedProducts";
@@ -88,6 +88,14 @@ export default function ProductDetailSheet({
     useState<SelectedExtra | null>(initialExtra);
   const [sheetImageLoaded, setSheetImageLoaded] = useState(false);
   const [shareProductCopied, setShareProductCopied] = useState(false);
+  const [pricePulse, setPricePulse] = useState(false);
+  const priceRef = useRef<HTMLSpanElement>(null);
+
+  function selectExtra(extra: SelectedExtra | null) {
+    setSelectedExtraDraft(extra);
+    setPricePulse(true);
+    setTimeout(() => setPricePulse(false), 300);
+  }
 
   const extraPrice = selectedExtraDraft?.price ?? 0;
   const totalPriceDisplay = item.price + extraPrice;
@@ -464,7 +472,17 @@ export default function ProductDetailSheet({
               marginBottom: 20,
             }}
           >
-            <span style={{ fontWeight: 900, fontSize: 28, color: accent }}>
+            <span
+              ref={priceRef}
+              style={{
+                fontWeight: 900,
+                fontSize: 28,
+                color: accent,
+                display: "inline-block",
+                transition: "transform 0.15s cubic-bezier(0.34,1.56,0.64,1)",
+                transform: pricePulse ? "scale(1.18)" : "scale(1)",
+              }}
+            >
               {fmt(totalPriceDisplay)}
             </span>
             {qty > 0 && (
@@ -502,7 +520,7 @@ export default function ProductDetailSheet({
                 {/* Opción Simple = precio base */}
                 <button
                   type="button"
-                  onClick={() => setSelectedExtraDraft(null)}
+                  onClick={() => selectExtra(null)}
                   style={{
                     padding: "8px 18px",
                     borderRadius: 999,
@@ -525,9 +543,7 @@ export default function ProductDetailSheet({
                     <button
                       type="button"
                       key={extra.name}
-                      onClick={() =>
-                        setSelectedExtraDraft(isSelected ? null : extra)
-                      }
+                      onClick={() => selectExtra(isSelected ? null : extra)}
                       style={{
                         padding: "8px 18px",
                         borderRadius: 999,

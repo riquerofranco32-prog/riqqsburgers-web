@@ -4063,6 +4063,21 @@ export default function CatalogClient({
             } as MenuItem);
             setFavoritesOpen(false);
           }}
+          onAddAll={(products) => {
+            products.forEach((product) => {
+              addItem({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image ?? "",
+                badge: null,
+                description: "",
+                extras: [],
+                is_featured: false,
+                featured_order: 0,
+              } as MenuItem);
+            });
+          }}
           accent={accent}
           onAccent={onAccent}
           SURFACE={SURFACE}

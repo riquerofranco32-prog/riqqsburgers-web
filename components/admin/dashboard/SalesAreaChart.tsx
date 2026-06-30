@@ -83,6 +83,17 @@ function CustomTooltip({
   );
 }
 
+function fmtTotal(n: number) {
+  if (n >= 1000000) return "$" + (n / 1000000).toFixed(1) + "M";
+  if (n >= 1000) return "$" + (n / 1000).toFixed(0) + "k";
+  return "$" + n;
+}
+
+// Get today's abbreviated day name in es-AR
+const TODAY_LABEL = new Date()
+  .toLocaleDateString("es-AR", { weekday: "short" })
+  .replace(".", "");
+
 interface SalesAreaChartProps {
   data: DailyRevenue[];
   loading?: boolean;
@@ -106,29 +117,59 @@ export function SalesAreaChart({
     );
   }
 
+  const weekTotal = data.reduce((s, d) => s + d.total, 0);
+  const prevTotal = data.slice(0, -1).reduce((s, d) => s + d.total, 0);
+  const todayTotal = data[data.length - 1]?.total ?? 0;
+  const trend = weekTotal > prevTotal ? "↑" : weekTotal < prevTotal ? "↓" : "—";
+  const trendColor =
+    weekTotal > prevTotal
+      ? "#22c55e"
+      : weekTotal < prevTotal
+        ? "#f87171"
+        : "var(--dash-muted)";
+
   return (
     <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
       {/* Header */}
-      <div className="mb-5">
-        <p
-          style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "var(--dash-text)",
-            lineHeight: 1.2,
-          }}
-        >
-          Ventas de la semana
-        </p>
-        <p
-          style={{
-            fontSize: 12,
-            color: "var(--dash-muted)",
-            marginTop: 3,
-          }}
-        >
-          {title}
-        </p>
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <p
+            style={{
+              fontSize: 15,
+              fontWeight: 600,
+              color: "var(--dash-text)",
+              lineHeight: 1.2,
+            }}
+          >
+            Ventas de la semana
+          </p>
+          <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: 3 }}>
+            {title}
+          </p>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <p
+            style={{
+              fontSize: 20,
+              fontWeight: 800,
+              color: "var(--dash-text)",
+              fontFamily: "var(--font-mono, monospace)",
+              lineHeight: 1,
+            }}
+          >
+            {fmtTotal(weekTotal)}
+          </p>
+          <p
+            style={{
+              fontSize: 11,
+              color: trendColor,
+              marginTop: 3,
+              fontWeight: 600,
+            }}
+          >
+            {trend} Hoy: {fmtTotal(todayTotal)}
+          </p>
+        </div>
       </div>
 
       <ResponsiveContainer width="100%" height={chartHeight}>
@@ -141,6 +182,10 @@ export function SalesAreaChart({
             <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#FF6B35" stopOpacity={1} />
               <stop offset="100%" stopColor="#FF6B35" stopOpacity={0.2} />
+            </linearGradient>
+            <linearGradient id="barGradientToday" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FF6B35" stopOpacity={1} />
+              <stop offset="100%" stopColor="#ff8c5a" stopOpacity={0.6} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -169,8 +214,25 @@ export function SalesAreaChart({
             dataKey="total"
             radius={[6, 6, 0, 0]}
             maxBarSize={48}
-            fill="url(#barGradient)"
-          />
+            isAnimationActive
+          >
+            {data.map((entry, i) => {
+              const isToday = entry.date
+                .toLowerCase()
+                .startsWith(TODAY_LABEL.toLowerCase());
+              return (
+                <Cell
+                  key={i}
+                  fill={
+                    isToday ? "url(#barGradientToday)" : "url(#barGradient)"
+                  }
+                  opacity={isToday ? 1 : 0.6}
+                  stroke={isToday ? "#FF6B35" : "none"}
+                  strokeWidth={isToday ? 1 : 0}
+                />
+              );
+            })}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
