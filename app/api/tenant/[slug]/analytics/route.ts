@@ -2,8 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
-import type { AnalyticsResponse, DailyRevenue } from "@/types/dashboard";
-import type { Order, OrderItem } from "@/types/supabase";
+import type {
+  AnalyticsResponse,
+  DailyRevenue,
+  CategoryRevenue,
+  TopProduct,
+} from "@/types/dashboard";
+import type { Order, OrderItem, Product, Category } from "@/types/supabase";
+
+const CATEGORY_PALETTE = [
+  "#f97316",
+  "#3b82f6",
+  "#22c55e",
+  "#a855f7",
+  "#eab308",
+  "#ec4899",
+  "#14b8a6",
+  "#f43f5e",
+] as const;
+
+function categoryColor(name: string): string {
+  if (!name) return "#71717a";
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length];
+}
 
 function startOfDay(d: Date): Date {
   const r = new Date(d);
@@ -40,17 +65,64 @@ function buildDailyRevenue(
   return result;
 }
 
-function computeTopProducts(
+function buildCategoryRevenue(
   orders: Order[],
-): { name: string; quantity: number }[] {
-  const map: Record<string, { name: string; quantity: number }> = {};
+  products: Product[],
+  categories: Category[],
+): CategoryRevenue[] {
+  const catMap: Record<string, number> = {};
   for (const order of orders) {
-    for (const item of order.items as OrderItem[]) {
-      if (!map[item.name]) map[item.name] = { name: item.name, quantity: 0 };
-      map[item.name].quantity += item.quantity;
+    for (const item of (order.items ?? []) as OrderItem[]) {
+      const product = products.find((p) => p.id === item.product_id);
+      const category = product
+        ? categories.find((c) => c.id === product.category_id)
+        : null;
+      const name = category?.name ?? "Otros";
+      catMap[name] = (catMap[name] ?? 0) + item.price * item.quantity;
     }
   }
-  return Object.values(map)
+  return Object.entries(catMap)
+    .map(([name, value]) => ({ name, value, color: categoryColor(name) }))
+    .sort((a, b) => b.value - a.value);
+}
+
+function buildTopProducts(
+  orders: Order[],
+  products: Product[],
+  categories: Category[],
+): TopProduct[] {
+  const map: Record<
+    string,
+    { name: string; qty: number; revenue: number; productRef?: Product }
+  > = {};
+  for (const order of orders) {
+    for (const item of (order.items ?? []) as OrderItem[]) {
+      if (!map[item.product_id]) {
+        map[item.product_id] = {
+          name: item.name,
+          qty: 0,
+          revenue: 0,
+          productRef: products.find((p) => p.id === item.product_id),
+        };
+      }
+      map[item.product_id].qty += item.quantity;
+      map[item.product_id].revenue += item.price * item.quantity;
+    }
+  }
+  return Object.entries(map)
+    .map(([product_id, data]) => {
+      const cat = data.productRef
+        ? categories.find((c) => c.id === data.productRef!.category_id)
+        : null;
+      return {
+        product_id,
+        name: data.name,
+        category_name: cat?.name ?? null,
+        category_emoji: cat?.emoji ?? null,
+        quantity: data.qty,
+        revenue: data.revenue,
+      };
+    })
     .sort((a, b) => b.quantity - a.quantity)
     .slice(0, 5);
 }
@@ -84,12 +156,27 @@ export async function GET(
   from.setDate(from.getDate() - (days - 1));
 
   const db = createServerClient();
-  const { data: rawOrders, error } = await db
-    .from("orders")
-    .select("*")
-    .eq("tenant_id", tenantId)
-    .gte("created_at", from.toISOString())
-    .order("created_at", { ascending: false });
+  const [
+    { data: rawOrders, error },
+    { data: rawProducts },
+    { data: rawCategories },
+  ] = await Promise.all([
+    db
+      .from("orders")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .gte("created_at", from.toISOString())
+      .order("created_at", { ascending: false }),
+    db
+      .from("products")
+      .select("id, name, category_id, available")
+      .eq("tenant_id", tenantId),
+    db
+      .from("categories")
+      .select("id, name, emoji")
+      .eq("tenant_id", tenantId)
+      .eq("active", true),
+  ]);
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
@@ -97,11 +184,15 @@ export async function GET(
   const orders = (rawOrders ?? []).filter(
     (o) => o.status !== "cancelled",
   ) as Order[];
+  const products = (rawProducts ?? []) as Product[];
+  const categories = (rawCategories ?? []) as Category[];
+
   const revenue = orders.reduce((s, o) => s + o.total, 0);
   const orderCount = orders.length;
   const avgTicket = orderCount > 0 ? Math.round(revenue / orderCount) : 0;
-  const topProducts = computeTopProducts(orders);
+  const topProducts = buildTopProducts(orders, products, categories);
   const dailyRevenue = buildDailyRevenue(orders, days, now);
+  const categoryRevenue = buildCategoryRevenue(orders, products, categories);
 
   const body: AnalyticsResponse = {
     revenue,
@@ -109,6 +200,7 @@ export async function GET(
     avgTicket,
     topProducts,
     dailyRevenue,
+    categoryRevenue,
   };
   return NextResponse.json(body);
 }

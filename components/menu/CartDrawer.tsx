@@ -693,7 +693,7 @@ export default function CartDrawer({
                   onTouchStart={(e) => (e.currentTarget.style.opacity = "0.88")}
                   onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
                 >
-                  Hacer pedido →
+                  Hacer pedido · {fmt(subtotal)} →
                 </button>
               )}
             </div>

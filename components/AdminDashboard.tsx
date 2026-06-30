@@ -22,208 +22,12 @@ import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
 import { OperationControls } from "@/components/admin/dashboard/OperationControls";
 import ExportReportButton from "@/components/admin/ExportReportButton";
 import { createSupabaseBrowser } from "@/lib/supabase";
-import type { Category, Product, Order, OrderItem } from "@/types/supabase";
+import type { Product, Order } from "@/types/supabase";
 import type {
-  DashboardKPIs,
-  DailyRevenue,
-  CategoryRevenue,
-  TopProduct,
+  TodayKPIsResponse,
   AnalyticsRange,
   AnalyticsResponse,
 } from "@/types/dashboard";
-
-function startOfDay(d: Date): Date {
-  const r = new Date(d);
-  r.setHours(0, 0, 0, 0);
-  return r;
-}
-
-function computeKPIs(orders: Order[], products: Product[]): DashboardKPIs {
-  const today = startOfDay(new Date());
-  const yesterday = new Date(today.getTime() - 86_400_000);
-
-  const todayOrders = orders.filter(
-    (o) => new Date(o.created_at) >= today && o.status !== "cancelled",
-  );
-  const yesterdayOrders = orders.filter((o) => {
-    const d = new Date(o.created_at);
-    return d >= yesterday && d < today && o.status !== "cancelled";
-  });
-
-  const ordersToday = todayOrders.length;
-  const ordersYesterday = yesterdayOrders.length;
-  const ordersTodayChange =
-    ordersYesterday > 0
-      ? ((ordersToday - ordersYesterday) / ordersYesterday) * 100
-      : null;
-
-  const revenueToday = todayOrders.reduce((s, o) => s + o.total, 0);
-  const revenueYesterday = yesterdayOrders.reduce((s, o) => s + o.total, 0);
-  const revenueTodayChange =
-    revenueYesterday > 0
-      ? ((revenueToday - revenueYesterday) / revenueYesterday) * 100
-      : null;
-
-  const avgTicketToday =
-    ordersToday > 0 ? Math.round(revenueToday / ordersToday) : 0;
-  const avgTicketYesterday =
-    ordersYesterday > 0 ? Math.round(revenueYesterday / ordersYesterday) : 0;
-  const avgTicketChange =
-    avgTicketYesterday > 0
-      ? ((avgTicketToday - avgTicketYesterday) / avgTicketYesterday) * 100
-      : null;
-
-  const itemMap: Record<string, { name: string; qty: number }> = {};
-  for (const order of todayOrders) {
-    for (const item of (order.items || []) as OrderItem[]) {
-      if (!itemMap[item.product_id])
-        itemMap[item.product_id] = { name: item.name, qty: 0 };
-      itemMap[item.product_id].qty += item.quantity;
-    }
-  }
-  const topProductToday =
-    Object.values(itemMap).sort((a, b) => b.qty - a.qty)[0] ?? null;
-
-  const activeProducts = products.filter((p) => p.available).length;
-
-  return {
-    ordersToday,
-    ordersTodayChange,
-    revenueToday,
-    revenueTodayChange,
-    avgTicketToday,
-    avgTicketChange,
-    topProductToday,
-    activeProducts,
-  };
-}
-
-function computeSalesLast7Days(orders: Order[]): DailyRevenue[] {
-  const result: DailyRevenue[] = [];
-  const activeOrders = orders.filter((o) => o.status !== "cancelled");
-  for (let i = 6; i >= 0; i--) {
-    const day = startOfDay(new Date());
-    day.setDate(day.getDate() - i);
-    const nextDay = new Date(day.getTime() + 86_400_000);
-
-    const dayTotal = activeOrders
-      .filter((o) => {
-        const d = new Date(o.created_at);
-        return d >= day && d < nextDay;
-      })
-      .reduce((s, o) => s + o.total, 0);
-
-    const isToday = i === 0;
-    const raw = day.toLocaleDateString("es-AR", { weekday: "short" });
-    const label = isToday
-      ? "Hoy"
-      : raw.charAt(0).toUpperCase() + raw.slice(1).replace(".", "");
-    result.push({ date: label, total: dayTotal });
-  }
-  return result;
-}
-
-// TODO: unificar fuente de datos KPIs — "hoy" se computa client-side sobre `orders`
-// (para mantener real-time via Supabase channel), mientras "week" y "month" van al
-// endpoint /api/tenant/[slug]/analytics. Para unificar completamente habría que agregar
-// polling al rango "today" o aceptar perder actualizaciones live sin refetch manual.
-// ANALYTICS_RANGES exportada para facilitar esta tarea cuando se encare.
-export const ANALYTICS_RANGES = ["today", "week", "month"] as const;
-
-const CATEGORY_PALETTE = [
-  "#f97316",
-  "#3b82f6",
-  "#22c55e",
-  "#a855f7",
-  "#eab308",
-  "#ec4899",
-  "#14b8a6",
-  "#f43f5e",
-] as const;
-
-function categoryColor(name: string): string {
-  if (!name) return "#71717a";
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length];
-}
-
-function computeCategoryRevenue(
-  orders: Order[],
-  products: Product[],
-  categories: Category[],
-): CategoryRevenue[] {
-  const activeOrders = orders.filter((o) => o.status !== "cancelled");
-  const catMap: Record<string, number> = {};
-  for (const order of activeOrders) {
-    for (const item of (order.items || []) as OrderItem[]) {
-      const product = products.find((p) => p.id === item.product_id);
-      const category = product
-        ? categories.find((c) => c.id === product.category_id)
-        : null;
-      const name = category?.name ?? "Otros";
-      catMap[name] = (catMap[name] ?? 0) + item.price * item.quantity;
-    }
-  }
-  return Object.entries(catMap)
-    .map(([name, value]) => ({
-      name,
-      value,
-      color: categoryColor(name),
-    }))
-    .sort((a, b) => b.value - a.value);
-}
-
-function computeTopProducts(
-  orders: Order[],
-  products: Product[],
-  categories: Category[],
-): TopProduct[] {
-  const activeOrders = orders.filter((o) => o.status !== "cancelled");
-  const map: Record<
-    string,
-    {
-      name: string;
-      qty: number;
-      revenue: number;
-      productRef?: Product;
-    }
-  > = {};
-
-  for (const order of activeOrders) {
-    for (const item of (order.items || []) as OrderItem[]) {
-      if (!map[item.product_id]) {
-        map[item.product_id] = {
-          name: item.name,
-          qty: 0,
-          revenue: 0,
-          productRef: products.find((p) => p.id === item.product_id),
-        };
-      }
-      map[item.product_id].qty += item.quantity;
-      map[item.product_id].revenue += item.price * item.quantity;
-    }
-  }
-
-  return Object.entries(map)
-    .map(([product_id, data]) => {
-      const cat = data.productRef
-        ? categories.find((c) => c.id === data.productRef!.category_id)
-        : null;
-      return {
-        product_id,
-        name: data.name,
-        category_name: cat?.name ?? null,
-        category_emoji: cat?.emoji ?? null,
-        quantity: data.qty,
-        revenue: data.revenue,
-      };
-    })
-    .sort((a, b) => b.quantity - a.quantity)
-    .slice(0, 5);
-}
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -274,16 +78,8 @@ interface AdminDashboardProps {
   slug: string;
   tenantId: string;
   isOpen: boolean;
-  // kpis y salesData eliminados: los KPIs de "hoy" se calculan solo en el cliente
-  // (via currentKPIs/currentSalesData) para evitar mismatch SSR↔hydration con cancelados.
-  // TODO: cuando analytics API soporte categoryData/topProducts por rango, mover esos al cliente también.
-  categoryData: CategoryRevenue[];
-  recentOrders: Order[];
   allOrders: Order[];
-  topProducts: TopProduct[];
   unavailableProducts: Product[];
-  products: Product[];
-  categories: Category[];
 }
 
 export default function AdminDashboard({
@@ -291,13 +87,8 @@ export default function AdminDashboard({
   slug,
   tenantId,
   isOpen: isOpenInitial,
-  categoryData,
-  recentOrders,
   allOrders,
-  topProducts,
   unavailableProducts,
-  products,
-  categories,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
   const dateLabel = getDateLabel();
@@ -310,6 +101,8 @@ export default function AdminDashboard({
     null,
   );
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [kpisData, setKpisData] = useState<TodayKPIsResponse | null>(null);
+  const [kpisLoading, setKpisLoading] = useState(false);
 
   const [isOpen, setIsOpen] = useState(isOpenInitial);
   const [soundEnabled, setSoundEnabled] = useState(() => {
@@ -324,6 +117,24 @@ export default function AdminDashboard({
   useEffect(() => {
     soundEnabledRef.current = soundEnabled;
   }, [soundEnabled]);
+
+  const fetchKPIs = useCallback(async () => {
+    setKpisLoading(true);
+    try {
+      const res = await fetch(`/api/${slug}/admin/kpis`);
+      if (!res.ok) throw new Error("Error al cargar KPIs");
+      const data: TodayKPIsResponse = await res.json();
+      setKpisData(data);
+    } catch {
+      // keep previous data on error
+    } finally {
+      setKpisLoading(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    void fetchKPIs();
+  }, [fetchKPIs]);
 
   useEffect(() => {
     const supabase = createSupabaseBrowser();
@@ -344,6 +155,7 @@ export default function AdminDashboard({
             if (prev.some((o) => o.id === incoming.id)) return prev;
             return [incoming, ...prev];
           });
+          void fetchKPIs();
         },
       )
       .on(
@@ -379,23 +191,7 @@ export default function AdminDashboard({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [tenantId]);
-
-  const currentKPIs = useMemo(() => {
-    return computeKPIs(orders, products);
-  }, [orders, products]);
-
-  const currentSalesData = useMemo(() => {
-    return computeSalesLast7Days(orders);
-  }, [orders]);
-
-  const currentCategoryData = useMemo(() => {
-    return computeCategoryRevenue(orders, products, categories);
-  }, [orders, products, categories]);
-
-  const currentTopProducts = useMemo(() => {
-    return computeTopProducts(orders, products, categories);
-  }, [orders, products, categories]);
+  }, [tenantId, fetchKPIs]);
 
   const currentRecentOrders = useMemo(() => {
     return orders.slice(0, 10);
@@ -435,20 +231,20 @@ export default function AdminDashboard({
 
   const activeRevenue =
     range === "today"
-      ? currentKPIs.revenueToday
+      ? (kpisData?.revenueToday ?? 0)
       : (analyticsData?.revenue ?? 0);
   const activeOrderCount =
     range === "today"
-      ? currentKPIs.ordersToday
+      ? (kpisData?.ordersToday ?? 0)
       : (analyticsData?.orderCount ?? 0);
   const activeAvgTicket =
     range === "today"
-      ? currentKPIs.avgTicketToday
+      ? (kpisData?.avgTicketToday ?? 0)
       : (analyticsData?.avgTicket ?? 0);
   const activeSalesData =
     range === "today"
-      ? currentSalesData
-      : (analyticsData?.dailyRevenue ?? currentSalesData);
+      ? (kpisData?.salesLast7Days ?? [])
+      : (analyticsData?.dailyRevenue ?? []);
 
   const rangeLabel =
     range === "today"
@@ -461,7 +257,9 @@ export default function AdminDashboard({
         ? "Ventas por día — 7 días"
         : "Ventas por día — 30 días";
 
-  const isNewTenant = allOrders.length === 0 && products.length === 0;
+  // ponytail: activeProducts defaults to 1 while kpisData loads to avoid flashing empty state
+  const isNewTenant =
+    allOrders.length === 0 && (kpisData?.activeProducts ?? 1) === 0;
 
   return (
     <div className="px-4 py-3 md:px-6 md:py-4 flex flex-col gap-6 w-full">
@@ -891,11 +689,13 @@ export default function AdminDashboard({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="stagger-item" style={{ animationDelay: "240ms" }}>
               <KPICard
-                loading={analyticsLoading}
+                loading={range === "today" ? kpisLoading : analyticsLoading}
                 label={`Pedidos${range === "today" ? " hoy" : ""}`}
                 value={String(activeOrderCount)}
                 change={
-                  range === "today" ? currentKPIs.ordersTodayChange : null
+                  range === "today"
+                    ? (kpisData?.ordersTodayChange ?? null)
+                    : null
                 }
                 changeLabel={rangeLabel}
                 icon={ShoppingCart}
@@ -903,11 +703,13 @@ export default function AdminDashboard({
             </div>
             <div className="stagger-item" style={{ animationDelay: "300ms" }}>
               <KPICard
-                loading={analyticsLoading}
+                loading={range === "today" ? kpisLoading : analyticsLoading}
                 label={`Ventas${range === "today" ? " hoy" : ""}`}
                 value={fmtARS(activeRevenue)}
                 change={
-                  range === "today" ? currentKPIs.revenueTodayChange : null
+                  range === "today"
+                    ? (kpisData?.revenueTodayChange ?? null)
+                    : null
                 }
                 changeLabel={rangeLabel}
                 icon={DollarSign}
@@ -915,42 +717,104 @@ export default function AdminDashboard({
             </div>
             <div className="stagger-item" style={{ animationDelay: "360ms" }}>
               <KPICard
-                loading={analyticsLoading}
+                loading={range === "today" ? kpisLoading : analyticsLoading}
                 label="Ticket promedio"
                 value={activeAvgTicket > 0 ? fmtARS(activeAvgTicket) : "—"}
-                change={range === "today" ? currentKPIs.avgTicketChange : null}
+                change={
+                  range === "today" ? (kpisData?.avgTicketChange ?? null) : null
+                }
                 changeLabel={rangeLabel}
                 icon={TrendingUp}
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "420ms" }}>
               <KPICard
-                loading={analyticsLoading}
+                loading={kpisLoading}
                 label="Productos activos"
-                value={String(currentKPIs.activeProducts)}
+                value={String(kpisData?.activeProducts ?? "—")}
                 sub={
-                  currentKPIs.activeProducts === 1
+                  kpisData?.activeProducts === 1
                     ? "1 producto en carta"
-                    : `${currentKPIs.activeProducts} productos en carta`
+                    : `${kpisData?.activeProducts ?? 0} productos en carta`
                 }
                 icon={Package}
               />
             </div>
           </div>
 
+          {/* Empty state — no orders today (existing tenant) */}
+          {range === "today" &&
+            !kpisLoading &&
+            kpisData !== null &&
+            kpisData.ordersToday === 0 && (
+              <div
+                className="stagger-item"
+                style={{
+                  padding: "18px 22px",
+                  border: "1px dashed rgba(255,107,53,0.25)",
+                  borderRadius: 16,
+                  background: "rgba(255,107,53,0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  flexWrap: "wrap",
+                  animationDelay: "460ms",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      fontWeight: 700,
+                      fontSize: 14,
+                      color: "var(--dash-text)",
+                      marginBottom: 4,
+                    }}
+                  >
+                    Todavía no hay pedidos hoy
+                  </p>
+                  <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+                    Compartí tu menú con tus clientes para empezar a recibir
+                  </p>
+                </div>
+                <Link
+                  href={`/${slug}`}
+                  target="_blank"
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    border: "1px solid rgba(255,107,53,0.3)",
+                    background: "rgba(255,107,53,0.08)",
+                    color: "var(--accent)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    flexShrink: 0,
+                    transition: "background 0.15s",
+                  }}
+                >
+                  Ver mi menú
+                </Link>
+              </div>
+            )}
+
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
             <div className="stagger-item" style={{ animationDelay: "500ms" }}>
               <SalesAreaChart
                 data={activeSalesData}
-                loading={analyticsLoading}
+                loading={range === "today" ? kpisLoading : analyticsLoading}
                 chartHeight={isMobile ? 200 : 280}
                 title={chartTitle}
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "560ms" }}>
               <CategoryDonut
-                data={range === "today" ? currentCategoryData : categoryData}
+                data={
+                  range === "today"
+                    ? (kpisData?.categoryRevenue ?? [])
+                    : (analyticsData?.categoryRevenue ?? [])
+                }
                 compact={isMobile}
               />
             </div>
@@ -963,7 +827,11 @@ export default function AdminDashboard({
             </div>
             <div className="stagger-item" style={{ animationDelay: "700ms" }}>
               <TopProductsList
-                products={range === "today" ? currentTopProducts : topProducts}
+                products={
+                  range === "today"
+                    ? (kpisData?.topProducts ?? [])
+                    : (analyticsData?.topProducts ?? [])
+                }
                 showRevenue={!isMobile}
               />
             </div>

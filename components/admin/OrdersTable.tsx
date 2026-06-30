@@ -189,6 +189,25 @@ function getStatusMeta(status: string) {
   );
 }
 
+function normalizeStatus(status: string): string {
+  const aliases: Record<string, string> = {
+    nuevo: "pending",
+    preparando: "confirmed",
+    listo: "ready",
+    entregado: "delivered",
+  };
+  return aliases[status] ?? status;
+}
+
+function getNextStatus(
+  status: string,
+): (typeof STATUS_FLOW)[number]["key"] | null {
+  const normalized = normalizeStatus(status);
+  const idx = STATUS_FLOW.findIndex((s) => s.key === normalized);
+  if (idx === -1 || idx >= STATUS_FLOW.length - 1) return null;
+  return STATUS_FLOW[idx + 1].key;
+}
+
 function StatusBadge({ status }: { status: string }) {
   const meta = getStatusMeta(status);
   return (
@@ -1687,6 +1706,43 @@ export function OrdersTable({
                     >
                       {fmtARS(order.total)}
                     </span>
+                    {/* Quick advance button — no need to expand accordion */}
+                    {(() => {
+                      const next = getNextStatus(order.status);
+                      if (!next) return null;
+                      const m = getStatusMeta(next);
+                      return (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            vibrate(40);
+                            void updateStatus(order.id, next);
+                          }}
+                          title={`Marcar como ${m.label}`}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 700,
+                            border: `1px solid ${m.border}`,
+                            background: m.bg,
+                            color: m.color,
+                            cursor: "pointer",
+                            flexShrink: 0,
+                            transition: "opacity 0.15s",
+                            whiteSpace: "nowrap",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.opacity = "0.7")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.opacity = "1")
+                          }
+                        >
+                          {m.label}
+                        </button>
+                      );
+                    })()}
                     {isOpen ? (
                       <ChevronUp
                         style={{

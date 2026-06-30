@@ -280,7 +280,7 @@ const ProductCard = memo(function ProductCard({
           className="img-skeleton"
           style={{
             width: "100%",
-            height: 160,
+            height: 176,
             overflow: "hidden",
             position: "relative",
             flexShrink: 0,
@@ -432,7 +432,7 @@ const ProductCard = memo(function ProductCard({
         {/* Content below image */}
         <div
           style={{
-            padding: "10px 12px 12px",
+            padding: "12px 12px 14px",
             flex: 1,
             display: "flex",
             flexDirection: "column",
@@ -468,7 +468,7 @@ const ProductCard = memo(function ProductCard({
           <span
             style={{
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: 14,
               color: TEXT1,
               lineHeight: 1.3,
               display: "block",
@@ -479,7 +479,7 @@ const ProductCard = memo(function ProductCard({
           {item.description && (
             <p
               style={{
-                fontSize: 11,
+                fontSize: 12,
                 color: TEXT2,
                 margin: 0,
                 lineHeight: 1.4,
@@ -2773,6 +2773,14 @@ export default function CatalogClient({
                             onRemove={removeItem}
                             isFavorite={isFavorite(item.id)}
                             onToggleFavorite={toggleFavorite}
+                            onAddFly={(it, el) =>
+                              flyToCart(
+                                it.image ?? "",
+                                (item as typeof item & { _catEmoji: string })
+                                  ._catEmoji ?? "🍽️",
+                                el,
+                              )
+                            }
                           />
                         </Fragment>
                       ))}
@@ -3002,6 +3010,9 @@ export default function CatalogClient({
                                     onRemove={removeItem}
                                     isFavorite={isFavorite(item.id)}
                                     onToggleFavorite={toggleFavorite}
+                                    onAddFly={(it, el) =>
+                                      flyToCart(it.image ?? "", cat.emoji, el)
+                                    }
                                   />
                                 </Fragment>
                               ))}
@@ -3394,7 +3405,7 @@ export default function CatalogClient({
                       }}
                     >
                       <span style={{ fontWeight: 700 }}>
-                        🚫 Local cerrado ahora
+                        Local cerrado ahora
                       </span>
                       {restaurant.schedule && (
                         <span
@@ -3527,6 +3538,7 @@ export default function CatalogClient({
                 }}
               />
               <button
+                data-cart-pill=""
                 onClick={() => {
                   vibrate(50);
                   setCartOpen(true);
@@ -3717,11 +3729,10 @@ export default function CatalogClient({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 32,
                 marginBottom: 4,
               }}
             >
-              🛒
+              <ShoppingCart size={32} color={hexToRgba(accent, 0.5)} />
             </div>
             <div>
               <p

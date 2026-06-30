@@ -136,7 +136,7 @@ export default function ProductDetailSheet({
           zIndex: 50,
           background: SURFACE,
           borderRadius: "24px 24px 0 0",
-          maxHeight: "84dvh",
+          maxHeight: "90dvh",
           overflowY: "auto",
           maxWidth: 640,
           margin: "0 auto",
@@ -446,7 +446,7 @@ export default function ProductDetailSheet({
           {item.description && (
             <p
               style={{
-                fontSize: 14,
+                fontSize: 15,
                 color: TEXT2,
                 lineHeight: 1.65,
                 marginBottom: 16,
@@ -496,7 +496,7 @@ export default function ProductDetailSheet({
                   textTransform: "uppercase",
                 }}
               >
-                Tamaño
+                Opciones
               </label>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {/* Opción Simple = precio base */}

@@ -218,6 +218,8 @@ function ProductModal({
   const [uploadError, setUploadError] = useState("");
   const [nameError, setNameError] = useState("");
   const [priceError, setPriceError] = useState("");
+  // Local blob URL shown immediately on file pick, before upload completes
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   function set<K extends keyof ProductForm>(key: K, val: ProductForm[K]) {
     setForm((f) => ({ ...f, [key]: val }));
@@ -229,11 +231,15 @@ function ProductModal({
     const file = e.target.files?.[0];
     if (!file) return;
     setUploadError("");
+    // Show local preview immediately — no waiting for upload
+    setPreviewUrl(URL.createObjectURL(file));
     setUploading(true);
     try {
       const url = await uploadImage(file, tenantSlug, product?.id);
       set("image_url", url);
+      setPreviewUrl(url);
     } catch {
+      setPreviewUrl(null);
       setUploadError("Error al subir imagen. Podés pegar una URL manualmente.");
     } finally {
       setUploading(false);
@@ -378,11 +384,16 @@ function ProductModal({
                 Imagen
               </label>
               <div className="flex gap-3 items-start">
-                {form.image_url && (
+                {(previewUrl ?? form.image_url) && (
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-700">
+                    {uploading && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
+                        <Loader2 className="w-4 h-4 text-white animate-spin" />
+                      </div>
+                    )}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={form.image_url}
+                      src={previewUrl ?? form.image_url}
                       alt="preview"
                       className="object-cover w-full h-full"
                     />

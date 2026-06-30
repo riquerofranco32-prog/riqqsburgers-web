@@ -3,9 +3,11 @@ import { createServerClient } from "@/lib/supabase";
 
 export const runtime = "edge";
 
-// Simple in-memory rate limiter per Edge instance.
-// 60 requests / minute per IP — enough for normal catalog usage,
-// prevents analytics spam from a single source.
+// ponytail: in-memory rate limiter — state resets on every cold start and is NOT shared
+// across Edge instances (Vercel runs one per PoP). Effective against burst spam within
+// a single instance; does NOT guarantee cross-instance limits.
+// Swap to Upstash Ratelimit (@upstash/ratelimit + UPSTASH_REDIS_REST_URL/TOKEN) when
+// coordinated rate limiting across Edge instances becomes a real need.
 const trackHits = new Map<string, { count: number; resetAt: number }>();
 const TRACK_LIMIT = 60;
 const TRACK_WINDOW_MS = 60_000;

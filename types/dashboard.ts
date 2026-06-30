@@ -1,14 +1,3 @@
-export type DashboardKPIs = {
-  ordersToday: number;
-  ordersTodayChange: number | null;
-  revenueToday: number;
-  revenueTodayChange: number | null;
-  avgTicketToday: number;
-  avgTicketChange: number | null;
-  topProductToday: { name: string; qty: number } | null;
-  activeProducts: number;
-};
-
 export type DailyRevenue = {
   date: string;
   total: number;
@@ -31,10 +20,26 @@ export type TopProduct = {
 
 export type AnalyticsRange = "today" | "week" | "month";
 
+/** Returned by /api/[slug]/admin/kpis — today KPIs computed server-side */
+export type TodayKPIsResponse = {
+  ordersToday: number;
+  ordersTodayChange: number | null;
+  revenueToday: number;
+  revenueTodayChange: number | null;
+  avgTicketToday: number;
+  avgTicketChange: number | null;
+  topProductToday: { name: string; qty: number } | null;
+  activeProducts: number;
+  salesLast7Days: DailyRevenue[];
+  categoryRevenue: CategoryRevenue[];
+  topProducts: TopProduct[];
+};
+
 export type AnalyticsResponse = {
   revenue: number;
   orderCount: number;
   avgTicket: number;
-  topProducts: { name: string; quantity: number }[];
+  topProducts: TopProduct[];
   dailyRevenue: DailyRevenue[];
+  categoryRevenue: CategoryRevenue[];
 };

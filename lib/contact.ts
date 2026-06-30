@@ -8,7 +8,9 @@ export function trackLandingEvent(
   props?: Record<string, unknown>,
 ): void {
   if (typeof window === "undefined") return;
-  // eslint-disable-next-line no-console
-  console.log("[takefyy:landing]", event, props ?? {});
-  // TODO: connect GA4 or PostHog via NEXT_PUBLIC_GA_MEASUREMENT_ID
+  const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void })
+    .gtag;
+  if (gtag) {
+    gtag("event", event, props ?? {});
+  }
 }

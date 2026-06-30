@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, CheckCircle2 } from "lucide-react";
 import { trackGA4Event } from "@/lib/analytics";
 
 export interface CheckoutCartItem {
@@ -457,7 +457,21 @@ export default function CheckoutModal({
         {done ? (
           /* ── Success screen ───────────────────────────────────────────── */
           <div style={{ textAlign: "center", padding: "32px 24px 40px" }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+            <div
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: "50%",
+                background: "rgba(37,211,102,0.12)",
+                border: "2px solid rgba(37,211,102,0.4)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+              }}
+            >
+              <CheckCircle2 size={36} color="#25D366" strokeWidth={2} />
+            </div>
             <h2
               style={{
                 color: "var(--text-primary)",
@@ -481,7 +495,11 @@ export default function CheckoutModal({
                 textAlign: "left",
               }}
             >
-              <span style={{ fontSize: 22, flexShrink: 0 }}>📲</span>
+              <MessageCircle
+                size={20}
+                strokeWidth={2}
+                style={{ color: "#25D366", flexShrink: 0, marginTop: 2 }}
+              />
               <p
                 style={{
                   color: "var(--text-primary)",
@@ -727,12 +745,12 @@ export default function CheckoutModal({
                   {[
                     {
                       value: "pickup" as DeliveryType,
-                      label: "🏠 Retiro en local",
+                      label: "Retiro en local",
                       sub: "Gratis",
                     },
                     {
                       value: "delivery" as DeliveryType,
-                      label: "🚚 Delivery",
+                      label: "Delivery",
                       sub:
                         (tenant.delivery_cost ?? 0) > 0
                           ? `+$${(tenant.delivery_cost ?? 0).toLocaleString("es-AR")}`
@@ -805,10 +823,10 @@ export default function CheckoutModal({
                   }}
                 >
                   {[
-                    { value: "cash" as PaymentMethod, label: "💵 Efectivo" },
+                    { value: "cash" as PaymentMethod, label: "Efectivo" },
                     {
                       value: "transfer" as PaymentMethod,
-                      label: "📲 Transferencia",
+                      label: "Transferencia",
                     },
                   ].map((opt) => (
                     <button
@@ -897,7 +915,7 @@ export default function CheckoutModal({
                       marginBottom: 6,
                     }}
                   >
-                    <span>🛵 Envío</span>
+                    <span>Envío</span>
                     <span>${deliveryCost.toLocaleString("es-AR")}</span>
                   </div>
                 )}
@@ -949,8 +967,8 @@ export default function CheckoutModal({
                   style={{
                     fontSize: 13,
                     color: "#d97706",
-                    background: "#fffbeb",
-                    border: "1px solid #fde68a",
+                    background: "rgba(217,119,6,0.1)",
+                    border: "1px solid rgba(217,119,6,0.3)",
                     borderRadius: 10,
                     padding: "8px 12px",
                     margin: 0,
@@ -1010,7 +1028,10 @@ export default function CheckoutModal({
                       Enviando...
                     </>
                   ) : (
-                    "📲 Confirmar y enviar por WhatsApp"
+                    <>
+                      <MessageCircle size={16} strokeWidth={2.5} />
+                      Confirmar y enviar por WhatsApp
+                    </>
                   )}
                 </button>
               </div>
