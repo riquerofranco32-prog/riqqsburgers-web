@@ -472,7 +472,94 @@ export default function CheckoutModal({
 
         {done ? (
           /* ── Success screen ───────────────────────────────────────────── */
-          <div style={{ textAlign: "center", padding: "32px 24px 40px" }}>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "32px 24px 40px",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <style>{`
+              @keyframes confettiFall {
+                0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
+                100% { transform: translateY(300px) rotate(720deg); opacity: 0; }
+              }
+            `}</style>
+            {[
+              {
+                left: "10%",
+                color: "#FF6B35",
+                delay: "0ms",
+                size: 8,
+                shape: "circle",
+              },
+              {
+                left: "25%",
+                color: "#25D366",
+                delay: "80ms",
+                size: 6,
+                shape: "square",
+              },
+              {
+                left: "40%",
+                color: "#FF6B35",
+                delay: "160ms",
+                size: 10,
+                shape: "square",
+              },
+              {
+                left: "55%",
+                color: "#60a5fa",
+                delay: "40ms",
+                size: 7,
+                shape: "circle",
+              },
+              {
+                left: "70%",
+                color: "#25D366",
+                delay: "120ms",
+                size: 9,
+                shape: "square",
+              },
+              {
+                left: "85%",
+                color: "#FF6B35",
+                delay: "200ms",
+                size: 6,
+                shape: "circle",
+              },
+              {
+                left: "18%",
+                color: "#fbbf24",
+                delay: "250ms",
+                size: 8,
+                shape: "square",
+              },
+              {
+                left: "62%",
+                color: "#fbbf24",
+                delay: "300ms",
+                size: 7,
+                shape: "circle",
+              },
+            ].map((c, i) => (
+              <div
+                key={i}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: c.left,
+                  width: c.size,
+                  height: c.size,
+                  borderRadius: c.shape === "circle" ? "50%" : 2,
+                  background: c.color,
+                  animation: `confettiFall 1.4s ease-in ${c.delay} both`,
+                  pointerEvents: "none",
+                  zIndex: 10,
+                }}
+              />
+            ))}
             <div
               style={{
                 width: 72,
@@ -484,6 +571,7 @@ export default function CheckoutModal({
                 alignItems: "center",
                 justifyContent: "center",
                 margin: "0 auto 16px",
+                animation: "pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both",
               }}
             >
               <CheckCircle2 size={36} color="#25D366" strokeWidth={2} />
