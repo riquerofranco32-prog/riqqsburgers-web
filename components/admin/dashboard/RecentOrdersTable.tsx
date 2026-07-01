@@ -98,11 +98,15 @@ function StatusBadge({ status }: { status: string }) {
     bg: "rgba(113,113,122,0.12)",
     color: "#a1a1aa",
   };
+  const isPending = status === "pending" || status === "nuevo";
+  const isReady = status === "ready" || status === "listo";
   return (
     <span
       style={{
-        display: "inline-block",
-        padding: "4px 12px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 5,
+        padding: "4px 10px",
         borderRadius: 999,
         fontSize: 12,
         fontWeight: 700,
@@ -112,6 +116,30 @@ function StatusBadge({ status }: { status: string }) {
         letterSpacing: "0.01em",
       }}
     >
+      {isPending && (
+        <span
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: meta.color,
+            boxShadow: `0 0 4px ${meta.color}`,
+            flexShrink: 0,
+            animation: "pulse-status 1.6s ease-in-out infinite",
+          }}
+        />
+      )}
+      {isReady && (
+        <span
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: meta.color,
+            flexShrink: 0,
+          }}
+        />
+      )}
       {meta.label}
     </span>
   );
@@ -305,18 +333,16 @@ export function RecentOrdersTable({
     <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
       <style>{`
         @keyframes slide-down-fade {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         .order-row-animate {
           opacity: 0;
           animation: slide-down-fade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes pulse-status {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.4; transform: scale(1.4); }
         }
       `}</style>
       <div className="px-5 py-4 border-b border-dash-border flex items-center justify-between">
