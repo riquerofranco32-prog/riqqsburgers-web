@@ -259,6 +259,26 @@ export default function AdminShell({
   });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [clockTime, setClockTime] = useState(() =>
+    new Date().toLocaleTimeString("es-AR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  );
+
+  useEffect(() => {
+    const id = setInterval(
+      () =>
+        setClockTime(
+          new Date().toLocaleTimeString("es-AR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        ),
+      10_000,
+    );
+    return () => clearInterval(id);
+  }, []);
 
   // Lock body scroll while mobile dropdown menu is open
   useEffect(() => {
@@ -697,20 +717,17 @@ export default function AdminShell({
                 >
                   {tenantName}
                 </p>
-                {userEmail && (
-                  <p
-                    style={{
-                      color: "var(--dash-muted)",
-                      fontSize: 10,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      marginTop: 1,
-                    }}
-                  >
-                    {userEmail}
-                  </p>
-                )}
+                <p
+                  style={{
+                    color: "var(--dash-muted)",
+                    fontSize: 10,
+                    marginTop: 1,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  {clockTime}
+                </p>
               </div>
             </div>
           </div>
