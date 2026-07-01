@@ -200,6 +200,13 @@ export default function AdminDashboard({
     return orders.slice(0, 10);
   }, [orders]);
 
+  const pendingCount = useMemo(
+    () =>
+      orders.filter((o) => o.status === "pending" || o.status === "nuevo")
+        .length,
+    [orders],
+  );
+
   useEffect(() => {
     localStorage.setItem("kitchen_chime_enabled", String(soundEnabled));
   }, [soundEnabled]);
@@ -635,6 +642,32 @@ export default function AdminDashboard({
             >
               <ClipboardList style={{ width: 14, height: 14 }} />
               Ver pedidos
+              {pendingCount > 0 && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: 18,
+                    height: 18,
+                    borderRadius: 999,
+                    background: newOrderFlash
+                      ? "var(--accent)"
+                      : "rgba(255,107,53,0.75)",
+                    color: "#fff",
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: "0 5px",
+                    lineHeight: 1,
+                    transition: "background 0.3s",
+                    animation: newOrderFlash
+                      ? "order-ring 1.1s ease-out forwards"
+                      : "none",
+                  }}
+                >
+                  {pendingCount}
+                </span>
+              )}
             </Link>
             <Link
               href={`/${slug}/admin/preview`}
