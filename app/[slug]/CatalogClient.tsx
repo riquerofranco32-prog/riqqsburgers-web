@@ -1002,18 +1002,35 @@ export default function CatalogClient({
     };
   }, [cartOpen, selectedItem, checkoutOpen, immersiveMode]);
 
-  // ── ESC key ───────────────────────────────────────────────────────────────
+  // ── ESC key + "/" to focus search ────────────────────────────────────────
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (selectedItem) setSelectedItem(null);
         else if (cartOpen) setCartOpen(false);
+      } else if (
+        e.key === "/" &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !cartOpen &&
+        !selectedItem &&
+        !checkoutOpen
+      ) {
+        const active = document.activeElement;
+        if (
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement
+        )
+          return;
+        e.preventDefault();
+        setShowSearch(true);
+        requestAnimationFrame(() => searchInputRef.current?.focus());
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [cartOpen, selectedItem]);
+  }, [cartOpen, selectedItem, checkoutOpen]);
 
   // ── Brand CSS variables ───────────────────────────────────────────────────
 
@@ -2228,15 +2245,16 @@ export default function CatalogClient({
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        width: 36,
+                        gap: 5,
                         height: 36,
-                        borderRadius: "50%",
+                        borderRadius: 999,
                         border: `1px solid ${BORDER}`,
                         background: SURFACE2,
                         color: TEXT2,
                         cursor: "pointer",
                         WebkitTapHighlightColor: "transparent",
                         transition: "background 0.15s, border-color 0.15s",
+                        padding: "0 12px 0 10px",
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor = accent;
@@ -2248,6 +2266,33 @@ export default function CatalogClient({
                       }}
                     >
                       <Search size={15} strokeWidth={2.5} />
+                      <span
+                        className="hidden lg:inline-block"
+                        style={{
+                          fontSize: 11,
+                          color: `${TEXT2}80`,
+                          fontWeight: 500,
+                          lineHeight: 1,
+                        }}
+                      >
+                        Buscar
+                      </span>
+                      <span
+                        className="hidden lg:inline-flex"
+                        style={{
+                          fontSize: 10,
+                          color: `${TEXT2}60`,
+                          fontWeight: 600,
+                          background: `${TEXT2}12`,
+                          border: `1px solid ${BORDER}`,
+                          borderRadius: 4,
+                          padding: "1px 4px",
+                          lineHeight: 1.4,
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        /
+                      </span>
                     </button>
                   </div>
                 </div>
