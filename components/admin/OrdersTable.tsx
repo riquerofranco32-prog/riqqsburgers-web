@@ -12,11 +12,13 @@ import {
   ChefHat,
   CheckCircle,
   DollarSign,
+  MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import type { Order } from "@/types/supabase";
+import { buildWhatsAppLink } from "@/lib/whatsapp-notify";
 
 function fmtARS(n: number) {
   return "$ " + n.toLocaleString("es-AR");
@@ -698,8 +700,54 @@ function OrderDetailView({
             )}
         </div>
 
-        {/* Acciones del sistema: Imprimir / Eliminar */}
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        {/* Acciones del sistema: Imprimir / WA / Eliminar */}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          {order.customer_phone &&
+            (
+              ["confirmed", "preparing", "ready", "delivered"] as string[]
+            ).includes(order.status) &&
+            (() => {
+              const waLink = buildWhatsAppLink(
+                order.customer_phone,
+                order.order_ref ?? "",
+                order.status,
+                window.location.origin,
+              );
+              if (!waLink) return null;
+              return (
+                <a
+                  href={waLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "7px 12px",
+                    background: "rgba(37,211,102,0.1)",
+                    border: "1px solid rgba(37,211,102,0.3)",
+                    color: "#25D366",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    transition: "background 0.15s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <MessageCircle style={{ width: 14, height: 14 }} />
+                  Avisar WA
+                </a>
+              );
+            })()}
           <button
             onClick={handlePrintTicket}
             style={{

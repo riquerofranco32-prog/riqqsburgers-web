@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { buildWhatsAppLink } from "@/lib/whatsapp-notify";
 
 function escapeHtml(str: string): string {
   return str
@@ -18,6 +19,8 @@ interface TicketActionsProps {
   orderId: string;
   currentStatus: string;
   isDelivery: boolean;
+  customerPhone?: string | null;
+  orderRef?: string | null;
   initialKitchenNotes?: string | null;
   deliveryData?: {
     orderRef: string;
@@ -37,6 +40,8 @@ export default function TicketActions({
   orderId,
   currentStatus,
   isDelivery,
+  customerPhone,
+  orderRef,
   initialKitchenNotes,
   deliveryData,
 }: TicketActionsProps) {
@@ -136,6 +141,20 @@ export default function TicketActions({
     currentStatus !== "delivered" &&
     currentStatus !== "entregado";
 
+  const waLink =
+    (["confirmed", "preparing", "ready", "delivered"] as string[]).includes(
+      currentStatus,
+    ) &&
+    customerPhone &&
+    orderRef
+      ? buildWhatsAppLink(
+          customerPhone,
+          orderRef,
+          currentStatus,
+          typeof window !== "undefined" ? window.location.origin : undefined,
+        )
+      : null;
+
   return (
     <div
       style={{
@@ -230,6 +249,31 @@ export default function TicketActions({
         >
           Hoja repartidor
         </button>
+      )}
+      {waLink && (
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            width: "100%",
+            padding: "12px",
+            background: "rgba(37,211,102,0.12)",
+            color: "#25D366",
+            border: "1px solid rgba(37,211,102,0.35)",
+            borderRadius: 8,
+            fontWeight: 600,
+            fontSize: 15,
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            boxSizing: "border-box",
+          }}
+        >
+          Avisar al cliente por WhatsApp
+        </a>
       )}
       {isCancellable && (
         <button

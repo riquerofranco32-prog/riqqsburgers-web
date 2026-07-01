@@ -89,6 +89,8 @@ export default async function OrderTicketPage({
         orderId={order.id}
         currentStatus={order.status}
         isDelivery={isDelivery}
+        customerPhone={order.customer_phone ?? null}
+        orderRef={order.order_ref ?? null}
         initialKitchenNotes={order.kitchen_notes ?? null}
         deliveryData={
           isDelivery
