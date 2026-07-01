@@ -57,7 +57,7 @@ const STATUS_BADGE: Record<
   },
 };
 
-function CopyRef({ ref: orderRef }: { ref: string }) {
+function CopyRef({ orderRef }: { orderRef: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -520,7 +520,9 @@ export function RecentOrdersTable({
                       >
                         #{order.order_ref ?? order.id.slice(0, 6)}
                       </Link>
-                      <CopyRef ref={order.order_ref ?? order.id.slice(0, 6)} />
+                      <CopyRef
+                        orderRef={order.order_ref ?? order.id.slice(0, 6)}
+                      />
                     </span>
                   </td>
                   <td className="px-3 py-3 text-xs text-dash-muted tabular-nums">
