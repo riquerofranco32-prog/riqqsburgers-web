@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -56,6 +56,41 @@ const STATUS_BADGE: Record<
     color: "#f87171",
   },
 };
+
+function CopyRef({ ref: orderRef }: { ref: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        void navigator.clipboard.writeText(orderRef).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        });
+      }}
+      title="Copiar ref"
+      style={{
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        color: copied ? "#4ade80" : "var(--dash-muted)",
+        padding: "2px 4px",
+        borderRadius: 4,
+        display: "inline-flex",
+        alignItems: "center",
+        opacity: 0.7,
+        transition: "opacity 0.15s, color 0.15s",
+        verticalAlign: "middle",
+        marginLeft: 3,
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+      onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.7")}
+    >
+      {copied ? <Check size={10} /> : <Copy size={10} />}
+    </button>
+  );
+}
 
 function StatusBadge({ status }: { status: string }) {
   const meta = STATUS_BADGE[status] ?? {
@@ -446,13 +481,21 @@ export function RecentOrdersTable({
                   }
                 >
                   <td className="pl-5 pr-3 py-3 text-xs font-mono">
-                    <Link
-                      href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
-                      style={{ color: "var(--accent)", textDecoration: "none" }}
-                      className="hover:underline"
+                    <span
+                      style={{ display: "inline-flex", alignItems: "center" }}
                     >
-                      #{order.order_ref ?? order.id.slice(0, 6)}
-                    </Link>
+                      <Link
+                        href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+                        style={{
+                          color: "var(--accent)",
+                          textDecoration: "none",
+                        }}
+                        className="hover:underline"
+                      >
+                        #{order.order_ref ?? order.id.slice(0, 6)}
+                      </Link>
+                      <CopyRef ref={order.order_ref ?? order.id.slice(0, 6)} />
+                    </span>
                   </td>
                   <td className="px-3 py-3 text-xs text-dash-muted tabular-nums">
                     {fmtHora(order.created_at)}

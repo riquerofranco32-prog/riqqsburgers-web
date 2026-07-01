@@ -722,6 +722,7 @@ export default function CatalogClient({
   const [shareCopied, setShareCopied] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchForced, setSearchForced] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [showExplorePill, setShowExplorePill] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [orderNotes, setOrderNotes] = useState("");
@@ -838,7 +839,12 @@ export default function CatalogClient({
   // ── Scroll-triggered search bar ──────────────────────────────────────────
 
   useEffect(() => {
-    const onScroll = () => setShowSearch(window.scrollY > 80);
+    const onScroll = () => {
+      setShowSearch(window.scrollY > 80);
+      const scrolled = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(max > 0 ? Math.min((scrolled / max) * 100, 100) : 0);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -1330,6 +1336,22 @@ export default function CatalogClient({
         } as React.CSSProperties
       }
     >
+      {/* Scroll progress bar */}
+      {scrollProgress > 2 && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: 2,
+            width: `${scrollProgress}%`,
+            background: `linear-gradient(90deg, ${accent}, ${accent}cc)`,
+            zIndex: 9999,
+            transition: "width 0.1s linear",
+            pointerEvents: "none",
+          }}
+        />
+      )}
       <MenuBackground accentColor={accent} />
       <div
         style={{
