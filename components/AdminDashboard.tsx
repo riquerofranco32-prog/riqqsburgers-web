@@ -20,6 +20,7 @@ import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
 import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
 import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
 import { OperationControls } from "@/components/admin/dashboard/OperationControls";
+import CierreCaja from "@/components/admin/dashboard/CierreCaja";
 import ExportReportButton from "@/components/admin/ExportReportButton";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import type { Product, Order } from "@/types/supabase";
@@ -792,6 +793,11 @@ export default function AdminDashboard({
                 icon={Package}
               />
             </div>
+          </div>
+
+          {/* Cierre de caja diario */}
+          <div className="stagger-item" style={{ animationDelay: "480ms" }}>
+            <CierreCaja slug={slug} />
           </div>
 
           {/* Empty state — no orders today (existing tenant) */}
