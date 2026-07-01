@@ -1352,6 +1352,59 @@ export default function CatalogClient({
           }}
         />
       )}
+      {/* Back to top */}
+      {scrollProgress > 25 &&
+        !cartOpen &&
+        !selectedItem &&
+        !checkoutOpen &&
+        !showSearch && (
+          <button
+            aria-label="Volver al inicio"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            style={{
+              position: "fixed",
+              bottom: 88,
+              right: 16,
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              background: `${BG}e6`,
+              border: `1px solid ${BORDER}`,
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              color: TEXT2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              zIndex: 9990,
+              boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+              transition: "opacity 0.2s, transform 0.2s",
+              WebkitTapHighlightColor: "transparent",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = accent;
+              e.currentTarget.style.color = accent;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = BORDER;
+              e.currentTarget.style.color = TEXT2;
+            }}
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="1 9 7 3 13 9" />
+            </svg>
+          </button>
+        )}
       <MenuBackground accentColor={accent} />
       <div
         style={{
@@ -2115,6 +2168,19 @@ export default function CatalogClient({
                             <span style={{ fontSize: 14 }}>{cat.emoji}</span>
                           )}
                           {cat.name}
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              color: isActive ? `${accent}cc` : `${TEXT2}80`,
+                              lineHeight: 1,
+                            }}
+                          >
+                            {
+                              cat.items.filter((i) => i.badge !== "Agotado")
+                                .length
+                            }
+                          </span>
                         </button>
                       );
                     })}
