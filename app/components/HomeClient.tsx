@@ -794,6 +794,8 @@ function PhoneMockup() {
                 <img
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg"
                   alt="The Larry"
+                  loading="lazy"
+                  decoding="async"
                   style={{
                     width: "100%",
                     height: "100%",
@@ -881,6 +883,8 @@ function PhoneMockup() {
                 <img
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg"
                   alt="Ultra Chesse"
+                  loading="lazy"
+                  decoding="async"
                   style={{
                     width: "100%",
                     height: "100%",
@@ -968,6 +972,8 @@ function PhoneMockup() {
                 <img
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg"
                   alt="Bacon Larry"
+                  loading="lazy"
+                  decoding="async"
                   style={{
                     width: "100%",
                     height: "100%",
@@ -1367,14 +1373,29 @@ const allTestimonials = [
 function AnimatedTestimonials() {
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
+  const [inView, setInView] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // ponytail: pausa el auto-advance fuera de viewport — evita re-renders/timers
+  // desperdiciados mientras el usuario está en otra sección de la landing.
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setInView(entry.isIntersecting),
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!inView) return;
     const timer = setInterval(() => {
       setDirection(1);
       setCurrent((c) => (c + 1) % allTestimonials.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [inView]);
 
   function goTo(idx: number) {
     setDirection(idx > current ? 1 : -1);
@@ -1384,7 +1405,7 @@ function AnimatedTestimonials() {
   const t = allTestimonials[current];
 
   return (
-    <div style={{ position: "relative" }}>
+    <div ref={rootRef} style={{ position: "relative" }}>
       {/* Stacked avatar indicators */}
       <div
         style={{
@@ -1428,6 +1449,8 @@ function AnimatedTestimonials() {
               <img
                 src={item.img}
                 alt={item.name}
+                loading="lazy"
+                decoding="async"
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
@@ -1592,6 +1615,8 @@ function AnimatedTestimonials() {
                   <img
                     src={t.img}
                     alt={t.name}
+                    loading="lazy"
+                    decoding="async"
                     style={{
                       width: "100%",
                       height: "100%",
@@ -1641,11 +1666,20 @@ export default function HomeClient({
   useEffect(() => {
     const isMobileDevice = window.innerWidth < 768;
     setIsMobile(isMobileDevice);
-
-    if (!isMobileDevice) {
-      setShowSpline(true);
-    }
+    if (isMobileDevice) return;
     // ponytail: mobile no carga Spline — WebGL bloquea LCP; agregar si se pide feature mobile
+
+    // Defer el mount de Spline hasta que el hilo principal esté libre: si carga
+    // en el mismo tick que la hidratación, los clicks del nav (scrollIntoView)
+    // se pierden porque React todavía no terminó de adjuntar los handlers.
+    const ric =
+      window.requestIdleCallback ??
+      ((cb: IdleRequestCallback) => setTimeout(cb, 300));
+    const id = ric(() => setShowSpline(true));
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(id as number);
+      else clearTimeout(id as unknown as number);
+    };
   }, []);
 
   useEffect(() => {
@@ -2267,7 +2301,7 @@ export default function HomeClient({
                   whileTap={{ scale: 0.97 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
-                  Ver demo
+                  Ver Larry's en vivo
                 </motion.a>
               </div>
               <p
@@ -2969,7 +3003,7 @@ export default function HomeClient({
                 ))}
               </div>
               <Link
-                href="/riqqsburgers"
+                href="/larryssburgers"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -2990,7 +3024,7 @@ export default function HomeClient({
                   (e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)")
                 }
               >
-                Ver demo en vivo: takefyy.com/riqqsburgers →
+                Así lo usa Larry's Burgers: takefyy.com/larryssburgers →
               </Link>
             </motion.div>
           </div>
@@ -3498,7 +3532,7 @@ export default function HomeClient({
                   />
                   <iframe
                     src="/larryssburgers"
-                    title="Demo menú Larry's Sburgers"
+                    title="Menú de Larry's Burgers en vivo"
                     style={{
                       width: "100%",
                       height: "100%",
@@ -3568,7 +3602,7 @@ export default function HomeClient({
                     textDecoration: "none",
                   }}
                 >
-                  Ver demo en vivo →
+                  Ver hamburguesería en funcionamiento →
                 </a>
                 <a
                   href={WHATSAPP_URL("Hola! Quiero probar Takefyy 🚀")}
@@ -3652,7 +3686,10 @@ export default function HomeClient({
             onToggle={() => setAnnual((v) => !v)}
           />
 
-          <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
+          <div
+            className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto items-start"
+            style={{ marginTop: 44 }}
+          >
             {plans.map((plan, i) => {
               const monthly =
                 plan.priceMonthly !== null && annual
@@ -4067,6 +4104,8 @@ export default function HomeClient({
                   <img
                     src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/logo_url.png?t=1781289992571"
                     alt="Larry's Burgers logo"
+                    loading="lazy"
+                    decoding="async"
                     style={{
                       width: 44,
                       height: 44,
@@ -4179,6 +4218,8 @@ export default function HomeClient({
                         <img
                           src={item.img}
                           alt={item.name}
+                          loading="lazy"
+                          decoding="async"
                           style={{
                             width: 40,
                             height: 40,
@@ -4377,6 +4418,8 @@ export default function HomeClient({
                   <img
                     src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/riqqsburgers/logo_url.png"
                     alt="Riqq's Burgers logo"
+                    loading="lazy"
+                    decoding="async"
                     style={{
                       width: 44,
                       height: 44,
@@ -4489,6 +4532,8 @@ export default function HomeClient({
                         <img
                           src={item.img}
                           alt={item.name}
+                          loading="lazy"
+                          decoding="async"
                           style={{
                             width: 40,
                             height: 40,
@@ -4733,7 +4778,7 @@ export default function HomeClient({
                 transition: "border-color 0.2s, background 0.2s",
               }}
             >
-              Ver demo en vivo →
+              Ver Larry's en acción →
             </Link>
           </motion.div>
 
