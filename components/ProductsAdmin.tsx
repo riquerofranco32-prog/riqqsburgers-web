@@ -588,6 +588,8 @@ function ProductMobileCard({
   onInlinePriceSave,
   onInlinePriceValChange,
   onUploaded,
+  selected,
+  onToggleSelect,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -607,6 +609,8 @@ function ProductMobileCard({
   onInlinePriceSave: (p: Product) => void;
   onInlinePriceValChange: (val: string) => void;
   onUploaded: (productId: string, url: string) => void;
+  selected: boolean;
+  onToggleSelect: (id: string) => void;
 }) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
@@ -640,10 +644,24 @@ function ProductMobileCard({
 
   return (
     <div
-      className={`bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden flex flex-col transition-opacity ${!product.available ? "opacity-60" : ""}`}
+      className={`bg-zinc-900 rounded-2xl border overflow-hidden flex flex-col transition-opacity ${selected ? "border-yellow-400/60" : "border-zinc-800"} ${!product.available ? "opacity-60" : ""}`}
     >
       {/* Photo */}
       <div className="relative aspect-[4/3] bg-zinc-800">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect(product.id);
+          }}
+          className="absolute top-2 left-2 z-10 w-6 h-6 rounded-md bg-black/60 flex items-center justify-center"
+        >
+          <input
+            type="checkbox"
+            checked={selected}
+            readOnly
+            className="w-4 h-4 accent-yellow-400 pointer-events-none"
+          />
+        </button>
         {displayUrl ? (
           <Image
             src={displayUrl}
@@ -684,7 +702,7 @@ function ProductMobileCard({
           className="hidden"
         />
         {product.badge && (
-          <span className="absolute top-2 left-2 text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold pointer-events-none">
+          <span className="absolute top-9 left-2 text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold pointer-events-none">
             {product.badge.replace(/^\S+\s/, "")}
           </span>
         )}
@@ -876,6 +894,95 @@ export default function ProductsAdmin({
   const [inlinePriceVal, setInlinePriceVal] = useState("");
   const inlinePriceRef = useRef<HTMLInputElement>(null);
   const inlinePriceEscaped = useRef(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkWorking, setBulkWorking] = useState(false);
+  const [bulkConfirmDelete, setBulkConfirmDelete] = useState(false);
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+    setBulkConfirmDelete(false);
+  }
+
+  async function bulkSetAvailable(nextAvailable: boolean) {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkWorking(true);
+    const results = await Promise.allSettled(
+      ids.map((id) =>
+        fetch(`/api/products/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ available: nextAvailable }),
+        }).then((res) => {
+          if (!res.ok) throw new Error();
+          return id;
+        }),
+      ),
+    );
+    const okIds = new Set(
+      results
+        .filter(
+          (r): r is PromiseFulfilledResult<string> => r.status === "fulfilled",
+        )
+        .map((r) => r.value),
+    );
+    setProducts((prev) =>
+      prev.map((p) =>
+        okIds.has(p.id) ? { ...p, available: nextAvailable } : p,
+      ),
+    );
+    const failed = ids.length - okIds.size;
+    vibrate(failed > 0 ? [50, 30, 50] : 30);
+    setToast(
+      failed > 0
+        ? `${okIds.size} actualizados, ${failed} fallaron`
+        : nextAvailable
+          ? `${okIds.size} marcados disponibles`
+          : `${okIds.size} marcados agotados`,
+    );
+    setBulkWorking(false);
+    clearSelection();
+  }
+
+  async function bulkDelete() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkWorking(true);
+    const results = await Promise.allSettled(
+      ids.map((id) =>
+        fetch(`/api/products/${id}`, { method: "DELETE" }).then((res) => {
+          if (!res.ok) throw new Error();
+          return id;
+        }),
+      ),
+    );
+    const okIds = new Set(
+      results
+        .filter(
+          (r): r is PromiseFulfilledResult<string> => r.status === "fulfilled",
+        )
+        .map((r) => r.value),
+    );
+    setProducts((prev) => prev.filter((p) => !okIds.has(p.id)));
+    const failed = ids.length - okIds.size;
+    vibrate(failed > 0 ? [50, 30, 50] : [60, 40, 60]);
+    setToast(
+      failed > 0
+        ? `${okIds.size} eliminados, ${failed} fallaron`
+        : `${okIds.size} productos eliminados`,
+    );
+    setBulkWorking(false);
+    clearSelection();
+  }
 
   useEffect(() => {
     if (inlinePriceId && inlinePriceRef.current) {
@@ -1262,6 +1369,8 @@ export default function ProductsAdmin({
                   onInlinePriceSave={saveInlinePrice}
                   onInlinePriceValChange={setInlinePriceVal}
                   onUploaded={handleImageUploaded}
+                  selected={selectedIds.has(product.id)}
+                  onToggleSelect={toggleSelect}
                 />
               );
             })}
@@ -1274,8 +1383,14 @@ export default function ProductsAdmin({
               return (
                 <div
                   key={product.id}
-                  className={`bg-zinc-900 rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${product.available ? "border-zinc-800" : "border-zinc-800 opacity-50"}`}
+                  className={`bg-zinc-900 rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${selectedIds.has(product.id) ? "border-yellow-400/60" : "border-zinc-800"} ${product.available ? "" : "opacity-50"}`}
                 >
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(product.id)}
+                    onChange={() => toggleSelect(product.id)}
+                    className="w-4 h-4 flex-shrink-0 accent-yellow-400"
+                  />
                   <ProductImageCell
                     product={product}
                     tenantSlug={tenant.slug}
@@ -1413,6 +1528,67 @@ export default function ProductsAdmin({
           onSave={handleSave}
           onClose={() => setShowModal(false)}
         />
+      )}
+
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-2 flex-wrap justify-center max-w-[95vw]">
+          <span className="text-sm font-bold text-white px-2">
+            {selectedIds.size} seleccionado
+            {selectedIds.size !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={() => void bulkSetAvailable(false)}
+            disabled={bulkWorking}
+            className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+          >
+            Marcar agotado
+          </button>
+          <button
+            onClick={() => void bulkSetAvailable(true)}
+            disabled={bulkWorking}
+            className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+          >
+            Marcar disponible
+          </button>
+          {bulkConfirmDelete ? (
+            <>
+              <span className="text-xs text-red-400 font-semibold px-1">
+                ¿Eliminar {selectedIds.size}?
+              </span>
+              <button
+                onClick={() => void bulkDelete()}
+                disabled={bulkWorking}
+                className="text-xs font-bold px-3 py-2 rounded-xl bg-red-600 text-white hover:bg-red-500 disabled:opacity-40"
+              >
+                Sí, eliminar
+              </button>
+              <button
+                onClick={() => setBulkConfirmDelete(false)}
+                disabled={bulkWorking}
+                className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+              >
+                Cancelar
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => setBulkConfirmDelete(true)}
+                disabled={bulkWorking}
+                className="text-xs font-bold px-3 py-2 rounded-xl bg-red-950 text-red-400 hover:bg-red-900 disabled:opacity-40"
+              >
+                Eliminar
+              </button>
+              <button
+                onClick={clearSelection}
+                disabled={bulkWorking}
+                className="text-xs font-bold px-3 py-2 rounded-xl text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
+              >
+                Cancelar
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
