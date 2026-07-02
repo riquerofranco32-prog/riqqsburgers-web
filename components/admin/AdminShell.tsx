@@ -745,7 +745,7 @@ export default function AdminShell({
 
       {/* ── MOBILE BOTTOM NAV ───────────────────────────────────────────────── */}
       <nav
-        className="lg:hidden"
+        className="flex lg:hidden"
         style={{
           position: "fixed",
           bottom: 0,
@@ -754,7 +754,6 @@ export default function AdminShell({
           zIndex: 60,
           background: "var(--dash-surface)",
           borderTop: "1px solid var(--dash-border)",
-          display: "flex",
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
