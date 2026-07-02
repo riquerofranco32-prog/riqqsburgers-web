@@ -1,0 +1,4 @@
+@echo off
+cd /d "%~dp0.."
+if not exist "tmp\ig-auto" mkdir "tmp\ig-auto"
+"C:\Users\franc\.local\bin\claude.exe" -p "Lee y ejecuta al pie de la letra el runbook en docs/instagram-auto-publish.md. No me pidas confirmacion en ningun paso." --permission-mode acceptEdits --allowedTools "Read Write Edit Glob Grep Bash Skill mcp__claude_ai_Asana__search_objects mcp__claude_ai_Asana__search_tasks mcp__claude_ai_Asana__get_task mcp__claude_ai_Asana__get_tasks mcp__claude_ai_Asana__get_projects mcp__claude_ai_Asana__update_tasks mcp__claude_ai_Asana__add_comment mcp__claude-in-chrome__tabs_context_mcp mcp__claude-in-chrome__tabs_create_mcp mcp__claude-in-chrome__navigate mcp__claude-in-chrome__computer mcp__claude-in-chrome__read_page mcp__claude-in-chrome__find mcp__claude-in-chrome__get_page_text" >> "tmp\ig-auto\run.log" 2>&1

@@ -17,3 +17,4 @@ out/
 .vercel
 .gstack/
 test_db.js
+tmp/
