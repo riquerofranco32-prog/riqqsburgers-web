@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { X, Heart, Share2, CheckCircle2 } from "lucide-react";
 import type { MenuItem } from "@/lib/getRestaurant";
 import RelatedProducts from "@/components/menu/RelatedProducts";
@@ -90,6 +90,44 @@ export default function ProductDetailSheet({
   const [shareProductCopied, setShareProductCopied] = useState(false);
   const [pricePulse, setPricePulse] = useState(false);
   const priceRef = useRef<HTMLSpanElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap + restore focus on close (component remounts per product via `key`)
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+
+    function getFocusable(): HTMLElement[] {
+      return Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((el) => !el.hasAttribute("disabled"));
+    }
+
+    getFocusable()[0]?.focus();
+
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    window.addEventListener("keydown", handleTab);
+
+    return () => {
+      window.removeEventListener("keydown", handleTab);
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function selectExtra(extra: SelectedExtra | null) {
     setSelectedExtraDraft(extra);
@@ -132,6 +170,7 @@ export default function ProductDetailSheet({
         onClick={onClose}
       />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={item.name}

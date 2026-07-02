@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   X,
   Minus,
@@ -100,6 +100,44 @@ export default function CartDrawer({
   const [drawerDragOffset, setDrawerDragOffset] = useState(0);
   const swipeStart = useRef<number | null>(null);
   const isDragging = useRef(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap + restore focus on close (body scroll lock handled by parent)
+  useEffect(() => {
+    if (!open) return;
+    const previouslyFocused = document.activeElement;
+
+    function getFocusable(): HTMLElement[] {
+      return Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((el) => !el.hasAttribute("disabled"));
+    }
+
+    getFocusable()[0]?.focus();
+
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    window.addEventListener("keydown", handleTab);
+
+    return () => {
+      window.removeEventListener("keydown", handleTab);
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
+    };
+  }, [open]);
 
   function onDrawerTouchStart(e: React.TouchEvent) {
     swipeStart.current = e.touches[0].clientY;
@@ -143,6 +181,7 @@ export default function CartDrawer({
             onClick={onClose}
           />
           <div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-label="Tu pedido"
