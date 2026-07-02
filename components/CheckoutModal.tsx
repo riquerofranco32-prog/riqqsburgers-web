@@ -811,6 +811,81 @@ export default function CheckoutModal({
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {/* Resumen */}
+              <div
+                style={{
+                  background: "var(--surface-2)",
+                  borderRadius: 12,
+                  padding: "16px",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                {cart.map((i) => (
+                  <div
+                    key={i.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      color: "var(--text-secondary)",
+                      fontSize: 13,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span>
+                      {i.name}
+                      {i.selectedExtra ? ` (${i.selectedExtra.name})` : ""} ×
+                      {i.quantity}
+                    </span>
+                    <span>
+                      $
+                      {(
+                        (i.price + (i.selectedExtra?.price ?? 0)) *
+                        i.quantity
+                      ).toLocaleString("es-AR")}
+                    </span>
+                  </div>
+                ))}
+                {deliveryCost > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      color: "var(--text-secondary)",
+                      fontSize: 13,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span>Envío</span>
+                    <span>${deliveryCost.toLocaleString("es-AR")}</span>
+                  </div>
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "var(--text-primary)",
+                    fontWeight: 800,
+                    fontSize: 17,
+                    borderTop: "1px solid var(--border)",
+                    paddingTop: 10,
+                    marginTop: 8,
+                  }}
+                >
+                  <span>Total</span>
+                  <span
+                    style={{
+                      color:
+                        onAccent === "#fff" ? accent : "var(--text-primary)",
+                      background: `${accent}18`,
+                      padding: "2px 10px",
+                      borderRadius: 8,
+                    }}
+                  >
+                    ${grandTotal.toLocaleString("es-AR")}
+                  </span>
+                </div>
+              </div>
+
               {/* Nombre y apellido */}
               <div
                 style={{
@@ -1014,81 +1089,6 @@ export default function CheckoutModal({
                   onFocus={(e) => (e.target.style.borderColor = accent)}
                   onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
                 />
-              </div>
-
-              {/* Resumen */}
-              <div
-                style={{
-                  background: "var(--surface-2)",
-                  borderRadius: 12,
-                  padding: "16px",
-                  border: "1px solid var(--border)",
-                }}
-              >
-                {cart.map((i) => (
-                  <div
-                    key={i.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--text-secondary)",
-                      fontSize: 13,
-                      marginBottom: 6,
-                    }}
-                  >
-                    <span>
-                      {i.name}
-                      {i.selectedExtra ? ` (${i.selectedExtra.name})` : ""} ×
-                      {i.quantity}
-                    </span>
-                    <span>
-                      $
-                      {(
-                        (i.price + (i.selectedExtra?.price ?? 0)) *
-                        i.quantity
-                      ).toLocaleString("es-AR")}
-                    </span>
-                  </div>
-                ))}
-                {deliveryCost > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      color: "var(--text-secondary)",
-                      fontSize: 13,
-                      marginBottom: 6,
-                    }}
-                  >
-                    <span>Envío</span>
-                    <span>${deliveryCost.toLocaleString("es-AR")}</span>
-                  </div>
-                )}
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    color: "var(--text-primary)",
-                    fontWeight: 800,
-                    fontSize: 17,
-                    borderTop: "1px solid var(--border)",
-                    paddingTop: 10,
-                    marginTop: 8,
-                  }}
-                >
-                  <span>Total</span>
-                  <span
-                    style={{
-                      color:
-                        onAccent === "#fff" ? accent : "var(--text-primary)",
-                      background: `${accent}18`,
-                      padding: "2px 10px",
-                      borderRadius: 8,
-                    }}
-                  >
-                    ${grandTotal.toLocaleString("es-AR")}
-                  </span>
-                </div>
               </div>
 
               {error && (
