@@ -1531,41 +1531,41 @@ export default function ProductsAdmin({
       )}
 
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-2 flex-wrap justify-center max-w-[95vw]">
-          <span className="text-sm font-bold text-white px-2">
+        <div className="fixed bottom-20 lg:bottom-4 left-1/2 -translate-x-1/2 z-[70] bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-2 flex-nowrap overflow-x-auto max-w-[95vw]">
+          <span className="text-sm font-bold text-white px-2 flex-shrink-0">
             {selectedIds.size} seleccionado
             {selectedIds.size !== 1 ? "s" : ""}
           </span>
           <button
             onClick={() => void bulkSetAvailable(false)}
             disabled={bulkWorking}
-            className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+            className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 flex-shrink-0 whitespace-nowrap"
           >
             Marcar agotado
           </button>
           <button
             onClick={() => void bulkSetAvailable(true)}
             disabled={bulkWorking}
-            className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+            className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 flex-shrink-0 whitespace-nowrap"
           >
             Marcar disponible
           </button>
           {bulkConfirmDelete ? (
             <>
-              <span className="text-xs text-red-400 font-semibold px-1">
+              <span className="text-xs text-red-400 font-semibold px-1 flex-shrink-0 whitespace-nowrap">
                 ¿Eliminar {selectedIds.size}?
               </span>
               <button
                 onClick={() => void bulkDelete()}
                 disabled={bulkWorking}
-                className="text-xs font-bold px-3 py-2 rounded-xl bg-red-600 text-white hover:bg-red-500 disabled:opacity-40"
+                className="text-xs font-bold px-3 py-2 rounded-xl bg-red-600 text-white hover:bg-red-500 disabled:opacity-40 flex-shrink-0 whitespace-nowrap"
               >
                 Sí, eliminar
               </button>
               <button
                 onClick={() => setBulkConfirmDelete(false)}
                 disabled={bulkWorking}
-                className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40"
+                className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 flex-shrink-0 whitespace-nowrap"
               >
                 Cancelar
               </button>
@@ -1575,14 +1575,14 @@ export default function ProductsAdmin({
               <button
                 onClick={() => setBulkConfirmDelete(true)}
                 disabled={bulkWorking}
-                className="text-xs font-bold px-3 py-2 rounded-xl bg-red-950 text-red-400 hover:bg-red-900 disabled:opacity-40"
+                className="text-xs font-bold px-3 py-2 rounded-xl bg-red-950 text-red-400 hover:bg-red-900 disabled:opacity-40 flex-shrink-0 whitespace-nowrap"
               >
                 Eliminar
               </button>
               <button
                 onClick={clearSelection}
                 disabled={bulkWorking}
-                className="text-xs font-bold px-3 py-2 rounded-xl text-zinc-500 hover:text-zinc-300 disabled:opacity-40"
+                className="text-xs font-bold px-3 py-2 rounded-xl text-zinc-500 hover:text-zinc-300 disabled:opacity-40 flex-shrink-0 whitespace-nowrap"
               >
                 Cancelar
               </button>
