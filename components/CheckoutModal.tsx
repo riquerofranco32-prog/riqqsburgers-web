@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MessageCircle, CheckCircle2 } from "lucide-react";
 import { trackGA4Event } from "@/lib/analytics";
 
@@ -71,6 +71,7 @@ export default function CheckoutModal({
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -136,6 +137,43 @@ export default function CheckoutModal({
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
+
+  // Focus trap + restore focus on close (body scroll lock already handled by the parent)
+  useEffect(() => {
+    if (!isOpen) return;
+    const previouslyFocused = document.activeElement;
+
+    function getFocusable(): HTMLElement[] {
+      return Array.from(
+        dialogRef.current?.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((el) => !el.hasAttribute("disabled"));
+    }
+
+    getFocusable()[0]?.focus();
+
+    function handleTab(e: KeyboardEvent) {
+      if (e.key !== "Tab") return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    window.addEventListener("keydown", handleTab);
+
+    return () => {
+      window.removeEventListener("keydown", handleTab);
+      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
+    };
+  }, [isOpen]);
 
   function set(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -414,6 +452,7 @@ export default function CheckoutModal({
         }
       `}</style>
       <div
+        ref={dialogRef}
         className="checkout-sheet"
         role="dialog"
         aria-modal="true"
