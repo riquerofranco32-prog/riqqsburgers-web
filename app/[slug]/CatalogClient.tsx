@@ -3389,9 +3389,8 @@ export default function CatalogClient({
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      justifyContent: "center",
-                      height: "100%",
-                      padding: "24px",
+                      justifyContent: "flex-start",
+                      padding: "48px 24px 24px",
                       textAlign: "center",
                     }}
                   >
