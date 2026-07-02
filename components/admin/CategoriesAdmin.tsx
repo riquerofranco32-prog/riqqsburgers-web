@@ -7,6 +7,8 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
+  Eye,
+  EyeOff,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -180,6 +182,32 @@ export default function CategoriesAdmin({
     if (newList !== categories) persistOrder(newList);
   }
 
+  // ── Active toggle ────────────────────────────────────────────────────────
+  async function toggleActive(cat: Category) {
+    const nextActive = !cat.active;
+    setCategories((prev) =>
+      prev.map((c) => (c.id === cat.id ? { ...c, active: nextActive } : c)),
+    );
+    try {
+      const res = await fetch(`/api/categories/${cat.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: nextActive }),
+      });
+      if (!res.ok) throw new Error();
+      vibrate(30);
+      toast.success(
+        nextActive ? "Categoría visible" : "Categoría oculta del menú",
+      );
+    } catch {
+      setCategories((prev) =>
+        prev.map((c) => (c.id === cat.id ? { ...c, active: cat.active } : c)),
+      );
+      vibrate([50, 30, 50]);
+      toast.error("No se pudo cambiar la visibilidad");
+    }
+  }
+
   // ── Delete ───────────────────────────────────────────────────────────────
   function requestDelete(cat: Category) {
     if (countFor(cat.id) > 0) {
@@ -319,7 +347,7 @@ export default function CategoriesAdmin({
                   }`,
                   borderRadius: 14,
                   padding: "12px 14px",
-                  opacity: isDragging ? 0.4 : 1,
+                  opacity: isDragging ? 0.4 : cat.active ? 1 : 0.5,
                   boxShadow: isOver ? "0 0 0 1px var(--accent)" : "none",
                   transition: "border-color 0.15s, box-shadow 0.15s",
                 }}
@@ -366,6 +394,7 @@ export default function CategoriesAdmin({
                   </p>
                   <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
                     {count} producto{count !== 1 ? "s" : ""}
+                    {!cat.active && " · oculta del menú"}
                   </p>
                 </div>
 
@@ -451,6 +480,18 @@ export default function CategoriesAdmin({
                       style={iconBtn(false)}
                     >
                       <Pencil size={15} />
+                    </button>
+                    <button
+                      onClick={() => toggleActive(cat)}
+                      title={
+                        cat.active
+                          ? "Ocultar del menú público"
+                          : "Mostrar en el menú público"
+                      }
+                      className="flex items-center justify-center"
+                      style={iconBtn(false)}
+                    >
+                      {cat.active ? <Eye size={15} /> : <EyeOff size={15} />}
                     </button>
                     <button
                       onClick={() => requestDelete(cat)}

@@ -29,7 +29,6 @@ export default async function CategoriasPage({
       .from("categories")
       .select("*")
       .eq("tenant_id", tenant.id)
-      .eq("active", true)
       .order("sort_order"),
     db.from("products").select("category_id").eq("tenant_id", tenant.id),
   ]);

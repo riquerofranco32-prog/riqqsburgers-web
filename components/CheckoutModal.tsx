@@ -148,15 +148,27 @@ export default function CheckoutModal({
 
   const nameError = touched.name && !form.name ? "Obligatorio" : "";
   const lastnameError = touched.lastname && !form.lastname ? "Obligatorio" : "";
+  const phoneDigits = form.phone.replace(/\D/g, "");
+  const phoneError = !touched.phone
+    ? ""
+    : !form.phone
+      ? "Obligatorio"
+      : phoneDigits.length < 8 || phoneDigits.length > 15
+        ? "Ingresá un teléfono válido"
+        : "";
   const addressError =
     touched.address && form.delivery === "delivery" && !form.address
       ? "Ingresá la dirección"
       : "";
 
   async function handleConfirm() {
-    setTouched({ name: true, lastname: true, address: true });
+    setTouched({ name: true, lastname: true, phone: true, address: true });
     if (!form.name || !form.lastname) {
       setError("Nombre y apellido son obligatorios");
+      return;
+    }
+    if (!form.phone || phoneDigits.length < 8 || phoneDigits.length > 15) {
+      setError("Ingresá un teléfono válido");
       return;
     }
     if (form.delivery === "delivery" && !form.address) {
@@ -847,18 +859,22 @@ export default function CheckoutModal({
 
               {/* Teléfono */}
               <div>
-                <label style={labelBase}>Teléfono</label>
+                <label style={labelBase}>Teléfono *</label>
                 <input
-                  style={inputBase}
+                  style={{
+                    ...inputBase,
+                    borderColor: phoneError ? "#ef4444" : "var(--border)",
+                  }}
                   placeholder="11 1234-5678"
                   type="tel"
                   inputMode="tel"
                   autoComplete="tel"
                   value={form.phone}
                   onChange={(e) => set("phone", e.target.value)}
+                  onBlur={() => touch("phone")}
                   onFocus={(e) => (e.target.style.borderColor = accent)}
-                  onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
                 />
+                {phoneError && <span style={errorStyle}>{phoneError}</span>}
               </div>
 
               {/* Delivery / Pickup */}

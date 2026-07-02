@@ -1305,19 +1305,12 @@ export function OrdersTable({
           ),
         );
       }
+      toast.error("No se pudo actualizar el estado del pedido.");
       vibrate([50, 30, 50]);
     }
   }
 
   async function deleteOrder(orderId: string) {
-    if (
-      !confirm(
-        "¿Eliminar este pedido permanentemente? Esta acción no se puede deshacer.",
-      )
-    ) {
-      return;
-    }
-
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
         method: "DELETE",

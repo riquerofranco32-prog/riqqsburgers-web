@@ -899,7 +899,9 @@ export default function ProductsAdmin({
     let list =
       filterCat === "all"
         ? products
-        : products.filter((p) => p.category_id === filterCat);
+        : filterCat === "unavailable"
+          ? products.filter((p) => !p.available)
+          : products.filter((p) => p.category_id === filterCat);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -1200,6 +1202,14 @@ export default function ProductsAdmin({
         >
           Todos ({products.length})
         </button>
+        {inactiveCount > 0 && (
+          <button
+            onClick={() => setFilterCat("unavailable")}
+            className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${filterCat === "unavailable" ? "bg-red-500/10 text-red-400 border-red-500/35" : "bg-zinc-900 text-zinc-400 border-zinc-700/80 hover:text-white hover:border-zinc-500"}`}
+          >
+            Agotados ({inactiveCount})
+          </button>
+        )}
         {categories.map((cat) => (
           <button
             key={cat.id}
