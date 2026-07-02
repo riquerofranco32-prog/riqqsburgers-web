@@ -1394,6 +1394,37 @@ export function OrdersTable({
     };
   }, [orders]);
 
+  // Las ventas de hoy derivadas de `orders` solo cubren la página cargada
+  // (máx. 50 + "cargar más"); en un día con más pedidos que eso el KPI
+  // quedaría mal. Se recalcula con una query aparte, sin límite, filtrada
+  // por fecha en el servidor.
+  const [todaySalesAccurate, setTodaySalesAccurate] = useState<number | null>(
+    null,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchTodaySales() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const supabase = createSupabaseBrowser();
+      const { data } = await supabase
+        .from("orders")
+        .select("total")
+        .eq("tenant_id", tenantId)
+        .in("status", ["delivered", "entregado"])
+        .gte("created_at", today.toISOString());
+      if (cancelled) return;
+      setTodaySalesAccurate(
+        (data ?? []).reduce((sum, o) => sum + (o.total as number), 0),
+      );
+    }
+    void fetchTodaySales();
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId, orders]);
+
   const filtered = useMemo(() => {
     let list = orders.filter((o) => matchesFilter(o, filter));
 
@@ -1452,7 +1483,9 @@ export function OrdersTable({
           },
           {
             label: "Ventas Hoy",
-            value: "$ " + stats.todaySales.toLocaleString("es-AR"),
+            value:
+              "$ " +
+              (todaySalesAccurate ?? stats.todaySales).toLocaleString("es-AR"),
             icon: DollarSign,
             color: "var(--accent, #ff6b35)",
             bg: "rgba(255,107,53,0.1)",
