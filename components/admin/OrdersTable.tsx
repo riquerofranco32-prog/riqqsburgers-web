@@ -1425,6 +1425,51 @@ export function OrdersTable({
     };
   }, [tenantId, orders]);
 
+  // El "Período" filtraba solo lo ya cargado en el cliente (máx. 50 +
+  // "cargar más" manual), así que un local con más de 50 pedidos en la
+  // semana/mes veía datos incompletos sin darse cuenta. Al elegir un rango
+  // que no sea "Todos" se trae directo de la DB, sin el límite de 50.
+  const [loadingRange, setLoadingRange] = useState(false);
+
+  useEffect(() => {
+    if (dateRange === "all") return;
+    let cancelled = false;
+    async function fetchRange() {
+      setLoadingRange(true);
+      const now = new Date();
+      const startOfToday = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
+      const cutoff =
+        dateRange === "today"
+          ? startOfToday
+          : dateRange === "week"
+            ? new Date(startOfToday.getTime() - 6 * 86_400_000)
+            : new Date(startOfToday.getTime() - 29 * 86_400_000);
+      const supabase = createSupabaseBrowser();
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .gte("created_at", cutoff.toISOString())
+        .order("created_at", { ascending: false });
+      if (cancelled) return;
+      const incoming = (data ?? []) as Order[];
+      setOrders((prev) => {
+        const existingIds = new Set(prev.map((o) => o.id));
+        const fresh = incoming.filter((o) => !existingIds.has(o.id));
+        return fresh.length > 0 ? [...prev, ...fresh] : prev;
+      });
+      setLoadingRange(false);
+    }
+    void fetchRange();
+    return () => {
+      cancelled = true;
+    };
+  }, [dateRange, tenantId]);
+
   const filtered = useMemo(() => {
     let list = orders.filter((o) => matchesFilter(o, filter));
 
@@ -1742,6 +1787,17 @@ export function OrdersTable({
               </button>
             );
           })}
+          {loadingRange && (
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--dash-muted)",
+                flexShrink: 0,
+              }}
+            >
+              Cargando período completo...
+            </span>
+          )}
         </div>
 
         {/* Urgent orders banner */}
