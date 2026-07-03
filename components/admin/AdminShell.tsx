@@ -29,6 +29,7 @@ interface AdminShellProps {
   slug: string;
   tenantId: string;
   userEmail: string;
+  isSuperAdmin?: boolean;
 }
 
 const NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
@@ -53,6 +54,7 @@ interface DesktopNavLinksProps {
   pathname: string;
   onLogout: () => void;
   loggingOut: boolean;
+  isSuperAdmin: boolean;
 }
 
 function DesktopNavLinks({
@@ -62,6 +64,7 @@ function DesktopNavLinks({
   pathname,
   onLogout,
   loggingOut,
+  isSuperAdmin,
 }: DesktopNavLinksProps) {
   return (
     <>
@@ -154,30 +157,32 @@ function DesktopNavLinks({
           gap: 4,
         }}
       >
-        <Link
-          href="/admin"
-          title={collapsed ? "Panel Takefyy" : undefined}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: collapsed ? "10px 0" : "10px 12px",
-            justifyContent: collapsed ? "center" : "flex-start",
-            borderRadius: 8,
-            fontSize: 13,
-            color: "var(--accent)",
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-            opacity: 0.8,
-            transition: "opacity 0.15s",
-            WebkitTapHighlightColor: "transparent",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.8")}
-        >
-          <ArrowLeftFromLine size={14} strokeWidth={1.8} />
-          {!collapsed && "Panel Takefyy"}
-        </Link>
+        {isSuperAdmin && (
+          <Link
+            href="/admin"
+            title={collapsed ? "Panel Takefyy" : undefined}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: collapsed ? "10px 0" : "10px 12px",
+              justifyContent: collapsed ? "center" : "flex-start",
+              borderRadius: 8,
+              fontSize: 13,
+              color: "var(--accent)",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              opacity: 0.8,
+              transition: "opacity 0.15s",
+              WebkitTapHighlightColor: "transparent",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.8")}
+          >
+            <ArrowLeftFromLine size={14} strokeWidth={1.8} />
+            {!collapsed && "Panel Takefyy"}
+          </Link>
+        )}
         <Link
           href={`/${slug}/admin/preview`}
           title={collapsed ? "Ver menú" : undefined}
@@ -248,6 +253,7 @@ export default function AdminShell({
   slug,
   tenantId,
   userEmail,
+  isSuperAdmin = false,
 }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -526,29 +532,31 @@ export default function AdminShell({
           )}
           <NotificationToggle tenantId={tenantId} />
           <div style={{ display: "flex", gap: 8 }}>
-            <Link
-              href="/admin"
-              onClick={closeMobile}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                padding: "12px",
-                borderRadius: 10,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "var(--accent)",
-                background: "var(--dash-surface-2)",
-                border: "1px solid var(--dash-border)",
-                textDecoration: "none",
-                textAlign: "center",
-              }}
-            >
-              <ArrowLeftFromLine size={14} />
-              Panel
-            </Link>
+            {isSuperAdmin && (
+              <Link
+                href="/admin"
+                onClick={closeMobile}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "12px",
+                  borderRadius: 10,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--accent)",
+                  background: "var(--dash-surface-2)",
+                  border: "1px solid var(--dash-border)",
+                  textDecoration: "none",
+                  textAlign: "center",
+                }}
+              >
+                <ArrowLeftFromLine size={14} />
+                Panel
+              </Link>
+            )}
             <Link
               href={`/${slug}/admin/preview`}
               onClick={closeMobile}
@@ -740,6 +748,7 @@ export default function AdminShell({
           pathname={pathname}
           onLogout={handleLogout}
           loggingOut={loggingOut}
+          isSuperAdmin={isSuperAdmin}
         />
       </aside>
 

@@ -79,6 +79,7 @@ export default async function AdminLayout({
       tenantName={tenant.name}
       tenantId={tenant.id}
       userEmail={user.email ?? ""}
+      isSuperAdmin={!!superAdminAccess}
     >
       {children}
       <Toaster
