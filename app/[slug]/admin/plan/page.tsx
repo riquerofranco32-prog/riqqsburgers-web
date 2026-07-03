@@ -1,6 +1,10 @@
 import { createServerClient } from "@/lib/supabase";
 import { getPlanLimits } from "@/lib/plans";
-import { getOrCreateSubscription, getProductCount } from "@/lib/subscriptions";
+import {
+  getEffectiveSubscription,
+  getProductCount,
+  trialDaysLeft,
+} from "@/lib/subscriptions";
 import type { Metadata } from "next";
 import type { Tenant } from "@/types/supabase";
 import type { PlanId } from "@/lib/plans";
@@ -28,12 +32,13 @@ export default async function PlanPage({
   if (!tenant) return null;
 
   const [subscription, productCount] = await Promise.all([
-    getOrCreateSubscription(tenant.id),
+    getEffectiveSubscription(tenant.id),
     getProductCount(tenant.id),
   ]);
 
   const currentPlan = (subscription.plan ?? "free") as PlanId;
   const limits = getPlanLimits(currentPlan);
+  const trialDays = trialDaysLeft(subscription);
 
   return (
     <>
@@ -64,6 +69,7 @@ export default async function PlanPage({
         currentPlan={currentPlan}
         productCount={productCount}
         limits={limits}
+        trialDaysLeft={trialDays}
       />
     </>
   );

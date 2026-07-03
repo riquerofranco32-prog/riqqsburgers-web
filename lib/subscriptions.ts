@@ -43,6 +43,43 @@ export async function getOrCreateSubscription(
   return created as Subscription;
 }
 
+// Devuelve la suscripción real vigente: si un trial venció, lo baja a
+// free automáticamente (una sola vez, en la primera lectura posterior
+// al vencimiento) en vez de depender de un cron aparte.
+export async function getEffectiveSubscription(
+  tenantId: string,
+): Promise<Subscription> {
+  const sub = await getOrCreateSubscription(tenantId);
+
+  if (
+    sub.status === "trialing" &&
+    sub.current_period_end &&
+    new Date(sub.current_period_end) < new Date()
+  ) {
+    // tenants.plan lo sincroniza el trigger sync_tenant_plan al tocar
+    // subscriptions.plan — no se actualiza tenants directo (bloqueado por
+    // el trigger enforce_plan_immutability).
+    const supabase = createServerClient();
+    await supabase
+      .from("subscriptions")
+      .update({ plan: "free", status: "expired" })
+      .eq("tenant_id", tenantId);
+    return { ...sub, plan: "free", status: "expired" };
+  }
+
+  return sub;
+}
+
+// Días restantes de trial (null si no está en trial o ya venció)
+export function trialDaysLeft(subscription: Subscription): number | null {
+  if (subscription.status !== "trialing" || !subscription.current_period_end)
+    return null;
+  const msLeft =
+    new Date(subscription.current_period_end).getTime() - Date.now();
+  if (msLeft <= 0) return null;
+  return Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+}
+
 // Cuenta productos activos de un tenant
 export async function getProductCount(tenantId: string): Promise<number> {
   const supabase = createServerClient();
@@ -59,7 +96,7 @@ export async function getProductCount(tenantId: string): Promise<number> {
 export async function canAddProduct(
   tenantId: string,
 ): Promise<{ allowed: boolean; current: number; max: number | null }> {
-  const subscription = await getOrCreateSubscription(tenantId);
+  const subscription = await getEffectiveSubscription(tenantId);
   const limits = getPlanLimits(subscription.plan as PlanId);
   const current = await getProductCount(tenantId);
 
@@ -74,7 +111,9 @@ export async function canAddProduct(
   };
 }
 
-// Cambia el plan de un tenant. Actualiza subscriptions y tenants.plan (cache).
+// Cambia el plan de un tenant. tenants.plan se sincroniza solo, vía el
+// trigger sync_tenant_plan sobre subscriptions (un update directo a
+// tenants.plan está bloqueado por enforce_plan_immutability).
 // Solo usado por super-admin.
 export async function updatePlan(
   tenantId: string,
@@ -87,25 +126,17 @@ export async function updatePlan(
   // Asegura que existe la fila en subscriptions antes de actualizar
   await getOrCreateSubscription(tenantId);
 
-  const [subResult, tenantResult] = await Promise.all([
-    supabase
-      .from("subscriptions")
-      .update({
-        plan,
-        updated_by: updatedBy,
-        notes: notes ?? null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("tenant_id", tenantId),
-    supabase.from("tenants").update({ plan }).eq("id", tenantId),
-  ]);
+  const { error } = await supabase
+    .from("subscriptions")
+    .update({
+      plan,
+      status: "active",
+      updated_by: updatedBy,
+      notes: notes ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("tenant_id", tenantId);
 
-  if (subResult.error)
-    throw new Error(
-      `Error actualizando subscription: ${subResult.error.message}`,
-    );
-  if (tenantResult.error)
-    throw new Error(
-      `Error actualizando tenant.plan: ${tenantResult.error.message}`,
-    );
+  if (error)
+    throw new Error(`Error actualizando subscription: ${error.message}`);
 }

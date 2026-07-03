@@ -112,9 +112,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const plan = (VALID_PLANS as readonly string[]).includes(body.plan ?? "")
+  const requestedPlan = (VALID_PLANS as readonly string[]).includes(
+    body.plan ?? "",
+  )
     ? (body.plan as string)
     : "free";
+
+  // "Starter" es la opción por defecto del selector — en vez de arrancar
+  // gratis para siempre, arranca con 14 días de prueba de Pro. Si el
+  // superadmin elige Pro/Growth a mano, se asigna directo sin trial.
+  const isTrial = requestedPlan === "free";
+  const initialPlan = isTrial ? "pro" : requestedPlan;
+  const trialEnd = new Date();
+  trialEnd.setDate(trialEnd.getDate() + 14);
 
   const supabase = createServerClient();
 
@@ -136,7 +146,7 @@ export async function POST(req: NextRequest) {
       schedule: body.schedule || null,
       is_open: body.is_open ?? true,
       active: true,
-      plan,
+      plan: initialPlan,
     })
     .select("id, slug, name")
     .single();
@@ -149,7 +159,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
-  // 2. Crear (o reutilizar) el usuario dueño en Supabase Auth
+  // 2. Crear la suscripción — trial de 14 días o plan activo directo
+  const { error: subError } = await supabase.from("subscriptions").insert({
+    tenant_id: tenant.id,
+    plan: initialPlan,
+    status: isTrial ? "trialing" : "active",
+    current_period_end: isTrial ? trialEnd.toISOString() : null,
+  });
+
+  if (subError) {
+    await supabase.from("tenants").delete().eq("id", tenant.id);
+    return NextResponse.json(
+      { error: `No se pudo crear la suscripción: ${subError.message}` },
+      { status: 400 },
+    );
+  }
+
+  // 3. Crear (o reutilizar) el usuario dueño en Supabase Auth
   let ownerUserId: string | null = null;
   let createdNewUser = false;
 
@@ -175,7 +201,7 @@ export async function POST(req: NextRequest) {
     createdNewUser = true;
   }
 
-  // 3. Vincular el usuario al tenant como admin
+  // 4. Vincular el usuario al tenant como admin
   const { error: membershipError } = await supabase
     .from("tenant_users")
     .insert({

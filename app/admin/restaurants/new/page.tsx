@@ -40,7 +40,7 @@ const labelStyle = {
 type SlugState = "idle" | "checking" | "available" | "taken" | "invalid";
 
 const PLAN_OPTIONS = [
-  { value: "free", label: "Starter", sub: "Hasta 10 productos" },
+  { value: "free", label: "Starter", sub: "Hasta 5 productos" },
   { value: "pro", label: "Pro", sub: "Hasta 50 + analytics" },
   { value: "premium", label: "Growth", sub: "Ilimitado" },
 ] as const;

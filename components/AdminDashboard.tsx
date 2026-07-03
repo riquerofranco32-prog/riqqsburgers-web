@@ -19,6 +19,7 @@ import { RecentOrdersTable } from "@/components/admin/dashboard/RecentOrdersTabl
 import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
 import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
 import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
+import { TrialCountdownBanner } from "@/components/admin/dashboard/TrialCountdownBanner";
 import { OperationControls } from "@/components/admin/dashboard/OperationControls";
 import CierreCaja from "@/components/admin/dashboard/CierreCaja";
 import ExportReportButton from "@/components/admin/ExportReportButton";
@@ -81,6 +82,7 @@ interface AdminDashboardProps {
   isOpen: boolean;
   allOrders: Order[];
   unavailableProducts: Product[];
+  trialDaysLeft?: number | null;
 }
 
 export default function AdminDashboard({
@@ -90,6 +92,7 @@ export default function AdminDashboard({
   isOpen: isOpenInitial,
   allOrders,
   unavailableProducts,
+  trialDaysLeft,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
   const dateLabel = getDateLabel();
@@ -284,6 +287,11 @@ export default function AdminDashboard({
           animation: premium-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
+
+      {/* Countdown de prueba Pro */}
+      {trialDaysLeft !== null && trialDaysLeft !== undefined && (
+        <TrialCountdownBanner daysLeft={trialDaysLeft} />
+      )}
 
       {/* Alerta productos sin stock */}
       <LowStockAlert unavailableProducts={unavailableProducts} slug={slug} />

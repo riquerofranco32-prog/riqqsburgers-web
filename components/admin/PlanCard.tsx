@@ -7,6 +7,7 @@ interface PlanCardProps {
   currentPlan: PlanId;
   productCount: number;
   limits: PlanLimits;
+  trialDaysLeft?: number | null;
 }
 
 const PLAN_COLORS: Record<
@@ -37,7 +38,9 @@ export default function PlanCard({
   currentPlan,
   productCount,
   limits,
+  trialDaysLeft,
 }: PlanCardProps) {
+  const isTrialing = trialDaysLeft !== null && trialDaysLeft !== undefined;
   const colors = PLAN_COLORS[currentPlan];
   const isAtLimit =
     limits.maxProducts !== null && productCount >= limits.maxProducts;
@@ -51,9 +54,60 @@ export default function PlanCard({
       : null;
 
   return (
-    <div
-      className="p-4 md:p-5 flex flex-col gap-6 w-full"
-    >
+    <div className="p-4 md:p-5 flex flex-col gap-6 w-full">
+      {/* Trial countdown */}
+      {isTrialing && (
+        <div
+          style={{
+            background:
+              trialDaysLeft! <= 3
+                ? "rgba(248, 113, 113, 0.08)"
+                : "rgba(255, 107, 53, 0.08)",
+            border: `1px solid ${trialDaysLeft! <= 3 ? "rgba(248, 113, 113, 0.3)" : "rgba(255, 107, 53, 0.3)"}`,
+            borderRadius: 12,
+            padding: "14px 16px",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+          }}
+        >
+          <span style={{ fontSize: 20, flexShrink: 0 }}>✨</span>
+          <div>
+            <p
+              style={{
+                color: trialDaysLeft! <= 3 ? "#f87171" : "var(--accent)",
+                fontWeight: 700,
+                fontSize: 14,
+                marginBottom: 4,
+              }}
+            >
+              {trialDaysLeft === 1
+                ? "Tu prueba Pro termina mañana"
+                : `Estás probando Pro gratis — te quedan ${trialDaysLeft} días`}
+            </p>
+            <p
+              style={{
+                color: "var(--dash-muted)",
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}
+            >
+              Cuando termine la prueba volvés automáticamente al plan Starter:
+              perdés analytics, personalización de marca y bajás de 50 a 5
+              productos permitidos.{" "}
+              <a
+                href={WHATSAPP_SUPPORT}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--accent)", fontWeight: 600 }}
+              >
+                Mantené Pro
+              </a>
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Free upsell banner */}
       {currentPlan === "free" && (
         <div
@@ -307,9 +361,7 @@ export default function PlanCard({
         >
           Comparativa de planes
         </h3>
-        <div
-          className="grid grid-cols-1 md:grid-cols-3 gap-3"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {(["free", "pro", "premium"] as PlanId[]).map((planId) => {
             const plan = PLANS[planId];
             const isCurrent = planId === currentPlan;
@@ -369,7 +421,9 @@ export default function PlanCard({
                       letterSpacing: "-0.02em",
                     }}
                   >
-                    {plan.priceArs === 0 ? "Gratis" : `$${plan.priceArs.toLocaleString("es-AR")}`}
+                    {plan.priceArs === 0
+                      ? "Gratis"
+                      : `$${plan.priceArs.toLocaleString("es-AR")}`}
                   </span>
                   <span
                     style={{

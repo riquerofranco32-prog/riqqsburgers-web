@@ -1,5 +1,6 @@
 import { createServerClient } from "@/lib/supabase";
 import { getTenant } from "@/lib/tenants";
+import { getEffectiveSubscription, trialDaysLeft } from "@/lib/subscriptions";
 import type { Metadata } from "next";
 import type { Product, Order } from "@/types/supabase";
 import AdminDashboard from "@/components/AdminDashboard";
@@ -66,24 +67,27 @@ export default async function AdminPage({
   eightDaysAgo.setDate(eightDaysAgo.getDate() - 8);
   eightDaysAgo.setHours(0, 0, 0, 0);
 
-  const [{ data: rawOrders }, { data: rawProducts }] = await Promise.all([
-    db
-      .from("orders")
-      .select("*")
-      .eq("tenant_id", tenant.id)
-      .gte("created_at", eightDaysAgo.toISOString())
-      .order("created_at", { ascending: false }),
-    db
-      .from("products")
-      .select(
-        "id, name, category_id, tenant_id, description, price, image_url, badge, available, sort_order, created_at",
-      )
-      .eq("tenant_id", tenant.id),
-  ]);
+  const [{ data: rawOrders }, { data: rawProducts }, subscription] =
+    await Promise.all([
+      db
+        .from("orders")
+        .select("*")
+        .eq("tenant_id", tenant.id)
+        .gte("created_at", eightDaysAgo.toISOString())
+        .order("created_at", { ascending: false }),
+      db
+        .from("products")
+        .select(
+          "id, name, category_id, tenant_id, description, price, image_url, badge, available, sort_order, created_at",
+        )
+        .eq("tenant_id", tenant.id),
+      getEffectiveSubscription(tenant.id),
+    ]);
 
   const orders = (rawOrders ?? []) as Order[];
   const products = (rawProducts ?? []) as Product[];
   const unavailableProducts = products.filter((p) => !p.available);
+  const trialDays = trialDaysLeft(subscription);
 
   return (
     <>
@@ -97,6 +101,7 @@ export default async function AdminPage({
         isOpen={tenant.is_open}
         allOrders={orders}
         unavailableProducts={unavailableProducts}
+        trialDaysLeft={trialDays}
       />
     </>
   );
