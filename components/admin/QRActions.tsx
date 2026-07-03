@@ -100,13 +100,17 @@ export default function QRActions({
         </button>
       </div>
 
-      <style>{`
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @media print {
           body { margin: 0; }
           body > * { display: none !important; }
           #qr-card-print { display: flex !important; }
         }
-      `}</style>
+      `,
+        }}
+      />
     </>
   );
 }
