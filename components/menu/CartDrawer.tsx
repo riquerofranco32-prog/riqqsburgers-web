@@ -16,7 +16,12 @@ export type CartItem = MenuItem & {
   quantity: number;
   notes?: string;
   selectedExtra?: SelectedExtra;
+  selectedAddons?: SelectedExtra[];
 };
+
+function addonsTotal(item: CartItem): number {
+  return (item.selectedAddons ?? []).reduce((sum, a) => sum + a.price, 0);
+}
 
 function fmt(n: number) {
   return new Intl.NumberFormat("es-AR", {
@@ -505,6 +510,19 @@ export default function CartDrawer({
                           {fmt(item.selectedExtra.price)})
                         </p>
                       )}
+                      {item.selectedAddons &&
+                        item.selectedAddons.length > 0 && (
+                          <p
+                            style={{
+                              fontSize: 11,
+                              color: TEXTM,
+                              marginTop: 2,
+                            }}
+                          >
+                            +{" "}
+                            {item.selectedAddons.map((a) => a.name).join(", ")}
+                          </p>
+                        )}
                       {item.notes && (
                         <p
                           style={{
@@ -518,7 +536,12 @@ export default function CartDrawer({
                         </p>
                       )}
                       <p style={{ fontSize: 11, color: TEXTM }}>
-                        {fmt(item.price + (item.selectedExtra?.price ?? 0))} c/u
+                        {fmt(
+                          item.price +
+                            (item.selectedExtra?.price ?? 0) +
+                            addonsTotal(item),
+                        )}{" "}
+                        c/u
                       </p>
                     </div>
                     <div
@@ -595,7 +618,9 @@ export default function CartDrawer({
                       }}
                     >
                       {fmt(
-                        (item.price + (item.selectedExtra?.price ?? 0)) *
+                        (item.price +
+                          (item.selectedExtra?.price ?? 0) +
+                          addonsTotal(item)) *
                           item.quantity,
                       )}
                     </span>

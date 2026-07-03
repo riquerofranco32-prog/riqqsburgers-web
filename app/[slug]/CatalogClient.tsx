@@ -802,7 +802,12 @@ export default function CatalogClient({
   }, []);
 
   const addItemWithNotes = useCallback(
-    (item: MenuItem, notes?: string, selectedExtra?: SelectedExtra) => {
+    (
+      item: MenuItem,
+      notes?: string,
+      selectedExtra?: SelectedExtra,
+      selectedAddons?: SelectedExtra[],
+    ) => {
       vibrate(45);
       setCart((prev) => {
         const found = prev.find((i) => i.id === item.id);
@@ -814,10 +819,14 @@ export default function CatalogClient({
                   quantity: i.quantity + 1,
                   notes: notes ?? i.notes,
                   selectedExtra: selectedExtra ?? i.selectedExtra,
+                  selectedAddons: selectedAddons ?? i.selectedAddons,
                 }
               : i,
           );
-        return [...prev, { ...item, quantity: 1, notes, selectedExtra }];
+        return [
+          ...prev,
+          { ...item, quantity: 1, notes, selectedExtra, selectedAddons },
+        ];
       });
       setAddedToast({ name: item.name, key: Date.now() });
     },
@@ -831,7 +840,12 @@ export default function CatalogClient({
   const getQty = (id: string) => cart.find((i) => i.id === id)?.quantity ?? 0;
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const subtotal = cart.reduce(
-    (s, i) => s + (i.price + (i.selectedExtra?.price ?? 0)) * i.quantity,
+    (s, i) =>
+      s +
+      (i.price +
+        (i.selectedExtra?.price ?? 0) +
+        (i.selectedAddons?.reduce((sum, a) => sum + a.price, 0) ?? 0)) *
+        i.quantity,
     0,
   );
   const hasDelivery = restaurant.delivery_cost > 0;
@@ -3494,6 +3508,21 @@ export default function CatalogClient({
                                 {fmt(item.selectedExtra.price)})
                               </p>
                             )}
+                            {item.selectedAddons &&
+                              item.selectedAddons.length > 0 && (
+                                <p
+                                  style={{
+                                    fontSize: 11,
+                                    color: TEXTM,
+                                    margin: "1px 0 0",
+                                  }}
+                                >
+                                  +{" "}
+                                  {item.selectedAddons
+                                    .map((a) => a.name)
+                                    .join(", ")}
+                                </p>
+                              )}
                             <p
                               style={{
                                 fontSize: 12,
@@ -3504,7 +3533,11 @@ export default function CatalogClient({
                             >
                               {fmt(
                                 (item.price +
-                                  (item.selectedExtra?.price ?? 0)) *
+                                  (item.selectedExtra?.price ?? 0) +
+                                  (item.selectedAddons?.reduce(
+                                    (sum, a) => sum + a.price,
+                                    0,
+                                  ) ?? 0)) *
                                   item.quantity,
                               )}
                             </p>
@@ -3940,6 +3973,9 @@ export default function CatalogClient({
             initialExtra={
               cart.find((i) => i.id === selectedItem.id)?.selectedExtra ?? null
             }
+            initialAddons={
+              cart.find((i) => i.id === selectedItem.id)?.selectedAddons
+            }
             isFavorite={isFavorite}
             toggleFavorite={toggleFavorite}
             onClose={() => setSelectedItem(null)}
@@ -4196,6 +4232,7 @@ export default function CatalogClient({
               badge: null,
               description: "",
               extras: [],
+              addons: [],
               is_featured: false,
               featured_order: 0,
             } as MenuItem);
@@ -4211,6 +4248,7 @@ export default function CatalogClient({
                 badge: null,
                 description: "",
                 extras: [],
+                addons: [],
                 is_featured: false,
                 featured_order: 0,
               } as MenuItem);
@@ -4255,6 +4293,7 @@ export default function CatalogClient({
             quantity: i.quantity,
             notes: i.notes,
             selectedExtra: i.selectedExtra,
+            selectedAddons: i.selectedAddons,
           }))}
           onClearCart={() => setCart([])}
           orderNotes={orderNotes || undefined}

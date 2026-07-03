@@ -42,6 +42,7 @@ interface ProductDetailSheetProps {
   restaurantId: string;
   initialNotes: string;
   initialExtra: SelectedExtra | null;
+  initialAddons?: SelectedExtra[];
   isFavorite: (id: string) => boolean;
   toggleFavorite: (item: MenuItem) => void;
   onClose: () => void;
@@ -52,6 +53,7 @@ interface ProductDetailSheetProps {
     item: MenuItem,
     notes?: string,
     extra?: SelectedExtra,
+    addons?: SelectedExtra[],
   ) => void;
   updateNotes: (itemId: string, notes: string) => void;
   onLightbox: (src: string) => void;
@@ -73,6 +75,7 @@ export default function ProductDetailSheet({
   restaurantId,
   initialNotes,
   initialExtra,
+  initialAddons,
   isFavorite,
   toggleFavorite,
   onClose,
@@ -135,8 +138,23 @@ export default function ProductDetailSheet({
     setTimeout(() => setPricePulse(false), 300);
   }
 
+  const [selectedAddons, setSelectedAddons] = useState<SelectedExtra[]>(
+    initialAddons ?? [],
+  );
+
+  function toggleAddon(addon: SelectedExtra) {
+    setSelectedAddons((prev) =>
+      prev.some((a) => a.name === addon.name)
+        ? prev.filter((a) => a.name !== addon.name)
+        : [...prev, addon],
+    );
+    setPricePulse(true);
+    setTimeout(() => setPricePulse(false), 300);
+  }
+
   const extraPrice = selectedExtraDraft?.price ?? 0;
-  const totalPriceDisplay = item.price + extraPrice;
+  const addonsPrice = selectedAddons.reduce((sum, a) => sum + a.price, 0);
+  const totalPriceDisplay = item.price + extraPrice + addonsPrice;
   const isSoldOut = item.badge === "Agotado";
 
   async function handleShareProduct(productId: string, productName: string) {
@@ -607,6 +625,62 @@ export default function ProductDetailSheet({
             </div>
           )}
 
+          {/* Addons — extras que se suman aparte, selección múltiple */}
+          {item.addons && item.addons.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{
+                  fontSize: 11,
+                  color: TEXTM,
+                  fontWeight: 700,
+                  display: "block",
+                  marginBottom: 10,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Extras
+              </label>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {item.addons.map((addon) => {
+                  const isSelected = selectedAddons.some(
+                    (a) => a.name === addon.name,
+                  );
+                  return (
+                    <button
+                      type="button"
+                      key={addon.name}
+                      onClick={() => toggleAddon(addon)}
+                      style={{
+                        padding: "8px 18px",
+                        borderRadius: 999,
+                        border: "1.5px solid",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: isSelected ? accent : "transparent",
+                        color: isSelected ? onAccent : TEXT2,
+                        borderColor: isSelected ? accent : BORDER,
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {isSelected && (
+                        <CheckCircle2 size={13} strokeWidth={2.5} />
+                      )}
+                      {addon.name}{" "}
+                      <span style={{ opacity: 0.8, fontSize: 12 }}>
+                        +{fmt(addon.price)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Notes field */}
           <div style={{ marginBottom: 20 }}>
             <label
@@ -673,6 +747,7 @@ export default function ProductDetailSheet({
                   item,
                   itemNotesDraft || undefined,
                   selectedExtraDraft ?? undefined,
+                  selectedAddons.length > 0 ? selectedAddons : undefined,
                 );
                 onClose();
               }}

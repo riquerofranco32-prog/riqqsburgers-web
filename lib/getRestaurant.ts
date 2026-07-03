@@ -29,6 +29,7 @@ export interface MenuItem {
   image: string;
   badge: string | null;
   extras: Array<{ name: string; price: number }>;
+  addons: Array<{ name: string; price: number }>;
   is_featured: boolean;
   featured_order: number;
 }
@@ -144,6 +145,8 @@ function mapToRestaurant(
                   : (p.badge ?? null),
               extras:
                 (p.extras as Array<{ name: string; price: number }>) ?? [],
+              addons:
+                (p.addons as Array<{ name: string; price: number }>) ?? [],
               is_featured: p.is_featured ?? false,
               featured_order: p.featured_order ?? 0,
             })),
@@ -166,6 +169,7 @@ function mapToRestaurant(
                 ? "Más pedido"
                 : (p.badge ?? null),
             extras: (p.extras as Array<{ name: string; price: number }>) ?? [],
+            addons: (p.addons as Array<{ name: string; price: number }>) ?? [],
             is_featured: p.is_featured ?? false,
             featured_order: p.featured_order ?? 0,
           }));

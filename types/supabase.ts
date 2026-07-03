@@ -61,6 +61,7 @@ export interface Product {
   featured_order: number;
   created_at: string;
   extras: Array<{ name: string; price: number }>;
+  addons: Array<{ name: string; price: number }>;
 }
 
 export interface Order {

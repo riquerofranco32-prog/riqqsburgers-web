@@ -265,6 +265,7 @@ interface OrderItemDetailed {
     name: string;
     price: number;
   } | null;
+  addons?: Array<{ name: string; price: number }>;
 }
 
 function OrderDetailView({
@@ -482,7 +483,11 @@ function OrderDetailView({
         <div style={{ display: "flex", flexDirection: "column" }}>
           {items.map((item, i) => {
             const extraPrice = item.selected_extra?.price ?? 0;
-            const unitPrice = item.price + extraPrice;
+            const addonsPrice = (item.addons ?? []).reduce(
+              (s, a) => s + a.price,
+              0,
+            );
+            const unitPrice = item.price + extraPrice + addonsPrice;
             const itemTotal = unitPrice * item.quantity;
 
             return (
@@ -540,6 +545,24 @@ function OrderDetailView({
                       + {item.selected_extra.name}{" "}
                       {item.selected_extra.price > 0 &&
                         `(+${fmtARS(item.selected_extra.price)})`}
+                    </span>
+                  )}
+                  {item.addons && item.addons.length > 0 && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: "var(--dash-muted)",
+                        marginLeft: 28,
+                      }}
+                    >
+                      +{" "}
+                      {item.addons
+                        .map((a) =>
+                          a.price > 0
+                            ? `${a.name} (+${fmtARS(a.price)})`
+                            : a.name,
+                        )
+                        .join(", ")}
                     </span>
                   )}
                 </div>

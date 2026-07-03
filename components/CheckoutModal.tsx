@@ -11,6 +11,7 @@ export interface CheckoutCartItem {
   quantity: number;
   notes?: string;
   selectedExtra?: { name: string; price: number };
+  selectedAddons?: Array<{ name: string; price: number }>;
 }
 
 interface CheckoutModalProps {
@@ -62,7 +63,12 @@ export default function CheckoutModal({
   const onAccent = hexToLuma(accent) < 140 ? "#fff" : "#111";
 
   const subtotal = cart.reduce(
-    (s, i) => s + (i.price + (i.selectedExtra?.price ?? 0)) * i.quantity,
+    (s, i) =>
+      s +
+      (i.price +
+        (i.selectedExtra?.price ?? 0) +
+        (i.selectedAddons?.reduce((sum, a) => sum + a.price, 0) ?? 0)) *
+        i.quantity,
     0,
   );
 
@@ -276,9 +282,16 @@ export default function CheckoutModal({
       ``,
       `${E.memo} Productos`,
       ...cart.flatMap((i) => {
-        const total = (i.price + (i.selectedExtra?.price ?? 0)) * i.quantity;
+        const addonsSum =
+          i.selectedAddons?.reduce((sum, a) => sum + a.price, 0) ?? 0;
+        const total =
+          (i.price + (i.selectedExtra?.price ?? 0) + addonsSum) * i.quantity;
+        const addonsLabel =
+          i.selectedAddons && i.selectedAddons.length > 0
+            ? ` + ${i.selectedAddons.map((a) => a.name).join(", ")}`
+            : "";
         return [
-          `X${i.quantity} ${i.name.toUpperCase()}${i.selectedExtra ? ` (${i.selectedExtra.name})` : ""}  ${fmt(total)}`,
+          `X${i.quantity} ${i.name.toUpperCase()}${i.selectedExtra ? ` (${i.selectedExtra.name})` : ""}${addonsLabel}  ${fmt(total)}`,
           ...(i.notes ? [`   → ${i.notes}`] : []),
         ];
       }),
@@ -322,6 +335,7 @@ export default function CheckoutModal({
             selected_extra: i.selectedExtra
               ? { name: i.selectedExtra.name }
               : null,
+            addons: (i.selectedAddons ?? []).map((a) => ({ name: a.name })),
           })),
           delivery_type: form.delivery,
           payment_method: form.payment,
@@ -872,13 +886,21 @@ export default function CheckoutModal({
                   >
                     <span>
                       {i.name}
-                      {i.selectedExtra ? ` (${i.selectedExtra.name})` : ""} ×
-                      {i.quantity}
+                      {i.selectedExtra ? ` (${i.selectedExtra.name})` : ""}
+                      {i.selectedAddons && i.selectedAddons.length > 0
+                        ? ` + ${i.selectedAddons.map((a) => a.name).join(", ")}`
+                        : ""}{" "}
+                      ×{i.quantity}
                     </span>
                     <span>
                       $
                       {(
-                        (i.price + (i.selectedExtra?.price ?? 0)) *
+                        (i.price +
+                          (i.selectedExtra?.price ?? 0) +
+                          (i.selectedAddons?.reduce(
+                            (sum, a) => sum + a.price,
+                            0,
+                          ) ?? 0)) *
                         i.quantity
                       ).toLocaleString("es-AR")}
                     </span>

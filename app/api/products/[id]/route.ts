@@ -14,11 +14,25 @@ const ALLOWED_FIELDS = [
   "sort_order",
   "category_id",
   "extras",
+  "addons",
   "is_featured",
   "featured_order",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
+
+function isValidOptionList(list: unknown): boolean {
+  if (!Array.isArray(list) || list.length > 20) return false;
+  return (list as Array<{ name: unknown; price: unknown }>).every(
+    (o) =>
+      typeof o.name === "string" &&
+      o.name.length <= 100 &&
+      typeof o.price === "number" &&
+      isFinite(o.price) &&
+      o.price >= 0 &&
+      o.price <= 10_000_000,
+  );
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -154,29 +168,25 @@ export async function PATCH(
       );
     }
   }
-  if ("extras" in patch && patch.extras !== null) {
-    const extras = patch.extras as unknown;
-    if (!Array.isArray(extras) || (extras as unknown[]).length > 20) {
-      return NextResponse.json(
-        { error: "extras inválido (máx. 20 opciones)" },
-        { status: 400 },
-      );
-    }
-    for (const extra of extras as Array<{ name: unknown; price: unknown }>) {
-      if (
-        typeof extra.name !== "string" ||
-        (extra.name as string).length > 100 ||
-        typeof extra.price !== "number" ||
-        !isFinite(extra.price as number) ||
-        (extra.price as number) < 0 ||
-        (extra.price as number) > 10_000_000
-      ) {
-        return NextResponse.json(
-          { error: "Extra inválido en extras" },
-          { status: 400 },
-        );
-      }
-    }
+  if (
+    "extras" in patch &&
+    patch.extras !== null &&
+    !isValidOptionList(patch.extras)
+  ) {
+    return NextResponse.json(
+      { error: "Opciones de tamaño inválidas (máx. 20)" },
+      { status: 400 },
+    );
+  }
+  if (
+    "addons" in patch &&
+    patch.addons !== null &&
+    !isValidOptionList(patch.addons)
+  ) {
+    return NextResponse.json(
+      { error: "Extras inválidos (máx. 20)" },
+      { status: 400 },
+    );
   }
 
   const { error } = await supabase.from("products").update(patch).eq("id", id);

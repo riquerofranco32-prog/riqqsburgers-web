@@ -7,6 +7,22 @@ import { canAddProduct } from "@/lib/subscriptions";
 import { PLANS } from "@/lib/plans";
 import type { PlanId } from "@/lib/plans";
 
+function isValidOptionList(list: unknown): list is Array<{
+  name: string;
+  price: number;
+}> {
+  if (!Array.isArray(list) || list.length > 20) return false;
+  return list.every(
+    (o) =>
+      typeof o.name === "string" &&
+      o.name.length <= 100 &&
+      typeof o.price === "number" &&
+      isFinite(o.price) &&
+      o.price >= 0 &&
+      o.price <= 10_000_000,
+  );
+}
+
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     slug: string;
@@ -21,6 +37,7 @@ export async function POST(req: NextRequest) {
     is_featured?: boolean;
     featured_order?: number;
     extras?: Array<{ name: string; price: number }>;
+    addons?: Array<{ name: string; price: number }>;
   };
 
   if (!body.slug || !body.name || body.price === undefined) {
@@ -71,28 +88,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (body.extras !== undefined && body.extras !== null) {
-    if (!Array.isArray(body.extras) || body.extras.length > 20) {
-      return NextResponse.json(
-        { error: "extras inválido (máx. 20 opciones)" },
-        { status: 400 },
-      );
-    }
-    for (const extra of body.extras) {
-      if (
-        typeof extra.name !== "string" ||
-        extra.name.length > 100 ||
-        typeof extra.price !== "number" ||
-        !isFinite(extra.price) ||
-        extra.price < 0 ||
-        extra.price > 10_000_000
-      ) {
-        return NextResponse.json(
-          { error: "Extra inválido en extras" },
-          { status: 400 },
-        );
-      }
-    }
+  if (
+    body.extras !== undefined &&
+    body.extras !== null &&
+    !isValidOptionList(body.extras)
+  ) {
+    return NextResponse.json(
+      { error: "Opciones de tamaño inválidas (máx. 20)" },
+      { status: 400 },
+    );
+  }
+
+  if (
+    body.addons !== undefined &&
+    body.addons !== null &&
+    !isValidOptionList(body.addons)
+  ) {
+    return NextResponse.json(
+      { error: "Extras inválidos (máx. 20)" },
+      { status: 400 },
+    );
   }
 
   let tenantId: string;
@@ -147,6 +162,7 @@ export async function POST(req: NextRequest) {
       is_featured: body.is_featured ?? false,
       featured_order: body.featured_order ?? 0,
       extras: body.extras ?? [],
+      addons: body.addons ?? [],
     })
     .select()
     .single();

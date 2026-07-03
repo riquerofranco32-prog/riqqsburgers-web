@@ -22,6 +22,7 @@ interface OrderItem {
   product_id: string;
   quantity: number;
   selected_extra?: { name: string } | null;
+  addons?: Array<{ name: string }>;
 }
 
 interface CreateOrderBody {
@@ -149,7 +150,7 @@ export async function POST(req: NextRequest) {
 
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id, name, price, available, extras")
+    .select("id, name, price, available, extras, addons")
     .eq("tenant_id", tenant_id)
     .in("id", productIds);
 
@@ -190,11 +191,17 @@ export async function POST(req: NextRequest) {
     const product = productMap.get(item.product_id)!;
     const productExtras =
       (product.extras as Array<{ name: string; price: number }>) ?? [];
+    const productAddons =
+      (product.addons as Array<{ name: string; price: number }>) ?? [];
     const extraPrice = item.selected_extra
       ? (productExtras.find((e) => e.name === item.selected_extra!.name)
           ?.price ?? 0)
       : 0;
-    return sum + (product.price + extraPrice) * item.quantity;
+    const addonsPrice = (item.addons ?? []).reduce((s, a) => {
+      const def = productAddons.find((pa) => pa.name === a.name);
+      return s + (def?.price ?? 0);
+    }, 0);
+    return sum + (product.price + extraPrice + addonsPrice) * item.quantity;
   }, 0);
 
   const deliveryCost =
@@ -206,9 +213,14 @@ export async function POST(req: NextRequest) {
     const product = productMap.get(item.product_id)!;
     const productExtras =
       (product.extras as Array<{ name: string; price: number }>) ?? [];
+    const productAddons =
+      (product.addons as Array<{ name: string; price: number }>) ?? [];
     const extraDef = item.selected_extra
       ? productExtras.find((e) => e.name === item.selected_extra!.name)
       : null;
+    const addonDefs = (item.addons ?? [])
+      .map((a) => productAddons.find((pa) => pa.name === a.name))
+      .filter((a): a is { name: string; price: number } => !!a);
     return {
       product_id: item.product_id,
       name: product.name,
@@ -217,6 +229,7 @@ export async function POST(req: NextRequest) {
       ...(extraDef
         ? { selected_extra: { name: extraDef.name, price: extraDef.price } }
         : {}),
+      ...(addonDefs.length > 0 ? { addons: addonDefs } : {}),
     };
   });
 

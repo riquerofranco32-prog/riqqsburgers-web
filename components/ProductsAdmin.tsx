@@ -162,6 +162,7 @@ interface ProductForm {
   is_featured: boolean;
   featured_order: string;
   extras: Array<{ name: string; price: string }>;
+  addons: Array<{ name: string; price: string }>;
 }
 
 const emptyForm: ProductForm = {
@@ -175,6 +176,7 @@ const emptyForm: ProductForm = {
   is_featured: false,
   featured_order: "0",
   extras: [],
+  addons: [],
 };
 
 // ── Product Modal ─────────────────────────────────────────────────────────────
@@ -205,6 +207,12 @@ function ProductModal({
           is_featured: product.is_featured ?? false,
           featured_order: String(product.featured_order ?? 0),
           extras: (product.extras ?? []).map(
+            (e: { name: string; price: number }) => ({
+              name: e.name,
+              price: String(e.price),
+            }),
+          ),
+          addons: (product.addons ?? []).map(
             (e: { name: string; price: number }) => ({
               name: e.name,
               price: String(e.price),
@@ -530,6 +538,79 @@ function ProductModal({
                         setForm((f) => ({
                           ...f,
                           extras: f.extras.filter((_, idx) => idx !== i),
+                        }))
+                      }
+                      className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Extras — agregados aparte, se suman al precio */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                  Extras
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      addons: [...f.addons, { name: "", price: "" }],
+                    }))
+                  }
+                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                >
+                  + Agregar
+                </button>
+              </div>
+              <p className="text-xs text-zinc-600 mb-2">
+                Agregados que el cliente puede sumar aparte, además de la opción
+                de tamaño. Ej: &quot;Bacon&quot;, &quot;Cheddar extra&quot;.
+              </p>
+              <div className="flex flex-col gap-2">
+                {form.addons.map((addon, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      value={addon.name}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          addons: f.addons.map((ad, idx) =>
+                            idx === i ? { ...ad, name: e.target.value } : ad,
+                          ),
+                        }))
+                      }
+                      placeholder="Ej: Bacon"
+                      style={{ fontSize: 16 }}
+                      className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                    />
+                    <input
+                      type="number"
+                      value={addon.price}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          addons: f.addons.map((ad, idx) =>
+                            idx === i ? { ...ad, price: e.target.value } : ad,
+                          ),
+                        }))
+                      }
+                      placeholder="$+ precio"
+                      min={0}
+                      style={{ fontSize: 16 }}
+                      className="w-28 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          addons: f.addons.filter((_, idx) => idx !== i),
                         }))
                       }
                       className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
@@ -1051,6 +1132,15 @@ export default function ProductsAdmin({
       is_featured: form.is_featured,
       featured_order: parseInt(form.featured_order, 10) || 0,
       extras: form.extras
+        .filter(
+          (e) =>
+            e.name.trim() &&
+            e.price !== "" &&
+            !isNaN(Number(e.price)) &&
+            Number(e.price) >= 0,
+        )
+        .map((e) => ({ name: e.name.trim(), price: Number(e.price) })),
+      addons: form.addons
         .filter(
           (e) =>
             e.name.trim() &&

@@ -197,8 +197,13 @@ export default async function OrderTicketPage({
           {items.map((item, i) => {
             const itemWithExtra = item as OrderItem & {
               selected_extra?: { name: string; price: number };
+              addons?: Array<{ name: string; price: number }>;
             };
             const extraPrice = itemWithExtra.selected_extra?.price ?? 0;
+            const addonsPrice = (itemWithExtra.addons ?? []).reduce(
+              (s, a) => s + a.price,
+              0,
+            );
             return (
               <div
                 key={i}
@@ -222,9 +227,10 @@ export default async function OrderTicketPage({
                   </span>
                   <span>
                     $
-                    {((item.price + extraPrice) * item.quantity).toLocaleString(
-                      "es-AR",
-                    )}
+                    {(
+                      (item.price + extraPrice + addonsPrice) *
+                      item.quantity
+                    ).toLocaleString("es-AR")}
                   </span>
                 </div>
                 {itemWithExtra.selected_extra && (
@@ -239,6 +245,25 @@ export default async function OrderTicketPage({
                     + {itemWithExtra.selected_extra.name}
                     {itemWithExtra.selected_extra.price > 0 &&
                       ` (+$${itemWithExtra.selected_extra.price.toLocaleString("es-AR")})`}
+                  </div>
+                )}
+                {itemWithExtra.addons && itemWithExtra.addons.length > 0 && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#555",
+                      marginTop: 2,
+                      marginLeft: 8,
+                    }}
+                  >
+                    +{" "}
+                    {itemWithExtra.addons
+                      .map((a) =>
+                        a.price > 0
+                          ? `${a.name} (+$${a.price.toLocaleString("es-AR")})`
+                          : a.name,
+                      )
+                      .join(", ")}
                   </div>
                 )}
               </div>
