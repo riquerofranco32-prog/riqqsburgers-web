@@ -13,6 +13,7 @@ const couponValidateHits = new Map<
   { count: number; resetAt: number }
 >();
 const reviewHits = new Map<string, { count: number; resetAt: number }>();
+const signupHits = new Map<string, { count: number; resetAt: number }>();
 
 const WINDOW_MS = 60_000; // 1 minute
 
@@ -23,6 +24,7 @@ const LIMITS = {
   adminMutations: 60, // 60 admin writes/min per IP (products/categories/orders/tenant)
   couponValidate: 15, // 15 tries/min per IP — public endpoint, guards against code enumeration
   reviews: 5, // 5 reseñas/min per IP — público sin auth, evita spam
+  signup: 8, // 8 intentos/min per IP — cubre chequeos de slug + el submit real
 } as const;
 
 function getClientIp(req: NextRequest): string {
@@ -125,6 +127,17 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // Rate limit: self-serve signup (público sin auth, crea tenant + usuario real)
+  if (pathname.startsWith("/api/signup")) {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(signupHits, ip, LIMITS.signup)) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Esperá un minuto." },
+        { status: 429 },
+      );
+    }
+  }
+
   // Rate limit: other admin mutations (products/categories/orders/tenant writes)
   if (
     isApiMutation &&
@@ -159,5 +172,6 @@ export const config = {
     "/api/tenant/:path*",
     "/api/coupons/:path*",
     "/api/reviews/:path*",
+    "/api/signup/:path*",
   ],
 };

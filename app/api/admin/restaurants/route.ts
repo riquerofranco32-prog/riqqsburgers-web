@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { getAllTenants } from "@/lib/tenants";
 import { assertSuperAdmin } from "@/lib/authz";
+import { EMAIL_RE, MIN_PASSWORD, SLUG_RE } from "@/lib/validation";
 
 export async function GET(req: NextRequest) {
   try {
@@ -14,8 +15,6 @@ export async function GET(req: NextRequest) {
 }
 
 const VALID_PLANS = ["free", "pro", "premium"] as const;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD = 8;
 
 type AdminClient = ReturnType<typeof createServerClient>;
 
@@ -89,7 +88,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!/^[a-z0-9-]+$/.test(body.slug)) {
+  if (!SLUG_RE.test(body.slug)) {
     return NextResponse.json(
       { error: "Slug inválido (solo letras minúsculas, números y guiones)" },
       { status: 400 },

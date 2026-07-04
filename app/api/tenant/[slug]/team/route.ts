@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
+import { EMAIL_RE, MIN_PASSWORD } from "@/lib/validation";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD = 8;
 const VALID_ROLES = ["admin", "staff"] as const;
 
 export async function GET(
