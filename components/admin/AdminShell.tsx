@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   QrCode,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -35,6 +36,7 @@ interface AdminShellProps {
 const NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
+  { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/productos", label: "Productos", icon: Package },
   { href: "/categorias", label: "Categorías", icon: Tag },
   { href: "/qr", label: "Código QR", icon: QrCode },
