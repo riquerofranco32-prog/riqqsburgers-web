@@ -100,7 +100,8 @@ export async function PATCH(
   ]);
 
   const isAuthorized =
-    (membership && ["admin", "superadmin"].includes(membership.role)) ||
+    (membership &&
+      ["admin", "staff", "superadmin"].includes(membership.role)) ||
     !!globalSuperAdmin;
 
   if (!isAuthorized) {

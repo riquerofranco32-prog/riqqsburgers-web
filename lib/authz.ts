@@ -53,7 +53,7 @@ export async function assertTenantAdmin(
     throw NextResponse.json({ error: "Tenant no encontrado" }, { status: 404 });
   }
 
-  // Mirror the layout check: direct tenant membership OR superadmin
+  // Dueño/gerente del tenant (role=admin) O superadmin — NO staff (cocina/mozo)
   const [{ data: directAccess }, { data: superAdmin }] = await Promise.all([
     db
       .from("tenant_users")
@@ -69,7 +69,59 @@ export async function assertTenantAdmin(
       .maybeSingle(),
   ]);
 
-  if (!directAccess && !superAdmin) {
+  const isAuthorized = directAccess?.role === "admin" || !!superAdmin;
+  if (!isAuthorized) {
+    throw NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+
+  return { user, tenantId: tenant.id };
+}
+
+/**
+ * Acceso de staff (cocina/mozo): igual que assertTenantAdmin pero también
+ * acepta role="staff". Usar solo en endpoints que el personal de cocina
+ * necesita (estado de pedidos), nunca en productos/config/billing.
+ */
+export async function assertTenantStaff(
+  slug: string,
+): Promise<{ user: User; tenantId: string }> {
+  const user = await getSessionUser();
+  if (!user) {
+    throw NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  const db = createServerClient();
+
+  const { data: tenant } = await db
+    .from("tenants")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!tenant) {
+    throw NextResponse.json({ error: "Tenant no encontrado" }, { status: 404 });
+  }
+
+  const [{ data: directAccess }, { data: superAdmin }] = await Promise.all([
+    db
+      .from("tenant_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("tenant_id", tenant.id)
+      .maybeSingle(),
+    db
+      .from("tenant_users")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "superadmin")
+      .maybeSingle(),
+  ]);
+
+  const isAuthorized =
+    (directAccess && ["admin", "staff"].includes(directAccess.role)) ||
+    !!superAdmin;
+
+  if (!isAuthorized) {
     throw NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 

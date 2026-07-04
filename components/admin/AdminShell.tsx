@@ -19,6 +19,7 @@ import {
   Users,
   Percent,
   Star,
+  UserCog,
   type LucideIcon,
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -33,20 +34,34 @@ interface AdminShellProps {
   tenantId: string;
   userEmail: string;
   isSuperAdmin?: boolean;
+  role?: string;
 }
 
-const NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> = [
-  { href: "", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
-  { href: "/clientes", label: "Clientes", icon: Users },
-  { href: "/productos", label: "Productos", icon: Package },
-  { href: "/categorias", label: "Categorías", icon: Tag },
-  { href: "/cupones", label: "Cupones", icon: Percent },
-  { href: "/resenas", label: "Reseñas", icon: Star },
-  { href: "/qr", label: "Código QR", icon: QrCode },
-  { href: "/configuracion", label: "Configuración", icon: Settings },
-  { href: "/plan", label: "Mi Plan", icon: Crown },
-];
+const FULL_NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> =
+  [
+    { href: "", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
+    { href: "/clientes", label: "Clientes", icon: Users },
+    { href: "/productos", label: "Productos", icon: Package },
+    { href: "/categorias", label: "Categorías", icon: Tag },
+    { href: "/cupones", label: "Cupones", icon: Percent },
+    { href: "/resenas", label: "Reseñas", icon: Star },
+    { href: "/qr", label: "Código QR", icon: QrCode },
+    { href: "/equipo", label: "Equipo", icon: UserCog },
+    { href: "/configuracion", label: "Configuración", icon: Settings },
+    { href: "/plan", label: "Mi Plan", icon: Crown },
+  ];
+
+// Personal de cocina/mozo: solo ve y gestiona pedidos, nada de precios/config/billing
+const STAFF_NAV_ITEMS: Array<{
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}> = [{ href: "/pedidos", label: "Pedidos", icon: ClipboardList }];
+
+function getNavItems(role?: string) {
+  return role === "staff" ? STAFF_NAV_ITEMS : FULL_NAV_ITEMS;
+}
 
 function vibrate(pattern: number | number[]) {
   if (typeof window !== "undefined" && "vibrate" in navigator)
@@ -61,6 +76,7 @@ interface DesktopNavLinksProps {
   onLogout: () => void;
   loggingOut: boolean;
   isSuperAdmin: boolean;
+  navItems: ReturnType<typeof getNavItems>;
 }
 
 function DesktopNavLinks({
@@ -71,6 +87,7 @@ function DesktopNavLinks({
   onLogout,
   loggingOut,
   isSuperAdmin,
+  navItems,
 }: DesktopNavLinksProps) {
   return (
     <>
@@ -83,7 +100,7 @@ function DesktopNavLinks({
           gap: 4,
         }}
       >
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const href = `/${slug}/admin${item.href}`;
           const isActive =
             item.href === ""
@@ -260,9 +277,12 @@ export default function AdminShell({
   tenantId,
   userEmail,
   isSuperAdmin = false,
+  role,
 }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const navItems = getNavItems(role);
+  const isStaff = role === "staff";
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("sidebar_collapsed") === "true";
@@ -461,7 +481,7 @@ export default function AdminShell({
             gap: 6,
           }}
         >
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const href = `/${slug}/admin${item.href}`;
             const isActive =
               item.href === ""
@@ -755,6 +775,7 @@ export default function AdminShell({
           onLogout={handleLogout}
           loggingOut={loggingOut}
           isSuperAdmin={isSuperAdmin}
+          navItems={navItems}
         />
       </aside>
 
@@ -772,11 +793,14 @@ export default function AdminShell({
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
         }}
       >
-        {[
-          { href: "", label: "Dashboard", icon: LayoutDashboard },
-          { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
-          { href: "/productos", label: "Productos", icon: Package },
-        ].map((item) => {
+        {(isStaff
+          ? navItems
+          : [
+              { href: "", label: "Dashboard", icon: LayoutDashboard },
+              { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
+              { href: "/productos", label: "Productos", icon: Package },
+            ]
+        ).map((item) => {
           const href = `/${slug}/admin${item.href}`;
           const isActive =
             item.href === ""

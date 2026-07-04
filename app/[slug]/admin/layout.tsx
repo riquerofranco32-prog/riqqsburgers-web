@@ -73,6 +73,10 @@ export default async function AdminLayout({
 
   if (!directAccess && !superAdminAccess) redirect("/login");
 
+  const role = superAdminAccess
+    ? "superadmin"
+    : (directAccess?.role ?? "admin");
+
   return (
     <AdminShell
       slug={slug}
@@ -80,6 +84,7 @@ export default async function AdminLayout({
       tenantId={tenant.id}
       userEmail={user.email ?? ""}
       isSuperAdmin={!!superAdminAccess}
+      role={role}
     >
       {children}
       <Toaster
