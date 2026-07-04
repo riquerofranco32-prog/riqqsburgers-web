@@ -10,6 +10,7 @@ import {
 } from "framer-motion";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 // Lazy-load the WebGL shader so it never blocks the hero render
 const HeroShader = dynamic(() => import("@/components/HeroShader"), {
   ssr: false,
@@ -1652,6 +1653,7 @@ export default function HomeClient({
 }: {
   restaurantCount: number;
 }) {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -2250,18 +2252,13 @@ export default function HomeClient({
 
             <motion.div {...fadeUp(0.43)} className="mb-6">
               <div className="hero-cta-group flex flex-wrap gap-3 mb-3">
-                <motion.button
+                <motion.a
+                  href="/signup"
                   onClick={() => {
                     trackLandingEvent("cta_click", {
                       label: "empezar_gratis",
                       section: "hero",
                     });
-                    window.open(
-                      WHATSAPP_URL(
-                        "Hola! Me interesa Takefyy para mi negocio 🚀",
-                      ),
-                      "_blank",
-                    );
                   }}
                   className="rounded-full px-7 py-3.5 text-sm font-bold text-white"
                   style={{
@@ -2269,6 +2266,9 @@ export default function HomeClient({
                     border: "none",
                     cursor: "pointer",
                     position: "relative",
+                    textDecoration: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
                     WebkitAppearance: "none",
                     appearance: "none",
                   }}
@@ -2281,7 +2281,7 @@ export default function HomeClient({
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
                   Empezar gratis →
-                </motion.button>
+                </motion.a>
                 <motion.a
                   href="/larryssburgers"
                   className="rounded-full px-7 py-3.5 text-sm font-semibold"
@@ -3906,12 +3906,16 @@ export default function HomeClient({
                             section: "precios",
                             plan: plan.name.toLowerCase(),
                           });
-                          window.open(
-                            WHATSAPP_URL(
-                              "Hola! Me interesa Takefyy para mi negocio 🚀",
-                            ),
-                            "_blank",
-                          );
+                          if (plan.name === "Growth") {
+                            window.open(
+                              WHATSAPP_URL(
+                                "Hola! Me interesa Takefyy para mi negocio 🚀",
+                              ),
+                              "_blank",
+                            );
+                          } else {
+                            router.push("/signup");
+                          }
                         }}
                       >
                         {plan.cta}
