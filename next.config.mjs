@@ -1,3 +1,5 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -12,7 +14,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://vercel.live https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://i.postimg.cc https://postimg.cc https://api.qrserver.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://prod.spline.design https://*.spline.design https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://prod.spline.design https://*.spline.design https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://*.ingest.us.sentry.io",
       "worker-src 'self' blob:",
       "font-src 'self' data:",
       "frame-src 'self' https://vercel.live https://*.vercel.live",
@@ -59,4 +61,13 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
 };
-export default nextConfig;
+
+export default withSentryConfig(nextConfig, {
+  silent: true, // no imprimir logs del plugin en cada build
+  // Sin org/project/authToken: el upload de source maps se saltea (no hace
+  // falta para que la captura de errores funcione), agregar si se quiere
+  // ver stack traces desminificados en el dashboard de Sentry.
+  webpack: {
+    treeshake: { removeDebugLogging: true }, // tree-shake el logger del bundle del cliente
+  },
+});

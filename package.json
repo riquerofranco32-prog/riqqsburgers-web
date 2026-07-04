@@ -12,6 +12,7 @@
   "dependencies": {
     "@next/third-parties": "^14.2.35",
     "@radix-ui/react-slot": "^1.2.5",
+    "@sentry/nextjs": "^10.63.0",
     "@splinetool/react-spline": "^2.2.6",
     "@splinetool/runtime": "^1.12.97",
     "@supabase/ssr": "^0.10.3",
