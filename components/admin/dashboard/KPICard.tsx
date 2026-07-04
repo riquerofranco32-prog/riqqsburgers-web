@@ -11,6 +11,39 @@ interface KPICardProps {
   sub?: string;
   icon: LucideIcon;
   loading?: boolean;
+  sparkline?: number[];
+}
+
+function Sparkline({ data }: { data: number[] }) {
+  const width = 52;
+  const height = 24;
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const points = data.map((v, i) => {
+    const x = (i / (data.length - 1 || 1)) * width;
+    const y = height - ((v - min) / range) * height;
+    return `${x},${y}`;
+  });
+  const isUp = data[data.length - 1] >= data[0];
+
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      style={{ flexShrink: 0, overflow: "visible" }}
+    >
+      <polyline
+        points={points.join(" ")}
+        fill="none"
+        stroke={isUp ? "#4ade80" : "#f87171"}
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 /**
@@ -60,6 +93,7 @@ export function KPICard({
   sub,
   icon: Icon,
   loading = false,
+  sparkline,
 }: KPICardProps) {
   if (loading) {
     return (
@@ -139,37 +173,43 @@ export function KPICard({
           <Icon style={{ color: "var(--accent)", width: 18, height: 18 }} />
         </div>
 
-        {/* Change badge with trend icon */}
-        {hasChange ? (
-          <div
-            className="flex items-center gap-1 flex-shrink-0"
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              padding: "3px 8px",
-              borderRadius: 999,
-              background: isPositive
-                ? "rgba(34,197,94,0.15)"
-                : isNegative
-                  ? "rgba(239,68,68,0.15)"
-                  : "var(--dash-surface-2)",
-              color: isPositive
-                ? "#4ade80"
-                : isNegative
-                  ? "#f87171"
-                  : "var(--dash-muted)",
-            }}
-          >
-            <DeltaIcon style={{ width: 11, height: 11 }} aria-hidden />
-            <span style={{ fontVariantNumeric: "tabular-nums" }}>
-              {isPositive ? "+" : ""}
-              {(change as number).toFixed(1)}%
-            </span>
-            {changeLabel && (
-              <span style={{ opacity: 0.6, fontSize: 10 }}>{changeLabel}</span>
-            )}
-          </div>
-        ) : null}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {sparkline && sparkline.length > 1 && <Sparkline data={sparkline} />}
+
+          {/* Change badge with trend icon */}
+          {hasChange ? (
+            <div
+              className="flex items-center gap-1 flex-shrink-0"
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                padding: "3px 8px",
+                borderRadius: 999,
+                background: isPositive
+                  ? "rgba(34,197,94,0.15)"
+                  : isNegative
+                    ? "rgba(239,68,68,0.15)"
+                    : "var(--dash-surface-2)",
+                color: isPositive
+                  ? "#4ade80"
+                  : isNegative
+                    ? "#f87171"
+                    : "var(--dash-muted)",
+              }}
+            >
+              <DeltaIcon style={{ width: 11, height: 11 }} aria-hidden />
+              <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                {isPositive ? "+" : ""}
+                {(change as number).toFixed(1)}%
+              </span>
+              {changeLabel && !sparkline && (
+                <span style={{ opacity: 0.6, fontSize: 10 }}>
+                  {changeLabel}
+                </span>
+              )}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       {/* Label */}

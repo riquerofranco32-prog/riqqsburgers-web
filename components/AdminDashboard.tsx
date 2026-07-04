@@ -776,6 +776,7 @@ export default function AdminDashboard({
                 }
                 changeLabel={rangeLabel}
                 icon={DollarSign}
+                sparkline={activeSalesData.map((d) => d.total)}
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "360ms" }}>
