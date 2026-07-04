@@ -1,4 +1,5 @@
 import { createServerClient } from "@/lib/supabase";
+import { getSessionUser } from "@/lib/authz";
 import type { Metadata } from "next";
 import type { Tenant, Order } from "@/types/supabase";
 import { OrdersTable } from "@/components/admin/OrdersTable";
@@ -33,6 +34,17 @@ export default async function PedidosPage({
 
   const orders = (rawOrders ?? []) as Order[];
 
+  const user = await getSessionUser();
+  const { data: membership } = user
+    ? await db
+        .from("tenant_users")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("tenant_id", tenant.id)
+        .maybeSingle()
+    : { data: null };
+  const canDelete = membership?.role !== "staff";
+
   return (
     <div className="p-5 md:p-8 flex flex-col gap-6 w-full">
       <BackButton href={`/${slug}/admin`} label="Dashboard" />
@@ -45,7 +57,12 @@ export default async function PedidosPage({
         </p>
       </div>
 
-      <OrdersTable initialOrders={orders} slug={slug} tenantId={tenant.id} />
+      <OrdersTable
+        initialOrders={orders}
+        slug={slug}
+        tenantId={tenant.id}
+        canDelete={canDelete}
+      />
     </div>
   );
 }

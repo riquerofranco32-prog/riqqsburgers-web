@@ -24,6 +24,7 @@ export function MobileOrderCard({
   isFirst,
   onUpdateStatus,
   onDeleteOrder,
+  canDelete = true,
 }: {
   order: Order;
   slug: string;
@@ -31,6 +32,7 @@ export function MobileOrderCard({
   isFirst: boolean;
   onUpdateStatus: (id: string, status: string) => Promise<void>;
   onDeleteOrder: (id: string) => Promise<void>;
+  canDelete?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   useNowMinute();
@@ -279,6 +281,7 @@ export function MobileOrderCard({
           slug={slug}
           onUpdateStatus={onUpdateStatus}
           onDeleteOrder={onDeleteOrder}
+          canDelete={canDelete}
         />
       )}
     </div>

@@ -30,11 +30,13 @@ export function OrderDetailView({
   slug,
   onUpdateStatus,
   onDeleteOrder,
+  canDelete = true,
 }: {
   order: Order;
   slug: string;
   onUpdateStatus: (id: string, status: string) => Promise<void>;
   onDeleteOrder: (id: string) => Promise<void>;
+  canDelete?: boolean;
 }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const items = (order.items ?? []) as OrderItemDetailed[];
@@ -559,75 +561,78 @@ export function OrderDetailView({
             Imprimir Ticket
           </button>
 
-          {confirmingDelete ? (
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <span style={{ fontSize: 12, color: "#f87171", fontWeight: 600 }}>
-                ¿Eliminar?
-              </span>
+          {canDelete &&
+            (confirmingDelete ? (
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <span
+                  style={{ fontSize: 12, color: "#f87171", fontWeight: 600 }}
+                >
+                  ¿Eliminar?
+                </span>
+                <button
+                  onClick={() => {
+                    setConfirmingDelete(false);
+                    onDeleteOrder(order.id);
+                  }}
+                  style={{
+                    padding: "7px 12px",
+                    background: "rgba(239,68,68,0.15)",
+                    border: "1px solid #ef4444",
+                    color: "#f87171",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Sí, eliminar
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(false)}
+                  style={{
+                    padding: "7px 12px",
+                    background: "var(--dash-surface-2)",
+                    border: "1px solid var(--dash-border)",
+                    color: "var(--dash-muted)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={() => {
-                  setConfirmingDelete(false);
-                  onDeleteOrder(order.id);
-                }}
+                onClick={() => setConfirmingDelete(true)}
                 style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                   padding: "7px 12px",
-                  background: "rgba(239,68,68,0.15)",
-                  border: "1px solid #ef4444",
+                  background: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.3)",
                   color: "#f87171",
-                  borderRadius: 8,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Sí, eliminar
-              </button>
-              <button
-                onClick={() => setConfirmingDelete(false)}
-                style={{
-                  padding: "7px 12px",
-                  background: "var(--dash-surface-2)",
-                  border: "1px solid var(--dash-border)",
-                  color: "var(--dash-muted)",
                   borderRadius: 8,
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: "pointer",
+                  transition: "border-color 0.15s, background 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#ef4444";
+                  e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
+                  e.currentTarget.style.background = "rgba(239,68,68,0.08)";
                 }}
               >
-                Cancelar
+                <Trash2 style={{ width: 14, height: 14 }} />
+                Eliminar
               </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setConfirmingDelete(true)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "7px 12px",
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.3)",
-                color: "#f87171",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "border-color 0.15s, background 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#ef4444";
-                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
-              }}
-            >
-              <Trash2 style={{ width: 14, height: 14 }} />
-              Eliminar
-            </button>
-          )}
+            ))}
         </div>
       </div>
     </div>

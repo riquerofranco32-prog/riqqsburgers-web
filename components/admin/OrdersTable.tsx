@@ -22,10 +22,12 @@ export function OrdersTable({
   initialOrders,
   slug,
   tenantId,
+  canDelete = true,
 }: {
   initialOrders: Order[];
   slug: string;
   tenantId: string;
+  canDelete?: boolean;
 }) {
   const [orders, setOrders] = useState(initialOrders);
   const [offset, setOffset] = useState(initialOrders.length);
@@ -664,6 +666,7 @@ export function OrdersTable({
                 isFirst={idx === 0}
                 onUpdateStatus={updateStatus}
                 onDeleteOrder={deleteOrder}
+                canDelete={canDelete}
               />
             ))}
           </div>
@@ -682,6 +685,7 @@ export function OrdersTable({
                 }
                 onUpdateStatus={updateStatus}
                 onDeleteOrder={deleteOrder}
+                canDelete={canDelete}
               />
             ))}
           </div>

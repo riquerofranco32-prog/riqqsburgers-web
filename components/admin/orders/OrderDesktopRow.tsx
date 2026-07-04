@@ -24,6 +24,7 @@ export function OrderDesktopRow({
   onToggleOpen,
   onUpdateStatus,
   onDeleteOrder,
+  canDelete = true,
 }: {
   order: Order;
   slug: string;
@@ -32,6 +33,7 @@ export function OrderDesktopRow({
   onToggleOpen: () => void;
   onUpdateStatus: (id: string, status: string) => Promise<void>;
   onDeleteOrder: (id: string) => Promise<void>;
+  canDelete?: boolean;
 }) {
   const isUrgent =
     (order.status === "pending" || order.status === "nuevo") &&
@@ -48,8 +50,16 @@ export function OrderDesktopRow({
         animation: isUrgent ? "urgentBlink 2s ease-in-out infinite" : undefined,
       }}
     >
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onToggleOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggleOpen();
+          }
+        }}
         style={{
           width: "100%",
           padding: "12px 20px",
@@ -191,7 +201,7 @@ export function OrderDesktopRow({
             }}
           />
         )}
-      </button>
+      </div>
 
       {isOpen && (
         <OrderDetailView
@@ -199,6 +209,7 @@ export function OrderDesktopRow({
           slug={slug}
           onUpdateStatus={onUpdateStatus}
           onDeleteOrder={onDeleteOrder}
+          canDelete={canDelete}
         />
       )}
     </div>
