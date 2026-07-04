@@ -109,6 +109,8 @@ export default function Image() {
       {/* Headline */}
       <div
         style={{
+          display: "flex",
+          flexDirection: "column",
           fontSize: 40,
           fontWeight: 700,
           color: "rgba(255,255,255,0.85)",
@@ -118,8 +120,7 @@ export default function Image() {
           marginBottom: 28,
         }}
       >
-        Tu menú digital en minutos.
-        <br />
+        <span>Tu menú digital en minutos.</span>
         <span style={{ color: "#FF6B35" }}>Pedidos directo a tu WhatsApp.</span>
       </div>
 
@@ -151,7 +152,15 @@ export default function Image() {
               fontWeight: 500,
             }}
           >
-            <span style={{ color: "#FF6B35", fontWeight: 700 }}>✓</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M3 8.5l3.2 3.2L13 4.8"
+                stroke="#FF6B35"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
             {feat}
           </div>
         ))}
