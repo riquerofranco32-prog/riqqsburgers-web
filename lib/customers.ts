@@ -45,3 +45,12 @@ export function aggregateCustomers(
   }
   return Array.from(map.values());
 }
+
+export type CustomerTier = "bronze" | "silver" | "gold";
+
+// ponytail: umbrales fijos, ajustar si un negocio necesita algo distinto.
+export function getCustomerTier(ordersCount: number): CustomerTier {
+  if (ordersCount >= 10) return "gold";
+  if (ordersCount >= 3) return "silver";
+  return "bronze";
+}

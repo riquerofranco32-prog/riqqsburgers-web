@@ -12,6 +12,7 @@ const couponValidateHits = new Map<
   string,
   { count: number; resetAt: number }
 >();
+const reviewHits = new Map<string, { count: number; resetAt: number }>();
 
 const WINDOW_MS = 60_000; // 1 minute
 
@@ -21,6 +22,7 @@ const LIMITS = {
   uploads: 20, // 20 uploads/min per IP (logo + product images)
   adminMutations: 60, // 60 admin writes/min per IP (products/categories/orders/tenant)
   couponValidate: 15, // 15 tries/min per IP — public endpoint, guards against code enumeration
+  reviews: 5, // 5 reseñas/min per IP — público sin auth, evita spam
 } as const;
 
 function getClientIp(req: NextRequest): string {
@@ -112,6 +114,17 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // Rate limit: public review submission (no auth)
+  if (method === "POST" && pathname === "/api/reviews") {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(reviewHits, ip, LIMITS.reviews)) {
+      return NextResponse.json(
+        { error: "Demasiadas reseñas. Esperá un minuto." },
+        { status: 429 },
+      );
+    }
+  }
+
   // Rate limit: other admin mutations (products/categories/orders/tenant writes)
   if (
     isApiMutation &&
@@ -145,5 +158,6 @@ export const config = {
     "/api/categories/:path*",
     "/api/tenant/:path*",
     "/api/coupons/:path*",
+    "/api/reviews/:path*",
   ],
 };

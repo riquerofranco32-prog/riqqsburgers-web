@@ -156,6 +156,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     schedule: tenant.schedule ?? "",
     delivery_cost: tenant.delivery_cost ?? 0,
     min_order_amount: tenant.min_order_amount ?? null,
+    prep_time_minutes: tenant.prep_time_minutes ?? null,
     primary_color: tenant.primary_color ?? "#FF6B35",
     secondary_color: tenant.secondary_color ?? "#2D1B0E",
     background_color: tenant.background_color ?? "#FFFAF7",
@@ -365,6 +366,43 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 }}
               >
                 En pesos ARS. Dejá vacío para no exigir mínimo.
+              </p>
+            </div>
+
+            <div>
+              <label style={labelStyle}>
+                Tiempo de preparación estimado (minutos)
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={240}
+                step={1}
+                value={form.prep_time_minutes ?? ""}
+                onChange={(e) =>
+                  set(
+                    "prep_time_minutes",
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
+                }
+                placeholder="25 (default)"
+                style={inputStyle}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--accent)")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--dash-border)")
+                }
+              />
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--dash-muted)",
+                  marginTop: 4,
+                }}
+              >
+                Se muestra al cliente en el checkout y en el seguimiento del
+                pedido. Para delivery se le suma un margen fijo de envío.
               </p>
             </div>
 

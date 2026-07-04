@@ -70,6 +70,14 @@ export interface CartDrawerProps {
   onAdd: (item: CartItem) => void;
   onRemove: (item: CartItem) => void;
   onRemoveAll: (item: CartItem) => void;
+  onReorder?: () => void;
+  upsellSuggestion?: {
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+  } | null;
+  onAddUpsell?: (id: string) => void;
 }
 
 export default function CartDrawer({
@@ -99,6 +107,9 @@ export default function CartDrawer({
   onAdd,
   onRemove,
   onRemoveAll,
+  onReorder,
+  upsellSuggestion,
+  onAddUpsell,
 }: CartDrawerProps) {
   const [clearConfirm, setClearConfirm] = useState(false);
   const [orderNotesOpen, setOrderNotesOpen] = useState(false);
@@ -439,6 +450,25 @@ export default function CartDrawer({
                   >
                     Ver menú →
                   </button>
+                  {onReorder && (
+                    <button
+                      onClick={onReorder}
+                      style={{
+                        marginTop: 2,
+                        padding: "9px 22px",
+                        borderRadius: 12,
+                        background: "transparent",
+                        border: `1px solid ${BORDER}`,
+                        color: TEXT2,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
+                      🔁 Pedir de nuevo
+                    </button>
+                  )}
                 </div>
               )}
               {cart.map((item, index) => {
@@ -754,6 +784,49 @@ export default function CartDrawer({
                     </span>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Upsell — sugerencia de 1 producto que no está en el carrito */}
+            {cart.length > 0 && upsellSuggestion && onAddUpsell && (
+              <div style={{ padding: "0 16px 12px", flexShrink: 0 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 12px",
+                    borderRadius: 14,
+                    background: SURFACE2,
+                    border: `1px dashed ${BORDER}`,
+                  }}
+                >
+                  <span style={{ fontSize: 13, color: TEXT2, flex: 1 }}>
+                    ¿Le sumás{" "}
+                    <strong style={{ color: TEXT1 }}>
+                      {upsellSuggestion.name}
+                    </strong>{" "}
+                    por {fmt(upsellSuggestion.price)}?
+                  </span>
+                  <button
+                    onClick={() => onAddUpsell(upsellSuggestion.id)}
+                    style={{
+                      flexShrink: 0,
+                      padding: "7px 14px",
+                      borderRadius: 10,
+                      background: accent,
+                      color: onAccent,
+                      border: "none",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                  >
+                    + Agregar
+                  </button>
+                </div>
               </div>
             )}
 

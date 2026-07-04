@@ -22,6 +22,7 @@ const ALLOWED_FIELDS = [
   "hero_video_url",
   "min_order_amount",
   "business_hours",
+  "prep_time_minutes",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -140,6 +141,21 @@ export async function PATCH(
     !isValidBusinessHours(patch.business_hours)
   ) {
     return NextResponse.json({ error: "Horario inválido" }, { status: 400 });
+  }
+
+  if ("prep_time_minutes" in patch && patch.prep_time_minutes !== null) {
+    const val = patch.prep_time_minutes;
+    if (
+      typeof val !== "number" ||
+      !Number.isInteger(val) ||
+      val <= 0 ||
+      val > 240
+    ) {
+      return NextResponse.json(
+        { error: "Tiempo de preparación inválido" },
+        { status: 400 },
+      );
+    }
   }
 
   if (Object.keys(patch).length === 0) {

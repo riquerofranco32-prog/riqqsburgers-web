@@ -31,12 +31,16 @@ interface Props {
   orderId: string;
   initialStatus: string;
   accent: string;
+  createdAt: string;
+  etaMinutes: number;
 }
 
 export default function TrackingClient({
   orderId,
   initialStatus,
   accent,
+  createdAt,
+  etaMinutes,
 }: Props) {
   const [status, setStatus] = useState(initialStatus);
   const [prevStatus, setPrevStatus] = useState(initialStatus);
@@ -77,6 +81,10 @@ export default function TrackingClient({
   }, [orderId]);
 
   const currentIdx = STATUS_INDEX[status] ?? 0;
+  const isCancelled = status === "cancelled";
+  const estimatedReadyAt = new Date(
+    new Date(createdAt).getTime() + etaMinutes * 60_000,
+  ).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -137,9 +145,23 @@ export default function TrackingClient({
             background: accent,
             borderRadius: 99,
             zIndex: 1,
+            overflow: "hidden",
             transition: "width 0.6s cubic-bezier(0.22,1,0.36,1)",
           }}
-        />
+        >
+          {currentIdx > 0 && currentIdx < 3 && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)",
+                width: "50%",
+                animation: "trackShimmer 1.6s ease-in-out infinite",
+              }}
+            />
+          )}
+        </div>
 
         {/* Steps */}
         <div
@@ -270,10 +292,27 @@ export default function TrackingClient({
         </div>
       </div>
 
+      {!isCancelled && currentIdx < 3 && (
+        <p
+          style={{
+            marginTop: 10,
+            fontSize: 12,
+            color: "#6B5B4E",
+            textAlign: "center",
+          }}
+        >
+          ⏱️ Estimado para las {estimatedReadyAt}
+        </p>
+      )}
+
       <style>{`
         @keyframes pulse-live {
           0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
           50% { box-shadow: 0 0 0 5px rgba(34,197,94,0); }
+        }
+        @keyframes trackShimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
         }
       `}</style>
     </div>

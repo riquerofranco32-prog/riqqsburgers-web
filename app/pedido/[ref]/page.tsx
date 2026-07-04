@@ -4,6 +4,10 @@ import type { Metadata } from "next";
 import type { Order } from "@/types/supabase";
 import Link from "next/link";
 import TrackingClient from "./TrackingClient";
+import ReviewWidget from "./ReviewWidget";
+import { estimateMinutes } from "@/lib/eta";
+
+const DELIVERED_STATUSES = ["delivered", "entregado"];
 
 export const dynamic = "force-dynamic";
 
@@ -57,12 +61,16 @@ export default async function TrackingPage({ params }: Props) {
   // Obtener nombre del restaurante
   const { data: tenant } = await supabase
     .from("tenants")
-    .select("name, slug, primary_color")
+    .select("name, slug, primary_color, prep_time_minutes")
     .eq("id", o.tenant_id)
     .single();
 
   const deliveryLabel = DELIVERY_LABEL[o.delivery_type] ?? o.delivery_type;
   const accent = (tenant?.primary_color as string) ?? "#FF6B35";
+  const etaMinutes = estimateMinutes(
+    (tenant?.prep_time_minutes as number | null) ?? null,
+    o.delivery_type,
+  );
 
   const orderDate = new Date(o.created_at).toLocaleString("es-AR", {
     day: "2-digit",
@@ -73,6 +81,17 @@ export default async function TrackingPage({ params }: Props) {
   });
 
   const items = Array.isArray(o.items) ? o.items : [];
+
+  const isDelivered = DELIVERED_STATUSES.includes(o.status);
+  let alreadyReviewed = false;
+  if (isDelivered) {
+    const { data: existingReview } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("order_id", o.id)
+      .maybeSingle();
+    alreadyReviewed = !!existingReview;
+  }
 
   return (
     <div
@@ -152,6 +171,8 @@ export default async function TrackingPage({ params }: Props) {
             orderId={o.id}
             initialStatus={o.status}
             accent={accent}
+            createdAt={o.created_at}
+            etaMinutes={etaMinutes}
           />
 
           {/* Info row */}
@@ -356,6 +377,15 @@ export default async function TrackingPage({ params }: Props) {
               <span style={{ color: accent }}>{fmt(o.total)}</span>
             </div>
           </div>
+
+          {/* Reseña post-entrega */}
+          {isDelivered && (
+            <ReviewWidget
+              orderRef={o.order_ref}
+              accent={accent}
+              alreadyReviewed={alreadyReviewed}
+            />
+          )}
 
           {/* Restaurante */}
           {tenant && (

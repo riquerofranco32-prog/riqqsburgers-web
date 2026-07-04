@@ -4,8 +4,19 @@ import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
 
-const ALLOWED_FIELDS = ["name", "emoji", "active", "sort_order"] as const;
+const ALLOWED_FIELDS = [
+  "name",
+  "emoji",
+  "active",
+  "sort_order",
+  "visible_from",
+  "visible_to",
+] as const;
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
+
+function isValidTimeOrNull(v: unknown): boolean {
+  return v === null || (typeof v === "string" && /^\d{2}:\d{2}$/.test(v));
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -50,6 +61,16 @@ export async function PATCH(
       body[f],
     ]),
   );
+
+  if (
+    ("visible_from" in patch && !isValidTimeOrNull(patch.visible_from)) ||
+    ("visible_to" in patch && !isValidTimeOrNull(patch.visible_to))
+  ) {
+    return NextResponse.json(
+      { error: "Horario de visibilidad inválido" },
+      { status: 400 },
+    );
+  }
 
   if (Object.keys(patch).length === 0) {
     return NextResponse.json(

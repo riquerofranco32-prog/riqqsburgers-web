@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { MessageCircle, CheckCircle2 } from "lucide-react";
 import { trackGA4Event } from "@/lib/analytics";
+import { estimateMinutes } from "@/lib/eta";
 
 export interface CheckoutCartItem {
   id: string;
@@ -28,6 +29,7 @@ interface CheckoutModalProps {
     delivery_cost?: number;
     primary_color?: string;
     min_order_amount?: number | null;
+    prep_time_minutes?: number | null;
   };
 }
 
@@ -91,6 +93,11 @@ export default function CheckoutModal({
 
   const deliveryCost =
     form.delivery === "delivery" ? (tenant.delivery_cost ?? 0) : 0;
+
+  const etaMinutes = estimateMinutes(
+    tenant.prep_time_minutes ?? null,
+    form.delivery,
+  );
 
   const [couponInput, setCouponInput] = useState("");
   const [couponLoading, setCouponLoading] = useState(false);
@@ -443,11 +450,27 @@ export default function CheckoutModal({
       const histKey = `tak_history_${tenant.slug}`;
       const history = JSON.parse(
         localStorage.getItem(histKey) ?? "[]",
-      ) as Array<{ ref: string; total: number; date: string }>;
+      ) as Array<{
+        ref: string;
+        total: number;
+        date: string;
+        items?: Array<{
+          id: string;
+          quantity: number;
+          selectedExtra?: { name: string; price: number };
+          selectedAddons?: Array<{ name: string; price: number }>;
+        }>;
+      }>;
       history.unshift({
         ref: tempRef,
         total: grandTotal,
         date: new Date().toISOString(),
+        items: cart.map((i) => ({
+          id: i.id,
+          quantity: i.quantity,
+          selectedExtra: i.selectedExtra,
+          selectedAddons: i.selectedAddons,
+        })),
       });
       localStorage.setItem(histKey, JSON.stringify(history.slice(0, 10)));
     } catch {}
@@ -1218,6 +1241,15 @@ export default function CheckoutModal({
                     </button>
                   ))}
                 </div>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "var(--text-secondary)",
+                    marginTop: 8,
+                  }}
+                >
+                  ⏱️ Estimado: ~{etaMinutes} min
+                </p>
               </div>
 
               {/* Dirección — solo si delivery */}

@@ -19,6 +19,7 @@ export interface Tenant {
   schedule: string | null;
   is_open: boolean;
   business_hours: BusinessHours | null;
+  prep_time_minutes: number | null;
   active: boolean;
   brand: Record<string, string> | null;
   plan: string;
@@ -47,6 +48,8 @@ export interface Category {
   emoji: string | null;
   sort_order: number;
   active: boolean;
+  visible_from: string | null;
+  visible_to: string | null;
 }
 
 export interface Product {
@@ -88,6 +91,16 @@ export interface Order {
   created_at: string;
   coupon_code: string | null;
   discount_amount: number | null;
+}
+
+export interface Review {
+  id: string;
+  tenant_id: string;
+  order_id: string;
+  rating: number;
+  comment: string | null;
+  customer_name: string | null;
+  created_at: string;
 }
 
 export interface Coupon {

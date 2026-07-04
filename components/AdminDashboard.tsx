@@ -263,7 +263,9 @@ export default function AdminDashboard({
   const rangeLabel =
     range === "today"
       ? "vs ayer"
-      : `últimos ${range === "week" ? "7" : "30"} días`;
+      : range === "week"
+        ? "vs. semana anterior"
+        : "vs. mes anterior";
   const chartTitle =
     range === "today"
       ? "Ventas últimos 7 días"
@@ -756,7 +758,7 @@ export default function AdminDashboard({
                 change={
                   range === "today"
                     ? (kpisData?.ordersTodayChange ?? null)
-                    : null
+                    : (analyticsData?.orderCountChange ?? null)
                 }
                 changeLabel={rangeLabel}
                 icon={ShoppingCart}
@@ -770,7 +772,7 @@ export default function AdminDashboard({
                 change={
                   range === "today"
                     ? (kpisData?.revenueTodayChange ?? null)
-                    : null
+                    : (analyticsData?.revenueChange ?? null)
                 }
                 changeLabel={rangeLabel}
                 icon={DollarSign}
@@ -782,7 +784,9 @@ export default function AdminDashboard({
                 label="Ticket promedio"
                 value={activeAvgTicket > 0 ? fmtARS(activeAvgTicket) : "—"}
                 change={
-                  range === "today" ? (kpisData?.avgTicketChange ?? null) : null
+                  range === "today"
+                    ? (kpisData?.avgTicketChange ?? null)
+                    : (analyticsData?.avgTicketChange ?? null)
                 }
                 changeLabel={rangeLabel}
                 icon={TrendingUp}

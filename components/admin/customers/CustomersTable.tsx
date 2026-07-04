@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Users } from "lucide-react";
-import type { CustomerSummary } from "@/lib/customers";
+import { Search, Users, Gift, MessageCircle } from "lucide-react";
+import { getCustomerTier, type CustomerSummary } from "@/lib/customers";
+import { Toast } from "@/components/admin/Toast";
 
 function fmtARS(n: number) {
   return "$ " + n.toLocaleString("es-AR");
@@ -16,15 +17,30 @@ function fmtFecha(iso: string) {
   });
 }
 
+const TIER_META = {
+  bronze: { label: "Bronce", emoji: "🥉", color: "#cd7f32" },
+  silver: { label: "Frecuente", emoji: "🥈", color: "#a1a1aa" },
+  gold: { label: "VIP", emoji: "🥇", color: "#facc15" },
+} as const;
+
 type SortKey = "spent" | "orders" | "recent";
+
+function randomSuffix(): string {
+  return Math.random().toString(36).slice(2, 6).toUpperCase();
+}
 
 export function CustomersTable({
   customers,
+  slug,
 }: {
   customers: CustomerSummary[];
+  slug: string;
 }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("spent");
+  const [toast, setToast] = useState<string | null>(null);
+  const [rewardingKey, setRewardingKey] = useState<string | null>(null);
+  const [rewardLinks, setRewardLinks] = useState<Record<string, string>>({});
 
   const filtered = useMemo(() => {
     let list = customers;
@@ -45,6 +61,61 @@ export function CustomersTable({
       return b.totalSpent - a.totalSpent;
     });
   }, [customers, search, sort]);
+
+  async function rewardCustomer(c: CustomerSummary) {
+    setRewardingKey(c.key);
+    const base = `GRACIAS${c.phone ? c.phone.slice(-4) : randomSuffix()}`;
+    let code = base;
+    let attempt = 0;
+    try {
+      // ponytail: si el código choca reintenta con sufijo random — no hace
+      // falta más que un par de intentos, la colisión es rarísima.
+      while (attempt < 3) {
+        const res = await fetch("/api/coupons", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slug,
+            code,
+            discount_type: "percent",
+            discount_value: 10,
+            max_uses: 1,
+          }),
+        });
+        if (res.ok) {
+          const waText = encodeURIComponent(
+            `¡Hola ${c.name}! Como agradecimiento por ser cliente nuestro, te regalamos un 10% de descuento en tu próximo pedido. Usá el código ${code} 🎉`,
+          );
+          const waLink = c.phone
+            ? `https://wa.me/${c.phone.replace(/\D/g, "")}?text=${waText}`
+            : null;
+          setRewardLinks((prev) => ({ ...prev, [c.key]: code }));
+          setToast(
+            waLink
+              ? `Cupón ${code} creado`
+              : `Cupón ${code} creado (sin teléfono para enviarlo por WhatsApp)`,
+          );
+          if (waLink) window.open(waLink, "_blank");
+          return;
+        }
+        if (res.status === 409) {
+          code = `${base}${randomSuffix()}`;
+          attempt++;
+          continue;
+        }
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        setToast(data.error ?? "Error al crear el cupón");
+        return;
+      }
+      setToast("No se pudo generar un código único, probá de nuevo");
+    } catch {
+      setToast("Error al crear el cupón");
+    } finally {
+      setRewardingKey(null);
+    }
+  }
 
   if (customers.length === 0) {
     return (
@@ -148,65 +219,137 @@ export function CustomersTable({
 
       {/* List */}
       <div>
-        {filtered.map((c) => (
-          <div
-            key={c.key}
-            style={{
-              padding: "14px 20px",
-              borderBottom: "1px solid var(--dash-border)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "var(--dash-text)",
-                }}
-              >
-                {c.name}
-              </p>
-              <p
-                style={{
-                  margin: "2px 0 0",
-                  fontSize: 12,
-                  color: "var(--dash-muted)",
-                }}
-              >
-                {c.phone ? (
-                  <a
-                    href={`tel:${c.phone}`}
-                    style={{ color: "var(--accent)", textDecoration: "none" }}
-                  >
-                    {c.phone}
-                  </a>
-                ) : (
-                  "Sin teléfono"
-                )}
-                {" · "}
-                {c.ordersCount} pedido{c.ordersCount !== 1 ? "s" : ""}
-                {" · "}
-                Último: {fmtFecha(c.lastOrderAt)}
-              </p>
-            </div>
-            <span
+        {filtered.map((c) => {
+          const tier = TIER_META[getCustomerTier(c.ordersCount)];
+          const rewardCode = rewardLinks[c.key];
+          return (
+            <div
+              key={c.key}
               style={{
-                fontWeight: 800,
-                fontSize: 15,
-                color: "var(--accent)",
-                flexShrink: 0,
+                padding: "14px 20px",
+                borderBottom: "1px solid var(--dash-border)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                flexWrap: "wrap",
               }}
             >
-              {fmtARS(c.totalSpent)}
-            </span>
-          </div>
-        ))}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "var(--dash-text)",
+                    }}
+                  >
+                    {c.name}
+                  </p>
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: "1px 8px",
+                      borderRadius: 999,
+                      color: tier.color,
+                      background: `${tier.color}1a`,
+                      border: `1px solid ${tier.color}4d`,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {tier.emoji} {tier.label}
+                  </span>
+                </div>
+                <p
+                  style={{
+                    margin: "2px 0 0",
+                    fontSize: 12,
+                    color: "var(--dash-muted)",
+                  }}
+                >
+                  {c.phone ? (
+                    <a
+                      href={`tel:${c.phone}`}
+                      style={{ color: "var(--accent)", textDecoration: "none" }}
+                    >
+                      {c.phone}
+                    </a>
+                  ) : (
+                    "Sin teléfono"
+                  )}
+                  {" · "}
+                  {c.ordersCount} pedido{c.ordersCount !== 1 ? "s" : ""}
+                  {" · "}
+                  Último: {fmtFecha(c.lastOrderAt)}
+                </p>
+                {rewardCode && (
+                  <p
+                    style={{
+                      margin: "4px 0 0",
+                      fontSize: 11,
+                      color: "#22c55e",
+                      fontWeight: 600,
+                    }}
+                  >
+                    ✓ Cupón {rewardCode} generado
+                  </p>
+                )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 15,
+                    color: "var(--accent)",
+                  }}
+                >
+                  {fmtARS(c.totalSpent)}
+                </span>
+                <button
+                  onClick={() => rewardCustomer(c)}
+                  disabled={rewardingKey === c.key}
+                  title={
+                    c.phone
+                      ? "Genera un cupón de 10% y lo envía por WhatsApp"
+                      : "Genera un cupón de 10% (sin teléfono para enviarlo)"
+                  }
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "7px 12px",
+                    background: "rgba(250,204,21,0.1)",
+                    border: "1px solid rgba(250,204,21,0.3)",
+                    color: "#facc15",
+                    borderRadius: 8,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    opacity: rewardingKey === c.key ? 0.5 : 1,
+                  }}
+                >
+                  {c.phone ? (
+                    <MessageCircle className="w-3.5 h-3.5" />
+                  ) : (
+                    <Gift className="w-3.5 h-3.5" />
+                  )}
+                  {rewardingKey === c.key ? "Generando..." : "Premiar"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
         {filtered.length === 0 && (
           <div
             style={{
@@ -220,6 +363,8 @@ export function CustomersTable({
           </div>
         )}
       </div>
+
+      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
     </div>
   );
 }

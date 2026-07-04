@@ -9,6 +9,7 @@ import {
 } from "./tenants";
 import { createServerClient } from "./supabase";
 import { computeEffectiveOpen, type BusinessHours } from "./businessHours";
+import { isCategoryVisibleNow } from "./categoryVisibility";
 import type { Tenant, Category, Product } from "@/types/supabase";
 
 export interface RestaurantBrand {
@@ -60,7 +61,9 @@ export interface Restaurant {
   is_open: boolean;
   manual_is_open: boolean;
   business_hours: BusinessHours | null;
+  prep_time_minutes: number | null;
   min_order_amount: number | null;
+  rating: { avg: number; count: number } | null;
   brand: RestaurantBrand | null;
   menu: {
     categories: MenuCategory[];
@@ -102,11 +105,28 @@ async function getTopProductId(tenantId: string): Promise<string | null> {
   return entries.sort((a, b) => b[1] - a[1])[0][0];
 }
 
+const MIN_REVIEWS_TO_SHOW = 3;
+
+async function getRatingSummary(
+  tenantId: string,
+): Promise<{ avg: number; count: number } | null> {
+  noStore();
+  const supabase = createServerClient();
+  const { data } = await supabase
+    .from("reviews")
+    .select("rating")
+    .eq("tenant_id", tenantId);
+  if (!data || data.length < MIN_REVIEWS_TO_SHOW) return null;
+  const sum = data.reduce((s, r) => s + (r.rating as number), 0);
+  return { avg: sum / data.length, count: data.length };
+}
+
 function mapToRestaurant(
   tenant: Tenant,
   categories: Category[],
   products: Product[],
   topProductId?: string | null,
+  ratingSummary?: { avg: number; count: number } | null,
 ): Restaurant {
   return {
     id: tenant.id,
@@ -133,12 +153,20 @@ function mapToRestaurant(
     ),
     manual_is_open: tenant.is_open ?? true,
     business_hours: tenant.business_hours ?? null,
+    prep_time_minutes: tenant.prep_time_minutes ?? null,
     min_order_amount: tenant.min_order_amount ?? null,
+    rating: ratingSummary ?? null,
     brand: (tenant.brand as RestaurantBrand | null) ?? null,
     menu: {
       categories: (() => {
         const assignedIds = new Set(categories.map((c) => c.id));
-        const mapped = categories.map((cat) => ({
+        // Categorías con franja horaria (ej: "Desayuno" 8–12) que no
+        // corresponde mostrar ahora se ocultan del todo — sus productos no
+        // caen en "Otros", quedan afuera del catálogo hasta su horario.
+        const visibleCategories = categories.filter((c) =>
+          isCategoryVisibleNow(c),
+        );
+        const mapped = visibleCategories.map((cat) => ({
           id: cat.id,
           name: cat.name,
           emoji: cat.emoji ?? "🍽️",
@@ -204,12 +232,20 @@ export async function getRestaurant(slug: string): Promise<Restaurant | null> {
   try {
     const tenant = await getActiveTenant(slug);
     if (tenant) {
-      const [categories, products, topProductId] = await Promise.all([
-        getTenantCategories(tenant.id),
-        getTenantProducts(tenant.id),
-        getTopProductId(tenant.id),
-      ]);
-      return mapToRestaurant(tenant, categories, products, topProductId);
+      const [categories, products, topProductId, ratingSummary] =
+        await Promise.all([
+          getTenantCategories(tenant.id),
+          getTenantProducts(tenant.id),
+          getTopProductId(tenant.id),
+          getRatingSummary(tenant.id),
+        ]);
+      return mapToRestaurant(
+        tenant,
+        categories,
+        products,
+        topProductId,
+        ratingSummary,
+      );
     }
   } catch {}
 

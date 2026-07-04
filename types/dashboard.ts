@@ -39,6 +39,9 @@ export type AnalyticsResponse = {
   revenue: number;
   orderCount: number;
   avgTicket: number;
+  revenueChange: number | null;
+  orderCountChange: number | null;
+  avgTicketChange: number | null;
   topProducts: TopProduct[];
   dailyRevenue: DailyRevenue[];
   categoryRevenue: CategoryRevenue[];

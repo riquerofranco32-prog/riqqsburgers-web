@@ -10,12 +10,12 @@ export interface DayHours {
 
 export type BusinessHours = DayHours[];
 
-function toMinutes(hhmm: string): number {
+export function toMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
 }
 
-function nowInBuenosAires(at: Date): { day: number; minutes: number } {
+export function nowInBuenosAires(at: Date): { day: number; minutes: number } {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: TZ,
     weekday: "short",

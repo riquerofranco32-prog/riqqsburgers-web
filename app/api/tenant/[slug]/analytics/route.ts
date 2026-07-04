@@ -154,6 +154,10 @@ export async function GET(
   const now = new Date();
   const from = startOfDay(new Date(now));
   from.setDate(from.getDate() - (days - 1));
+  // Período anterior de igual longitud, para comparar (semana vs. semana
+  // anterior / mes vs. mes anterior) — una sola query cubre ambos rangos.
+  const prevFrom = new Date(from);
+  prevFrom.setDate(prevFrom.getDate() - days);
 
   const db = createServerClient();
   const [
@@ -165,7 +169,7 @@ export async function GET(
       .from("orders")
       .select("*")
       .eq("tenant_id", tenantId)
-      .gte("created_at", from.toISOString())
+      .gte("created_at", prevFrom.toISOString())
       .order("created_at", { ascending: false }),
     db
       .from("products")
@@ -181,15 +185,30 @@ export async function GET(
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
 
-  const orders = (rawOrders ?? []).filter(
+  const allOrders = (rawOrders ?? []).filter(
     (o) => o.status !== "cancelled",
   ) as Order[];
+  const orders = allOrders.filter((o) => new Date(o.created_at) >= from);
+  const prevOrders = allOrders.filter((o) => {
+    const d = new Date(o.created_at);
+    return d >= prevFrom && d < from;
+  });
   const products = (rawProducts ?? []) as Product[];
   const categories = (rawCategories ?? []) as Category[];
 
   const revenue = orders.reduce((s, o) => s + o.total, 0);
   const orderCount = orders.length;
   const avgTicket = orderCount > 0 ? Math.round(revenue / orderCount) : 0;
+
+  const prevRevenue = prevOrders.reduce((s, o) => s + o.total, 0);
+  const prevOrderCount = prevOrders.length;
+  const prevAvgTicket =
+    prevOrderCount > 0 ? Math.round(prevRevenue / prevOrderCount) : 0;
+
+  function pctChange(current: number, previous: number): number | null {
+    return previous > 0 ? ((current - previous) / previous) * 100 : null;
+  }
+
   const topProducts = buildTopProducts(orders, products, categories);
   const dailyRevenue = buildDailyRevenue(orders, days, now);
   const categoryRevenue = buildCategoryRevenue(orders, products, categories);
@@ -198,6 +217,9 @@ export async function GET(
     revenue,
     orderCount,
     avgTicket,
+    revenueChange: pctChange(revenue, prevRevenue),
+    orderCountChange: pctChange(orderCount, prevOrderCount),
+    avgTicketChange: pctChange(avgTicket, prevAvgTicket),
     topProducts,
     dailyRevenue,
     categoryRevenue,

@@ -851,6 +851,105 @@ export default function CatalogClient({
     setCart((prev) => prev.map((i) => (i.id === itemId ? { ...i, notes } : i)));
   }, []);
 
+  // ── Volver a pedir — reusa el historial guardado en el checkout ──────────
+  interface HistoryItem {
+    id: string;
+    quantity: number;
+    selectedExtra?: SelectedExtra;
+    selectedAddons?: SelectedExtra[];
+  }
+  const [lastOrderItems, setLastOrderItems] = useState<HistoryItem[] | null>(
+    null,
+  );
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`tak_history_${restaurant.slug}`);
+      if (!raw) return;
+      const history = JSON.parse(raw) as Array<{ items?: HistoryItem[] }>;
+      const withItems = history.find((h) => h.items && h.items.length > 0);
+      if (withItems?.items) setLastOrderItems(withItems.items);
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const reorderLastOrder = useCallback(() => {
+    if (!lastOrderItems || lastOrderItems.length === 0) return;
+    const allMenuItems = restaurant.menu.categories.flatMap((c) => c.items);
+    const matched = lastOrderItems
+      .map((hi) => ({
+        menuItem: allMenuItems.find((i) => i.id === hi.id),
+        hi,
+      }))
+      .filter(
+        (m): m is { menuItem: MenuItem; hi: HistoryItem } => !!m.menuItem,
+      );
+    if (matched.length === 0) {
+      setAddedToast({
+        name: "esos productos ya no están disponibles",
+        key: Date.now(),
+      });
+      return;
+    }
+    setCart((prev) => {
+      const next = [...prev];
+      for (const { menuItem, hi } of matched) {
+        const idx = next.findIndex((i) => i.id === menuItem.id);
+        if (idx >= 0) {
+          next[idx] = {
+            ...next[idx],
+            quantity: next[idx].quantity + hi.quantity,
+          };
+        } else {
+          next.push({
+            ...menuItem,
+            quantity: hi.quantity,
+            selectedExtra: hi.selectedExtra,
+            selectedAddons: hi.selectedAddons,
+          });
+        }
+      }
+      return next;
+    });
+    vibrate(45);
+    setAddedToast({
+      name:
+        matched.length === lastOrderItems.length
+          ? "tu pedido anterior"
+          : `${matched.length} de ${lastOrderItems.length} productos de tu pedido anterior`,
+      key: Date.now(),
+    });
+  }, [lastOrderItems, restaurant.menu.categories]);
+
+  // ── Upsell — sugiere 1 producto que no está en el carrito ────────────────
+  // ponytail: heurística simple (destacado, si no el más barato); no hace
+  // falta un motor de recomendación para un catálogo de un solo restaurante.
+  const upsellSuggestion = useMemo(() => {
+    const cartIds = new Set(cart.map((i) => i.id));
+    const candidates = restaurant.menu.categories
+      .flatMap((c) => c.items)
+      .filter((i) => !cartIds.has(i.id));
+    if (candidates.length === 0) return null;
+    const featured = candidates.find((i) => i.is_featured);
+    const pick =
+      featured ?? [...candidates].sort((a, b) => a.price - b.price)[0];
+    return {
+      id: pick.id,
+      name: pick.name,
+      price: pick.price,
+      image: pick.image,
+    };
+  }, [cart, restaurant.menu.categories]);
+
+  const addUpsell = useCallback(
+    (id: string) => {
+      const item = restaurant.menu.categories
+        .flatMap((c) => c.items)
+        .find((i) => i.id === id);
+      if (item) addItem(item);
+    },
+    [restaurant.menu.categories, addItem],
+  );
+
   const getQty = (id: string) => cart.find((i) => i.id === id)?.quantity ?? 0;
   const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
   const subtotal = cart.reduce(
@@ -1781,6 +1880,24 @@ export default function CatalogClient({
             >
               {restaurant.name}
             </h1>
+
+            {restaurant.rating && (
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "rgba(255,255,255,0.85)",
+                  textAlign: "center",
+                  marginBottom: 8,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                }}
+              >
+                <span style={{ color: "#facc15" }}>★</span>
+                {restaurant.rating.avg.toFixed(1)} ({restaurant.rating.count})
+              </p>
+            )}
 
             {restaurant.tagline && (
               <p
@@ -3955,6 +4072,9 @@ export default function CatalogClient({
           onAdd={addItem}
           onRemove={removeItem}
           onRemoveAll={removeAll}
+          onReorder={lastOrderItems ? reorderLastOrder : undefined}
+          upsellSuggestion={upsellSuggestion}
+          onAddUpsell={addUpsell}
         />
         {/* ── Product detail sheet ─────────────────────────────────────────────── */}
         {selectedItem && (
@@ -4319,6 +4439,7 @@ export default function CatalogClient({
             delivery_cost: restaurant.delivery_cost,
             primary_color: restaurant.primary_color,
             min_order_amount: restaurant.min_order_amount,
+            prep_time_minutes: restaurant.prep_time_minutes,
           }}
         />
         <style

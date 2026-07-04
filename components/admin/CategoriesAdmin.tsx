@@ -57,6 +57,8 @@ interface CategoriesAdminProps {
 interface CategoryForm {
   name: string;
   emoji: string;
+  visible_from: string;
+  visible_to: string;
 }
 
 export default function CategoriesAdmin({
@@ -67,7 +69,12 @@ export default function CategoriesAdmin({
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
-  const [form, setForm] = useState<CategoryForm>({ name: "", emoji: "🍽️" });
+  const [form, setForm] = useState<CategoryForm>({
+    name: "",
+    emoji: "🍽️",
+    visible_from: "",
+    visible_to: "",
+  });
   const [nameError, setNameError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -89,14 +96,19 @@ export default function CategoriesAdmin({
   // ── Modal ────────────────────────────────────────────────────────────────
   function openNew() {
     setEditing(null);
-    setForm({ name: "", emoji: "🍽️" });
+    setForm({ name: "", emoji: "🍽️", visible_from: "", visible_to: "" });
     setNameError("");
     setModalOpen(true);
   }
 
   function openEdit(cat: Category) {
     setEditing(cat);
-    setForm({ name: cat.name, emoji: cat.emoji ?? "🍽️" });
+    setForm({
+      name: cat.name,
+      emoji: cat.emoji ?? "🍽️",
+      visible_from: cat.visible_from ?? "",
+      visible_to: cat.visible_to ?? "",
+    });
     setNameError("");
     setModalOpen(true);
   }
@@ -108,6 +120,8 @@ export default function CategoriesAdmin({
       return;
     }
     const emoji = form.emoji.trim() || "🍽️";
+    const visible_from = form.visible_from || null;
+    const visible_to = form.visible_to || null;
     setSaving(true);
 
     try {
@@ -115,11 +129,15 @@ export default function CategoriesAdmin({
         const res = await fetch(`/api/categories/${editing.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, emoji }),
+          body: JSON.stringify({ name, emoji, visible_from, visible_to }),
         });
         if (!res.ok) throw new Error();
         setCategories((prev) =>
-          prev.map((c) => (c.id === editing.id ? { ...c, name, emoji } : c)),
+          prev.map((c) =>
+            c.id === editing.id
+              ? { ...c, name, emoji, visible_from, visible_to }
+              : c,
+          ),
         );
         vibrate(40);
         toast.success("Categoría actualizada");
@@ -395,6 +413,9 @@ export default function CategoriesAdmin({
                   <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
                     {count} producto{count !== 1 ? "s" : ""}
                     {!cat.active && " · oculta del menú"}
+                    {cat.visible_from &&
+                      cat.visible_to &&
+                      ` · visible ${cat.visible_from}–${cat.visible_to}`}
                   </p>
                 </div>
 
@@ -688,6 +709,63 @@ export default function CategoriesAdmin({
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Franja horaria */}
+              <div>
+                <label style={labelStyle}>
+                  Visible solo en esta franja horaria (opcional)
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <input
+                    type="time"
+                    value={form.visible_from}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, visible_from: e.target.value }))
+                    }
+                    style={{ ...inputStyle, width: "auto", flex: 1 }}
+                  />
+                  <span style={{ color: "var(--dash-muted)", fontSize: 13 }}>
+                    a
+                  </span>
+                  <input
+                    type="time"
+                    value={form.visible_to}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, visible_to: e.target.value }))
+                    }
+                    style={{ ...inputStyle, width: "auto", flex: 1 }}
+                  />
+                  {(form.visible_from || form.visible_to) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          visible_from: "",
+                          visible_to: "",
+                        }))
+                      }
+                      title="Quitar franja horaria"
+                      style={{
+                        ...iconBtn(false),
+                        flexShrink: 0,
+                      }}
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--dash-muted)",
+                    marginTop: 6,
+                  }}
+                >
+                  Ej: categoría &quot;Desayuno&quot; de 08:00 a 12:00. Dejá
+                  ambos campos vacíos para que se muestre siempre.
+                </p>
               </div>
             </div>
 
