@@ -60,6 +60,7 @@ import CartDrawer, {
 import { useFavorites } from "@/hooks/useFavorites";
 import { trackEvent, trackGA4Event } from "@/lib/analytics";
 import { createSupabaseBrowser } from "@/lib/supabase";
+import { computeEffectiveOpen } from "@/lib/businessHours";
 import ImmersiveView from "@/components/menu/ImmersiveView";
 
 function fmt(n: number) {
@@ -729,7 +730,20 @@ export default function CatalogClient({
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const prevTotal = useRef(0);
   const [immersiveMode, setImmersiveMode] = useState(false);
-  const [isOpen, setIsOpen] = useState(restaurant.is_open);
+  const [manualIsOpen, setManualIsOpen] = useState(restaurant.manual_is_open);
+  // Recalcula cada minuto para reflejar el horario sin recargar la página
+  // (la única forma en que cambia sin un evento de realtime del toggle manual).
+  const [hoursTick, setHoursTick] = useState(0);
+  useEffect(() => {
+    if (!restaurant.business_hours) return;
+    const id = setInterval(() => setHoursTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, [restaurant.business_hours]);
+  const isOpen = useMemo(
+    () => computeEffectiveOpen(manualIsOpen, restaurant.business_hours),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [manualIsOpen, restaurant.business_hours, hoursTick],
+  );
   const [pillIndicator, setPillIndicator] = useState({ left: 0, width: 0 });
   const [lastOrderPill, setLastOrderPill] = useState<{
     ref: string;
@@ -927,7 +941,7 @@ export default function CatalogClient({
         (payload) => {
           const updated = payload.new as { is_open?: boolean };
           if (typeof updated.is_open === "boolean") {
-            setIsOpen(updated.is_open);
+            setManualIsOpen(updated.is_open);
           }
         },
       )

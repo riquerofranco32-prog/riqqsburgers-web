@@ -17,6 +17,7 @@ const ALLOWED_FIELDS = [
   "addons",
   "is_featured",
   "featured_order",
+  "stock_quantity",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -187,6 +188,16 @@ export async function PATCH(
       { error: "Extras inválidos (máx. 20)" },
       { status: 400 },
     );
+  }
+  if ("stock_quantity" in patch && patch.stock_quantity !== null) {
+    const sq = patch.stock_quantity as unknown;
+    if (
+      typeof sq !== "number" ||
+      !Number.isInteger(sq as number) ||
+      (sq as number) < 0
+    ) {
+      return NextResponse.json({ error: "Stock inválido" }, { status: 400 });
+    }
   }
 
   const { error } = await supabase.from("products").update(patch).eq("id", id);

@@ -196,6 +196,9 @@ export default function ProductsAdmin({
       available: form.available,
       is_featured: form.is_featured,
       featured_order: parseInt(form.featured_order, 10) || 0,
+      stock_quantity: form.stock_quantity.trim()
+        ? parseInt(form.stock_quantity, 10)
+        : null,
       extras: form.extras
         .filter(
           (e) =>

@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import type { Tenant } from "@/types/supabase";
+import type { BusinessHours } from "@/lib/businessHours";
+import BusinessHoursEditor from "@/components/admin/BusinessHoursEditor";
 
 interface Props {
   tenant: Tenant;
@@ -161,6 +163,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     banner_url: tenant.banner_url ?? "",
     hero_video_url: tenant.hero_video_url ?? "",
     is_open: tenant.is_open,
+    business_hours: tenant.business_hours ?? (null as BusinessHours | null),
   });
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -504,6 +507,13 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 onBlur={(e) =>
                   (e.currentTarget.style.borderColor = "var(--dash-border)")
                 }
+              />
+            </div>
+
+            <div>
+              <BusinessHoursEditor
+                value={form.business_hours}
+                onChange={(v) => set("business_hours", v)}
               />
             </div>
           </div>

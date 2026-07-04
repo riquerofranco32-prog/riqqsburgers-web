@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
+import { isValidBusinessHours } from "@/lib/businessHours";
 
 const ALLOWED_FIELDS = [
   "name",
@@ -20,6 +21,7 @@ const ALLOWED_FIELDS = [
   "is_open",
   "hero_video_url",
   "min_order_amount",
+  "business_hours",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -130,6 +132,14 @@ export async function PATCH(
         { status: 400 },
       );
     }
+  }
+
+  if (
+    "business_hours" in patch &&
+    patch.business_hours !== null &&
+    !isValidBusinessHours(patch.business_hours)
+  ) {
+    return NextResponse.json({ error: "Horario inválido" }, { status: 400 });
   }
 
   if (Object.keys(patch).length === 0) {

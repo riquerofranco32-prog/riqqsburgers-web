@@ -76,6 +76,13 @@ export function ProductDesktopRow({
             {cat.emoji} {cat.name}
           </p>
         )}
+        {product.stock_quantity !== null && (
+          <p
+            className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-zinc-600"}`}
+          >
+            Stock: {product.stock_quantity}
+          </p>
+        )}
       </div>
 
       <div className="flex items-center gap-1 flex-shrink-0">

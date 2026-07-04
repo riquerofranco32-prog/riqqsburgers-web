@@ -1,3 +1,5 @@
+import type { BusinessHours } from "@/lib/businessHours";
+
 export interface Tenant {
   id: string;
   slug: string;
@@ -16,6 +18,7 @@ export interface Tenant {
   address: string | null;
   schedule: string | null;
   is_open: boolean;
+  business_hours: BusinessHours | null;
   active: boolean;
   brand: Record<string, string> | null;
   plan: string;
@@ -62,6 +65,7 @@ export interface Product {
   created_at: string;
   extras: Array<{ name: string; price: number }>;
   addons: Array<{ name: string; price: number }>;
+  stock_quantity: number | null;
 }
 
 export interface Order {
@@ -81,6 +85,22 @@ export interface Order {
   delivery_cost: number;
   total: number;
   status: string;
+  created_at: string;
+  coupon_code: string | null;
+  discount_amount: number | null;
+}
+
+export interface Coupon {
+  id: string;
+  tenant_id: string;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: number;
+  min_order_amount: number | null;
+  max_uses: number | null;
+  uses: number;
+  active: boolean;
+  expires_at: string | null;
   created_at: string;
 }
 

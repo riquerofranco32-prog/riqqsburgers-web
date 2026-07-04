@@ -17,6 +17,7 @@ export interface ProductForm {
   featured_order: string;
   extras: Array<{ name: string; price: string }>;
   addons: Array<{ name: string; price: string }>;
+  stock_quantity: string;
 }
 
 export const emptyForm: ProductForm = {
@@ -31,6 +32,7 @@ export const emptyForm: ProductForm = {
   featured_order: "0",
   extras: [],
   addons: [],
+  stock_quantity: "",
 };
 
 export function ProductModal({
@@ -70,6 +72,10 @@ export function ProductModal({
               price: String(e.price),
             }),
           ),
+          stock_quantity:
+            product.stock_quantity === null
+              ? ""
+              : String(product.stock_quantity),
         }
       : emptyForm,
   );
@@ -78,6 +84,7 @@ export function ProductModal({
   const [uploadError, setUploadError] = useState("");
   const [nameError, setNameError] = useState("");
   const [priceError, setPriceError] = useState("");
+  const [stockError, setStockError] = useState("");
   // Local blob URL shown immediately on file pick, before upload completes
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -85,6 +92,7 @@ export function ProductModal({
     setForm((f) => ({ ...f, [key]: val }));
     if (key === "name") setNameError("");
     if (key === "price") setPriceError("");
+    if (key === "stock_quantity") setStockError("");
   }
 
   async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -114,6 +122,13 @@ export function ProductModal({
     }
     if (!form.price || isNaN(Number(form.price)) || Number(form.price) < 0) {
       setPriceError("Ingresá un precio válido");
+      ok = false;
+    }
+    if (
+      form.stock_quantity.trim() &&
+      (isNaN(Number(form.stock_quantity)) || Number(form.stock_quantity) < 0)
+    ) {
+      setStockError("Ingresá una cantidad válida");
       ok = false;
     }
     return ok;
@@ -295,6 +310,28 @@ export function ProductModal({
               </div>
               <span className="text-sm text-white">Disponible</span>
             </label>
+
+            <div>
+              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+                Stock (opcional)
+              </label>
+              <input
+                type="number"
+                value={form.stock_quantity}
+                onChange={(e) => set("stock_quantity", e.target.value)}
+                placeholder="Sin control de stock"
+                min={0}
+                style={{ fontSize: 16 }}
+                className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${stockError ? "border-red-500" : "border-zinc-700"}`}
+              />
+              {stockError && (
+                <p className="text-red-400 text-xs mt-1">{stockError}</p>
+              )}
+              <p className="text-xs text-zinc-600 mt-1">
+                Si cargás una cantidad, se descuenta en cada pedido y al llegar
+                a 0 se marca automáticamente como agotado.
+              </p>
+            </div>
 
             {/* Destacado en "Lo más pedido" */}
             <div className="flex items-center gap-3">

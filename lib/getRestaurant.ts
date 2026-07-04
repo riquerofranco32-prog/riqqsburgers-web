@@ -8,6 +8,7 @@ import {
   getTenantCategories,
 } from "./tenants";
 import { createServerClient } from "./supabase";
+import { computeEffectiveOpen, type BusinessHours } from "./businessHours";
 import type { Tenant, Category, Product } from "@/types/supabase";
 
 export interface RestaurantBrand {
@@ -57,6 +58,8 @@ export interface Restaurant {
   address: string;
   schedule: string;
   is_open: boolean;
+  manual_is_open: boolean;
+  business_hours: BusinessHours | null;
   min_order_amount: number | null;
   brand: RestaurantBrand | null;
   menu: {
@@ -120,7 +123,16 @@ function mapToRestaurant(
     delivery_cost: tenant.delivery_cost ?? 0,
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
-    is_open: tenant.is_open ?? true,
+    // is_open crudo = override manual ("cerrado forzado" cuando es false).
+    // El estado real que se muestra sale de computeEffectiveOpen(), que
+    // combina esto con business_hours tanto en el primer render (SSR) como
+    // en vivo en el cliente.
+    is_open: computeEffectiveOpen(
+      tenant.is_open ?? true,
+      tenant.business_hours ?? null,
+    ),
+    manual_is_open: tenant.is_open ?? true,
+    business_hours: tenant.business_hours ?? null,
     min_order_amount: tenant.min_order_amount ?? null,
     brand: (tenant.brand as RestaurantBrand | null) ?? null,
     menu: {

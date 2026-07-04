@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { safeDbError } from "@/lib/db-error";
 import { sendPushToTenant } from "@/lib/push";
+import { validateCoupon } from "@/lib/coupons";
+import { computeEffectiveOpen, type BusinessHours } from "@/lib/businessHours";
 
 // ponytail: in-memory rate limit per IP, resets on cold start. Upgrade to Upstash if abuse is reported.
 const ipBucket = new Map<string, number[]>();
@@ -34,6 +36,7 @@ interface CreateOrderBody {
   customer_phone?: string | null;
   customer_address?: string | null;
   notes?: string | null;
+  coupon_code?: string | null;
 }
 
 function generateRef(): string {
@@ -127,7 +130,7 @@ export async function POST(req: NextRequest) {
   // Verificar que el tenant existe y está activo
   const { data: tenant, error: tenantError } = await supabase
     .from("tenants")
-    .select("id, slug, delivery_cost, active")
+    .select("id, slug, delivery_cost, active, is_open, business_hours")
     .eq("id", tenant_id)
     .single();
 
@@ -145,12 +148,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (
+    !computeEffectiveOpen(
+      tenant.is_open ?? true,
+      tenant.business_hours as BusinessHours | null,
+    )
+  ) {
+    return NextResponse.json(
+      { error: "El restaurante está cerrado en este momento" },
+      { status: 400 },
+    );
+  }
+
   // Obtener precios reales de la DB para cada producto
   const productIds = items.map((i) => i.product_id);
 
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id, name, price, available, extras, addons")
+    .select("id, name, price, available, extras, addons, stock_quantity")
     .eq("tenant_id", tenant_id)
     .in("id", productIds);
 
@@ -186,6 +201,30 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Stock: un mismo producto puede aparecer en varias líneas del carrito
+  // (distintos extras/addons) — se valida contra la cantidad total pedida.
+  const requestedQtyByProduct = new Map<string, number>();
+  for (const item of items) {
+    requestedQtyByProduct.set(
+      item.product_id,
+      (requestedQtyByProduct.get(item.product_id) ?? 0) + item.quantity,
+    );
+  }
+  for (const [productId, qty] of Array.from(requestedQtyByProduct)) {
+    const product = productMap.get(productId)!;
+    if (product.stock_quantity !== null && qty > product.stock_quantity) {
+      return NextResponse.json(
+        {
+          error:
+            product.stock_quantity === 0
+              ? `Sin stock: ${product.name}`
+              : `Solo quedan ${product.stock_quantity} unidades de ${product.name}`,
+        },
+        { status: 400 },
+      );
+    }
+  }
+
   // Calcular totales server-side con precios reales de la DB
   const subtotal = items.reduce((sum, item) => {
     const product = productMap.get(item.product_id)!;
@@ -204,9 +243,23 @@ export async function POST(req: NextRequest) {
     return sum + (product.price + extraPrice + addonsPrice) * item.quantity;
   }, 0);
 
+  // Cupón: se revalida server-side con el subtotal real. El monto de
+  // descuento que haya mostrado el checkout es solo informativo — nunca se
+  // usa el valor que manda el cliente.
+  let couponId: string | null = null;
+  let discountAmount = 0;
+  if (body.coupon_code) {
+    const result = await validateCoupon(tenant_id, body.coupon_code, subtotal);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: 400 });
+    }
+    couponId = result.coupon!.id;
+    discountAmount = result.discountAmount!;
+  }
+
   const deliveryCost =
     delivery_type === "delivery" ? (tenant.delivery_cost ?? 0) : 0;
-  const total = subtotal + deliveryCost;
+  const total = subtotal + deliveryCost - discountAmount;
 
   // Armar los items enriquecidos con nombre y precio real
   const enrichedItems = items.map((item) => {
@@ -252,6 +305,8 @@ export async function POST(req: NextRequest) {
       delivery_cost: deliveryCost,
       total,
       status: "pending",
+      coupon_code: body.coupon_code || null,
+      discount_amount: discountAmount || null,
     })
     .select()
     .single();
@@ -261,6 +316,38 @@ export async function POST(req: NextRequest) {
       { error: safeDbError(insertError, "Error al crear el pedido") },
       { status: 500 },
     );
+  }
+
+  // Best-effort: no bloquea la creación del pedido si falla.
+  // ponytail: incremento no atómico (read-then-write), aceptable al volumen
+  // actual; pasar a un RPC `increment` si dos pedidos con el mismo cupón
+  // llegan a coincidir en el mismo instante con frecuencia.
+  if (couponId) {
+    const { data: couponRow } = await supabase
+      .from("coupons")
+      .select("uses")
+      .eq("id", couponId)
+      .maybeSingle();
+    if (couponRow) {
+      await supabase
+        .from("coupons")
+        .update({ uses: couponRow.uses + 1 })
+        .eq("id", couponId);
+    }
+  }
+
+  // Descuento de stock — mismo criterio best-effort/no-atómico que arriba.
+  for (const [productId, qty] of Array.from(requestedQtyByProduct)) {
+    const product = productMap.get(productId)!;
+    if (product.stock_quantity === null) continue;
+    const newStock = Math.max(product.stock_quantity - qty, 0);
+    await supabase
+      .from("products")
+      .update({
+        stock_quantity: newStock,
+        ...(newStock === 0 ? { available: false } : {}),
+      })
+      .eq("id", productId);
   }
 
   // Fire-and-forget push — no bloquea la respuesta al cliente
@@ -277,6 +364,7 @@ export async function POST(req: NextRequest) {
       total,
       subtotal,
       delivery_cost: deliveryCost,
+      discount_amount: discountAmount || undefined,
     },
     { status: 201 },
   );

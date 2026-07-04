@@ -239,6 +239,14 @@ export function ProductMobileCard({
           </p>
         )}
 
+        {product.stock_quantity !== null && (
+          <p
+            className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-zinc-500"}`}
+          >
+            Stock: {product.stock_quantity}
+          </p>
+        )}
+
         {/* Actions */}
         <div className="flex gap-2 mt-0.5">
           <button

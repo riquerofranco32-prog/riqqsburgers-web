@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
     featured_order?: number;
     extras?: Array<{ name: string; price: number }>;
     addons?: Array<{ name: string; price: number }>;
+    stock_quantity?: number | null;
   };
 
   if (!body.slug || !body.name || body.price === undefined) {
@@ -110,6 +111,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (body.stock_quantity !== undefined && body.stock_quantity !== null) {
+    if (
+      typeof body.stock_quantity !== "number" ||
+      !Number.isInteger(body.stock_quantity) ||
+      body.stock_quantity < 0
+    ) {
+      return NextResponse.json({ error: "Stock inválido" }, { status: 400 });
+    }
+  }
+
   let tenantId: string;
   try {
     const result = await assertTenantAdmin(body.slug);
@@ -163,6 +174,7 @@ export async function POST(req: NextRequest) {
       featured_order: body.featured_order ?? 0,
       extras: body.extras ?? [],
       addons: body.addons ?? [],
+      stock_quantity: body.stock_quantity ?? null,
     })
     .select()
     .single();

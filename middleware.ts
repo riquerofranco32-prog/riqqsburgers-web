@@ -7,6 +7,11 @@ const ipHits = new Map<string, { count: number; resetAt: number }>();
 
 // Separate buckets per endpoint category
 const uploadHits = new Map<string, { count: number; resetAt: number }>();
+const adminMutationHits = new Map<string, { count: number; resetAt: number }>();
+const couponValidateHits = new Map<
+  string,
+  { count: number; resetAt: number }
+>();
 
 const WINDOW_MS = 60_000; // 1 minute
 
@@ -14,6 +19,8 @@ const WINDOW_MS = 60_000; // 1 minute
 const LIMITS = {
   orders: 10, // 10 orders/min per IP
   uploads: 20, // 20 uploads/min per IP (logo + product images)
+  adminMutations: 60, // 60 admin writes/min per IP (products/categories/orders/tenant)
+  couponValidate: 15, // 15 tries/min per IP — public endpoint, guards against code enumeration
 } as const;
 
 function getClientIp(req: NextRequest): string {
@@ -41,9 +48,32 @@ function checkRateLimit(
   return entry.count <= max; // allowed if within limit
 }
 
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+// Cross-site form/fetch forgery defense: state-changing API calls must come
+// from our own origin. Same-origin browser requests always send Origin (or
+// Referer as fallback for older clients); a forged cross-site POST won't
+// match. Public order creation still needs this since it's the highest-value
+// mutation exposed to anon users.
+function isSameOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin") ?? req.headers.get("referer");
+  if (!origin) return true; // non-browser clients (no Origin/Referer) pass through
+  try {
+    return new URL(origin).host === req.nextUrl.host;
+  } catch {
+    return false;
+  }
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const method = req.method;
+  const isApiMutation =
+    pathname.startsWith("/api/") && MUTATING_METHODS.has(method);
+
+  if (isApiMutation && !isSameOrigin(req)) {
+    return NextResponse.json({ error: "Origen inválido." }, { status: 403 });
+  }
 
   // Rate limit: order creation
   if (method === "POST" && pathname === "/api/orders") {
@@ -71,14 +101,49 @@ export function middleware(req: NextRequest) {
     }
   }
 
+  // Rate limit: public coupon code validation (checkout, no auth)
+  if (method === "POST" && pathname === "/api/coupons/validate") {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(couponValidateHits, ip, LIMITS.couponValidate)) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Esperá un minuto." },
+        { status: 429 },
+      );
+    }
+  }
+
+  // Rate limit: other admin mutations (products/categories/orders/tenant writes)
+  if (
+    isApiMutation &&
+    pathname !== "/api/orders" &&
+    pathname !== "/api/coupons/validate" &&
+    !pathname.endsWith("/upload") &&
+    (pathname.startsWith("/api/products") ||
+      pathname.startsWith("/api/categories") ||
+      pathname.startsWith("/api/orders") ||
+      pathname.startsWith("/api/tenant") ||
+      pathname.startsWith("/api/coupons"))
+  ) {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(adminMutationHits, ip, LIMITS.adminMutations)) {
+      return NextResponse.json(
+        { error: "Demasiadas solicitudes. Esperá un minuto." },
+        { status: 429 },
+      );
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
     "/api/orders",
+    "/api/orders/:path*",
     "/api/admin/:path*",
     "/api/products/:path*",
-    "/api/tenant/:slug/upload",
+    "/api/categories/:path*",
+    "/api/tenant/:path*",
+    "/api/coupons/:path*",
   ],
 };

@@ -91,7 +91,58 @@ export default function CheckoutModal({
 
   const deliveryCost =
     form.delivery === "delivery" ? (tenant.delivery_cost ?? 0) : 0;
-  const grandTotal = subtotal + deliveryCost;
+
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discountAmount: number;
+  } | null>(null);
+
+  const discountAmount = appliedCoupon?.discountAmount ?? 0;
+  const grandTotal = subtotal + deliveryCost - discountAmount;
+
+  async function applyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError("");
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tenant_id: tenant.id,
+          code: couponInput.trim(),
+          subtotal,
+        }),
+      });
+      const data = (await res.json()) as {
+        error?: string;
+        discount_amount?: number;
+      };
+      if (!res.ok || data.discount_amount === undefined) {
+        setCouponError(data.error ?? "Cupón inválido");
+        setAppliedCoupon(null);
+        return;
+      }
+      setAppliedCoupon({
+        code: couponInput.trim().toUpperCase(),
+        discountAmount: data.discount_amount,
+      });
+    } catch {
+      setCouponError("No se pudo validar el cupón");
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  }
+
+  function removeCoupon() {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError("");
+  }
 
   const minOrderAmount = tenant.min_order_amount ?? null;
   const belowMinOrder =
@@ -106,6 +157,9 @@ export default function CheckoutModal({
       setOrderRef("");
       setLoading(false);
       setTouched({});
+      setCouponInput("");
+      setAppliedCoupon(null);
+      setCouponError("");
       setForm({
         name: "",
         lastname: "",
@@ -300,6 +354,9 @@ export default function CheckoutModal({
       orderNotes ? `` : null,
       `Subtotal: ${fmt(subtotal)}`,
       deliveryCost > 0 ? `Entrega: ${fmt(deliveryCost)}` : null,
+      appliedCoupon
+        ? `Descuento (${appliedCoupon.code}): -${fmt(discountAmount)}`
+        : null,
       `Total: ${fmt(grandTotal)}`,
       ``,
       `${E.dollar} Pago`,
@@ -343,6 +400,7 @@ export default function CheckoutModal({
           customer_phone: form.phone || null,
           customer_address: form.delivery === "delivery" ? form.address : null,
           notes: form.notes || null,
+          coupon_code: appliedCoupon?.code || null,
         }),
       });
 
@@ -920,6 +978,20 @@ export default function CheckoutModal({
                     <span>${deliveryCost.toLocaleString("es-AR")}</span>
                   </div>
                 )}
+                {appliedCoupon && (
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      color: "#22c55e",
+                      fontSize: 13,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span>Descuento ({appliedCoupon.code})</span>
+                    <span>-${discountAmount.toLocaleString("es-AR")}</span>
+                  </div>
+                )}
                 <div
                   style={{
                     display: "flex",
@@ -945,6 +1017,84 @@ export default function CheckoutModal({
                     ${grandTotal.toLocaleString("es-AR")}
                   </span>
                 </div>
+              </div>
+
+              {/* Cupón de descuento */}
+              <div>
+                {appliedCoupon ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      background: "rgba(34,197,94,0.1)",
+                      border: "1px solid rgba(34,197,94,0.3)",
+                      borderRadius: 10,
+                      padding: "10px 12px",
+                      fontSize: 13,
+                    }}
+                  >
+                    <span style={{ color: "#22c55e", fontWeight: 700 }}>
+                      ✓ Cupón {appliedCoupon.code} aplicado
+                    </span>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-secondary)",
+                        fontSize: 12,
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input
+                      style={{ ...inputBase, flex: 1 }}
+                      placeholder="Código de descuento"
+                      value={couponInput}
+                      onChange={(e) => {
+                        setCouponInput(e.target.value);
+                        setCouponError("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          void applyCoupon();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void applyCoupon()}
+                      disabled={couponLoading || !couponInput.trim()}
+                      style={{
+                        padding: "0 16px",
+                        borderRadius: 10,
+                        border: "1px solid var(--border)",
+                        background: "var(--surface-2)",
+                        color: "var(--text-primary)",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: "pointer",
+                        opacity: couponLoading || !couponInput.trim() ? 0.5 : 1,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {couponLoading ? "..." : "Aplicar"}
+                    </button>
+                  </div>
+                )}
+                {couponError && (
+                  <p style={{ color: "#ef4444", fontSize: 12, marginTop: 6 }}>
+                    {couponError}
+                  </p>
+                )}
               </div>
 
               {/* Nombre y apellido */}
