@@ -2510,19 +2510,41 @@ export default function CatalogClient({
                             height: 220,
                             overflow: "hidden",
                             cursor: "pointer",
+                            background: `linear-gradient(135deg, ${accent}14, ${accent}06)`,
                           }}
                           onClick={() => setSelectedItem(promoProduct)}
                         >
+                          {/* Backdrop desenfocado — evita que fotos verticales o con
+                              mucho espacio vacío (típico de gráficas subidas por el
+                              negocio) se recorten en una zona en blanco */}
+                          <img
+                            src={promoProduct.image}
+                            alt=""
+                            aria-hidden="true"
+                            loading="eager"
+                            decoding="async"
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              filter: "blur(24px) brightness(0.85)",
+                              transform: "scale(1.15)",
+                            }}
+                          />
                           <img
                             src={promoProduct.image}
                             alt={promoProduct.name}
                             loading="eager"
                             fetchPriority="high"
                             decoding="async"
+                            className="card-img"
                             style={{
+                              position: "relative",
                               width: "100%",
                               height: "100%",
-                              objectFit: "cover",
+                              objectFit: "contain",
                               display: "block",
                               transition: "transform 0.4s ease",
                             }}
