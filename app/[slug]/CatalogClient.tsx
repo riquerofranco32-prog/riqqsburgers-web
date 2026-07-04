@@ -430,8 +430,8 @@ const ProductCard = memo(function ProductCard({
               position: "absolute",
               top: 6,
               right: 6,
-              width: 28,
-              height: 28,
+              width: 32,
+              height: 32,
               borderRadius: "50%",
               background: isFavorite ? "#EF4444" : "rgba(0,0,0,0.35)",
               backdropFilter: "blur(6px)",
@@ -2299,7 +2299,7 @@ export default function CatalogClient({
                             alignItems: "center",
                             gap: 6,
                             padding: "8px 16px",
-                            minHeight: 36,
+                            minHeight: 44,
                             borderRadius: 999,
                             border: isActive
                               ? `1px solid ${accent}35`
@@ -2507,44 +2507,24 @@ export default function CatalogClient({
                         <div
                           style={{
                             position: "relative",
-                            height: 220,
+                            height: 300,
                             overflow: "hidden",
                             cursor: "pointer",
                             background: `linear-gradient(135deg, ${accent}14, ${accent}06)`,
                           }}
                           onClick={() => setSelectedItem(promoProduct)}
                         >
-                          {/* Backdrop desenfocado — evita que fotos verticales o con
-                              mucho espacio vacío (típico de gráficas subidas por el
-                              negocio) se recorten en una zona en blanco */}
-                          <img
-                            src={promoProduct.image}
-                            alt=""
-                            aria-hidden="true"
-                            loading="eager"
-                            decoding="async"
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              filter: "blur(24px) brightness(0.85)",
-                              transform: "scale(1.15)",
-                            }}
-                          />
                           <img
                             src={promoProduct.image}
                             alt={promoProduct.name}
                             loading="eager"
                             fetchPriority="high"
                             decoding="async"
-                            className="card-img"
                             style={{
-                              position: "relative",
                               width: "100%",
                               height: "100%",
-                              objectFit: "contain",
+                              objectFit: "cover",
+                              objectPosition: "center 45%",
                               display: "block",
                               transition: "transform 0.4s ease",
                             }}
@@ -3924,8 +3904,8 @@ export default function CatalogClient({
               bottom: totalItems > 0 ? 88 : 20,
               right: 16,
               zIndex: 48,
-              width: 40,
-              height: 40,
+              width: 44,
+              height: 44,
               borderRadius: "50%",
               background: "rgba(0,0,0,0.55)",
               backdropFilter: "blur(8px)",
