@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
+import { sendPushToOrder } from "@/lib/push";
+
+const STATUS_PUSH_MESSAGES: Record<string, { title: string; body: string }> = {
+  confirmed: {
+    title: "Pedido confirmado ✅",
+    body: "Ya lo estamos preparando.",
+  },
+  preparing: {
+    title: "En preparación 👨‍🍳",
+    body: "Tu pedido se está cocinando.",
+  },
+  ready: { title: "¡Tu pedido está listo! 🎉", body: "Ya podés retirarlo." },
+  delivered: { title: "Pedido entregado 📦", body: "¡Que lo disfrutes!" },
+};
 
 const ALLOWED_STATUSES = [
   "pending",
@@ -61,7 +75,7 @@ export async function PATCH(
   // Verificar que la orden pertenece a un tenant del que el usuario es admin
   const { data: order } = await supabase
     .from("orders")
-    .select("tenant_id")
+    .select("tenant_id, order_ref")
     .eq("id", id)
     .maybeSingle();
 
@@ -101,6 +115,18 @@ export async function PATCH(
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
+
+  if (hasStatus) {
+    const msg = STATUS_PUSH_MESSAGES[body.status!];
+    if (msg) {
+      void sendPushToOrder(id, {
+        title: msg.title,
+        body: msg.body,
+        url: `/pedido/${order.order_ref}`,
+      });
+    }
+  }
+
   return NextResponse.json({ ok: true });
 }
 

@@ -7,8 +7,10 @@ interface PushPayload {
   url: string;
 }
 
-export async function sendPushToTenant(
-  tenantId: string,
+async function sendToSubscriptions(
+  table: "push_subscriptions" | "order_push_subscriptions",
+  filterColumn: "tenant_id" | "order_id",
+  filterValue: string,
   payload: PushPayload,
 ): Promise<void> {
   webpush.setVapidDetails(
@@ -19,9 +21,9 @@ export async function sendPushToTenant(
 
   const db = createServerClient();
   const { data: subs } = await db
-    .from("push_subscriptions")
+    .from(table)
     .select("id, endpoint, subscription")
-    .eq("tenant_id", tenantId);
+    .eq(filterColumn, filterValue);
 
   if (!subs?.length) return;
 
@@ -45,6 +47,30 @@ export async function sendPushToTenant(
   );
 
   if (staleIds.length) {
-    await db.from("push_subscriptions").delete().in("id", staleIds);
+    await db.from(table).delete().in("id", staleIds);
   }
+}
+
+export async function sendPushToTenant(
+  tenantId: string,
+  payload: PushPayload,
+): Promise<void> {
+  await sendToSubscriptions(
+    "push_subscriptions",
+    "tenant_id",
+    tenantId,
+    payload,
+  );
+}
+
+export async function sendPushToOrder(
+  orderId: string,
+  payload: PushPayload,
+): Promise<void> {
+  await sendToSubscriptions(
+    "order_push_subscriptions",
+    "order_id",
+    orderId,
+    payload,
+  );
 }

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import type { Order } from "@/types/supabase";
 import Link from "next/link";
 import TrackingClient from "./TrackingClient";
+import OrderNotifyToggle from "./OrderNotifyToggle";
 import ReviewWidget from "./ReviewWidget";
 import { estimateMinutes } from "@/lib/eta";
 
@@ -166,6 +167,10 @@ export default async function TrackingPage({ params }: Props) {
         </div>
 
         <div style={{ padding: "20px 24px" }}>
+          {!isDelivered && o.status !== "cancelled" && (
+            <OrderNotifyToggle orderId={o.id} accent={accent} />
+          )}
+
           {/* Real-time tracking stepper */}
           <TrackingClient
             orderId={o.id}
