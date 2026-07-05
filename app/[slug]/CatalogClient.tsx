@@ -10,6 +10,7 @@ import {
   memo,
 } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import {
   X,
   Minus,
@@ -325,17 +326,15 @@ const ProductCard = memo(function ProductCard({
           }}
         >
           {item.image ? (
-            <img
+            <Image
               src={item.image}
               alt={item.name}
+              fill
+              sizes="(max-width: 768px) 50vw, 300px"
               loading="lazy"
-              decoding="async"
               className="card-img"
               style={{
-                width: "100%",
-                height: "100%",
                 objectFit: "cover",
-                display: "block",
                 transition: "transform 0.35s ease",
               }}
               onLoad={(e) => {
@@ -1600,14 +1599,13 @@ export default function CatalogClient({
             </>
           ) : restaurant.banner_url ? (
             <>
-              <img
+              <Image
                 src={restaurant.banner_url}
                 alt=""
+                fill
+                priority
+                sizes="100vw"
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
                   objectFit: "cover",
                   zIndex: 0,
                 }}
@@ -1835,9 +1833,11 @@ export default function CatalogClient({
                 }}
               >
                 {restaurant.logo ? (
-                  <img
+                  <Image
                     src={restaurant.logo}
                     alt=""
+                    width={110}
+                    height={110}
                     style={{
                       width: "100%",
                       height: "100%",
@@ -2514,18 +2514,15 @@ export default function CatalogClient({
                           }}
                           onClick={() => setSelectedItem(promoProduct)}
                         >
-                          <img
+                          <Image
                             src={promoProduct.image}
                             alt={promoProduct.name}
-                            loading="eager"
-                            fetchPriority="high"
-                            decoding="async"
+                            fill
+                            priority
+                            sizes="(max-width: 768px) 100vw, 992px"
                             style={{
-                              width: "100%",
-                              height: "100%",
                               objectFit: "cover",
                               objectPosition: "center 45%",
-                              display: "block",
                               transition: "transform 0.4s ease",
                             }}
                             onMouseEnter={(e) => {
@@ -2873,17 +2870,13 @@ export default function CatalogClient({
                               }}
                             >
                               {item.image ? (
-                                <img
+                                <Image
                                   src={item.image}
                                   alt={item.name}
+                                  fill
+                                  sizes="160px"
                                   loading="lazy"
-                                  decoding="async"
-                                  style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    display: "block",
-                                  }}
+                                  style={{ objectFit: "cover" }}
                                 />
                               ) : (
                                 <div
@@ -3063,15 +3056,13 @@ export default function CatalogClient({
                                 background: `linear-gradient(135deg, ${accent}14, ${accent}06)`,
                               }}
                             >
-                              <img
+                              <Image
                                 src={item.image!}
                                 alt={item.name}
-                                style={{
-                                  width: "100%",
-                                  height: "100%",
-                                  objectFit: "cover",
-                                  display: "block",
-                                }}
+                                fill
+                                sizes="130px"
+                                loading="lazy"
+                                style={{ objectFit: "cover" }}
                               />
                               {fQty > 0 && (
                                 <div
@@ -3602,9 +3593,11 @@ export default function CatalogClient({
                             }}
                           >
                             {item.image ? (
-                              <img
+                              <Image
                                 src={item.image}
                                 alt={item.name}
+                                width={44}
+                                height={44}
                                 style={{
                                   width: "100%",
                                   height: "100%",
