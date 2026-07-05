@@ -43,6 +43,8 @@ export default function ProductsAdmin({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkWorking, setBulkWorking] = useState(false);
   const [bulkConfirmDelete, setBulkConfirmDelete] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [reorderBusy, setReorderBusy] = useState(false);
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -318,6 +320,88 @@ export default function ProductsAdmin({
     }
   }
 
+  async function handleDuplicate(product: Product) {
+    if (duplicatingId) return;
+    setDuplicatingId(product.id);
+    try {
+      const res = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: tenant.slug,
+          name: `${product.name} (copia)`.slice(0, 200),
+          description: product.description,
+          price: product.price,
+          category_id: product.category_id,
+          badge: product.badge,
+          image_url: product.image_url,
+          available: product.available,
+          sort_order: products.length,
+          is_featured: false,
+          featured_order: 0,
+          extras: product.extras ?? [],
+          addons: product.addons ?? [],
+          stock_quantity: product.stock_quantity,
+        }),
+      });
+      if (res.ok) {
+        const data: Product = (await res.json()) as Product;
+        vibrate(40);
+        setProducts((prev) => [...prev, data]);
+        setToast("Producto duplicado");
+      } else {
+        vibrate([50, 30, 50]);
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        setToast(err.error ?? "Error al duplicar producto");
+      }
+    } catch {
+      vibrate([50, 30, 50]);
+      setToast("Error al duplicar producto");
+    } finally {
+      setDuplicatingId(null);
+    }
+  }
+
+  async function moveProduct(product: Product, dir: -1 | 1) {
+    if (reorderBusy) return;
+    const idx = filtered.findIndex((p) => p.id === product.id);
+    const neighbor = filtered[idx + dir];
+    if (!neighbor) return;
+
+    const snapshot = products;
+    const next = [...products];
+    const from = next.findIndex((p) => p.id === product.id);
+    next.splice(from, 1);
+    const to = next.findIndex((p) => p.id === neighbor.id);
+    next.splice(dir === 1 ? to + 1 : to, 0, product);
+
+    // Renumerar todo a índice — se auto-corrige si había sort_order duplicados
+    const changed = next
+      .map((p, i) => ({ p, i }))
+      .filter(({ p, i }) => p.sort_order !== i);
+    setProducts(next.map((p, i) => ({ ...p, sort_order: i })));
+    setReorderBusy(true);
+    const results = await Promise.allSettled(
+      changed.map(({ p, i }) =>
+        fetch(`/api/products/${p.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sort_order: i }),
+        }).then((res) => {
+          if (!res.ok) throw new Error();
+        }),
+      ),
+    );
+    setReorderBusy(false);
+    if (results.some((r) => r.status === "rejected")) {
+      setProducts(snapshot);
+      vibrate([50, 30, 50]);
+      setToast("Error al reordenar");
+    } else {
+      vibrate(30);
+    }
+  }
+
   function handleImageUploaded(productId: string, url: string) {
     setProducts((prev) =>
       prev.map((p) => (p.id === productId ? { ...p, image_url: url } : p)),
@@ -529,6 +613,8 @@ export default function ProductsAdmin({
                   onUploaded={handleImageUploaded}
                   selected={selectedIds.has(product.id)}
                   onToggleSelect={toggleSelect}
+                  onDuplicate={canAddMore ? handleDuplicate : undefined}
+                  duplicatingId={duplicatingId}
                 />
               );
             })}
@@ -536,7 +622,7 @@ export default function ProductsAdmin({
 
           {/* Desktop: horizontal rows */}
           <div className="hidden md:flex flex-col gap-2.5">
-            {filtered.map((product) => {
+            {filtered.map((product, i) => {
               const cat = categories.find((c) => c.id === product.category_id);
               return (
                 <ProductDesktopRow
@@ -554,6 +640,12 @@ export default function ProductsAdmin({
                   onDelete={requestDelete}
                   onConfirmDelete={handleDelete}
                   onCancelDelete={() => setConfirmDeleteId(null)}
+                  onDuplicate={canAddMore ? handleDuplicate : undefined}
+                  duplicatingId={duplicatingId}
+                  onMove={sort === "default" ? moveProduct : undefined}
+                  canMoveUp={i > 0}
+                  canMoveDown={i < filtered.length - 1}
+                  reorderBusy={reorderBusy}
                 />
               );
             })}

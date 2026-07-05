@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronUp, ChevronDown, Copy } from "lucide-react";
 import type { Category, Product } from "@/types/supabase";
 import { ProductImageCell } from "./ProductImageCell";
 
@@ -17,6 +18,12 @@ export function ProductDesktopRow({
   onDelete,
   onConfirmDelete,
   onCancelDelete,
+  onDuplicate,
+  duplicatingId,
+  onMove,
+  canMoveUp,
+  canMoveDown,
+  reorderBusy,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -31,11 +38,37 @@ export function ProductDesktopRow({
   onDelete: (p: Product) => void;
   onConfirmDelete: (p: Product) => void;
   onCancelDelete: () => void;
+  onDuplicate?: (p: Product) => void;
+  duplicatingId?: string | null;
+  onMove?: (p: Product, dir: -1 | 1) => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  reorderBusy?: boolean;
 }) {
   return (
     <div
       className={`bg-zinc-900 rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${selected ? "border-yellow-400/60" : "border-zinc-800"} ${product.available ? "" : "opacity-50"}`}
     >
+      {onMove && (
+        <div className="flex flex-col flex-shrink-0 -my-1">
+          <button
+            onClick={() => onMove(product, -1)}
+            disabled={!canMoveUp || reorderBusy}
+            title="Subir"
+            className="w-7 h-6 flex items-center justify-center text-zinc-600 hover:text-white disabled:opacity-25 disabled:hover:text-zinc-600 transition-colors"
+          >
+            <ChevronUp className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onMove(product, 1)}
+            disabled={!canMoveDown || reorderBusy}
+            title="Bajar"
+            className="w-7 h-6 flex items-center justify-center text-zinc-600 hover:text-white disabled:opacity-25 disabled:hover:text-zinc-600 transition-colors"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        </div>
+      )}
       <input
         type="checkbox"
         checked={selected}
@@ -125,6 +158,26 @@ export function ProductDesktopRow({
         >
           Editar
         </button>
+        {onDuplicate && (
+          <button
+            onClick={() => onDuplicate(product)}
+            disabled={duplicatingId !== null}
+            title="Duplicar"
+            style={
+              {
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              } as React.CSSProperties
+            }
+            className="text-zinc-600 hover:text-white min-h-[44px] px-3 rounded-xl hover:bg-zinc-800 transition-all disabled:opacity-40 flex items-center"
+          >
+            {duplicatingId === product.id ? (
+              <span className="text-xs">…</span>
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+          </button>
+        )}
         {confirmDeleteId === product.id ? (
           <div className="flex items-center gap-1">
             <button

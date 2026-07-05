@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
-import { Camera, Loader2, Check } from "lucide-react";
+import { Camera, Loader2, Check, Copy } from "lucide-react";
 import type { Category, Product } from "@/types/supabase";
 import { uploadImage, type UploadState } from "./utils";
 
@@ -27,6 +27,8 @@ export function ProductMobileCard({
   onUploaded,
   selected,
   onToggleSelect,
+  onDuplicate,
+  duplicatingId,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -48,6 +50,8 @@ export function ProductMobileCard({
   onUploaded: (productId: string, url: string) => void;
   selected: boolean;
   onToggleSelect: (id: string) => void;
+  onDuplicate?: (p: Product) => void;
+  duplicatingId?: string | null;
 }) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
@@ -138,6 +142,24 @@ export function ProductMobileCard({
           onChange={handleCameraFile}
           className="hidden"
         />
+        {/* Duplicar — espejo del botón de cámara */}
+        {onDuplicate && (
+          <button
+            onClick={() => onDuplicate(product)}
+            disabled={duplicatingId !== null}
+            title="Duplicar"
+            style={
+              { WebkitTapHighlightColor: "transparent" } as React.CSSProperties
+            }
+            className="absolute bottom-2 left-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center disabled:opacity-40"
+          >
+            {duplicatingId === product.id ? (
+              <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+            ) : (
+              <Copy className="w-3.5 h-3.5 text-white" />
+            )}
+          </button>
+        )}
         {product.badge && (
           <span className="absolute top-9 left-2 text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold pointer-events-none">
             {product.badge.replace(/^\S+\s/, "")}
