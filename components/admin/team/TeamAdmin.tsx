@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { Plus, Trash2, UserCog } from "lucide-react";
-import { Toast } from "@/components/admin/Toast";
+import { toast } from "sonner";
+import { AdminModal } from "@/components/ui/admin/AdminModal";
+import { AdminField, adminInputStyle } from "@/components/ui/admin/AdminField";
+import { AdminButton } from "@/components/ui/admin/AdminButton";
 
 interface TeamMember {
   id: string;
@@ -43,104 +46,77 @@ function InviteModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-zinc-950 w-full max-w-md rounded-t-3xl md:rounded-3xl flex flex-col max-h-[92dvh] shadow-2xl border border-zinc-800">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 flex-shrink-0">
-          <h2 className="font-bold font-[family-name:var(--font-syne)]">
-            Agregar miembro del equipo
-          </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
-          >
-            ×
-          </button>
-        </div>
+    <AdminModal
+      title="Agregar miembro del equipo"
+      onClose={onClose}
+      footer={
+        <AdminButton onClick={doSave} disabled={saving} fullWidth>
+          {saving ? "Agregando..." : "Agregar"}
+        </AdminButton>
+      }
+    >
+      <AdminField label="Email *" error={error}>
+        <input
+          type="email"
+          value={email}
+          autoFocus
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
+          placeholder="cocina@ejemplo.com"
+          style={adminInputStyle}
+        />
+      </AdminField>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4">
-          <div>
-            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
-              Email *
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                setError("");
+      <AdminField label="Contraseña inicial *">
+        <input
+          type="text"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
+          placeholder="Mínimo 8 caracteres"
+          style={adminInputStyle}
+        />
+        <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: 6 }}>
+          Se la pasás vos directamente a la persona. Puede cambiarla luego desde
+          &quot;Olvidé mi contraseña&quot; en el login.
+        </p>
+      </AdminField>
+
+      <AdminField label="Rol">
+        <div style={{ display: "flex", gap: 8 }}>
+          {(["staff", "admin"] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRole(r)}
+              style={{
+                flex: 1,
+                padding: "12px",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                background:
+                  role === r ? "var(--accent)" : "var(--dash-surface-2)",
+                color: role === r ? "#fff" : "var(--dash-muted)",
+                border: `1px solid ${role === r ? "var(--accent)" : "var(--dash-border)"}`,
               }}
-              placeholder="cocina@ejemplo.com"
-              style={{ fontSize: 16 }}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
-              Contraseña inicial *
-            </label>
-            <input
-              type="text"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setError("");
-              }}
-              placeholder="Mínimo 8 caracteres"
-              style={{ fontSize: 16 }}
-              className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
-            />
-            <p className="text-xs text-zinc-600 mt-1.5">
-              Se la pasás vos directamente a la persona. Puede cambiarla luego
-              desde &quot;Olvidé mi contraseña&quot; en el login.
-            </p>
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
-              Rol
-            </label>
-            <div className="flex gap-2">
-              {(["staff", "admin"] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  className={`flex-1 py-3 rounded-xl text-sm font-semibold border transition-colors ${
-                    role === r
-                      ? "bg-yellow-400 text-black border-yellow-400"
-                      : "bg-zinc-900 text-zinc-400 border-zinc-700"
-                  }`}
-                >
-                  {ROLE_LABEL[r]}
-                </button>
-              ))}
-            </div>
-            <p className="text-xs text-zinc-600 mt-1.5">
-              {role === "staff"
-                ? "Solo ve y gestiona la sección de Pedidos."
-                : "Acceso total: productos, precios, config y facturación."}
-            </p>
-          </div>
-
-          {error && <p className="text-red-400 text-xs">{error}</p>}
+            >
+              {ROLE_LABEL[r]}
+            </button>
+          ))}
         </div>
-
-        <div className="px-5 py-4 border-t border-zinc-800 flex-shrink-0">
-          <button
-            onClick={doSave}
-            disabled={saving}
-            className="w-full bg-yellow-400 text-black font-bold py-3.5 rounded-2xl hover:bg-amber-400 active:scale-[0.98] transition-all disabled:opacity-50"
-          >
-            {saving ? "Agregando..." : "Agregar"}
-          </button>
-        </div>
-      </div>
-    </div>
+        <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: 6 }}>
+          {role === "staff"
+            ? "Solo ve y gestiona la sección de Pedidos."
+            : "Acceso total: productos, precios, config y facturación."}
+        </p>
+      </AdminField>
+    </AdminModal>
   );
 }
 
@@ -153,7 +129,6 @@ export function TeamAdmin({
 }) {
   const [members, setMembers] = useState(initialMembers);
   const [showModal, setShowModal] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   async function handleSave(email: string, password: string, role: string) {
@@ -166,16 +141,16 @@ export function TeamAdmin({
       if (res.ok) {
         const data: TeamMember = await res.json();
         setMembers((prev) => [...prev, data]);
-        setToast("Miembro agregado");
+        toast.success("Miembro agregado");
         setShowModal(false);
       } else {
         const data = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
-        setToast(data.error ?? "Error al agregar el miembro");
+        toast.error(data.error ?? "Error al agregar el miembro");
       }
     } catch {
-      setToast("Error al agregar el miembro");
+      toast.error("Error al agregar el miembro");
     }
   }
 
@@ -189,53 +164,94 @@ export function TeamAdmin({
         const data = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
-        setToast(data.error ?? "Error al quitar el acceso");
+        toast.error(data.error ?? "Error al quitar el acceso");
         return;
       }
       setMembers((prev) => prev.filter((m) => m.id !== member.id));
-      setToast("Acceso eliminado");
+      toast.success("Acceso eliminado");
     } catch {
-      setToast("Error al quitar el acceso");
+      toast.error("Error al quitar el acceso");
     }
   }
 
   return (
     <div className="flex flex-col gap-5 w-full">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-400 border border-zinc-700 font-medium">
+        <span
+          style={{
+            fontSize: 12,
+            padding: "4px 10px",
+            borderRadius: 999,
+            background: "var(--dash-surface-2)",
+            color: "var(--dash-muted)",
+            border: "1px solid var(--dash-border)",
+            fontWeight: 500,
+          }}
+        >
           {members.length} miembro{members.length !== 1 ? "s" : ""}
         </span>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center gap-1.5 bg-yellow-400 text-black text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-amber-400 transition-colors min-h-[44px]"
-        >
+        <AdminButton onClick={() => setShowModal(true)}>
           <Plus className="w-4 h-4" /> Agregar miembro
-        </button>
+        </AdminButton>
       </div>
 
       {members.length === 0 ? (
-        <div className="text-center py-14 text-zinc-500">
+        <div
+          style={{
+            textAlign: "center",
+            padding: "56px 0",
+            color: "var(--dash-muted)",
+          }}
+        >
           <UserCog className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">Todavía no agregaste a nadie del equipo.</p>
+          <p style={{ fontSize: 14 }}>
+            Todavía no agregaste a nadie del equipo.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-2.5">
           {members.map((m) => (
             <div
               key={m.id}
-              className="bg-zinc-900 rounded-2xl border border-zinc-800 flex items-center gap-3 p-4 flex-wrap"
+              style={{
+                background: "var(--dash-surface)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: 16,
+                flexWrap: "wrap",
+              }}
             >
-              <div className="flex-1 min-w-[180px]">
+              <div style={{ flex: 1, minWidth: 180 }}>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-white text-sm">
+                  <span
+                    style={{
+                      fontWeight: 600,
+                      color: "var(--dash-text)",
+                      fontSize: 14,
+                    }}
+                  >
                     {m.email ?? "—"}
                   </span>
                   <span
-                    className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${
-                      m.role === "admin"
-                        ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/30"
-                        : "bg-blue-400/10 text-blue-400 border-blue-400/30"
-                    }`}
+                    style={{
+                      fontSize: 12,
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                      fontWeight: 600,
+                      background:
+                        m.role === "admin"
+                          ? "rgba(255,107,53,0.1)"
+                          : "rgba(96,165,250,0.1)",
+                      color: m.role === "admin" ? "var(--accent)" : "#60a5fa",
+                      border: `1px solid ${
+                        m.role === "admin"
+                          ? "rgba(255,107,53,0.3)"
+                          : "rgba(96,165,250,0.3)"
+                      }`,
+                    }}
                   >
                     {ROLE_LABEL[m.role] ?? m.role}
                   </span>
@@ -243,26 +259,34 @@ export function TeamAdmin({
               </div>
 
               {confirmDeleteId === m.id ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-zinc-500">¿Quitar?</span>
-                  <button
-                    onClick={() => handleDelete(m)}
-                    className="text-xs font-semibold text-red-400 px-2.5 py-1.5 rounded-lg bg-red-400/10 border border-red-400/30"
-                  >
+                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                  <AdminButton variant="danger" onClick={() => handleDelete(m)}>
                     Confirmar
-                  </button>
-                  <button
+                  </AdminButton>
+                  <AdminButton
+                    variant="secondary"
                     onClick={() => setConfirmDeleteId(null)}
-                    className="text-xs text-zinc-500 px-2.5 py-1.5"
                   >
                     Cancelar
-                  </button>
+                  </AdminButton>
                 </div>
               ) : (
                 <button
                   onClick={() => setConfirmDeleteId(m.id)}
-                  className="w-9 h-9 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-500 hover:text-red-400 transition-colors flex-shrink-0"
-                  title="Quitar acceso"
+                  aria-label="Quitar acceso"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: "var(--dash-surface-2)",
+                    border: "none",
+                    color: "var(--dash-muted)",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -275,7 +299,6 @@ export function TeamAdmin({
       {showModal && (
         <InviteModal onSave={handleSave} onClose={() => setShowModal(false)} />
       )}
-      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
     </div>
   );
 }
