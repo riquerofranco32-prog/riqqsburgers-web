@@ -10,6 +10,7 @@ const ALLOWED_FIELDS = [
   "min_order_amount",
   "max_uses",
   "active",
+  "show_in_menu",
   "expires_at",
 ] as const;
 
@@ -126,6 +127,12 @@ export async function PATCH(
   if ("active" in patch && typeof patch.active !== "boolean") {
     return NextResponse.json(
       { error: "active debe ser boolean" },
+      { status: 400 },
+    );
+  }
+  if ("show_in_menu" in patch && typeof patch.show_in_menu !== "boolean") {
+    return NextResponse.json(
+      { error: "show_in_menu debe ser boolean" },
       { status: 400 },
     );
   }

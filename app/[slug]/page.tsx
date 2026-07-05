@@ -1,8 +1,41 @@
 import { Suspense } from "react";
 import { getRestaurant } from "@/lib/getRestaurant";
+import { createServerClient } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import CatalogClient from "./CatalogClient";
+import CatalogClient, { type PublicCoupon } from "./CatalogClient";
+
+const MAX_MENU_COUPONS = 3;
+
+async function getPublicCoupons(tenantId: string): Promise<PublicCoupon[]> {
+  try {
+    const db = createServerClient();
+    const { data } = await db
+      .from("coupons")
+      .select(
+        "code, discount_type, discount_value, min_order_amount, max_uses, uses, expires_at",
+      )
+      .eq("tenant_id", tenantId)
+      .eq("active", true)
+      .eq("show_in_menu", true)
+      .order("created_at", { ascending: false });
+    return (data ?? [])
+      .filter(
+        (c) =>
+          (c.max_uses === null || c.uses < c.max_uses) &&
+          (!c.expires_at || new Date(c.expires_at) > new Date()),
+      )
+      .slice(0, MAX_MENU_COUPONS)
+      .map((c) => ({
+        code: c.code,
+        discount_type: c.discount_type,
+        discount_value: c.discount_value,
+        min_order_amount: c.min_order_amount,
+      }));
+  } catch {
+    return [];
+  }
+}
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +82,8 @@ export default async function RestaurantPage({ params }: Props) {
   const { slug } = await params;
   const restaurant = await getRestaurant(slug);
   if (!restaurant) notFound();
+
+  const coupons = await getPublicCoupons(restaurant.id);
 
   const schemaOrg = {
     "@context": "https://schema.org",
@@ -101,7 +136,7 @@ export default async function RestaurantPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
       />
       <Suspense fallback={null}>
-        <CatalogClient restaurant={restaurant} />
+        <CatalogClient restaurant={restaurant} coupons={coupons} />
       </Suspense>
     </>
   );

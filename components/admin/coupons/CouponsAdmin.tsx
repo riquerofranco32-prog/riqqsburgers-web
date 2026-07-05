@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Percent } from "lucide-react";
+import { Plus, Trash2, Percent, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import type { Coupon } from "@/types/supabase";
 import { AdminModal } from "@/components/ui/admin/AdminModal";
@@ -15,6 +15,7 @@ interface CouponForm {
   min_order_amount: string;
   max_uses: string;
   expires_at: string;
+  show_in_menu: boolean;
 }
 
 const emptyForm: CouponForm = {
@@ -24,6 +25,7 @@ const emptyForm: CouponForm = {
   min_order_amount: "",
   max_uses: "",
   expires_at: "",
+  show_in_menu: true,
 };
 
 function fmtARS(n: number) {
@@ -144,6 +146,36 @@ function CouponModal({
           style={adminInputStyle}
         />
       </AdminField>
+
+      <label
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          cursor: "pointer",
+          fontSize: 14,
+          color: "var(--dash-text)",
+        }}
+      >
+        <input
+          type="checkbox"
+          checked={form.show_in_menu}
+          onChange={(e) => set("show_in_menu", e.target.checked)}
+          style={{ width: 18, height: 18, accentColor: "var(--accent)" }}
+        />
+        <span>
+          Mostrar en el menú público
+          <span
+            style={{
+              display: "block",
+              fontSize: 12,
+              color: "var(--dash-muted)",
+            }}
+          >
+            Los clientes van a ver el código como banner en tu menú
+          </span>
+        </span>
+      </label>
     </AdminModal>
   );
 }
@@ -173,6 +205,7 @@ export function CouponsAdmin({
             ? Number(form.min_order_amount)
             : null,
           max_uses: form.max_uses ? Number(form.max_uses) : null,
+          show_in_menu: form.show_in_menu,
           expires_at: form.expires_at
             ? new Date(form.expires_at).toISOString()
             : null,
@@ -210,6 +243,29 @@ export function CouponsAdmin({
       setCoupons((prev) =>
         prev.map((c) =>
           c.id === coupon.id ? { ...c, active: coupon.active } : c,
+        ),
+      );
+      toast.error("Error al actualizar el cupón");
+    }
+  }
+
+  async function toggleShowInMenu(coupon: Coupon) {
+    const next = !coupon.show_in_menu;
+    setCoupons((prev) =>
+      prev.map((c) => (c.id === coupon.id ? { ...c, show_in_menu: next } : c)),
+    );
+    try {
+      const res = await fetch(`/api/coupons/${coupon.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ show_in_menu: next }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(next ? "Visible en el menú" : "Oculto del menú");
+    } catch {
+      setCoupons((prev) =>
+        prev.map((c) =>
+          c.id === coupon.id ? { ...c, show_in_menu: coupon.show_in_menu } : c,
         ),
       );
       toast.error("Error al actualizar el cupón");
@@ -355,6 +411,41 @@ export function CouponsAdmin({
                       : ""}
                   </p>
                 </div>
+
+                <button
+                  onClick={() => toggleShowInMenu(c)}
+                  title={
+                    c.show_in_menu
+                      ? "Visible en el menú público — tocá para ocultar"
+                      : "Oculto del menú público — tocá para mostrar"
+                  }
+                  aria-label={
+                    c.show_in_menu
+                      ? "Ocultar del menú público"
+                      : "Mostrar en el menú público"
+                  }
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: c.show_in_menu
+                      ? "var(--accent)"
+                      : "var(--dash-muted)",
+                  }}
+                >
+                  {c.show_in_menu ? (
+                    <Eye className="w-4 h-4" />
+                  ) : (
+                    <EyeOff className="w-4 h-4" />
+                  )}
+                </button>
 
                 <button
                   onClick={() => toggleActive(c)}

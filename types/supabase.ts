@@ -113,6 +113,7 @@ export interface Coupon {
   max_uses: number | null;
   uses: number;
   active: boolean;
+  show_in_menu: boolean;
   expires_at: string | null;
   created_at: string;
 }

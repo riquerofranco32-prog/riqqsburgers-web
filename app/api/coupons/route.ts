@@ -100,8 +100,19 @@ export async function POST(req: NextRequest) {
     min_order_amount?: number | null;
     max_uses?: number | null;
     active?: boolean;
+    show_in_menu?: boolean;
     expires_at?: string | null;
   };
+
+  if (
+    body.show_in_menu !== undefined &&
+    typeof body.show_in_menu !== "boolean"
+  ) {
+    return NextResponse.json(
+      { error: "show_in_menu debe ser boolean" },
+      { status: 400 },
+    );
+  }
 
   if (!body.slug) {
     return NextResponse.json({ error: "Falta slug" }, { status: 400 });
@@ -132,6 +143,7 @@ export async function POST(req: NextRequest) {
       min_order_amount: body.min_order_amount ?? null,
       max_uses: body.max_uses ?? null,
       active: body.active ?? true,
+      show_in_menu: body.show_in_menu ?? false,
       expires_at: body.expires_at ?? null,
     })
     .select()
