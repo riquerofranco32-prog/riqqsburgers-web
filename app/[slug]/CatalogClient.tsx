@@ -4582,6 +4582,11 @@ export default function CatalogClient({
             primary_color: restaurant.primary_color,
             min_order_amount: restaurant.min_order_amount,
             prep_time_minutes: restaurant.prep_time_minutes,
+            delivery_mode: restaurant.delivery_mode ?? "none",
+            latitude: restaurant.latitude,
+            longitude: restaurant.longitude,
+            delivery_out_of_range_msg: restaurant.delivery_out_of_range_msg,
+            deliveryZones: restaurant.deliveryZones ?? [],
           }}
         />
         <style

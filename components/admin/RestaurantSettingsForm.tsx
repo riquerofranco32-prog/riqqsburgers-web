@@ -1,10 +1,19 @@
 "use client";
 
 import { useState, useRef } from "react";
+import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import type { Tenant } from "@/types/supabase";
 import type { BusinessHours } from "@/lib/businessHours";
 import BusinessHoursEditor from "@/components/admin/BusinessHoursEditor";
+import DeliveryZonesEditor from "@/components/admin/DeliveryZonesEditor";
+import DeliveryRangesEditor from "@/components/admin/DeliveryRangesEditor";
+import type { DeliveryPosition } from "@/components/AddressGeocodePicker";
+
+const AddressGeocodePicker = dynamic(
+  () => import("@/components/AddressGeocodePicker"),
+  { ssr: false },
+);
 
 interface Props {
   tenant: Tenant;
@@ -155,6 +164,13 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
     delivery_cost: tenant.delivery_cost ?? 0,
+    delivery_mode: tenant.delivery_mode ?? "none",
+    delivery_city_hint: tenant.delivery_city_hint ?? "",
+    delivery_out_of_range_msg:
+      tenant.delivery_out_of_range_msg ??
+      "Consultanos por WhatsApp el costo de envío a tu zona",
+    latitude: tenant.latitude ?? null,
+    longitude: tenant.longitude ?? null,
     min_order_amount: tenant.min_order_amount ?? null,
     prep_time_minutes: tenant.prep_time_minutes ?? null,
     primary_color: tenant.primary_color ?? "#FF6B35",
@@ -205,6 +221,15 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     }
     if (!form.whatsapp_number.trim()) {
       toast.error("El número de WhatsApp es obligatorio");
+      return;
+    }
+    if (
+      form.delivery_mode === "distance" &&
+      (form.latitude == null || form.longitude == null)
+    ) {
+      toast.error(
+        "Configurá la ubicación del local antes de activar distancia",
+      );
       return;
     }
 
@@ -305,34 +330,6 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 }}
               >
                 Con código de país sin +. Ej: 549261XXXXXXX
-              </p>
-            </div>
-
-            <div>
-              <label style={labelStyle}>Costo de envío (delivery)</label>
-              <input
-                type="number"
-                min={0}
-                step={1}
-                value={form.delivery_cost}
-                onChange={(e) => set("delivery_cost", Number(e.target.value))}
-                placeholder="0"
-                style={inputStyle}
-                onFocus={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--accent)")
-                }
-                onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--dash-border)")
-                }
-              />
-              <p
-                style={{
-                  fontSize: 11,
-                  color: "var(--dash-muted)",
-                  marginTop: 4,
-                }}
-              >
-                En pesos ARS. Poné 0 para delivery gratuito.
               </p>
             </div>
 
@@ -881,6 +878,151 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Envío */}
+      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4 w-full">
+        <p style={sectionTitleStyle}>Envío</p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gap: 10,
+          }}
+        >
+          {(
+            [
+              {
+                value: "none" as const,
+                label: "Solo retiro",
+                sub: "Sin delivery",
+              },
+              {
+                value: "zones" as const,
+                label: "Zonas",
+                sub: "Precio fijo por zona",
+              },
+              {
+                value: "distance" as const,
+                label: "Distancia",
+                sub: "Precio por km desde el local",
+              },
+            ] as const
+          ).map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => set("delivery_mode", opt.value)}
+              style={{
+                padding: "12px",
+                borderRadius: 10,
+                border: `2px solid ${form.delivery_mode === opt.value ? "var(--accent)" : "var(--dash-border)"}`,
+                background:
+                  form.delivery_mode === opt.value
+                    ? "var(--accent)"
+                    : "var(--dash-surface-2)",
+                color:
+                  form.delivery_mode === opt.value
+                    ? "#fff"
+                    : "var(--dash-text)",
+                cursor: "pointer",
+                textAlign: "left",
+                transition: "all 0.15s",
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{opt.label}</div>
+              <div style={{ fontSize: 11, marginTop: 2, opacity: 0.75 }}>
+                {opt.sub}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {form.delivery_mode !== "none" && (
+          <>
+            <div>
+              <label style={labelStyle}>Ubicación del local</label>
+              <AddressGeocodePicker
+                slug={tenant.slug}
+                fallbackCenter={
+                  form.latitude != null && form.longitude != null
+                    ? { lat: form.latitude, lng: form.longitude }
+                    : null
+                }
+                initialPosition={
+                  form.latitude != null && form.longitude != null
+                    ? {
+                        lat: form.latitude,
+                        lng: form.longitude,
+                        label: form.address || "Ubicación del local",
+                      }
+                    : null
+                }
+                onChange={(pos: DeliveryPosition) => {
+                  set("latitude", pos.lat);
+                  set("longitude", pos.lng);
+                }}
+              />
+              {form.delivery_mode === "distance" &&
+                (form.latitude == null || form.longitude == null) && (
+                  <p style={{ fontSize: 11, color: "#d97706", marginTop: 6 }}>
+                    Necesitás configurar la ubicación del local antes de activar
+                    el modo distancia.
+                  </p>
+                )}
+            </div>
+
+            <div>
+              <label style={labelStyle}>Pista de ciudad para el buscador</label>
+              <input
+                type="text"
+                value={form.delivery_city_hint}
+                onChange={(e) => set("delivery_city_hint", e.target.value)}
+                placeholder="Ej: San Rafael, Mendoza"
+                style={inputStyle}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--accent)")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--dash-border)")
+                }
+              />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Mensaje fuera de rango</label>
+              <input
+                type="text"
+                value={form.delivery_out_of_range_msg}
+                onChange={(e) =>
+                  set("delivery_out_of_range_msg", e.target.value)
+                }
+                style={inputStyle}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--accent)")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--dash-border)")
+                }
+              />
+            </div>
+          </>
+        )}
+
+        {form.delivery_mode === "zones" && (
+          <div>
+            <label style={labelStyle}>Zonas de entrega</label>
+            <DeliveryZonesEditor slug={tenant.slug} />
+          </div>
+        )}
+
+        {form.delivery_mode === "distance" && (
+          <div>
+            <label style={labelStyle}>Rangos de distancia</label>
+            <DeliveryRangesEditor slug={tenant.slug} />
+          </div>
+        )}
       </div>
 
       {/* Acciones — sticky en mobile */}

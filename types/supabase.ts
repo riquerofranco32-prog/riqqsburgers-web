@@ -25,6 +25,28 @@ export interface Tenant {
   plan: string;
   min_order_amount: number | null;
   created_at: string;
+  latitude: number | null;
+  longitude: number | null;
+  delivery_mode: "none" | "zones" | "distance";
+  delivery_city_hint: string | null;
+  delivery_out_of_range_msg: string;
+}
+
+export interface DeliveryZone {
+  id: string;
+  tenant_id: string;
+  name: string;
+  price: number;
+  active: boolean;
+  sort_order: number;
+}
+
+export interface DeliveryRange {
+  id: string;
+  tenant_id: string;
+  max_km: number;
+  price: number;
+  active: boolean;
 }
 
 export interface Subscription {
@@ -91,6 +113,11 @@ export interface Order {
   created_at: string;
   coupon_code: string | null;
   discount_amount: number | null;
+  delivery_address: string | null;
+  delivery_lat: number | null;
+  delivery_lng: number | null;
+  delivery_zone_name: string | null;
+  delivery_distance_km: number | null;
 }
 
 export interface Review {

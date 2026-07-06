@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import { MessageCircle, CheckCircle2 } from "lucide-react";
 import { trackGA4Event } from "@/lib/analytics";
 import { estimateMinutes } from "@/lib/eta";
+import AddressGeocodePicker, {
+  type DeliveryPosition,
+} from "@/components/AddressGeocodePicker";
 
 export interface CheckoutCartItem {
   id: string;
@@ -30,7 +33,20 @@ interface CheckoutModalProps {
     primary_color?: string;
     min_order_amount?: number | null;
     prep_time_minutes?: number | null;
+    delivery_mode?: "none" | "zones" | "distance";
+    latitude?: number | null;
+    longitude?: number | null;
+    delivery_out_of_range_msg?: string;
+    deliveryZones?: Array<{ id: string; name: string; price: number }>;
   };
+}
+
+interface DeliveryQuote {
+  price: number;
+  zoneName?: string;
+  distanceKm?: number;
+  outOfRange?: boolean;
+  message?: string;
 }
 
 type DeliveryType = "pickup" | "delivery";
@@ -91,8 +107,59 @@ export default function CheckoutModal({
     payment: "cash" as PaymentMethod,
   });
 
+  const deliveryMode = tenant.delivery_mode ?? "none";
+  const [zoneId, setZoneId] = useState("");
+  const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(
+    null,
+  );
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [deliveryPosition, setDeliveryPosition] =
+    useState<DeliveryPosition | null>(null);
+
   const deliveryCost =
-    form.delivery === "delivery" ? (tenant.delivery_cost ?? 0) : 0;
+    form.delivery === "delivery" ? (deliveryQuote?.price ?? 0) : 0;
+  const deliveryOutOfRange =
+    form.delivery === "delivery" && deliveryQuote?.outOfRange === true;
+
+  async function fetchZoneQuote(id: string) {
+    setZoneId(id);
+    if (!id) {
+      setDeliveryQuote(null);
+      return;
+    }
+    setQuoteLoading(true);
+    try {
+      const res = await fetch("/api/delivery/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: tenant.slug, zoneId: id }),
+      });
+      const data = (await res.json()) as DeliveryQuote & { error?: string };
+      setDeliveryQuote(res.ok ? data : null);
+    } catch {
+      setDeliveryQuote(null);
+    } finally {
+      setQuoteLoading(false);
+    }
+  }
+
+  async function handleAddressChange(pos: DeliveryPosition) {
+    setDeliveryPosition(pos);
+    setQuoteLoading(true);
+    try {
+      const res = await fetch("/api/delivery/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: tenant.slug, lat: pos.lat, lng: pos.lng }),
+      });
+      const data = (await res.json()) as DeliveryQuote & { error?: string };
+      setDeliveryQuote(res.ok ? data : null);
+    } catch {
+      setDeliveryQuote(null);
+    } finally {
+      setQuoteLoading(false);
+    }
+  }
 
   const etaMinutes = estimateMinutes(
     tenant.prep_time_minutes ?? null,
@@ -167,6 +234,9 @@ export default function CheckoutModal({
       setCouponInput("");
       setAppliedCoupon(null);
       setCouponError("");
+      setZoneId("");
+      setDeliveryQuote(null);
+      setDeliveryPosition(null);
       setForm({
         name: "",
         lastname: "",
@@ -262,7 +332,10 @@ export default function CheckoutModal({
         ? "Ingresá un teléfono válido"
         : "";
   const addressError =
-    touched.address && form.delivery === "delivery" && !form.address
+    touched.address &&
+    form.delivery === "delivery" &&
+    deliveryMode === "distance" &&
+    !form.address
       ? "Ingresá la dirección"
       : "";
 
@@ -276,8 +349,16 @@ export default function CheckoutModal({
       setError("Ingresá un teléfono válido");
       return;
     }
-    if (form.delivery === "delivery" && !form.address) {
+    if (
+      form.delivery === "delivery" &&
+      deliveryMode === "distance" &&
+      !form.address
+    ) {
       setError("Ingresá la dirección de entrega");
+      return;
+    }
+    if (form.delivery === "delivery" && deliveryMode === "zones" && !zoneId) {
+      setError("Elegí tu zona de entrega");
       return;
     }
     if (belowMinOrder) {
@@ -327,6 +408,23 @@ export default function CheckoutModal({
 
     const catalogUrl = `${window.location.origin}/${tenant.slug}`;
 
+    const deliveryLines: (string | null)[] =
+      form.delivery !== "delivery"
+        ? [`🏪 Retiro en local`]
+        : [
+            deliveryMode === "distance" && form.address
+              ? `📍 Dirección: ${form.address}`
+              : null,
+            deliveryMode === "distance" && deliveryPosition
+              ? `🗺️ https://www.google.com/maps?q=${deliveryPosition.lat},${deliveryPosition.lng}`
+              : null,
+            deliveryOutOfRange
+              ? `🚚 Envío: a coordinar (${tenant.delivery_out_of_range_msg ?? "consultar por WhatsApp"})`
+              : deliveryQuote
+                ? `🚚 Envío: ${fmt(deliveryQuote.price)} (${deliveryQuote.zoneName ?? `${deliveryQuote.distanceKm} km`})`
+                : null,
+          ];
+
     const lines = [
       `${E.wave} Vengo de ${catalogUrl}`,
       tempRef,
@@ -336,9 +434,7 @@ export default function CheckoutModal({
       ``,
       `Nombre: ${form.name} ${form.lastname}`,
       form.phone ? `Teléfono: ${form.phone}` : null,
-      form.delivery === "delivery" && form.address
-        ? `Dirección: ${form.address}`
-        : null,
+      ...deliveryLines,
       form.notes ? `Notas: ${form.notes}` : null,
       ``,
       `${E.memo} Productos`,
@@ -405,7 +501,24 @@ export default function CheckoutModal({
           payment_method: form.payment,
           customer_name: `${form.name} ${form.lastname}`.trim(),
           customer_phone: form.phone || null,
-          customer_address: form.delivery === "delivery" ? form.address : null,
+          customer_address:
+            form.delivery === "delivery"
+              ? deliveryMode === "distance"
+                ? form.address
+                : (deliveryQuote?.zoneName ?? null)
+              : null,
+          delivery_zone_id:
+            form.delivery === "delivery" && deliveryMode === "zones"
+              ? zoneId
+              : null,
+          delivery_lat:
+            form.delivery === "delivery" && deliveryMode === "distance"
+              ? (deliveryPosition?.lat ?? null)
+              : null,
+          delivery_lng:
+            form.delivery === "delivery" && deliveryMode === "distance"
+              ? (deliveryPosition?.lng ?? null)
+              : null,
           notes: form.notes || null,
           coupon_code: appliedCoupon?.code || null,
         }),
@@ -1186,13 +1299,14 @@ export default function CheckoutModal({
                 {phoneError && <span style={errorStyle}>{phoneError}</span>}
               </div>
 
-              {/* Delivery / Pickup */}
+              {/* Delivery / Pickup — el toggle solo aparece si el tenant ofrece delivery */}
               <div>
                 <label style={labelBase}>¿Cómo lo recibís? *</label>
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
+                    gridTemplateColumns:
+                      deliveryMode === "none" ? "1fr" : "1fr 1fr",
                     gap: 10,
                   }}
                 >
@@ -1202,14 +1316,18 @@ export default function CheckoutModal({
                       label: "Retiro en local",
                       sub: "Gratis",
                     },
-                    {
-                      value: "delivery" as DeliveryType,
-                      label: "Delivery",
-                      sub:
-                        (tenant.delivery_cost ?? 0) > 0
-                          ? `+$${(tenant.delivery_cost ?? 0).toLocaleString("es-AR")}`
-                          : "Consultar",
-                    },
+                    ...(deliveryMode === "none"
+                      ? []
+                      : [
+                          {
+                            value: "delivery" as DeliveryType,
+                            label: "Delivery",
+                            sub:
+                              deliveryMode === "zones"
+                                ? "Elegí tu zona"
+                                : "Calculamos según tu dirección",
+                          },
+                        ]),
                   ].map((opt) => (
                     <button
                       key={opt.value}
@@ -1252,25 +1370,91 @@ export default function CheckoutModal({
                 </p>
               </div>
 
-              {/* Dirección — solo si delivery */}
-              {form.delivery === "delivery" && (
-                <div>
+              {/* Zona de entrega — modo 'zones' */}
+              {form.delivery === "delivery" && deliveryMode === "zones" && (
+                <div className="animate-slide-up">
+                  <label style={labelBase}>Zona de entrega *</label>
+                  <select
+                    value={zoneId}
+                    onChange={(e) => void fetchZoneQuote(e.target.value)}
+                    style={inputBase}
+                    onFocus={(e) =>
+                      (e.currentTarget.style.borderColor = accent)
+                    }
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor = "var(--border)")
+                    }
+                  >
+                    <option value="">Elegí tu zona...</option>
+                    {(tenant.deliveryZones ?? []).map((z) => (
+                      <option key={z.id} value={z.id}>
+                        {z.name} — ${z.price.toLocaleString("es-AR")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Dirección con geocoding + mapa — modo 'distance' */}
+              {form.delivery === "delivery" && deliveryMode === "distance" && (
+                <div className="animate-slide-up">
                   <label style={labelBase}>Dirección de entrega *</label>
-                  <input
-                    style={{
-                      ...inputBase,
-                      borderColor: addressError ? "#ef4444" : "var(--border)",
+                  <AddressGeocodePicker
+                    slug={tenant.slug}
+                    fallbackCenter={
+                      tenant.latitude != null && tenant.longitude != null
+                        ? { lat: tenant.latitude, lng: tenant.longitude }
+                        : null
+                    }
+                    onChange={(pos) => {
+                      set("address", pos.label);
+                      touch("address");
+                      void handleAddressChange(pos);
                     }}
-                    placeholder="Av. Corrientes 1234, CABA"
-                    inputMode="text"
-                    autoComplete="street-address"
-                    value={form.address}
-                    onChange={(e) => set("address", e.target.value)}
-                    onBlur={() => touch("address")}
-                    onFocus={(e) => (e.target.style.borderColor = accent)}
                   />
                   {addressError && (
                     <span style={errorStyle}>{addressError}</span>
+                  )}
+                  {quoteLoading && (
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--text-secondary)",
+                        marginTop: 6,
+                      }}
+                    >
+                      Calculando envío...
+                    </p>
+                  )}
+                  {deliveryOutOfRange && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        background: "var(--surface-2)",
+                        border: "1px solid var(--border)",
+                        fontSize: 12,
+                        color: "var(--text-secondary)",
+                      }}
+                    >
+                      {tenant.delivery_out_of_range_msg ??
+                        "Consultanos por WhatsApp el costo de envío a tu zona"}{" "}
+                      — podés enviar el pedido igual, coordinamos el envío por
+                      WhatsApp.
+                    </div>
+                  )}
+                  {deliveryQuote && !deliveryOutOfRange && (
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--text-secondary)",
+                        marginTop: 6,
+                      }}
+                    >
+                      Envío: ${deliveryQuote.price.toLocaleString("es-AR")} (~
+                      {deliveryQuote.distanceKm} km)
+                    </p>
                   )}
                 </div>
               )}

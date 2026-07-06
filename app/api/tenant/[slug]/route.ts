@@ -23,6 +23,11 @@ const ALLOWED_FIELDS = [
   "min_order_amount",
   "business_hours",
   "prep_time_minutes",
+  "latitude",
+  "longitude",
+  "delivery_mode",
+  "delivery_city_hint",
+  "delivery_out_of_range_msg",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -102,6 +107,8 @@ export async function PATCH(
     schedule: 500,
     instagram_handle: 100,
     whatsapp_number: 30,
+    delivery_city_hint: 150,
+    delivery_out_of_range_msg: 300,
   };
   for (const [field, maxLen] of Object.entries(STRING_LIMITS) as [
     AllowedField,
@@ -155,6 +162,48 @@ export async function PATCH(
         { error: "Tiempo de preparación inválido" },
         { status: 400 },
       );
+    }
+  }
+
+  if (
+    "delivery_mode" in patch &&
+    !["none", "zones", "distance"].includes(patch.delivery_mode as string)
+  ) {
+    return NextResponse.json(
+      { error: "delivery_mode inválido" },
+      { status: 400 },
+    );
+  }
+
+  if (patch.delivery_mode === "distance") {
+    const supabaseCheck = createServerClient();
+    const { data: current } = await supabaseCheck
+      .from("tenants")
+      .select("latitude, longitude")
+      .eq("slug", slug)
+      .maybeSingle();
+    const lat = "latitude" in patch ? patch.latitude : current?.latitude;
+    const lng = "longitude" in patch ? patch.longitude : current?.longitude;
+    if (lat == null || lng == null) {
+      return NextResponse.json(
+        {
+          error:
+            "Configurá la ubicación del local antes de activar el modo distancia",
+        },
+        { status: 400 },
+      );
+    }
+  }
+
+  for (const coordField of ["latitude", "longitude"] as const) {
+    if (coordField in patch && patch[coordField] !== null) {
+      const val = patch[coordField];
+      if (typeof val !== "number" || !Number.isFinite(val)) {
+        return NextResponse.json(
+          { error: `${coordField} inválida` },
+          { status: 400 },
+        );
+      }
     }
   }
 

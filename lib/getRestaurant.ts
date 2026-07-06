@@ -6,6 +6,7 @@ import {
   getAllTenants,
   getTenantProducts,
   getTenantCategories,
+  getTenantDeliveryZones,
 } from "./tenants";
 import { createServerClient } from "./supabase";
 import { computeEffectiveOpen, type BusinessHours } from "./businessHours";
@@ -65,6 +66,12 @@ export interface Restaurant {
   min_order_amount: number | null;
   rating: { avg: number; count: number } | null;
   brand: RestaurantBrand | null;
+  latitude: number | null;
+  longitude: number | null;
+  delivery_mode: "none" | "zones" | "distance";
+  delivery_city_hint: string | null;
+  delivery_out_of_range_msg: string;
+  deliveryZones: Array<{ id: string; name: string; price: number }>;
   menu: {
     categories: MenuCategory[];
   };
@@ -127,6 +134,7 @@ function mapToRestaurant(
   products: Product[],
   topProductId?: string | null,
   ratingSummary?: { avg: number; count: number } | null,
+  deliveryZones: Array<{ id: string; name: string; price: number }> = [],
 ): Restaurant {
   return {
     id: tenant.id,
@@ -157,6 +165,14 @@ function mapToRestaurant(
     min_order_amount: tenant.min_order_amount ?? null,
     rating: ratingSummary ?? null,
     brand: (tenant.brand as RestaurantBrand | null) ?? null,
+    latitude: tenant.latitude ?? null,
+    longitude: tenant.longitude ?? null,
+    delivery_mode: tenant.delivery_mode ?? "none",
+    delivery_city_hint: tenant.delivery_city_hint ?? null,
+    delivery_out_of_range_msg:
+      tenant.delivery_out_of_range_msg ??
+      "Consultanos por WhatsApp el costo de envío a tu zona",
+    deliveryZones,
     menu: {
       categories: (() => {
         const assignedIds = new Set(categories.map((c) => c.id));
@@ -232,12 +248,15 @@ export async function getRestaurant(slug: string): Promise<Restaurant | null> {
   try {
     const tenant = await getActiveTenant(slug);
     if (tenant) {
-      const [categories, products, topProductId, ratingSummary] =
+      const [categories, products, topProductId, ratingSummary, deliveryZones] =
         await Promise.all([
           getTenantCategories(tenant.id),
           getTenantProducts(tenant.id),
           getTopProductId(tenant.id),
           getRatingSummary(tenant.id),
+          tenant.delivery_mode === "zones"
+            ? getTenantDeliveryZones(tenant.id)
+            : Promise.resolve([]),
         ]);
       return mapToRestaurant(
         tenant,
@@ -245,6 +264,7 @@ export async function getRestaurant(slug: string): Promise<Restaurant | null> {
         products,
         topProductId,
         ratingSummary,
+        deliveryZones,
       );
     }
   } catch {}

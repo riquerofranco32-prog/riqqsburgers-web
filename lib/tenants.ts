@@ -1,6 +1,6 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { createServerClient } from "./supabase";
-import type { Tenant, Category, Product } from "@/types/supabase";
+import type { Tenant, Category, Product, DeliveryZone } from "@/types/supabase";
 
 export type { Tenant };
 
@@ -68,4 +68,18 @@ export async function getTenantCategories(
     .eq("active", true)
     .order("sort_order");
   return (data ?? []) as Category[];
+}
+
+export async function getTenantDeliveryZones(
+  tenantId: string,
+): Promise<DeliveryZone[]> {
+  noStore();
+  const supabase = createServerClient();
+  const { data } = await supabase
+    .from("delivery_zones")
+    .select("*")
+    .eq("tenant_id", tenantId)
+    .eq("active", true)
+    .order("sort_order");
+  return (data ?? []) as DeliveryZone[];
 }

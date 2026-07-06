@@ -5,6 +5,7 @@ import { safeDbError } from "@/lib/db-error";
 import { sendPushToTenant } from "@/lib/push";
 import { validateCoupon } from "@/lib/coupons";
 import { computeEffectiveOpen, type BusinessHours } from "@/lib/businessHours";
+import { resolveZonePrice, resolveDistancePrice } from "@/lib/delivery";
 
 // ponytail: in-memory rate limit per IP, resets on cold start. Upgrade to Upstash if abuse is reported.
 const ipBucket = new Map<string, number[]>();
@@ -37,6 +38,9 @@ interface CreateOrderBody {
   customer_address?: string | null;
   notes?: string | null;
   coupon_code?: string | null;
+  delivery_zone_id?: string | null;
+  delivery_lat?: number | null;
+  delivery_lng?: number | null;
 }
 
 function generateRef(): string {
@@ -130,7 +134,9 @@ export async function POST(req: NextRequest) {
   // Verificar que el tenant existe y está activo
   const { data: tenant, error: tenantError } = await supabase
     .from("tenants")
-    .select("id, slug, delivery_cost, active, is_open, business_hours")
+    .select(
+      "id, slug, delivery_cost, active, is_open, business_hours, delivery_mode, latitude, longitude, delivery_out_of_range_msg",
+    )
     .eq("id", tenant_id)
     .single();
 
@@ -257,8 +263,57 @@ export async function POST(req: NextRequest) {
     discountAmount = result.discountAmount!;
   }
 
-  const deliveryCost =
-    delivery_type === "delivery" ? (tenant.delivery_cost ?? 0) : 0;
+  // El precio de envío nunca viene del cliente — se recalcula acá con la
+  // misma lógica pura que usa /api/delivery/quote, a partir del modo y las
+  // zonas/rangos reales del tenant en la DB.
+  let deliveryCost = 0;
+  let deliveryZoneName: string | null = null;
+  let deliveryDistanceKm: number | null = null;
+
+  if (delivery_type === "delivery") {
+    if (tenant.delivery_mode === "zones" && body.delivery_zone_id) {
+      const { data: zones } = await supabase
+        .from("delivery_zones")
+        .select("id, name, price")
+        .eq("tenant_id", tenant_id)
+        .eq("active", true);
+      const result = resolveZonePrice(zones ?? [], body.delivery_zone_id);
+      if (result) {
+        deliveryCost = result.price;
+        deliveryZoneName = result.zoneName ?? null;
+      }
+    } else if (
+      tenant.delivery_mode === "distance" &&
+      typeof body.delivery_lat === "number" &&
+      typeof body.delivery_lng === "number" &&
+      tenant.latitude !== null &&
+      tenant.longitude !== null
+    ) {
+      const { data: ranges } = await supabase
+        .from("delivery_ranges")
+        .select("max_km, price")
+        .eq("tenant_id", tenant_id)
+        .eq("active", true);
+      const result = resolveDistancePrice(
+        ranges ?? [],
+        tenant.latitude,
+        tenant.longitude,
+        body.delivery_lat,
+        body.delivery_lng,
+        tenant.delivery_out_of_range_msg,
+      );
+      deliveryDistanceKm = result.distanceKm ?? null;
+      if (!result.outOfRange) deliveryCost = result.price;
+    } else if (
+      tenant.delivery_mode !== "zones" &&
+      tenant.delivery_mode !== "distance"
+    ) {
+      // Compat: tenants sin modo configurado todavía (delivery_mode='none'
+      // pero con delivery_cost fijo heredado de antes de esta migración).
+      deliveryCost = tenant.delivery_cost ?? 0;
+    }
+  }
+
   const total = subtotal + deliveryCost - discountAmount;
 
   // Armar los items enriquecidos con nombre y precio real
@@ -303,6 +358,14 @@ export async function POST(req: NextRequest) {
       items: enrichedItems,
       subtotal,
       delivery_cost: deliveryCost,
+      delivery_address:
+        delivery_type === "delivery" ? body.customer_address || null : null,
+      delivery_lat:
+        delivery_type === "delivery" ? (body.delivery_lat ?? null) : null,
+      delivery_lng:
+        delivery_type === "delivery" ? (body.delivery_lng ?? null) : null,
+      delivery_zone_name: deliveryZoneName,
+      delivery_distance_km: deliveryDistanceKm,
       total,
       status: "pending",
       coupon_code: body.coupon_code || null,
