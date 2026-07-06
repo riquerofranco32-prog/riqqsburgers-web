@@ -4284,7 +4284,7 @@ export default function HomeClient({
               </div>
             </motion.div>
 
-            {/* Card 2 — Riqq's Burgers */}
+            {/* Card 2 — Mano a mano */}
             <motion.div
               className="flex flex-col justify-between gap-8"
               initial={{ opacity: 0, y: 24 }}
@@ -4366,11 +4366,11 @@ export default function HomeClient({
                       marginBottom: 20,
                     }}
                   >
-                    &ldquo;Takefyy nos cambió la forma de trabajar en Catriel.
-                    Antes nos volvíamos locos atendiendo llamadas y copiando
-                    pedidos del chat. Ahora los clientes arman el pedido solos y
-                    nos llega todo ordenado para cocinar. El ticket promedio
-                    subió un 25% gracias a las sugerencias del carrito.&rdquo;
+                    &ldquo;Takefyy nos cambió la forma de trabajar. Antes nos
+                    volvíamos locos atendiendo llamadas y copiando pedidos del
+                    chat. Ahora los clientes arman el pedido solos y nos llega
+                    todo ordenado para cocinar. El ticket promedio subió un 25%
+                    gracias a las sugerencias del carrito.&rdquo;
                   </p>
 
                   {/* Improvements list */}
@@ -4420,8 +4420,8 @@ export default function HomeClient({
                   {/* Restaurant Logo */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/riqqsburgers/logo_url.png"
-                    alt="Riqq's Burgers logo"
+                    src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/manoamano/logo_url.jpg?t=1783045331567"
+                    alt="Mano a mano logo"
                     loading="lazy"
                     decoding="async"
                     style={{
@@ -4436,10 +4436,10 @@ export default function HomeClient({
                     <div
                       style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}
                     >
-                      Riqq&apos;s Burgers
+                      Mano a mano
                     </div>
                     <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-                      Amor a primera mordida 🍔 · Catriel, Río Negro
+                      Hamburguesería de barrio
                     </div>
                   </div>
                 </div>
@@ -4480,7 +4480,7 @@ export default function HomeClient({
                       Muestra del Menú
                     </span>
                     <a
-                      href="/riqqsburgers"
+                      href="/manoamano"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -4503,22 +4503,22 @@ export default function HomeClient({
                   >
                     {[
                       {
-                        name: "Bacon",
-                        price: "$10.500",
-                        desc: "Smash, cheddar, panceta ahumada, cebolla crispy",
-                        img: "/bacon.jpeg",
+                        name: "Avocado",
+                        price: "$14.000",
+                        desc: "Cheddar, medallón 110g, palta, panceta ahumada",
+                        img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/manoamano/d0d28a8d-6bf7-4b75-8fe5-a4ffadb739de-1783045208106.jpeg",
                       },
                       {
-                        name: "American",
-                        price: "$9.500",
-                        desc: "Smash, cheddar, tomate, lechuga, cebolla morada",
-                        img: "/american.jpeg",
+                        name: "Especial",
+                        price: "$13.500",
+                        desc: "Cheddar, panceta ahumada, cebolla caramelizada",
+                        img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/manoamano/d5c40bd8-efac-42da-988b-619f6f20e73b-1783100779096.jpeg",
                       },
                       {
-                        name: "Paltum",
-                        price: "$11.000",
-                        desc: "Smash, cheddar, panceta ahumada y palta",
-                        img: "/paltum.jpeg",
+                        name: "Completa",
+                        price: "$13.500",
+                        desc: "Cheddar, panceta ahumada, lechuga, tomate, cebolla",
+                        img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/manoamano/b171df58-bfaf-46e8-95a8-ab9fcb707664-1783097968547.jpeg",
                       },
                     ].map((item) => (
                       <div

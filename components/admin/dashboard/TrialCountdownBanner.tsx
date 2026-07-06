@@ -78,8 +78,8 @@ export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
               lineHeight: 1.3,
             }}
           >
-            Cuando termine volvés al plan Starter: máx. 5 productos, sin
-            analytics ni personalización de marca.
+            Cuando termine volvés al plan Starter: sin analytics ni
+            personalización de marca (productos y categorías siguen ilimitados).
           </p>
         </div>
       </div>

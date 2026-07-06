@@ -93,8 +93,8 @@ export default function PlanCard({
               }}
             >
               Cuando termine la prueba volvés automáticamente al plan Starter:
-              perdés analytics, personalización de marca y bajás de 50 a 5
-              productos permitidos.{" "}
+              perdés analytics y personalización de marca (productos y
+              categorías siguen ilimitados).{" "}
               <a
                 href={WHATSAPP_SUPPORT}
                 target="_blank"
