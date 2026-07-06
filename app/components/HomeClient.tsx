@@ -4135,14 +4135,16 @@ export default function HomeClient({
               <div className="flex flex-col justify-center relative z-10">
                 <div
                   style={{
-                    background: "#161920",
-                    borderRadius: 16,
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    padding: 16,
+                    background:
+                      "linear-gradient(165deg, #1c2029 0%, #14161c 100%)",
+                    borderRadius: 18,
+                    border: "1px solid rgba(255,107,53,0.22)",
+                    padding: 18,
                     display: "flex",
                     flexDirection: "column",
                     gap: 12,
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+                    boxShadow:
+                      "0 24px 48px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,107,53,0.05) inset",
                   }}
                 >
                   <div
@@ -4150,8 +4152,8 @@ export default function HomeClient({
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      borderBottom: "1px solid rgba(255,255,255,0.06)",
-                      paddingBottom: 8,
+                      borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      paddingBottom: 10,
                     }}
                   >
                     <span
@@ -4161,18 +4163,21 @@ export default function HomeClient({
                         color: "var(--accent)",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
                       }}
                     >
-                      Muestra del Menú
+                      🔥 Muestra del Menú
                     </span>
                     <a
                       href="/larryssburgers"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        fontSize: 10,
+                        fontSize: 11,
                         color: "#F5C518",
-                        fontWeight: 600,
+                        fontWeight: 700,
                         textDecoration: "none",
                       }}
                     >
@@ -4193,31 +4198,59 @@ export default function HomeClient({
                         price: "$10.000",
                         desc: "Doble smash, cheddar, salsa Larry",
                         img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg",
+                        top: true,
                       },
                       {
                         name: "Bacon Larry",
                         price: "$10.500",
                         desc: "Doble smash, cheddar, bacon caramelizado",
                         img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg",
+                        top: false,
                       },
                       {
                         name: "Ultra Chesse",
                         price: "$10.500",
                         desc: "Doble smash, cuádruple cheddar, alioli",
                         img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg",
+                        top: false,
                       },
                     ].map((item) => (
-                      <div
+                      <motion.div
                         key={item.name}
+                        whileHover={{ scale: 1.03, y: -2 }}
+                        transition={{ duration: 0.18 }}
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 10,
-                          background: "#1E222B",
-                          padding: 8,
-                          borderRadius: 10,
+                          gap: 12,
+                          background:
+                            "linear-gradient(135deg, #21252f 0%, #1b1e26 100%)",
+                          padding: 10,
+                          borderRadius: 14,
+                          border: "1px solid rgba(255,255,255,0.05)",
+                          position: "relative",
                         }}
                       >
+                        {item.top && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              top: -8,
+                              left: 10,
+                              background: "var(--accent)",
+                              color: "#fff",
+                              fontSize: 8,
+                              fontWeight: 800,
+                              padding: "2px 7px",
+                              borderRadius: 999,
+                              letterSpacing: "0.04em",
+                              textTransform: "uppercase",
+                              boxShadow: "0 2px 8px rgba(255,107,53,0.5)",
+                            }}
+                          >
+                            ★ Más pedido
+                          </span>
+                        )}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.img}
@@ -4225,12 +4258,14 @@ export default function HomeClient({
                           loading="lazy"
                           decoding="async"
                           style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 6,
+                            width: 58,
+                            height: 58,
+                            borderRadius: 12,
                             objectFit: "cover",
-                            outline: "1px solid rgba(255,255,255,0.08)",
-                            outlineOffset: -1,
+                            flexShrink: 0,
+                            outline: "2px solid rgba(255,107,53,0.25)",
+                            outlineOffset: -2,
+                            boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
                           }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -4243,7 +4278,7 @@ export default function HomeClient({
                           >
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: 700,
                                 color: "#fff",
                                 whiteSpace: "nowrap",
@@ -4255,7 +4290,7 @@ export default function HomeClient({
                             </span>
                             <span
                               style={{
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: 800,
                                 color: "#F5C518",
                                 marginLeft: 4,
@@ -4266,18 +4301,18 @@ export default function HomeClient({
                           </div>
                           <p
                             style={{
-                              fontSize: 9,
-                              color: "rgba(255,255,255,0.45)",
+                              fontSize: 10,
+                              color: "rgba(255,255,255,0.5)",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              marginTop: 1,
+                              marginTop: 2,
                             }}
                           >
                             {item.desc}
                           </p>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
@@ -4439,7 +4474,7 @@ export default function HomeClient({
                       Mano a mano
                     </div>
                     <div style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-                      Hamburguesería de barrio
+                      Mano a mano del mejor sabor 😉🥊🍔
                     </div>
                   </div>
                 </div>
@@ -4449,14 +4484,16 @@ export default function HomeClient({
               <div className="flex flex-col justify-center relative z-10">
                 <div
                   style={{
-                    background: "#161920",
-                    borderRadius: 16,
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    padding: 16,
+                    background:
+                      "linear-gradient(165deg, #1c2029 0%, #14161c 100%)",
+                    borderRadius: 18,
+                    border: "1px solid rgba(255,107,53,0.22)",
+                    padding: 18,
                     display: "flex",
                     flexDirection: "column",
                     gap: 12,
-                    boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+                    boxShadow:
+                      "0 24px 48px rgba(0,0,0,0.38), 0 0 0 1px rgba(255,107,53,0.05) inset",
                   }}
                 >
                   <div
@@ -4464,8 +4501,8 @@ export default function HomeClient({
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      borderBottom: "1px solid rgba(255,255,255,0.06)",
-                      paddingBottom: 8,
+                      borderBottom: "1px solid rgba(255,255,255,0.08)",
+                      paddingBottom: 10,
                     }}
                   >
                     <span
@@ -4475,18 +4512,21 @@ export default function HomeClient({
                         color: "var(--accent)",
                         letterSpacing: "0.06em",
                         textTransform: "uppercase",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
                       }}
                     >
-                      Muestra del Menú
+                      🔥 Muestra del Menú
                     </span>
                     <a
                       href="/manoamano"
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        fontSize: 10,
+                        fontSize: 11,
                         color: "#F5C518",
-                        fontWeight: 600,
+                        fontWeight: 700,
                         textDecoration: "none",
                       }}
                     >
@@ -4507,31 +4547,59 @@ export default function HomeClient({
                         price: "$14.000",
                         desc: "Cheddar, medallón 110g, palta, panceta ahumada",
                         img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/manoamano/d0d28a8d-6bf7-4b75-8fe5-a4ffadb739de-1783045208106.jpeg",
+                        top: true,
                       },
                       {
                         name: "Especial",
                         price: "$13.500",
                         desc: "Cheddar, panceta ahumada, cebolla caramelizada",
                         img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/manoamano/d5c40bd8-efac-42da-988b-619f6f20e73b-1783100779096.jpeg",
+                        top: false,
                       },
                       {
                         name: "Completa",
                         price: "$13.500",
                         desc: "Cheddar, panceta ahumada, lechuga, tomate, cebolla",
                         img: "https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/manoamano/b171df58-bfaf-46e8-95a8-ab9fcb707664-1783097968547.jpeg",
+                        top: false,
                       },
                     ].map((item) => (
-                      <div
+                      <motion.div
                         key={item.name}
+                        whileHover={{ scale: 1.03, y: -2 }}
+                        transition={{ duration: 0.18 }}
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 10,
-                          background: "#1E222B",
-                          padding: 8,
-                          borderRadius: 10,
+                          gap: 12,
+                          background:
+                            "linear-gradient(135deg, #21252f 0%, #1b1e26 100%)",
+                          padding: 10,
+                          borderRadius: 14,
+                          border: "1px solid rgba(255,255,255,0.05)",
+                          position: "relative",
                         }}
                       >
+                        {item.top && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              top: -8,
+                              left: 10,
+                              background: "var(--accent)",
+                              color: "#fff",
+                              fontSize: 8,
+                              fontWeight: 800,
+                              padding: "2px 7px",
+                              borderRadius: 999,
+                              letterSpacing: "0.04em",
+                              textTransform: "uppercase",
+                              boxShadow: "0 2px 8px rgba(255,107,53,0.5)",
+                            }}
+                          >
+                            ★ Más pedido
+                          </span>
+                        )}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.img}
@@ -4539,12 +4607,14 @@ export default function HomeClient({
                           loading="lazy"
                           decoding="async"
                           style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 6,
+                            width: 58,
+                            height: 58,
+                            borderRadius: 12,
                             objectFit: "cover",
-                            outline: "1px solid rgba(255,255,255,0.08)",
-                            outlineOffset: -1,
+                            flexShrink: 0,
+                            outline: "2px solid rgba(255,107,53,0.25)",
+                            outlineOffset: -2,
+                            boxShadow: "0 4px 14px rgba(0,0,0,0.35)",
                           }}
                         />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -4557,7 +4627,7 @@ export default function HomeClient({
                           >
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: 700,
                                 color: "#fff",
                                 whiteSpace: "nowrap",
@@ -4569,7 +4639,7 @@ export default function HomeClient({
                             </span>
                             <span
                               style={{
-                                fontSize: 10,
+                                fontSize: 12,
                                 fontWeight: 800,
                                 color: "#F5C518",
                                 marginLeft: 4,
@@ -4580,18 +4650,18 @@ export default function HomeClient({
                           </div>
                           <p
                             style={{
-                              fontSize: 9,
-                              color: "rgba(255,255,255,0.45)",
+                              fontSize: 10,
+                              color: "rgba(255,255,255,0.5)",
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
-                              marginTop: 1,
+                              marginTop: 2,
                             }}
                           >
                             {item.desc}
                           </p>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
