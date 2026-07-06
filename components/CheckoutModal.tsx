@@ -338,7 +338,7 @@ export default function CheckoutModal({
   const addressError =
     touched.address &&
     form.delivery === "delivery" &&
-    deliveryMode === "distance" &&
+    (deliveryMode === "distance" || deliveryMode === "fixed") &&
     !form.address
       ? "Ingresá la dirección"
       : "";
@@ -355,7 +355,7 @@ export default function CheckoutModal({
     }
     if (
       form.delivery === "delivery" &&
-      deliveryMode === "distance" &&
+      (deliveryMode === "distance" || deliveryMode === "fixed") &&
       !form.address
     ) {
       setError("Ingresá la dirección de entrega");
@@ -416,17 +416,20 @@ export default function CheckoutModal({
       form.delivery !== "delivery"
         ? [`🏪 Retiro en local`]
         : [
-            deliveryMode === "distance" && form.address
+            (deliveryMode === "distance" || deliveryMode === "fixed") &&
+            form.address
               ? `📍 Dirección: ${form.address}`
               : null,
             deliveryMode === "distance" && deliveryPosition
               ? `🗺️ https://www.google.com/maps?q=${deliveryPosition.lat},${deliveryPosition.lng}`
               : null,
-            deliveryOutOfRange
-              ? `🚚 Envío: a coordinar (${tenant.delivery_out_of_range_msg ?? "consultar por WhatsApp"})`
-              : deliveryQuote
-                ? `🚚 Envío: ${fmt(deliveryQuote.price)} (${deliveryQuote.zoneName ?? `${deliveryQuote.distanceKm} km`})`
-                : null,
+            deliveryMode === "fixed"
+              ? `🚚 Envío: ${fmt(deliveryCost)}`
+              : deliveryOutOfRange
+                ? `🚚 Envío: a coordinar (${tenant.delivery_out_of_range_msg ?? "consultar por WhatsApp"})`
+                : deliveryQuote
+                  ? `🚚 Envío: ${fmt(deliveryQuote.price)} (${deliveryQuote.zoneName ?? `${deliveryQuote.distanceKm} km`})`
+                  : null,
           ];
 
     const lines = [
@@ -507,7 +510,7 @@ export default function CheckoutModal({
           customer_phone: form.phone || null,
           customer_address:
             form.delivery === "delivery"
-              ? deliveryMode === "distance"
+              ? deliveryMode === "distance" || deliveryMode === "fixed"
                 ? form.address
                 : (deliveryQuote?.zoneName ?? null)
               : null,
@@ -1327,9 +1330,13 @@ export default function CheckoutModal({
                             value: "delivery" as DeliveryType,
                             label: "Delivery",
                             sub:
-                              deliveryMode === "zones"
-                                ? "Elegí tu zona"
-                                : "Calculamos según tu dirección",
+                              deliveryMode === "fixed"
+                                ? (tenant.delivery_cost ?? 0) > 0
+                                  ? `+$${(tenant.delivery_cost ?? 0).toLocaleString("es-AR")}`
+                                  : "Gratis"
+                                : deliveryMode === "zones"
+                                  ? "Elegí tu zona"
+                                  : "Calculamos según tu dirección",
                           },
                         ]),
                   ].map((opt) => (
@@ -1373,6 +1380,29 @@ export default function CheckoutModal({
                   ⏱️ Estimado: ~{etaMinutes} min
                 </p>
               </div>
+
+              {/* Dirección de texto libre — modo 'fixed' (costo único, sin geocoding) */}
+              {form.delivery === "delivery" && deliveryMode === "fixed" && (
+                <div className="animate-slide-up">
+                  <label style={labelBase}>Dirección de entrega *</label>
+                  <input
+                    style={{
+                      ...inputBase,
+                      borderColor: addressError ? "#ef4444" : "var(--border)",
+                    }}
+                    placeholder="Av. Corrientes 1234, CABA"
+                    inputMode="text"
+                    autoComplete="street-address"
+                    value={form.address}
+                    onChange={(e) => set("address", e.target.value)}
+                    onBlur={() => touch("address")}
+                    onFocus={(e) => (e.target.style.borderColor = accent)}
+                  />
+                  {addressError && (
+                    <span style={errorStyle}>{addressError}</span>
+                  )}
+                </div>
+              )}
 
               {/* Zona de entrega — modo 'zones' */}
               {form.delivery === "delivery" && deliveryMode === "zones" && (

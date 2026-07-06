@@ -304,14 +304,11 @@ export async function POST(req: NextRequest) {
       );
       deliveryDistanceKm = result.distanceKm ?? null;
       if (!result.outOfRange) deliveryCost = result.price;
-    } else if (
-      tenant.delivery_mode !== "zones" &&
-      tenant.delivery_mode !== "distance"
-    ) {
-      // Compat: tenants sin modo configurado todavía (delivery_mode='none'
-      // pero con delivery_cost fijo heredado de antes de esta migración).
+    } else if (tenant.delivery_mode === "fixed") {
       deliveryCost = tenant.delivery_cost ?? 0;
     }
+    // delivery_mode === 'none': deliveryCost se queda en 0 aunque el
+    // cliente mande delivery_type "delivery" — el tenant no ofrece envío.
   }
 
   const total = subtotal + deliveryCost - discountAmount;
