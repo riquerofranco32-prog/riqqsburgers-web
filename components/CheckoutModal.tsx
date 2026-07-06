@@ -349,6 +349,12 @@ export default function CheckoutModal({
       setError("Marcá tu ubicación en el mapa para calcular la zona");
       return;
     }
+    if (deliveryOutOfRange) {
+      setError(
+        deliveryQuote?.message ?? "Tu dirección está fuera del área de entrega",
+      );
+      return;
+    }
     if (belowMinOrder) {
       setError(
         `El monto mínimo para delivery es $${minOrderAmount!.toLocaleString("es-AR")}`,
@@ -400,11 +406,7 @@ export default function CheckoutModal({
       form.delivery !== "delivery"
         ? [`🏪 Retiro en local`]
         : [
-            (deliveryMode === "distance" || deliveryMode === "fixed") &&
-            form.address
-              ? `📍 Dirección: ${form.address}`
-              : null,
-            (deliveryMode === "distance" || deliveryMode === "fixed") &&
+            form.address ? `📍 Dirección: ${form.address}` : null,
             deliveryPosition
               ? `🗺️ https://www.google.com/maps?q=${deliveryPosition.lat},${deliveryPosition.lng}`
               : null,

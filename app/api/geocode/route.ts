@@ -178,10 +178,12 @@ export async function GET(req: NextRequest) {
     .eq("active", true)
     .maybeSingle();
 
-  if (
-    !tenant ||
-    !["distance", "fixed", "zones"].includes(tenant.delivery_mode)
-  ) {
+  // No se filtra por delivery_mode: un admin recién eligiendo "Zonas" o
+  // "Distancia" (sin guardar el form todavía) necesita geocodificar antes
+  // de que el modo quede persistido en la DB — filtrar por modo actual
+  // creaba ese huevo-y-gallina. El endpoint ya no tiene rate-limit propio
+  // (ver comentario arriba), así que este chequeo no protegía nada real.
+  if (!tenant) {
     return NextResponse.json({ error: "No disponible" }, { status: 404 });
   }
 

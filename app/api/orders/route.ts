@@ -299,10 +299,14 @@ export async function POST(req: NextRequest) {
         body.delivery_lng,
         tenant.delivery_out_of_range_msg,
       );
-      if (!result.outOfRange) {
-        deliveryCost = result.price;
-        deliveryZoneName = result.zoneName ?? null;
+      if (result.outOfRange) {
+        return NextResponse.json(
+          { error: result.message ?? "Fuera del área de entrega" },
+          { status: 400 },
+        );
       }
+      deliveryCost = result.price;
+      deliveryZoneName = result.zoneName ?? null;
     } else if (
       tenant.delivery_mode === "distance" &&
       typeof body.delivery_lat === "number" &&
@@ -323,8 +327,14 @@ export async function POST(req: NextRequest) {
         body.delivery_lng,
         tenant.delivery_out_of_range_msg,
       );
+      if (result.outOfRange) {
+        return NextResponse.json(
+          { error: result.message ?? "Fuera del área de entrega" },
+          { status: 400 },
+        );
+      }
       deliveryDistanceKm = result.distanceKm ?? null;
-      if (!result.outOfRange) deliveryCost = result.price;
+      deliveryCost = result.price;
     } else if (tenant.delivery_mode === "fixed") {
       deliveryCost = tenant.delivery_cost ?? 0;
     }
