@@ -3,7 +3,15 @@ import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
 
-const ALLOWED_FIELDS = ["name", "price", "active", "sort_order"] as const;
+const ALLOWED_FIELDS = [
+  "name",
+  "price",
+  "active",
+  "sort_order",
+  "lat",
+  "lng",
+  "radius_km",
+] as const;
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
 
 const NAME_MAX = 60;
@@ -74,6 +82,26 @@ export async function PATCH(
   }
   if ("sort_order" in patch && typeof patch.sort_order !== "number") {
     return NextResponse.json({ error: "sort_order inválido" }, { status: 400 });
+  }
+  if (
+    "lat" in patch &&
+    (typeof patch.lat !== "number" || patch.lat < -90 || patch.lat > 90)
+  ) {
+    return NextResponse.json({ error: "lat inválida" }, { status: 400 });
+  }
+  if (
+    "lng" in patch &&
+    (typeof patch.lng !== "number" || patch.lng < -180 || patch.lng > 180)
+  ) {
+    return NextResponse.json({ error: "lng inválida" }, { status: 400 });
+  }
+  if (
+    "radius_km" in patch &&
+    (typeof patch.radius_km !== "number" ||
+      patch.radius_km <= 0 ||
+      patch.radius_km > 100)
+  ) {
+    return NextResponse.json({ error: "radius_km inválido" }, { status: 400 });
   }
 
   if (Object.keys(patch).length === 0) {

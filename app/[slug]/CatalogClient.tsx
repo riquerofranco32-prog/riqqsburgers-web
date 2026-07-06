@@ -955,6 +955,8 @@ export default function CatalogClient({
       notes?: string,
       selectedExtra?: SelectedExtra,
       selectedAddons?: SelectedExtra[],
+      removedIngredients?: string[],
+      combinedWith?: { id: string; name: string },
     ) => {
       vibrate(45);
       setCart((prev) => {
@@ -968,12 +970,23 @@ export default function CatalogClient({
                   notes: notes ?? i.notes,
                   selectedExtra: selectedExtra ?? i.selectedExtra,
                   selectedAddons: selectedAddons ?? i.selectedAddons,
+                  removedIngredients:
+                    removedIngredients ?? i.removedIngredients,
+                  combinedWith: combinedWith ?? i.combinedWith,
                 }
               : i,
           );
         return [
           ...prev,
-          { ...item, quantity: 1, notes, selectedExtra, selectedAddons },
+          {
+            ...item,
+            quantity: 1,
+            notes,
+            selectedExtra,
+            selectedAddons,
+            removedIngredients,
+            combinedWith,
+          },
         ];
       });
       setAddedToast({ name: item.name, key: Date.now() });
@@ -4219,55 +4232,61 @@ export default function CatalogClient({
           onAddUpsell={addUpsell}
         />
         {/* ── Product detail sheet ─────────────────────────────────────────────── */}
-        {selectedItem && (
-          <ProductDetailSheet
-            key={selectedItem.id}
-            item={selectedItem}
-            qty={getQty(selectedItem.id)}
-            catEmoji={
-              restaurant.menu.categories.find((c) =>
-                c.items.some((i) => i.id === selectedItem.id),
-              )?.emoji ?? "🍽️"
-            }
-            categoryItems={
-              restaurant.menu.categories.find((c) =>
-                c.items.some((i) => i.id === selectedItem.id),
-              )?.items ?? []
-            }
-            accent={accent}
-            onAccent={onAccent}
-            SURFACE={SURFACE}
-            SURFACE2={SURFACE2}
-            BORDER={BORDER}
-            TEXT1={TEXT1}
-            TEXT2={TEXT2}
-            restaurantName={restaurant.name}
-            restaurantId={restaurant.id}
-            initialNotes={
-              cart.find((i) => i.id === selectedItem.id)?.notes ?? ""
-            }
-            initialExtra={
-              cart.find((i) => i.id === selectedItem.id)?.selectedExtra ?? null
-            }
-            initialAddons={
-              cart.find((i) => i.id === selectedItem.id)?.selectedAddons
-            }
-            isFavorite={isFavorite}
-            toggleFavorite={toggleFavorite}
-            onClose={() => setSelectedItem(null)}
-            onOpen={(item) => {
-              setSelectedItem(item);
-              void trackEvent(restaurant.id, "product_viewed", {
-                product_id: item.id,
-              });
-            }}
-            addItem={addItem}
-            removeItem={removeItem}
-            addItemWithNotes={addItemWithNotes}
-            updateNotes={updateNotes}
-            onLightbox={setLightboxSrc}
-          />
-        )}
+        {selectedItem &&
+          (() => {
+            const selectedCategory = restaurant.menu.categories.find((c) =>
+              c.items.some((i) => i.id === selectedItem.id),
+            );
+            return (
+              <ProductDetailSheet
+                key={selectedItem.id}
+                item={selectedItem}
+                qty={getQty(selectedItem.id)}
+                catEmoji={selectedCategory?.emoji ?? "🍽️"}
+                categoryItems={selectedCategory?.items ?? []}
+                allowHalf={selectedCategory?.allow_half ?? false}
+                initialCombinedWith={
+                  cart.find((i) => i.id === selectedItem.id)?.combinedWith
+                }
+                accent={accent}
+                onAccent={onAccent}
+                SURFACE={SURFACE}
+                SURFACE2={SURFACE2}
+                BORDER={BORDER}
+                TEXT1={TEXT1}
+                TEXT2={TEXT2}
+                restaurantName={restaurant.name}
+                restaurantId={restaurant.id}
+                initialNotes={
+                  cart.find((i) => i.id === selectedItem.id)?.notes ?? ""
+                }
+                initialExtra={
+                  cart.find((i) => i.id === selectedItem.id)?.selectedExtra ??
+                  null
+                }
+                initialAddons={
+                  cart.find((i) => i.id === selectedItem.id)?.selectedAddons
+                }
+                initialRemovedIngredients={
+                  cart.find((i) => i.id === selectedItem.id)?.removedIngredients
+                }
+                isFavorite={isFavorite}
+                toggleFavorite={toggleFavorite}
+                onClose={() => setSelectedItem(null)}
+                onOpen={(item) => {
+                  setSelectedItem(item);
+                  void trackEvent(restaurant.id, "product_viewed", {
+                    product_id: item.id,
+                  });
+                }}
+                addItem={addItem}
+                removeItem={removeItem}
+                addItemWithNotes={addItemWithNotes}
+                updateNotes={updateNotes}
+                onLightbox={setLightboxSrc}
+              />
+            );
+          })()}
         {/* ── Powered by Takefyy (solo móvil — desktop usa sidebar) ──────────── */}
         {totalItems === 0 && (
           <div
@@ -4511,6 +4530,7 @@ export default function CatalogClient({
               addons: [],
               is_featured: false,
               featured_order: 0,
+              ingredients: [],
             } as MenuItem);
             setFavoritesOpen(false);
           }}
@@ -4527,6 +4547,7 @@ export default function CatalogClient({
                 addons: [],
                 is_featured: false,
                 featured_order: 0,
+                ingredients: [],
               } as MenuItem);
             });
           }}

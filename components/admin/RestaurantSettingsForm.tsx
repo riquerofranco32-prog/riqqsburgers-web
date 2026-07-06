@@ -164,7 +164,8 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
     delivery_cost: tenant.delivery_cost ?? 0,
-    delivery_mode: (tenant.delivery_mode ?? "none") as "none" | "fixed" | "zones" | "distance",
+    delivery_mode: (tenant.delivery_mode ?? "none") as
+      "none" | "fixed" | "zones" | "distance",
     delivery_city_hint: tenant.delivery_city_hint ?? "",
     delivery_out_of_range_msg:
       tenant.delivery_out_of_range_msg ??
@@ -897,32 +898,34 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
             gap: 10,
           }}
         >
-          {([
-            {
-              value: "none" as const,
-              emoji: "🚶",
-              label: "Solo retiro",
-              sub: "Sin delivery. Los clientes retiran en el local.",
-            },
-            {
-              value: "fixed" as const,
-              emoji: "📦",
-              label: "Costo fijo",
-              sub: "Un precio único de envío para todos.",
-            },
-            {
-              value: "zones" as const,
-              emoji: "📍",
-              label: "Zonas",
-              sub: "Precio diferente según barrio o zona.",
-            },
-            {
-              value: "distance" as const,
-              emoji: "🗺️",
-              label: "Por distancia",
-              sub: "Precio calculado según los km al local.",
-            },
-          ] as const).map((opt) => (
+          {(
+            [
+              {
+                value: "none" as const,
+                emoji: "🚶",
+                label: "Solo retiro",
+                sub: "Sin delivery. Los clientes retiran en el local.",
+              },
+              {
+                value: "fixed" as const,
+                emoji: "📦",
+                label: "Costo fijo",
+                sub: "Un precio único de envío para todos.",
+              },
+              {
+                value: "zones" as const,
+                emoji: "📍",
+                label: "Zonas",
+                sub: "Precio diferente según barrio o zona.",
+              },
+              {
+                value: "distance" as const,
+                emoji: "🗺️",
+                label: "Por distancia",
+                sub: "Precio calculado según los km al local.",
+              },
+            ] as const
+          ).map((opt) => (
             <button
               key={opt.value}
               type="button"
@@ -1000,8 +1003,9 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
             >
               <span style={{ fontSize: 14 }}>💡</span>
               <span>
-                Todos los pedidos con delivery van a tener este mismo costo de envío,
-                sin importar la distancia. Ideal si siempre entregás en la misma zona.
+                Todos los pedidos con delivery van a tener este mismo costo de
+                envío, sin importar la distancia. Ideal si siempre entregás en
+                la misma zona.
               </span>
             </div>
             <div>
@@ -1022,9 +1026,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                   min={0}
                   step={50}
                   value={form.delivery_cost}
-                  onChange={(e) =>
-                    set("delivery_cost", Number(e.target.value))
-                  }
+                  onChange={(e) => set("delivery_cost", Number(e.target.value))}
                   placeholder="Ej: 800"
                   style={{ ...inputStyle, maxWidth: 180 }}
                   onFocus={(e) =>
@@ -1043,15 +1045,45 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 }}
               >
                 Ej: si ponés <strong>800</strong>, el cliente va a ver
-                &ldquo;Envío: $800&rdquo; en el checkout. Si ponés <strong>0</strong>,
-                el envío aparece como gratis.
+                &ldquo;Envío: $800&rdquo; en el checkout. Si ponés{" "}
+                <strong>0</strong>, el envío aparece como gratis.
+              </p>
+            </div>
+
+            <div>
+              <label style={labelStyle}>
+                Ciudad para el buscador de direcciones
+              </label>
+              <input
+                type="text"
+                value={form.delivery_city_hint}
+                onChange={(e) => set("delivery_city_hint", e.target.value)}
+                placeholder="Ej: San Rafael, Mendoza"
+                style={inputStyle}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--accent)")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--dash-border)")
+                }
+              />
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--dash-muted)",
+                  marginTop: 4,
+                }}
+              >
+                El cliente solo va a poder elegir direcciones de esta ciudad en
+                el checkout. Ej: <em>&ldquo;San Rafael, Mendoza&rdquo;</em>.
               </p>
             </div>
           </div>
         )}
 
         {/* Modos con ubicación: zonas y distancia */}
-        {(form.delivery_mode === "zones" || form.delivery_mode === "distance") && (
+        {(form.delivery_mode === "zones" ||
+          form.delivery_mode === "distance") && (
           <>
             <div
               style={{
@@ -1073,8 +1105,8 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     marginBottom: 8,
                   }}
                 >
-                  Buscá o arrastrá el pin a la dirección exacta de tu local. Esta
-                  ubicación se usa para calcular la distancia al cliente.
+                  Buscá o arrastrá el pin a la dirección exacta de tu local.
+                  Esta ubicación se usa para calcular la distancia al cliente.
                 </p>
                 <AddressGeocodePicker
                   slug={tenant.slug}
@@ -1116,7 +1148,9 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
               </div>
 
               <div>
-                <label style={labelStyle}>Pista de ciudad para el buscador</label>
+                <label style={labelStyle}>
+                  Pista de ciudad para el buscador
+                </label>
                 <input
                   type="text"
                   value={form.delivery_city_hint}
@@ -1166,8 +1200,8 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     marginTop: 4,
                   }}
                 >
-                  Texto que ve el cliente si su dirección está fuera del área
-                  de cobertura.
+                  Texto que ve el cliente si su dirección está fuera del área de
+                  cobertura.
                 </p>
               </div>
             </div>
@@ -1182,11 +1216,16 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     marginBottom: 8,
                   }}
                 >
-                  Creá zonas (ej: &ldquo;Centro&rdquo;, &ldquo;Barrio Sur&rdquo;)
-                  con un precio de envío para cada una. El cliente elige su zona
-                  al hacer el pedido.
+                  Creá zonas (ej: &ldquo;Centro&rdquo;, &ldquo;Barrio
+                  Sur&rdquo;) con un precio de envío para cada una. La zona se
+                  detecta sola según la dirección del cliente — marcá el centro
+                  y el radio de cada una en el mapa.
                 </p>
-                <DeliveryZonesEditor slug={tenant.slug} />
+                <DeliveryZonesEditor
+                  slug={tenant.slug}
+                  tenantLat={form.latitude}
+                  tenantLng={form.longitude}
+                />
               </div>
             )}
 

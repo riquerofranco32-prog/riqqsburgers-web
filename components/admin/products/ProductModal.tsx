@@ -18,6 +18,7 @@ export interface ProductForm {
   extras: Array<{ name: string; price: string }>;
   addons: Array<{ name: string; price: string }>;
   stock_quantity: string;
+  ingredients: string[];
 }
 
 export const emptyForm: ProductForm = {
@@ -33,6 +34,7 @@ export const emptyForm: ProductForm = {
   extras: [],
   addons: [],
   stock_quantity: "",
+  ingredients: [],
 };
 
 export function ProductModal({
@@ -76,6 +78,7 @@ export function ProductModal({
             product.stock_quantity === null
               ? ""
               : String(product.stock_quantity),
+          ingredients: product.ingredients ?? [],
         }
       : emptyForm,
   );
@@ -500,6 +503,66 @@ export function ProductModal({
                         setForm((f) => ({
                           ...f,
                           addons: f.addons.filter((_, idx) => idx !== i),
+                        }))
+                      }
+                      className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ingredientes removibles — el cliente puede sacarlos sin costo */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                  Ingredientes
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      ingredients: [...f.ingredients, ""],
+                    }))
+                  }
+                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                >
+                  + Agregar
+                </button>
+              </div>
+              <p className="text-xs text-zinc-600 mb-2">
+                Ingredientes que vienen incluidos y el cliente puede sacar sin
+                costo. Ej: &quot;Lechuga&quot;, &quot;Cebolla&quot;,
+                &quot;Panceta&quot;.
+              </p>
+              <div className="flex flex-col gap-2">
+                {form.ingredients.map((ing, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      value={ing}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          ingredients: f.ingredients.map((v, idx) =>
+                            idx === i ? e.target.value : v,
+                          ),
+                        }))
+                      }
+                      placeholder="Ej: Cebolla"
+                      style={{ fontSize: 16 }}
+                      className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({
+                          ...f,
+                          ingredients: f.ingredients.filter(
+                            (_, idx) => idx !== i,
+                          ),
                         }))
                       }
                       className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"

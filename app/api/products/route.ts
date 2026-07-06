@@ -23,6 +23,11 @@ function isValidOptionList(list: unknown): list is Array<{
   );
 }
 
+function isValidIngredientList(list: unknown): list is string[] {
+  if (!Array.isArray(list) || list.length > 30) return false;
+  return list.every((s) => typeof s === "string" && s.length <= 60);
+}
+
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     slug: string;
@@ -39,6 +44,7 @@ export async function POST(req: NextRequest) {
     extras?: Array<{ name: string; price: number }>;
     addons?: Array<{ name: string; price: number }>;
     stock_quantity?: number | null;
+    ingredients?: string[];
   };
 
   if (!body.slug || !body.name || body.price === undefined) {
@@ -111,6 +117,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (
+    body.ingredients !== undefined &&
+    body.ingredients !== null &&
+    !isValidIngredientList(body.ingredients)
+  ) {
+    return NextResponse.json(
+      { error: "Ingredientes inválidos (máx. 30, 60 caracteres c/u)" },
+      { status: 400 },
+    );
+  }
+
   if (body.stock_quantity !== undefined && body.stock_quantity !== null) {
     if (
       typeof body.stock_quantity !== "number" ||
@@ -175,6 +192,7 @@ export async function POST(req: NextRequest) {
       extras: body.extras ?? [],
       addons: body.addons ?? [],
       stock_quantity: body.stock_quantity ?? null,
+      ingredients: body.ingredients ?? [],
     })
     .select()
     .single();

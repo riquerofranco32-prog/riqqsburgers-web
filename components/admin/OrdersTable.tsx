@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
+import { playSound } from "@/lib/sounds";
 import type { Order } from "@/types/supabase";
 import { MobileOrderCard } from "@/components/admin/orders/MobileOrderCard";
 import { OrderDesktopRow } from "@/components/admin/orders/OrderDesktopRow";
@@ -105,23 +106,8 @@ export function OrdersTable({
               return s;
             });
           }, 8000);
-          // Notification sound via Web Audio API
-          try {
-            const ctx = new AudioContext();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.setValueAtTime(880, ctx.currentTime);
-            osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.28, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(
-              0.001,
-              ctx.currentTime + 0.4,
-            );
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.4);
-          } catch {}
+          // Notification sound using saved preference
+          playSound();
           // Tab title badge when tab is in background
           if (typeof document !== "undefined" && document.hidden) {
             unseenCountRef.current += 1;

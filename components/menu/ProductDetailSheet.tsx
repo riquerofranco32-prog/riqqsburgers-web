@@ -43,6 +43,9 @@ interface ProductDetailSheetProps {
   initialNotes: string;
   initialExtra: SelectedExtra | null;
   initialAddons?: SelectedExtra[];
+  initialRemovedIngredients?: string[];
+  allowHalf?: boolean;
+  initialCombinedWith?: { id: string; name: string } | null;
   isFavorite: (id: string) => boolean;
   toggleFavorite: (item: MenuItem) => void;
   onClose: () => void;
@@ -54,6 +57,8 @@ interface ProductDetailSheetProps {
     notes?: string,
     extra?: SelectedExtra,
     addons?: SelectedExtra[],
+    removedIngredients?: string[],
+    combinedWith?: { id: string; name: string },
   ) => void;
   updateNotes: (itemId: string, notes: string) => void;
   onLightbox: (src: string) => void;
@@ -76,6 +81,9 @@ export default function ProductDetailSheet({
   initialNotes,
   initialExtra,
   initialAddons,
+  initialRemovedIngredients,
+  allowHalf,
+  initialCombinedWith,
   isFavorite,
   toggleFavorite,
   onClose,
@@ -141,6 +149,15 @@ export default function ProductDetailSheet({
   const [selectedAddons, setSelectedAddons] = useState<SelectedExtra[]>(
     initialAddons ?? [],
   );
+  const [removedIngredients, setRemovedIngredients] = useState<string[]>(
+    initialRemovedIngredients ?? [],
+  );
+
+  function toggleIngredient(name: string) {
+    setRemovedIngredients((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
+    );
+  }
 
   function toggleAddon(addon: SelectedExtra) {
     setSelectedAddons((prev) =>
@@ -152,9 +169,22 @@ export default function ProductDetailSheet({
     setTimeout(() => setPricePulse(false), 300);
   }
 
+  // Mitad y mitad: combina este producto con otro de la misma categoría en
+  // un solo ítem. Se cobra el precio del sabor más caro — ver addItemWithNotes.
+  const halfCandidates = categoryItems.filter(
+    (i) => i.id !== item.id && i.badge !== "Agotado",
+  );
+  const [combinedWithId, setCombinedWithId] = useState<string | null>(
+    initialCombinedWith?.id ?? null,
+  );
+  const combinedFlavor = halfCandidates.find((i) => i.id === combinedWithId);
+
   const extraPrice = selectedExtraDraft?.price ?? 0;
   const addonsPrice = selectedAddons.reduce((sum, a) => sum + a.price, 0);
-  const totalPriceDisplay = item.price + extraPrice + addonsPrice;
+  const basePrice = combinedFlavor
+    ? Math.max(item.price, combinedFlavor.price)
+    : item.price;
+  const totalPriceDisplay = basePrice + extraPrice + addonsPrice;
   const isSoldOut = item.badge === "Agotado";
 
   async function handleShareProduct(productId: string, productName: string) {
@@ -557,6 +587,55 @@ export default function ProductDetailSheet({
             )}
           </div>
 
+          {/* Mitad y mitad */}
+          {allowHalf && halfCandidates.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{
+                  fontSize: 11,
+                  color: TEXTM,
+                  fontWeight: 700,
+                  display: "block",
+                  marginBottom: 10,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Mitad y mitad
+              </label>
+              <select
+                value={combinedWithId ?? ""}
+                onChange={(e) => {
+                  setCombinedWithId(e.target.value || null);
+                  setPricePulse(true);
+                  setTimeout(() => setPricePulse(false), 300);
+                }}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: `1.5px solid ${BORDER}`,
+                  fontSize: 14,
+                  color: TEXT1,
+                  background: SURFACE2,
+                  outline: "none",
+                }}
+              >
+                <option value="">Sin combinar</option>
+                {halfCandidates.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    Mitad {c.name}
+                  </option>
+                ))}
+              </select>
+              {combinedFlavor && (
+                <p style={{ fontSize: 11, color: TEXTM, marginTop: 6 }}>
+                  Se cobra el precio del sabor más caro.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Extras — opciones de tamaño */}
           {item.extras && item.extras.length > 0 && (
             <div style={{ marginBottom: 20 }}>
@@ -681,6 +760,58 @@ export default function ProductDetailSheet({
             </div>
           )}
 
+          {/* Ingredientes removibles */}
+          {item.ingredients.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <label
+                style={{
+                  fontSize: 11,
+                  color: TEXTM,
+                  fontWeight: 700,
+                  display: "block",
+                  marginBottom: 10,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Ingredientes
+              </label>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {item.ingredients.map((name) => {
+                  const isRemoved = removedIngredients.includes(name);
+                  return (
+                    <button
+                      type="button"
+                      key={name}
+                      onClick={() => toggleIngredient(name)}
+                      style={{
+                        padding: "8px 18px",
+                        borderRadius: 999,
+                        border: "1.5px solid",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: isRemoved ? "transparent" : accent,
+                        color: isRemoved ? TEXTM : onAccent,
+                        borderColor: isRemoved ? BORDER : accent,
+                        textDecoration: isRemoved ? "line-through" : "none",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {!isRemoved && (
+                        <CheckCircle2 size={13} strokeWidth={2.5} />
+                      )}
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Notes field */}
           <div style={{ marginBottom: 20 }}>
             <label
@@ -743,11 +874,29 @@ export default function ProductDetailSheet({
           ) : qty === 0 ? (
             <button
               onClick={() => {
+                // El ítem que se agrega al carrito es siempre el sabor más
+                // caro (así el precio ya sale correcto sin tocar ningún
+                // cálculo de subtotal) — el otro sabor queda solo como dato
+                // informativo para mostrar "Mitad X / Mitad Y".
+                const primary =
+                  combinedFlavor && combinedFlavor.price > item.price
+                    ? combinedFlavor
+                    : item;
+                const secondary =
+                  combinedFlavor && combinedFlavor.price > item.price
+                    ? item
+                    : combinedFlavor;
                 addItemWithNotes(
-                  item,
+                  primary,
                   itemNotesDraft || undefined,
                   selectedExtraDraft ?? undefined,
                   selectedAddons.length > 0 ? selectedAddons : undefined,
+                  removedIngredients.length > 0
+                    ? removedIngredients
+                    : undefined,
+                  secondary
+                    ? { id: secondary.id, name: secondary.name }
+                    : undefined,
                 );
                 onClose();
               }}

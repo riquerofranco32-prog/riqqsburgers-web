@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, MapPin } from "lucide-react";
 import type { DeliveryZone } from "@/types/supabase";
+import type { DeliveryPosition } from "@/components/AddressGeocodePicker";
+
+const AddressGeocodePicker = dynamic(
+  () => import("@/components/AddressGeocodePicker"),
+  { ssr: false },
+);
+
+const DEFAULT_RADIUS_KM = 2;
 
 const inputStyle = {
   padding: "8px 10px",
@@ -16,11 +25,20 @@ const inputStyle = {
   fontFamily: "var(--font-sans)",
 };
 
-export default function DeliveryZonesEditor({ slug }: { slug: string }) {
+export default function DeliveryZonesEditor({
+  slug,
+  tenantLat,
+  tenantLng,
+}: {
+  slug: string;
+  tenantLat: number | null;
+  tenantLng: number | null;
+}) {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState<number | "">("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -103,7 +121,7 @@ export default function DeliveryZonesEditor({ slug }: { slug: string }) {
           key={z.id}
           style={{
             display: "flex",
-            alignItems: "center",
+            flexDirection: "column",
             gap: 8,
             padding: "8px 10px",
             background: "var(--dash-surface-2)",
@@ -111,57 +129,141 @@ export default function DeliveryZonesEditor({ slug }: { slug: string }) {
             borderRadius: 8,
           }}
         >
-          <input
-            style={{ ...inputStyle, flex: 1 }}
-            defaultValue={z.name}
-            onBlur={(e) =>
-              e.target.value.trim() !== z.name &&
-              void updateZone(z.id, { name: e.target.value.trim() })
-            }
-          />
-          <input
-            type="number"
-            min={0}
-            style={{ ...inputStyle, width: 100 }}
-            defaultValue={z.price}
-            onBlur={(e) =>
-              Number(e.target.value) !== z.price &&
-              void updateZone(z.id, { price: Number(e.target.value) })
-            }
-          />
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: 11,
-              color: "var(--dash-muted)",
-            }}
-          >
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input
-              type="checkbox"
-              checked={z.active}
-              onChange={(e) =>
-                void updateZone(z.id, { active: e.target.checked })
+              style={{ ...inputStyle, flex: 1 }}
+              defaultValue={z.name}
+              onBlur={(e) =>
+                e.target.value.trim() !== z.name &&
+                void updateZone(z.id, { name: e.target.value.trim() })
               }
             />
-            Activa
-          </label>
-          <button
-            type="button"
-            onClick={() => void deleteZone(z.id)}
-            aria-label={`Eliminar zona ${z.name}`}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#ef4444",
-              cursor: "pointer",
-              padding: 4,
-              display: "flex",
-            }}
-          >
-            <Trash2 size={15} />
-          </button>
+            <input
+              type="number"
+              min={0}
+              style={{ ...inputStyle, width: 100 }}
+              defaultValue={z.price}
+              onBlur={(e) =>
+                Number(e.target.value) !== z.price &&
+                void updateZone(z.id, { price: Number(e.target.value) })
+              }
+            />
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 11,
+                color: "var(--dash-muted)",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={z.active}
+                onChange={(e) =>
+                  void updateZone(z.id, { active: e.target.checked })
+                }
+              />
+              Activa
+            </label>
+            <button
+              type="button"
+              onClick={() => setExpandedId(expandedId === z.id ? null : z.id)}
+              aria-label={`Configurar ubicación de ${z.name}`}
+              style={{
+                background: "none",
+                border: "none",
+                color: z.lat !== null ? "var(--accent)" : "#d97706",
+                cursor: "pointer",
+                padding: 4,
+                display: "flex",
+              }}
+            >
+              <MapPin size={15} />
+            </button>
+            <button
+              type="button"
+              onClick={() => void deleteZone(z.id)}
+              aria-label={`Eliminar zona ${z.name}`}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#ef4444",
+                cursor: "pointer",
+                padding: 4,
+                display: "flex",
+              }}
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+
+          {z.lat === null && (
+            <p style={{ fontSize: 11, color: "#d97706", margin: 0 }}>
+              ⚠️ Sin ubicación configurada — esta zona no se va a ofrecer a los
+              clientes hasta que le marques un centro y radio.
+            </p>
+          )}
+
+          {expandedId === z.id && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                paddingTop: 4,
+              }}
+            >
+              <AddressGeocodePicker
+                slug={slug}
+                fallbackCenter={
+                  z.lat !== null && z.lng !== null
+                    ? { lat: z.lat, lng: z.lng }
+                    : tenantLat !== null && tenantLng !== null
+                      ? { lat: tenantLat, lng: tenantLng }
+                      : null
+                }
+                initialPosition={
+                  z.lat !== null && z.lng !== null
+                    ? { lat: z.lat, lng: z.lng, label: z.name }
+                    : null
+                }
+                mapHeight={180}
+                onChange={(pos: DeliveryPosition) =>
+                  void updateZone(z.id, {
+                    lat: pos.lat,
+                    lng: pos.lng,
+                    radius_km: z.radius_km ?? DEFAULT_RADIUS_KM,
+                  })
+                }
+              />
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: 12,
+                  color: "var(--dash-muted)",
+                }}
+              >
+                Radio (km)
+                <input
+                  type="number"
+                  min={0.1}
+                  max={100}
+                  step={0.1}
+                  style={{ ...inputStyle, width: 80 }}
+                  defaultValue={z.radius_km ?? DEFAULT_RADIUS_KM}
+                  onBlur={(e) => {
+                    const v = Number(e.target.value);
+                    if (v > 0 && v !== z.radius_km) {
+                      void updateZone(z.id, { radius_km: v });
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          )}
         </div>
       ))}
 

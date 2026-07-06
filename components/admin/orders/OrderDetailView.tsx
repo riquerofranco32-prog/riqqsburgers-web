@@ -23,6 +23,8 @@ interface OrderItemDetailed {
     price: number;
   } | null;
   addons?: Array<{ name: string; price: number }>;
+  removed_ingredients?: string[];
+  combined_with?: { id: string; name: string };
 }
 
 export function OrderDetailView({
@@ -290,7 +292,9 @@ export function OrderDetailView({
                         color: "var(--dash-text)",
                       }}
                     >
-                      {item.name}
+                      {item.combined_with
+                        ? `Mitad ${item.name} / Mitad ${item.combined_with.name}`
+                        : item.name}
                     </span>
                   </div>
                   {item.selected_extra && (
@@ -324,6 +328,19 @@ export function OrderDetailView({
                         .join(", ")}
                     </span>
                   )}
+                  {item.removed_ingredients &&
+                    item.removed_ingredients.length > 0 && (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          color: "#d97706",
+                          marginLeft: 28,
+                          fontWeight: 600,
+                        }}
+                      >
+                        Sin: {item.removed_ingredients.join(", ")}
+                      </span>
+                    )}
                 </div>
                 <span
                   style={{

@@ -52,32 +52,32 @@ export default function TrackingClient({
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
 
-    const channel = supabase
-      .channel(`order-tracking-${orderId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-          filter: `id=eq.${orderId}`,
-        },
-        (payload) => {
-          const newStatus = (payload.new as { status: string }).status;
-          if (newStatus !== status) {
-            setPrevStatus(status);
-            setStatus(newStatus);
+    let channel: ReturnType<typeof supabase.channel> | undefined;
+    let cancelled = false;
+
+    void (async () => {
+      await supabase.realtime.setAuth();
+      if (cancelled) return;
+
+      channel = supabase
+        .channel(`order:${orderId}`, { config: { private: true } })
+        .on("broadcast", { event: "status" }, (payload) => {
+          const newStatus = (payload.payload as { status: string }).status;
+          setStatus((prev) => {
+            if (newStatus === prev) return prev;
+            setPrevStatus(prev);
             setFlash(true);
             setTimeout(() => setFlash(false), 1200);
-          }
-        },
-      )
-      .subscribe();
+            return newStatus;
+          });
+        })
+        .subscribe();
+    })();
 
     return () => {
-      void supabase.removeChannel(channel);
+      cancelled = true;
+      if (channel) void supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId]);
 
   const currentIdx = STATUS_INDEX[status] ?? 0;

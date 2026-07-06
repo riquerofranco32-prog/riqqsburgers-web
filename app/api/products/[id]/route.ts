@@ -18,6 +18,7 @@ const ALLOWED_FIELDS = [
   "is_featured",
   "featured_order",
   "stock_quantity",
+  "ingredients",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -33,6 +34,11 @@ function isValidOptionList(list: unknown): boolean {
       o.price >= 0 &&
       o.price <= 10_000_000,
   );
+}
+
+function isValidIngredientList(list: unknown): boolean {
+  if (!Array.isArray(list) || list.length > 30) return false;
+  return list.every((s) => typeof s === "string" && s.length <= 60);
 }
 
 export async function PATCH(
@@ -189,6 +195,12 @@ export async function PATCH(
       { status: 400 },
     );
   }
+  if ("ingredients" in patch && !isValidIngredientList(patch.ingredients)) {
+    return NextResponse.json(
+      { error: "Ingredientes inválidos (máx. 30, 60 caracteres c/u)" },
+      { status: 400 },
+    );
+  }
   if ("stock_quantity" in patch && patch.stock_quantity !== null) {
     const sq = patch.stock_quantity as unknown;
     if (
@@ -249,6 +261,15 @@ export async function DELETE(
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
+
+  const { data: leftoverFiles } = await supabase.storage
+    .from("product-images")
+    .list(slug, { search: id });
+  if (leftoverFiles?.length) {
+    await supabase.storage
+      .from("product-images")
+      .remove(leftoverFiles.map((f) => `${slug}/${f.name}`));
+  }
 
   revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ ok: true });

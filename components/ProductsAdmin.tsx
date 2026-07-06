@@ -219,6 +219,9 @@ export default function ProductsAdmin({
             Number(e.price) >= 0,
         )
         .map((e) => ({ name: e.name.trim(), price: Number(e.price) })),
+      ingredients: form.ingredients
+        .map((i) => i.trim())
+        .filter((i) => i.length > 0),
     };
 
     if (editProduct) {

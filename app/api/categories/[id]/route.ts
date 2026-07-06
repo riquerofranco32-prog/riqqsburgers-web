@@ -11,6 +11,7 @@ const ALLOWED_FIELDS = [
   "sort_order",
   "visible_from",
   "visible_to",
+  "allow_half",
 ] as const;
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
 
@@ -68,6 +69,13 @@ export async function PATCH(
   ) {
     return NextResponse.json(
       { error: "Horario de visibilidad inválido" },
+      { status: 400 },
+    );
+  }
+
+  if ("allow_half" in patch && typeof patch.allow_half !== "boolean") {
+    return NextResponse.json(
+      { error: "allow_half debe ser boolean" },
       { status: 400 },
     );
   }

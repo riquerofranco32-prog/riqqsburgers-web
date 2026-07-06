@@ -16,6 +16,8 @@ export interface CheckoutCartItem {
   notes?: string;
   selectedExtra?: { name: string; price: number };
   selectedAddons?: Array<{ name: string; price: number }>;
+  removedIngredients?: string[];
+  combinedWith?: { id: string; name: string };
 }
 
 interface CheckoutModalProps {
@@ -108,7 +110,6 @@ export default function CheckoutModal({
   });
 
   const deliveryMode = tenant.delivery_mode ?? "none";
-  const [zoneId, setZoneId] = useState("");
   const [deliveryQuote, setDeliveryQuote] = useState<DeliveryQuote | null>(
     null,
   );
@@ -124,28 +125,6 @@ export default function CheckoutModal({
       : 0;
   const deliveryOutOfRange =
     form.delivery === "delivery" && deliveryQuote?.outOfRange === true;
-
-  async function fetchZoneQuote(id: string) {
-    setZoneId(id);
-    if (!id) {
-      setDeliveryQuote(null);
-      return;
-    }
-    setQuoteLoading(true);
-    try {
-      const res = await fetch("/api/delivery/quote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: tenant.slug, zoneId: id }),
-      });
-      const data = (await res.json()) as DeliveryQuote & { error?: string };
-      setDeliveryQuote(res.ok ? data : null);
-    } catch {
-      setDeliveryQuote(null);
-    } finally {
-      setQuoteLoading(false);
-    }
-  }
 
   async function handleAddressChange(pos: DeliveryPosition) {
     setDeliveryPosition(pos);
@@ -238,7 +217,6 @@ export default function CheckoutModal({
       setCouponInput("");
       setAppliedCoupon(null);
       setCouponError("");
-      setZoneId("");
       setDeliveryQuote(null);
       setDeliveryPosition(null);
       setForm({
@@ -355,14 +333,20 @@ export default function CheckoutModal({
     }
     if (
       form.delivery === "delivery" &&
-      (deliveryMode === "distance" || deliveryMode === "fixed") &&
+      (deliveryMode === "distance" ||
+        deliveryMode === "fixed" ||
+        deliveryMode === "zones") &&
       !form.address
     ) {
       setError("Ingresá la dirección de entrega");
       return;
     }
-    if (form.delivery === "delivery" && deliveryMode === "zones" && !zoneId) {
-      setError("Elegí tu zona de entrega");
+    if (
+      form.delivery === "delivery" &&
+      deliveryMode === "zones" &&
+      !deliveryPosition
+    ) {
+      setError("Marcá tu ubicación en el mapa para calcular la zona");
       return;
     }
     if (belowMinOrder) {
@@ -420,7 +404,8 @@ export default function CheckoutModal({
             form.address
               ? `📍 Dirección: ${form.address}`
               : null,
-            deliveryMode === "distance" && deliveryPosition
+            (deliveryMode === "distance" || deliveryMode === "fixed") &&
+            deliveryPosition
               ? `🗺️ https://www.google.com/maps?q=${deliveryPosition.lat},${deliveryPosition.lng}`
               : null,
             deliveryMode === "fixed"
@@ -454,8 +439,14 @@ export default function CheckoutModal({
           i.selectedAddons && i.selectedAddons.length > 0
             ? ` + ${i.selectedAddons.map((a) => a.name).join(", ")}`
             : "";
+        const nameLabel = i.combinedWith
+          ? `MITAD ${i.name.toUpperCase()} / MITAD ${i.combinedWith.name.toUpperCase()}`
+          : i.name.toUpperCase();
         return [
-          `X${i.quantity} ${i.name.toUpperCase()}${i.selectedExtra ? ` (${i.selectedExtra.name})` : ""}${addonsLabel}  ${fmt(total)}`,
+          `X${i.quantity} ${nameLabel}${i.selectedExtra ? ` (${i.selectedExtra.name})` : ""}${addonsLabel}  ${fmt(total)}`,
+          ...(i.removedIngredients && i.removedIngredients.length > 0
+            ? [`   Sin: ${i.removedIngredients.join(", ")}`]
+            : []),
           ...(i.notes ? [`   → ${i.notes}`] : []),
         ];
       }),
@@ -503,27 +494,20 @@ export default function CheckoutModal({
               ? { name: i.selectedExtra.name }
               : null,
             addons: (i.selectedAddons ?? []).map((a) => ({ name: a.name })),
+            removed_ingredients: i.removedIngredients ?? [],
+            combined_with_product_id: i.combinedWith?.id ?? null,
           })),
           delivery_type: form.delivery,
           payment_method: form.payment,
           customer_name: `${form.name} ${form.lastname}`.trim(),
           customer_phone: form.phone || null,
-          customer_address:
-            form.delivery === "delivery"
-              ? deliveryMode === "distance" || deliveryMode === "fixed"
-                ? form.address
-                : (deliveryQuote?.zoneName ?? null)
-              : null,
-          delivery_zone_id:
-            form.delivery === "delivery" && deliveryMode === "zones"
-              ? zoneId
-              : null,
+          customer_address: form.delivery === "delivery" ? form.address : null,
           delivery_lat:
-            form.delivery === "delivery" && deliveryMode === "distance"
+            form.delivery === "delivery"
               ? (deliveryPosition?.lat ?? null)
               : null,
           delivery_lng:
-            form.delivery === "delivery" && deliveryMode === "distance"
+            form.delivery === "delivery"
               ? (deliveryPosition?.lng ?? null)
               : null,
           notes: form.notes || null,
@@ -1086,7 +1070,9 @@ export default function CheckoutModal({
                     }}
                   >
                     <span>
-                      {i.name}
+                      {i.combinedWith
+                        ? `Mitad ${i.name} / Mitad ${i.combinedWith.name}`
+                        : i.name}
                       {i.selectedExtra ? ` (${i.selectedExtra.name})` : ""}
                       {i.selectedAddons && i.selectedAddons.length > 0
                         ? ` + ${i.selectedAddons.map((a) => a.name).join(", ")}`
@@ -1381,22 +1367,22 @@ export default function CheckoutModal({
                 </p>
               </div>
 
-              {/* Dirección de texto libre — modo 'fixed' (costo único, sin geocoding) */}
+              {/* Dirección con mapa — modo 'fixed' (costo único, precio no depende de la ubicación) */}
               {form.delivery === "delivery" && deliveryMode === "fixed" && (
                 <div className="animate-slide-up">
                   <label style={labelBase}>Dirección de entrega *</label>
-                  <input
-                    style={{
-                      ...inputBase,
-                      borderColor: addressError ? "#ef4444" : "var(--border)",
+                  <AddressGeocodePicker
+                    slug={tenant.slug}
+                    fallbackCenter={
+                      tenant.latitude != null && tenant.longitude != null
+                        ? { lat: tenant.latitude, lng: tenant.longitude }
+                        : null
+                    }
+                    onChange={(pos) => {
+                      set("address", pos.label);
+                      touch("address");
+                      setDeliveryPosition(pos);
                     }}
-                    placeholder="Av. Corrientes 1234, CABA"
-                    inputMode="text"
-                    autoComplete="street-address"
-                    value={form.address}
-                    onChange={(e) => set("address", e.target.value)}
-                    onBlur={() => touch("address")}
-                    onFocus={(e) => (e.target.style.borderColor = accent)}
                   />
                   {addressError && (
                     <span style={errorStyle}>{addressError}</span>
@@ -1404,28 +1390,59 @@ export default function CheckoutModal({
                 </div>
               )}
 
-              {/* Zona de entrega — modo 'zones' */}
+              {/* Dirección con geocoding + mapa — modo 'zones': la zona se
+                  detecta sola según la ubicación, ya no la elige el cliente */}
               {form.delivery === "delivery" && deliveryMode === "zones" && (
                 <div className="animate-slide-up">
-                  <label style={labelBase}>Zona de entrega *</label>
-                  <select
-                    value={zoneId}
-                    onChange={(e) => void fetchZoneQuote(e.target.value)}
-                    style={inputBase}
-                    onFocus={(e) =>
-                      (e.currentTarget.style.borderColor = accent)
+                  <label style={labelBase}>Dirección de entrega *</label>
+                  <AddressGeocodePicker
+                    slug={tenant.slug}
+                    fallbackCenter={
+                      tenant.latitude != null && tenant.longitude != null
+                        ? { lat: tenant.latitude, lng: tenant.longitude }
+                        : null
                     }
-                    onBlur={(e) =>
-                      (e.currentTarget.style.borderColor = "var(--border)")
-                    }
-                  >
-                    <option value="">Elegí tu zona...</option>
-                    {(tenant.deliveryZones ?? []).map((z) => (
-                      <option key={z.id} value={z.id}>
-                        {z.name} — ${z.price.toLocaleString("es-AR")}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(pos) => {
+                      set("address", pos.label);
+                      touch("address");
+                      void handleAddressChange(pos);
+                    }}
+                  />
+                  {addressError && (
+                    <span style={errorStyle}>{addressError}</span>
+                  )}
+                  {quoteLoading && (
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--text-secondary)",
+                        marginTop: 6,
+                      }}
+                    >
+                      Calculando zona...
+                    </p>
+                  )}
+                  {!quoteLoading && deliveryQuote?.outOfRange && (
+                    <p style={{ ...errorStyle, marginTop: 6 }}>
+                      {deliveryQuote.message ??
+                        "Tu dirección está fuera de las zonas de entrega"}
+                    </p>
+                  )}
+                  {!quoteLoading &&
+                    deliveryQuote &&
+                    !deliveryQuote.outOfRange &&
+                    deliveryQuote.zoneName && (
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "var(--text-secondary)",
+                          marginTop: 6,
+                        }}
+                      >
+                        Zona: {deliveryQuote.zoneName} — $
+                        {deliveryQuote.price.toLocaleString("es-AR")}
+                      </p>
+                    )}
                 </div>
               )}
 

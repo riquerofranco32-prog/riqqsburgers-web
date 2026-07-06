@@ -31,6 +31,9 @@ interface ZoneRow {
   id: string;
   name: string;
   price: number;
+  lat: number | null;
+  lng: number | null;
+  radius_km: number | null;
 }
 
 interface RangeRow {
@@ -38,12 +41,29 @@ interface RangeRow {
   price: number;
 }
 
-export function resolveZonePrice(
+// Antes se confiaba en el zoneId que mandaba el cliente sin validar que
+// coincidiera con su ubicación real. Ahora la zona se resuelve a partir de
+// las coordenadas geocodificadas del cliente: la zona más chica (radio menor)
+// entre las que contienen el punto gana, para que zonas superpuestas
+// prioricen la más específica.
+export function resolveZoneByLocation(
   zones: ZoneRow[],
-  zoneId: string,
-): DeliveryQuoteResult | null {
-  const zone = zones.find((z) => z.id === zoneId);
-  if (!zone) return null;
+  destLat: number,
+  destLng: number,
+  outOfRangeMessage: string,
+): DeliveryQuoteResult {
+  const matches = zones
+    .filter(
+      (z): z is ZoneRow & { lat: number; lng: number; radius_km: number } =>
+        z.lat !== null && z.lng !== null && z.radius_km !== null,
+    )
+    .filter((z) => haversineKm(z.lat, z.lng, destLat, destLng) <= z.radius_km)
+    .sort((a, b) => a.radius_km - b.radius_km);
+
+  const zone = matches[0];
+  if (!zone) {
+    return { price: 0, outOfRange: true, message: outOfRangeMessage };
+  }
   return { price: zone.price, zoneName: zone.name };
 }
 

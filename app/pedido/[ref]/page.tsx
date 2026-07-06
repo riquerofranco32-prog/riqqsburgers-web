@@ -286,6 +286,8 @@ export default async function TrackingPage({ params }: Props) {
                     name: string;
                     price: number;
                     quantity: number;
+                    removed_ingredients?: string[];
+                    combined_with?: { id: string; name: string };
                   },
                   idx: number,
                 ) => (
@@ -311,7 +313,21 @@ export default async function TrackingPage({ params }: Props) {
                       >
                         ×{item.quantity}
                       </span>
-                      {item.name}
+                      {item.combined_with
+                        ? `Mitad ${item.name} / Mitad ${item.combined_with.name}`
+                        : item.name}
+                      {item.removed_ingredients &&
+                        item.removed_ingredients.length > 0 && (
+                          <span
+                            style={{
+                              display: "block",
+                              fontSize: 11,
+                              color: "#A8998C",
+                            }}
+                          >
+                            Sin: {item.removed_ingredients.join(", ")}
+                          </span>
+                        )}
                     </span>
                     <span
                       style={{

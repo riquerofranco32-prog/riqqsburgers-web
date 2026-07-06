@@ -81,10 +81,24 @@ export async function POST(
   }
 
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-  const path = `${slug}/${id}-${Date.now()}.${ext}`;
+  const path = `${slug}/${id}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const supabase = supabaseCheck;
+
+  // Re-uploads used to get a fresh timestamped path each time, leaving every
+  // previous image orphaned in storage forever. Path is now fixed per product,
+  // but if the extension changes (e.g. jpg -> png) the old file under the old
+  // extension would still be orphaned, so clean up any stale variant first.
+  const { data: existingFiles } = await supabase.storage
+    .from(BUCKET)
+    .list(String(slug), { search: id });
+  const stalePaths = (existingFiles ?? [])
+    .map((f) => `${slug}/${f.name}`)
+    .filter((p) => p !== path);
+  if (stalePaths.length > 0) {
+    await supabase.storage.from(BUCKET).remove(stalePaths);
+  }
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)

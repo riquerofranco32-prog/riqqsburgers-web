@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_noStore as noStore } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
+import { haversineKm } from "@/lib/delivery";
+
+// Radio dentro del cual un resultado se considera "misma ciudad" cuando el
+// tenant tiene lat/lng propia (modo distance). Sin esto, Photon/Nominatim
+// devuelven aciertos ambiguos de otras provincias o incluso países.
+const SAME_CITY_RADIUS_KM = 40;
 
 // ponytail: no hay rate-limit server-side acá — el cliente debe debouncear
 // 600ms y exigir mínimo 4 caracteres antes de llamar este endpoint (así se
@@ -31,6 +37,42 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms: number) {
   }
 }
 
+interface RawResult extends GeocodeResult {
+  city?: string;
+}
+
+function cityMatches(
+  candidateCity: string | undefined,
+  cityHint: string,
+): boolean {
+  if (!candidateCity) return false;
+  const hintCity = normalize(cityHint.split(",")[0]);
+  const candidate = normalize(candidateCity);
+  return candidate.includes(hintCity) || hintCity.includes(candidate);
+}
+
+// Filtra resultados fuera de la ciudad del local: sin esto, Photon/Nominatim
+// devuelven aciertos ambiguos de otra provincia o país (ej. buscar "Costa
+// Rica 4700" trae resultados literalmente en el país Costa Rica).
+function restrictToCity(
+  results: RawResult[],
+  cityHint: string | undefined,
+  originLat: number | null,
+  originLng: number | null,
+): GeocodeResult[] {
+  return results
+    .filter((r) => {
+      if (originLat !== null && originLng !== null) {
+        return (
+          haversineKm(originLat, originLng, r.lat, r.lng) <= SAME_CITY_RADIUS_KM
+        );
+      }
+      if (cityHint) return cityMatches(r.city, cityHint);
+      return true;
+    })
+    .map(({ label, lat, lng }) => ({ label, lat, lng }));
+}
+
 interface PhotonFeature {
   geometry: { coordinates: [number, number] };
   properties: {
@@ -45,8 +87,8 @@ async function searchPhoton(
   q: string,
   lat: number | null,
   lon: number | null,
-): Promise<GeocodeResult[]> {
-  const params = new URLSearchParams({ q, limit: "4", lang: "es" });
+): Promise<RawResult[]> {
+  const params = new URLSearchParams({ q, limit: "6", lang: "es" });
   if (lat !== null && lon !== null) {
     params.set("lat", String(lat));
     params.set("lon", String(lon));
@@ -69,6 +111,7 @@ async function searchPhoton(
       label: parts.join(", ") || q,
       lat: f.geometry.coordinates[1],
       lng: f.geometry.coordinates[0],
+      city: p.city,
     };
   });
 }
@@ -77,14 +120,21 @@ interface NominatimResult {
   display_name: string;
   lat: string;
   lon: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+  };
 }
 
-async function searchNominatim(q: string): Promise<GeocodeResult[]> {
+async function searchNominatim(q: string): Promise<RawResult[]> {
   const params = new URLSearchParams({
     q,
     format: "json",
-    limit: "4",
+    limit: "6",
     countrycodes: "ar",
+    addressdetails: "1",
   });
   const res = await fetchWithTimeout(
     `https://nominatim.openstreetmap.org/search?${params.toString()}`,
@@ -97,6 +147,11 @@ async function searchNominatim(q: string): Promise<GeocodeResult[]> {
     label: r.display_name.split(",").slice(0, 3).join(","),
     lat: parseFloat(r.lat),
     lng: parseFloat(r.lon),
+    city:
+      r.address?.city ??
+      r.address?.town ??
+      r.address?.village ??
+      r.address?.municipality,
   }));
 }
 
@@ -123,7 +178,10 @@ export async function GET(req: NextRequest) {
     .eq("active", true)
     .maybeSingle();
 
-  if (!tenant || tenant.delivery_mode !== "distance") {
+  if (
+    !tenant ||
+    (tenant.delivery_mode !== "distance" && tenant.delivery_mode !== "fixed")
+  ) {
     return NextResponse.json({ error: "No disponible" }, { status: 404 });
   }
 
@@ -139,25 +197,33 @@ export async function GET(req: NextRequest) {
   }
 
   const cityHint = tenant.delivery_city_hint?.trim();
-  let results: GeocodeResult[] = [];
+  let raw: RawResult[] = [];
   try {
-    results = await searchPhoton(
+    raw = await searchPhoton(
       cityHint ? `${q} ${cityHint}` : q,
       tenant.latitude,
       tenant.longitude,
     );
   } catch {
-    results = [];
+    raw = [];
   }
+
+  let results = restrictToCity(
+    raw,
+    cityHint,
+    tenant.latitude,
+    tenant.longitude,
+  );
 
   if (results.length === 0) {
     try {
-      results = await searchNominatim(
+      raw = await searchNominatim(
         cityHint ? `${q}, ${cityHint}, Argentina` : `${q}, Argentina`,
       );
     } catch {
-      results = [];
+      raw = [];
     }
+    results = restrictToCity(raw, cityHint, tenant.latitude, tenant.longitude);
   }
 
   if (results.length > 0) {

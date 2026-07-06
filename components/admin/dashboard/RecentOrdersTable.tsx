@@ -5,6 +5,7 @@ import { ArrowRight, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
+import { playSound } from "@/lib/sounds";
 import type { Order } from "@/types/supabase";
 
 function fmtARS(n: number) {
@@ -168,39 +169,7 @@ function useIsMobile() {
   return isMobile;
 }
 
-function playChime() {
-  if (typeof window === "undefined") return;
-  try {
-    const AudioContextClass =
-      window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const audioCtx = new AudioContextClass();
 
-    const playTone = (freq: number, startTime: number, duration: number) => {
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, startTime);
-
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.25, startTime + 0.04);
-      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-
-      osc.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      osc.start(startTime);
-      osc.stop(startTime + duration);
-    };
-
-    const now = audioCtx.currentTime;
-    playTone(523.25, now, 0.4); // C5
-    playTone(659.25, now + 0.1, 0.5); // E5
-  } catch (err) {
-    console.error("Failed to play chime:", err);
-  }
-}
 
 interface RecentOrdersTableProps {
   orders: Order[];
@@ -249,7 +218,7 @@ export function RecentOrdersTable({
           setOrders((prev) => {
             if (prev.some((o) => o.id === incoming.id)) return prev;
             if (soundEnabledRef.current) {
-              playChime();
+              playSound();
             }
             return [incoming, ...prev].slice(0, 10);
           });

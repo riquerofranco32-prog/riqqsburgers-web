@@ -5,7 +5,7 @@ import { safeDbError } from "@/lib/db-error";
 import { sendPushToTenant } from "@/lib/push";
 import { validateCoupon } from "@/lib/coupons";
 import { computeEffectiveOpen, type BusinessHours } from "@/lib/businessHours";
-import { resolveZonePrice, resolveDistancePrice } from "@/lib/delivery";
+import { resolveZoneByLocation, resolveDistancePrice } from "@/lib/delivery";
 
 // ponytail: in-memory rate limit per IP, resets on cold start. Upgrade to Upstash if abuse is reported.
 const ipBucket = new Map<string, number[]>();
@@ -26,6 +26,8 @@ interface OrderItem {
   quantity: number;
   selected_extra?: { name: string } | null;
   addons?: Array<{ name: string }>;
+  removed_ingredients?: string[];
+  combined_with_product_id?: string | null;
 }
 
 interface CreateOrderBody {
@@ -38,7 +40,6 @@ interface CreateOrderBody {
   customer_address?: string | null;
   notes?: string | null;
   coupon_code?: string | null;
-  delivery_zone_id?: string | null;
   delivery_lat?: number | null;
   delivery_lng?: number | null;
 }
@@ -166,12 +167,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Obtener precios reales de la DB para cada producto
-  const productIds = items.map((i) => i.product_id);
+  // Obtener precios reales de la DB para cada producto (+ el "otro sabor" de
+  // los ítems mitad y mitad, que solo se usa para mostrar el nombre — el
+  // precio siempre sale del producto principal, ya validado abajo)
+  const productIds = Array.from(
+    new Set([
+      ...items.map((i) => i.product_id),
+      ...items
+        .map((i) => i.combined_with_product_id)
+        .filter((id): id is string => !!id),
+    ]),
+  );
 
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id, name, price, available, extras, addons, stock_quantity")
+    .select(
+      "id, name, price, available, extras, addons, stock_quantity, ingredients",
+    )
     .eq("tenant_id", tenant_id)
     .in("id", productIds);
 
@@ -271,14 +283,23 @@ export async function POST(req: NextRequest) {
   let deliveryDistanceKm: number | null = null;
 
   if (delivery_type === "delivery") {
-    if (tenant.delivery_mode === "zones" && body.delivery_zone_id) {
+    if (
+      tenant.delivery_mode === "zones" &&
+      typeof body.delivery_lat === "number" &&
+      typeof body.delivery_lng === "number"
+    ) {
       const { data: zones } = await supabase
         .from("delivery_zones")
-        .select("id, name, price")
+        .select("id, name, price, lat, lng, radius_km")
         .eq("tenant_id", tenant_id)
         .eq("active", true);
-      const result = resolveZonePrice(zones ?? [], body.delivery_zone_id);
-      if (result) {
+      const result = resolveZoneByLocation(
+        zones ?? [],
+        body.delivery_lat,
+        body.delivery_lng,
+        tenant.delivery_out_of_range_msg,
+      );
+      if (!result.outOfRange) {
         deliveryCost = result.price;
         deliveryZoneName = result.zoneName ?? null;
       }
@@ -326,6 +347,13 @@ export async function POST(req: NextRequest) {
     const addonDefs = (item.addons ?? [])
       .map((a) => productAddons.find((pa) => pa.name === a.name))
       .filter((a): a is { name: string; price: number } => !!a);
+    const productIngredients = (product.ingredients as string[]) ?? [];
+    const removedIngredients = (item.removed_ingredients ?? []).filter((n) =>
+      productIngredients.includes(n),
+    );
+    const combinedWithProduct = item.combined_with_product_id
+      ? productMap.get(item.combined_with_product_id)
+      : null;
     return {
       product_id: item.product_id,
       name: product.name,
@@ -335,6 +363,17 @@ export async function POST(req: NextRequest) {
         ? { selected_extra: { name: extraDef.name, price: extraDef.price } }
         : {}),
       ...(addonDefs.length > 0 ? { addons: addonDefs } : {}),
+      ...(removedIngredients.length > 0
+        ? { removed_ingredients: removedIngredients }
+        : {}),
+      ...(combinedWithProduct
+        ? {
+            combined_with: {
+              id: combinedWithProduct.id,
+              name: combinedWithProduct.name,
+            },
+          }
+        : {}),
     };
   });
 

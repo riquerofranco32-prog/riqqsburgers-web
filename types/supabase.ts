@@ -39,6 +39,9 @@ export interface DeliveryZone {
   price: number;
   active: boolean;
   sort_order: number;
+  lat: number | null;
+  lng: number | null;
+  radius_km: number | null;
 }
 
 export interface DeliveryRange {
@@ -72,6 +75,7 @@ export interface Category {
   active: boolean;
   visible_from: string | null;
   visible_to: string | null;
+  allow_half: boolean;
 }
 
 export interface Product {
@@ -91,6 +95,7 @@ export interface Product {
   extras: Array<{ name: string; price: number }>;
   addons: Array<{ name: string; price: number }>;
   stock_quantity: number | null;
+  ingredients: string[];
 }
 
 export interface Order {
@@ -151,6 +156,8 @@ export interface OrderItem {
   price: number;
   quantity: number;
   extras?: Array<{ name: string; price: number; qty: number }>;
+  removed_ingredients?: string[];
+  combined_with?: { id: string; name: string };
 }
 
 export interface TenantUser {

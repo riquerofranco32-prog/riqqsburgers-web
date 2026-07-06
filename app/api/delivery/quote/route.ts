@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_noStore as noStore } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
-import { resolveZonePrice, resolveDistancePrice } from "@/lib/delivery";
+import { resolveZoneByLocation, resolveDistancePrice } from "@/lib/delivery";
 
 interface QuoteBody {
   slug: string;
-  zoneId?: string;
   lat?: number;
   lng?: number;
 }
@@ -40,22 +39,24 @@ export async function POST(req: NextRequest) {
   }
 
   if (tenant.delivery_mode === "zones") {
-    if (!body.zoneId) {
-      return NextResponse.json({ error: "Falta zoneId" }, { status: 400 });
+    if (typeof body.lat !== "number" || typeof body.lng !== "number") {
+      return NextResponse.json(
+        { error: "Faltan coordenadas" },
+        { status: 400 },
+      );
     }
     const { data: zones } = await supabase
       .from("delivery_zones")
-      .select("id, name, price")
+      .select("id, name, price, lat, lng, radius_km")
       .eq("tenant_id", tenant.id)
       .eq("active", true);
 
-    const result = resolveZonePrice(zones ?? [], body.zoneId);
-    if (!result) {
-      return NextResponse.json(
-        { error: "Zona no encontrada" },
-        { status: 404 },
-      );
-    }
+    const result = resolveZoneByLocation(
+      zones ?? [],
+      body.lat,
+      body.lng,
+      tenant.delivery_out_of_range_msg,
+    );
     return NextResponse.json(result);
   }
 

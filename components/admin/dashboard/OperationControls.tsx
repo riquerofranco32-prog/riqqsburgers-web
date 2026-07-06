@@ -1,8 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Store, Volume2, VolumeX, Wifi, Loader2 } from "lucide-react";
+import { Store, Volume2, VolumeX, Wifi, Loader2, Play } from "lucide-react";
 import { toast } from "sonner";
+import {
+  SOUND_OPTIONS,
+  getSavedSound,
+  saveSound,
+  playSound,
+  type SoundType,
+} from "@/lib/sounds";
 
 interface OperationControlsProps {
   isOpen: boolean;
@@ -20,6 +27,9 @@ export function OperationControls({
   slug,
 }: OperationControlsProps) {
   const [loading, setLoading] = useState(false);
+  const [selectedSound, setSelectedSound] = useState<SoundType>(() =>
+    getSavedSound(),
+  );
 
   async function handleToggleStatus() {
     setLoading(true);
@@ -233,75 +243,131 @@ export function OperationControls({
         </button>
       </div>
 
-      {/* Sound Chime Toggle */}
+      {/* Sound Chime Toggle + Sound Type Selector */}
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
           background: "var(--dash-surface-2)",
           border: "1px solid var(--dash-border)",
           borderRadius: 12,
           padding: "10px 14px",
-          gap: 12,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
         }}
-        className="flex-shrink-0 w-full sm:w-auto sm:min-w-[200px]"
+        className="flex-shrink-0 w-full sm:w-auto sm:min-w-[240px]"
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              color: soundEnabled ? "var(--accent)" : "var(--dash-muted)",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-          </div>
-          <div>
-            <p
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "var(--dash-text)",
-              }}
-            >
-              Timbre de cocina
-            </p>
-            <p style={{ fontSize: 10, color: "var(--dash-muted)" }}>
-              Suena en nuevos pedidos
-            </p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setSoundEnabled(!soundEnabled)}
+        {/* Toggle row */}
+        <div
           style={{
-            width: 40,
-            height: 20,
-            borderRadius: 10,
-            background: soundEnabled ? "var(--accent)" : "var(--dash-border)",
-            border: "none",
-            cursor: "pointer",
-            position: "relative",
-            transition: "background 0.2s",
-            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
           }}
         >
-          <span
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              style={{
+                color: soundEnabled ? "var(--accent)" : "var(--dash-muted)",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            </div>
+            <div>
+              <p
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--dash-text)",
+                }}
+              >
+                Timbre de cocina
+              </p>
+              <p style={{ fontSize: 10, color: "var(--dash-muted)" }}>
+                Suena en nuevos pedidos
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setSoundEnabled(!soundEnabled)}
             style={{
-              position: "absolute",
-              top: 2,
-              left: soundEnabled ? 22 : 2,
-              width: 16,
-              height: 16,
-              borderRadius: "50%",
-              background: "#fff",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-              transition: "left 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              width: 40,
+              height: 20,
+              borderRadius: 10,
+              background: soundEnabled ? "var(--accent)" : "var(--dash-border)",
+              border: "none",
+              cursor: "pointer",
+              position: "relative",
+              transition: "background 0.2s",
+              flexShrink: 0,
             }}
-          />
-        </button>
+          >
+            <span
+              style={{
+                position: "absolute",
+                top: 2,
+                left: soundEnabled ? 22 : 2,
+                width: 16,
+                height: 16,
+                borderRadius: "50%",
+                background: "#fff",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                transition: "left 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            />
+          </button>
+        </div>
+
+        {/* Sound type selector — only visible when sound is enabled */}
+        {soundEnabled && (
+          <div
+            style={{
+              display: "flex",
+              gap: 4,
+              flexWrap: "wrap",
+            }}
+          >
+            {SOUND_OPTIONS.map((opt) => {
+              const isActive = selectedSound === opt.key;
+              return (
+                <button
+                  key={opt.key}
+                  onClick={() => {
+                    setSelectedSound(opt.key);
+                    saveSound(opt.key);
+                    playSound(opt.key);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "4px 10px",
+                    borderRadius: 8,
+                    fontSize: 11,
+                    fontWeight: isActive ? 700 : 500,
+                    border: isActive
+                      ? "1px solid rgba(255,107,53,0.4)"
+                      : "1px solid var(--dash-border)",
+                    background: isActive
+                      ? "rgba(255,107,53,0.1)"
+                      : "transparent",
+                    color: isActive ? "var(--accent)" : "var(--dash-muted)",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  <span style={{ fontSize: 13 }}>{opt.emoji}</span>
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Connection status log */}

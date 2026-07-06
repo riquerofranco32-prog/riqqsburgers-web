@@ -17,6 +17,8 @@ export type CartItem = MenuItem & {
   notes?: string;
   selectedExtra?: SelectedExtra;
   selectedAddons?: SelectedExtra[];
+  removedIngredients?: string[];
+  combinedWith?: { id: string; name: string };
 };
 
 function addonsTotal(item: CartItem): number {
@@ -526,7 +528,9 @@ export default function CartDrawer({
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {item.name}
+                        {item.combinedWith
+                          ? `Mitad ${item.name} / Mitad ${item.combinedWith.name}`
+                          : item.name}
                       </p>
                       {item.selectedExtra && (
                         <p
@@ -551,6 +555,18 @@ export default function CartDrawer({
                           >
                             +{" "}
                             {item.selectedAddons.map((a) => a.name).join(", ")}
+                          </p>
+                        )}
+                      {item.removedIngredients &&
+                        item.removedIngredients.length > 0 && (
+                          <p
+                            style={{
+                              fontSize: 11,
+                              color: TEXTM,
+                              marginTop: 2,
+                            }}
+                          >
+                            Sin: {item.removedIngredients.join(", ")}
                           </p>
                         )}
                       {item.notes && (

@@ -59,6 +59,7 @@ interface CategoryForm {
   emoji: string;
   visible_from: string;
   visible_to: string;
+  allow_half: boolean;
 }
 
 export default function CategoriesAdmin({
@@ -74,6 +75,7 @@ export default function CategoriesAdmin({
     emoji: "🍽️",
     visible_from: "",
     visible_to: "",
+    allow_half: false,
   });
   const [nameError, setNameError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -96,7 +98,13 @@ export default function CategoriesAdmin({
   // ── Modal ────────────────────────────────────────────────────────────────
   function openNew() {
     setEditing(null);
-    setForm({ name: "", emoji: "🍽️", visible_from: "", visible_to: "" });
+    setForm({
+      name: "",
+      emoji: "🍽️",
+      visible_from: "",
+      visible_to: "",
+      allow_half: false,
+    });
     setNameError("");
     setModalOpen(true);
   }
@@ -108,6 +116,7 @@ export default function CategoriesAdmin({
       emoji: cat.emoji ?? "🍽️",
       visible_from: cat.visible_from ?? "",
       visible_to: cat.visible_to ?? "",
+      allow_half: cat.allow_half,
     });
     setNameError("");
     setModalOpen(true);
@@ -129,13 +138,26 @@ export default function CategoriesAdmin({
         const res = await fetch(`/api/categories/${editing.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, emoji, visible_from, visible_to }),
+          body: JSON.stringify({
+            name,
+            emoji,
+            visible_from,
+            visible_to,
+            allow_half: form.allow_half,
+          }),
         });
         if (!res.ok) throw new Error();
         setCategories((prev) =>
           prev.map((c) =>
             c.id === editing.id
-              ? { ...c, name, emoji, visible_from, visible_to }
+              ? {
+                  ...c,
+                  name,
+                  emoji,
+                  visible_from,
+                  visible_to,
+                  allow_half: form.allow_half,
+                }
               : c,
           ),
         );
@@ -767,6 +789,32 @@ export default function CategoriesAdmin({
                   ambos campos vacíos para que se muestre siempre.
                 </p>
               </div>
+
+              {/* Mitad y mitad */}
+              {editing && (
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontSize: 13,
+                    color: "var(--dash-text)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={form.allow_half}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, allow_half: e.target.checked }))
+                    }
+                  />
+                  Permite pedir mitad y mitad
+                  <span style={{ fontSize: 11, color: "var(--dash-muted)" }}>
+                    (combinar 2 productos de esta categoría en un ítem)
+                  </span>
+                </label>
+              )}
             </div>
 
             {/* Footer */}

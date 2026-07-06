@@ -35,12 +35,14 @@ export interface MenuItem {
   addons: Array<{ name: string; price: number }>;
   is_featured: boolean;
   featured_order: number;
+  ingredients: string[];
 }
 
 export interface MenuCategory {
   id: string;
   name: string;
   emoji: string;
+  allow_half: boolean;
   items: MenuItem[];
 }
 
@@ -186,6 +188,7 @@ function mapToRestaurant(
           id: cat.id,
           name: cat.name,
           emoji: cat.emoji ?? "🍽️",
+          allow_half: cat.allow_half,
           items: products
             .filter((p) => p.category_id === cat.id && p.available)
             .sort((a, b) => a.sort_order - b.sort_order)
@@ -205,6 +208,7 @@ function mapToRestaurant(
                 (p.addons as Array<{ name: string; price: number }>) ?? [],
               is_featured: p.is_featured ?? false,
               featured_order: p.featured_order ?? 0,
+              ingredients: p.ingredients ?? [],
             })),
         }));
         const uncategorized = products
@@ -228,12 +232,14 @@ function mapToRestaurant(
             addons: (p.addons as Array<{ name: string; price: number }>) ?? [],
             is_featured: p.is_featured ?? false,
             featured_order: p.featured_order ?? 0,
+            ingredients: p.ingredients ?? [],
           }));
         if (uncategorized.length > 0) {
           mapped.push({
             id: "uncategorized",
             name: "Otros",
             emoji: "🍽️",
+            allow_half: false,
             items: uncategorized,
           });
         }
