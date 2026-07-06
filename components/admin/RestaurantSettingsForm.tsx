@@ -164,7 +164,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
     delivery_cost: tenant.delivery_cost ?? 0,
-    delivery_mode: tenant.delivery_mode ?? "none",
+    delivery_mode: (tenant.delivery_mode ?? "none") as "none" | "fixed" | "zones" | "distance",
     delivery_city_hint: tenant.delivery_city_hint ?? "",
     delivery_out_of_range_msg:
       tenant.delivery_out_of_range_msg ??
@@ -881,147 +881,332 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
       </div>
 
       {/* Envío */}
-      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4 w-full">
-        <p style={sectionTitleStyle}>Envío</p>
+      <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-5 w-full">
+        <div>
+          <p style={sectionTitleStyle}>Envío</p>
+          <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: 4 }}>
+            Elegí cómo calculás el costo de delivery para tus clientes.
+          </p>
+        </div>
 
+        {/* Selector de modo */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
             gap: 10,
           }}
         >
-          {(
-            [
-              {
-                value: "none" as const,
-                label: "Solo retiro",
-                sub: "Sin delivery",
-              },
-              {
-                value: "zones" as const,
-                label: "Zonas",
-                sub: "Precio fijo por zona",
-              },
-              {
-                value: "distance" as const,
-                label: "Distancia",
-                sub: "Precio por km desde el local",
-              },
-            ] as const
-          ).map((opt) => (
+          {([
+            {
+              value: "none" as const,
+              emoji: "🚶",
+              label: "Solo retiro",
+              sub: "Sin delivery. Los clientes retiran en el local.",
+            },
+            {
+              value: "fixed" as const,
+              emoji: "📦",
+              label: "Costo fijo",
+              sub: "Un precio único de envío para todos.",
+            },
+            {
+              value: "zones" as const,
+              emoji: "📍",
+              label: "Zonas",
+              sub: "Precio diferente según barrio o zona.",
+            },
+            {
+              value: "distance" as const,
+              emoji: "🗺️",
+              label: "Por distancia",
+              sub: "Precio calculado según los km al local.",
+            },
+          ] as const).map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => set("delivery_mode", opt.value)}
               style={{
-                padding: "12px",
-                borderRadius: 10,
-                border: `2px solid ${form.delivery_mode === opt.value ? "var(--accent)" : "var(--dash-border)"}`,
-                background:
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: `2px solid ${
                   form.delivery_mode === opt.value
                     ? "var(--accent)"
-                    : "var(--dash-surface-2)",
-                color:
+                    : "var(--dash-border)"
+                }`,
+                background:
                   form.delivery_mode === opt.value
-                    ? "#fff"
-                    : "var(--dash-text)",
+                    ? "rgba(255,107,53,0.12)"
+                    : "var(--dash-surface-2)",
+                color: "var(--dash-text)",
                 cursor: "pointer",
                 textAlign: "left",
                 transition: "all 0.15s",
+                boxShadow:
+                  form.delivery_mode === opt.value
+                    ? "0 0 0 2px rgba(255,107,53,0.2)"
+                    : "none",
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{opt.label}</div>
-              <div style={{ fontSize: 11, marginTop: 2, opacity: 0.75 }}>
+              <div style={{ fontSize: 18, marginBottom: 4 }}>{opt.emoji}</div>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color:
+                    form.delivery_mode === opt.value
+                      ? "var(--accent)"
+                      : "var(--dash-text)",
+                }}
+              >
+                {opt.label}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  marginTop: 3,
+                  color: "var(--dash-muted)",
+                  lineHeight: 1.4,
+                }}
+              >
                 {opt.sub}
               </div>
             </button>
           ))}
         </div>
 
-        {form.delivery_mode !== "none" && (
-          <>
+        {/* Modo: Costo fijo */}
+        {form.delivery_mode === "fixed" && (
+          <div
+            style={{
+              background: "rgba(255,107,53,0.05)",
+              border: "1px solid rgba(255,107,53,0.2)",
+              borderRadius: 12,
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+                color: "var(--dash-muted)",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 6,
+              }}
+            >
+              <span style={{ fontSize: 14 }}>💡</span>
+              <span>
+                Todos los pedidos con delivery van a tener este mismo costo de envío,
+                sin importar la distancia. Ideal si siempre entregás en la misma zona.
+              </span>
+            </div>
             <div>
-              <label style={labelStyle}>Ubicación del local</label>
-              <AddressGeocodePicker
-                slug={tenant.slug}
-                fallbackCenter={
-                  form.latitude != null && form.longitude != null
-                    ? { lat: form.latitude, lng: form.longitude }
-                    : null
-                }
-                initialPosition={
-                  form.latitude != null && form.longitude != null
-                    ? {
-                        lat: form.latitude,
-                        lng: form.longitude,
-                        label: form.address || "Ubicación del local",
-                      }
-                    : null
-                }
-                onChange={(pos: DeliveryPosition) => {
-                  set("latitude", pos.lat);
-                  set("longitude", pos.lng);
+              <label style={labelStyle}>Costo de envío fijo</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span
+                  style={{
+                    fontSize: 14,
+                    color: "var(--dash-muted)",
+                    fontWeight: 600,
+                    flexShrink: 0,
+                  }}
+                >
+                  $
+                </span>
+                <input
+                  type="number"
+                  min={0}
+                  step={50}
+                  value={form.delivery_cost}
+                  onChange={(e) =>
+                    set("delivery_cost", Number(e.target.value))
+                  }
+                  placeholder="Ej: 800"
+                  style={{ ...inputStyle, maxWidth: 180 }}
+                  onFocus={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--accent)")
+                  }
+                  onBlur={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--dash-border)")
+                  }
+                />
+              </div>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--dash-muted)",
+                  marginTop: 5,
                 }}
-              />
-              {form.delivery_mode === "distance" &&
-                (form.latitude == null || form.longitude == null) && (
-                  <p style={{ fontSize: 11, color: "#d97706", marginTop: 6 }}>
-                    Necesitás configurar la ubicación del local antes de activar
-                    el modo distancia.
-                  </p>
-                )}
+              >
+                Ej: si ponés <strong>800</strong>, el cliente va a ver
+                &ldquo;Envío: $800&rdquo; en el checkout. Si ponés <strong>0</strong>,
+                el envío aparece como gratis.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Modos con ubicación: zonas y distancia */}
+        {(form.delivery_mode === "zones" || form.delivery_mode === "distance") && (
+          <>
+            <div
+              style={{
+                background: "rgba(255,107,53,0.05)",
+                border: "1px solid rgba(255,107,53,0.2)",
+                borderRadius: 12,
+                padding: "16px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+              }}
+            >
+              <div>
+                <label style={labelStyle}>Ubicación del local</label>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--dash-muted)",
+                    marginBottom: 8,
+                  }}
+                >
+                  Buscá o arrastrá el pin a la dirección exacta de tu local. Esta
+                  ubicación se usa para calcular la distancia al cliente.
+                </p>
+                <AddressGeocodePicker
+                  slug={tenant.slug}
+                  fallbackCenter={
+                    form.latitude != null && form.longitude != null
+                      ? { lat: form.latitude, lng: form.longitude }
+                      : null
+                  }
+                  initialPosition={
+                    form.latitude != null && form.longitude != null
+                      ? {
+                          lat: form.latitude,
+                          lng: form.longitude,
+                          label: form.address || "Ubicación del local",
+                        }
+                      : null
+                  }
+                  onChange={(pos: DeliveryPosition) => {
+                    set("latitude", pos.lat);
+                    set("longitude", pos.lng);
+                  }}
+                />
+                {form.delivery_mode === "distance" &&
+                  (form.latitude == null || form.longitude == null) && (
+                    <p
+                      style={{
+                        fontSize: 11,
+                        color: "#d97706",
+                        marginTop: 6,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      ⚠️ Necesitás configurar la ubicación del local antes de
+                      activar el modo distancia.
+                    </p>
+                  )}
+              </div>
+
+              <div>
+                <label style={labelStyle}>Pista de ciudad para el buscador</label>
+                <input
+                  type="text"
+                  value={form.delivery_city_hint}
+                  onChange={(e) => set("delivery_city_hint", e.target.value)}
+                  placeholder="Ej: San Rafael, Mendoza"
+                  style={inputStyle}
+                  onFocus={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--accent)")
+                  }
+                  onBlur={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--dash-border)")
+                  }
+                />
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--dash-muted)",
+                    marginTop: 4,
+                  }}
+                >
+                  Ayuda al buscador de direcciones a sugerir resultados de tu
+                  ciudad. Ej: <em>&ldquo;San Rafael, Mendoza&rdquo;</em>.
+                </p>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Mensaje fuera de rango</label>
+                <input
+                  type="text"
+                  value={form.delivery_out_of_range_msg}
+                  onChange={(e) =>
+                    set("delivery_out_of_range_msg", e.target.value)
+                  }
+                  placeholder="Consultanos por WhatsApp el costo de envío a tu zona"
+                  style={inputStyle}
+                  onFocus={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--accent)")
+                  }
+                  onBlur={(e) =>
+                    (e.currentTarget.style.borderColor = "var(--dash-border)")
+                  }
+                />
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--dash-muted)",
+                    marginTop: 4,
+                  }}
+                >
+                  Texto que ve el cliente si su dirección está fuera del área
+                  de cobertura.
+                </p>
+              </div>
             </div>
 
-            <div>
-              <label style={labelStyle}>Pista de ciudad para el buscador</label>
-              <input
-                type="text"
-                value={form.delivery_city_hint}
-                onChange={(e) => set("delivery_city_hint", e.target.value)}
-                placeholder="Ej: San Rafael, Mendoza"
-                style={inputStyle}
-                onFocus={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--accent)")
-                }
-                onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--dash-border)")
-                }
-              />
-            </div>
+            {form.delivery_mode === "zones" && (
+              <div>
+                <label style={labelStyle}>Zonas de entrega</label>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--dash-muted)",
+                    marginBottom: 8,
+                  }}
+                >
+                  Creá zonas (ej: &ldquo;Centro&rdquo;, &ldquo;Barrio Sur&rdquo;)
+                  con un precio de envío para cada una. El cliente elige su zona
+                  al hacer el pedido.
+                </p>
+                <DeliveryZonesEditor slug={tenant.slug} />
+              </div>
+            )}
 
-            <div>
-              <label style={labelStyle}>Mensaje fuera de rango</label>
-              <input
-                type="text"
-                value={form.delivery_out_of_range_msg}
-                onChange={(e) =>
-                  set("delivery_out_of_range_msg", e.target.value)
-                }
-                style={inputStyle}
-                onFocus={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--accent)")
-                }
-                onBlur={(e) =>
-                  (e.currentTarget.style.borderColor = "var(--dash-border)")
-                }
-              />
-            </div>
+            {form.delivery_mode === "distance" && (
+              <div>
+                <label style={labelStyle}>Rangos de distancia</label>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--dash-muted)",
+                    marginBottom: 8,
+                  }}
+                >
+                  Configurá cuánto cuesta el envío según la distancia al local.
+                  Ej: hasta 3 km → $500 · hasta 6 km → $900.
+                </p>
+                <DeliveryRangesEditor slug={tenant.slug} />
+              </div>
+            )}
           </>
-        )}
-
-        {form.delivery_mode === "zones" && (
-          <div>
-            <label style={labelStyle}>Zonas de entrega</label>
-            <DeliveryZonesEditor slug={tenant.slug} />
-          </div>
-        )}
-
-        {form.delivery_mode === "distance" && (
-          <div>
-            <label style={labelStyle}>Rangos de distancia</label>
-            <DeliveryRangesEditor slug={tenant.slug} />
-          </div>
         )}
       </div>
 

@@ -89,6 +89,14 @@ export default async function AdminPage({
   const unavailableProducts = products.filter((p) => !p.available);
   const trialDays = trialDaysLeft(subscription);
 
+  const onboarding = {
+    hasLogo: Boolean(tenant.logo_url),
+    productCount: products.length,
+    hasPhotos: products.some((p) => Boolean(p.image_url)),
+    hasHours:
+      tenant.business_hours !== null && tenant.business_hours !== undefined,
+  };
+
   return (
     <>
       <div className="px-4 pt-4 md:px-6">
@@ -102,6 +110,7 @@ export default async function AdminPage({
         allOrders={orders}
         unavailableProducts={unavailableProducts}
         trialDaysLeft={trialDays}
+        onboarding={onboarding}
       />
     </>
   );

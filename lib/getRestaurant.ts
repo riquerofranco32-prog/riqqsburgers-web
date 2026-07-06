@@ -68,7 +68,7 @@ export interface Restaurant {
   brand: RestaurantBrand | null;
   latitude: number | null;
   longitude: number | null;
-  delivery_mode: "none" | "zones" | "distance";
+  delivery_mode: "none" | "fixed" | "zones" | "distance";
   delivery_city_hint: string | null;
   delivery_out_of_range_msg: string;
   deliveryZones: Array<{ id: string; name: string; price: number }>;

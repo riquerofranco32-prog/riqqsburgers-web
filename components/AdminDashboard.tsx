@@ -20,6 +20,10 @@ import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
 import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
 import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
 import { TrialCountdownBanner } from "@/components/admin/dashboard/TrialCountdownBanner";
+import {
+  OnboardingChecklist,
+  type OnboardingState,
+} from "@/components/admin/dashboard/OnboardingChecklist";
 import { OperationControls } from "@/components/admin/dashboard/OperationControls";
 import CierreCaja from "@/components/admin/dashboard/CierreCaja";
 import ExportReportButton from "@/components/admin/ExportReportButton";
@@ -83,6 +87,7 @@ interface AdminDashboardProps {
   allOrders: Order[];
   unavailableProducts: Product[];
   trialDaysLeft?: number | null;
+  onboarding?: OnboardingState;
 }
 
 export default function AdminDashboard({
@@ -93,6 +98,7 @@ export default function AdminDashboard({
   allOrders,
   unavailableProducts,
   trialDaysLeft,
+  onboarding,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
   const dateLabel = getDateLabel();
@@ -294,6 +300,9 @@ export default function AdminDashboard({
       {trialDaysLeft !== null && trialDaysLeft !== undefined && (
         <TrialCountdownBanner daysLeft={trialDaysLeft} />
       )}
+
+      {/* Checklist de activación — solo se ve hasta completar los pasos */}
+      {onboarding && <OnboardingChecklist slug={slug} state={onboarding} />}
 
       {/* Alerta productos sin stock */}
       <LowStockAlert unavailableProducts={unavailableProducts} slug={slug} />

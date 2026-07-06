@@ -33,7 +33,7 @@ interface CheckoutModalProps {
     primary_color?: string;
     min_order_amount?: number | null;
     prep_time_minutes?: number | null;
-    delivery_mode?: "none" | "zones" | "distance";
+    delivery_mode?: "none" | "fixed" | "zones" | "distance";
     latitude?: number | null;
     longitude?: number | null;
     delivery_out_of_range_msg?: string;
@@ -117,7 +117,11 @@ export default function CheckoutModal({
     useState<DeliveryPosition | null>(null);
 
   const deliveryCost =
-    form.delivery === "delivery" ? (deliveryQuote?.price ?? 0) : 0;
+    form.delivery === "delivery"
+      ? deliveryMode === "fixed"
+        ? (tenant.delivery_cost ?? 0)
+        : (deliveryQuote?.price ?? 0)
+      : 0;
   const deliveryOutOfRange =
     form.delivery === "delivery" && deliveryQuote?.outOfRange === true;
 

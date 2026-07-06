@@ -167,7 +167,7 @@ export async function PATCH(
 
   if (
     "delivery_mode" in patch &&
-    !["none", "zones", "distance"].includes(patch.delivery_mode as string)
+    !["none", "fixed", "zones", "distance"].includes(patch.delivery_mode as string)
   ) {
     return NextResponse.json(
       { error: "delivery_mode inválido" },
