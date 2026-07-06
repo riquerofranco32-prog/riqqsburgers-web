@@ -180,7 +180,7 @@ export async function GET(req: NextRequest) {
 
   if (
     !tenant ||
-    (tenant.delivery_mode !== "distance" && tenant.delivery_mode !== "fixed")
+    !["distance", "fixed", "zones"].includes(tenant.delivery_mode)
   ) {
     return NextResponse.json({ error: "No disponible" }, { status: 404 });
   }
