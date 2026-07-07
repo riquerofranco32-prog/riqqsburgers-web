@@ -256,7 +256,13 @@ export function OrderDetailView({
           <span style={{ textAlign: "right" }}>Total</span>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
           {items.map((item, i) => {
             const extraPrice = item.selected_extra?.price ?? 0;
             const addonsPrice = (item.addons ?? []).reduce(
@@ -391,6 +397,7 @@ export function OrderDetailView({
             flexDirection: "column",
             gap: 6,
             fontSize: 12,
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           {hasDelivery && deliveryCost > 0 && (
@@ -472,7 +479,8 @@ export function OrderDetailView({
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: "pointer",
-                  transition: "all 0.15s",
+                  transition:
+                    "background-color 0.15s, color 0.15s, border-color 0.15s",
                   border: "1px solid",
                   background: isCurrent ? m.bg : "transparent",
                   color: isCurrent ? m.color : "var(--dash-muted)",
@@ -500,7 +508,8 @@ export function OrderDetailView({
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: "pointer",
-                  transition: "all 0.15s",
+                  transition:
+                    "background-color 0.15s, color 0.15s, border-color 0.15s",
                   border: "1px solid rgba(239,68,68,0.4)",
                   background: "rgba(239,68,68,0.08)",
                   color: "#f87171",

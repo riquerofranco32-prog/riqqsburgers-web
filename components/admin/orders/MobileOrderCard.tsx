@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, Bell } from "lucide-react";
 import type { Order } from "@/types/supabase";
 import { OrderDetailView } from "./OrderDetailView";
 import { StatusBadge, OrderAgeBadge } from "./StatusBadge";
@@ -118,9 +118,13 @@ export function MobileOrderCard({
                   background: "rgba(255,107,53,0.2)",
                   color: "#ff6b35",
                   border: "1px solid rgba(255,107,53,0.4)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
-                🔔 Nuevo
+                <Bell style={{ width: 10, height: 10 }} />
+                Nuevo
               </span>
             )}
           </div>
@@ -141,15 +145,15 @@ export function MobileOrderCard({
               </span>
             )}
             <StatusBadge status={order.status} />
-            {isOpen ? (
-              <ChevronUp
-                style={{ width: 16, height: 16, color: "var(--dash-muted)" }}
-              />
-            ) : (
-              <ChevronDown
-                style={{ width: 16, height: 16, color: "var(--dash-muted)" }}
-              />
-            )}
+            <ChevronDown
+              style={{
+                width: 16,
+                height: 16,
+                color: "var(--dash-muted)",
+                transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.2s ease-out",
+              }}
+            />
           </div>
         </div>
 
@@ -191,7 +195,12 @@ export function MobileOrderCard({
           }}
         >
           <span
-            style={{ fontWeight: 800, fontSize: 18, color: "var(--accent)" }}
+            style={{
+              fontWeight: 800,
+              fontSize: 18,
+              color: "var(--accent)",
+              fontVariantNumeric: "tabular-nums",
+            }}
           >
             {fmtARS(order.total)}
           </span>
@@ -231,6 +240,7 @@ export function MobileOrderCard({
                 }}
                 style={{
                   padding: "8px 14px",
+                  minHeight: 40,
                   borderRadius: 999,
                   fontSize: 12,
                   fontWeight: 700,
@@ -257,6 +267,7 @@ export function MobileOrderCard({
                 }}
                 style={{
                   padding: "8px 14px",
+                  minHeight: 40,
                   borderRadius: 999,
                   fontSize: 12,
                   fontWeight: 700,

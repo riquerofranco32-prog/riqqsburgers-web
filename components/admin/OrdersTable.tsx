@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, AlertTriangle, WifiOff, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import { playSound } from "@/lib/sounds";
@@ -426,10 +426,13 @@ export function OrdersTable({
 
     if (search.trim()) {
       const q = search.toLowerCase();
+      const qDigits = search.replace(/\D/g, "");
       list = list.filter(
         (o) =>
           o.customer_name?.toLowerCase().includes(q) ||
-          o.order_ref?.toLowerCase().includes(q),
+          o.order_ref?.toLowerCase().includes(q) ||
+          (qDigits.length >= 4 &&
+            o.customer_phone?.replace(/\D/g, "").includes(qDigits)),
       );
     }
     return list;
@@ -498,7 +501,7 @@ export function OrdersTable({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por cliente o ref..."
+              placeholder="Buscar por cliente, teléfono o ref..."
               style={{
                 background: "var(--dash-surface-2)",
                 border: "1px solid var(--dash-border)",
@@ -672,9 +675,10 @@ export function OrdersTable({
               flexWrap: "wrap",
             }}
           >
-            <span>
-              ⚠️ Se perdió la conexión en vivo — puede que no veas pedidos
-              nuevos hasta reconectar.
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <WifiOff style={{ width: 14, height: 14, flexShrink: 0 }} />
+              Se perdió la conexión en vivo — puede que no veas pedidos nuevos
+              hasta reconectar.
             </span>
             <button
               onClick={() => setReconnectKey((k) => k + 1)}
@@ -713,10 +717,14 @@ export function OrdersTable({
                 fontSize: 13,
                 fontWeight: 600,
                 color: "#f87171",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
               }}
             >
-              ⚠️ Hay {urgentCount} pedido{urgentCount !== 1 ? "s" : ""}{" "}
-              esperando hace más de 20 minutos
+              <AlertTriangle style={{ width: 14, height: 14, flexShrink: 0 }} />
+              Hay {urgentCount} pedido{urgentCount !== 1 ? "s" : ""} esperando
+              hace más de 20 minutos
             </div>
           );
         })()}
@@ -730,7 +738,14 @@ export function OrdersTable({
               color: "var(--dash-muted)",
             }}
           >
-            <p style={{ fontSize: 32, marginBottom: 8 }}>📋</p>
+            <ClipboardList
+              style={{
+                width: 32,
+                height: 32,
+                margin: "0 auto 8px",
+                opacity: 0.5,
+              }}
+            />
             <p style={{ fontSize: 14 }}>
               {search ? "Sin resultados" : "No hay pedidos en esta categoría"}
             </p>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, Bell } from "lucide-react";
 import type { Order } from "@/types/supabase";
 import { OrderDetailView } from "./OrderDetailView";
 import { StatusBadge, OrderAgeBadge } from "./StatusBadge";
@@ -121,9 +121,13 @@ export function OrderDesktopRow({
                   background: "rgba(255,107,53,0.2)",
                   color: "#ff6b35",
                   border: "1px solid rgba(255,107,53,0.4)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
                 }}
               >
-                🔔 Nuevo
+                <Bell style={{ width: 10, height: 10 }} />
+                Nuevo
               </span>
             )}
           </div>
@@ -146,6 +150,7 @@ export function OrderDesktopRow({
             color: "var(--dash-text)",
             fontSize: 14,
             flexShrink: 0,
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           {fmtARS(order.total)}
@@ -182,25 +187,16 @@ export function OrderDesktopRow({
               </button>
             );
           })()}
-        {isOpen ? (
-          <ChevronUp
-            style={{
-              width: 16,
-              height: 16,
-              color: "var(--dash-muted)",
-              flexShrink: 0,
-            }}
-          />
-        ) : (
-          <ChevronDown
-            style={{
-              width: 16,
-              height: 16,
-              color: "var(--dash-muted)",
-              flexShrink: 0,
-            }}
-          />
-        )}
+        <ChevronDown
+          style={{
+            width: 16,
+            height: 16,
+            color: "var(--dash-muted)",
+            flexShrink: 0,
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s ease-out",
+          }}
+        />
       </div>
 
       {isOpen && (
