@@ -35,18 +35,27 @@ export default function AddressGeocodePicker({
   fallbackCenter,
   initialPosition = null,
   onChange,
+  onQueryChange,
   mapHeight = 220,
-  hideMap = false,
+  manualEntry = false,
 }: {
   slug: string;
   fallbackCenter: { lat: number; lng: number } | null;
   initialPosition?: DeliveryPosition | null;
   onChange: (pos: DeliveryPosition) => void;
+  // Se dispara con cada tecla en modo manualEntry — la dirección que ve el
+  // negocio tiene que ser exactamente lo que tipeó el cliente, sin esperar
+  // a que (o depender de que) el geocoder encuentre algo.
+  onQueryChange?: (text: string) => void;
   mapHeight?: number;
-  // El cliente del checkout solo tipea y elige una sugerencia — el pin
-  // arrastrable queda para el admin, que sí necesita ajustar la ubicación
-  // exacta del local/zona a mano.
-  hideMap?: boolean;
+  // El cliente del checkout tipea libre, sin tener que elegir ninguna
+  // sugerencia ni ver el mapa — la dirección que escribe se manda tal cual.
+  // Por abajo se intenta geocodificar en segundo plano (sin mostrar
+  // dropdown) solo para calcular el envío y armar el link de Maps del
+  // admin; si no encuentra nada, el pedido sigue igual sin ubicación
+  // resuelta. El pin arrastrable y el dropdown quedan para el admin, que
+  // sí necesita ajustar la ubicación exacta del local/zona a mano.
+  manualEntry?: boolean;
 }) {
   const [query, setQuery] = useState(initialPosition?.label ?? "");
   const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
@@ -83,7 +92,22 @@ export default function AddressGeocodePicker({
           `/api/geocode?slug=${encodeURIComponent(slug)}&q=${encodeURIComponent(query)}`,
         );
         const data = (await res.json()) as { results?: GeocodeResult[] };
-        setSuggestions(data.results ?? []);
+        const results = data.results ?? [];
+        if (manualEntry) {
+          // Resolución silenciosa: se usa el texto tal cual lo escribió el
+          // cliente como label, nunca el label normalizado del geocoder.
+          if (results[0]) {
+            const pos = {
+              lat: results[0].lat,
+              lng: results[0].lng,
+              label: query,
+            };
+            setPosition(pos);
+            onChange(pos);
+          }
+        } else {
+          setSuggestions(results);
+        }
       } catch {
         setSuggestions([]);
       } finally {
@@ -93,7 +117,8 @@ export default function AddressGeocodePicker({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [query, slug]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, slug, manualEntry]);
 
   function pickSuggestion(s: GeocodeResult) {
     const pos = { lat: s.lat, lng: s.lng, label: s.label };
@@ -132,7 +157,10 @@ export default function AddressGeocodePicker({
       <div style={{ position: "relative" }}>
         <input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            onQueryChange?.(e.target.value);
+          }}
           placeholder="Calle y número, barrio..."
           style={{
             width: "100%",
@@ -202,45 +230,48 @@ export default function AddressGeocodePicker({
         )}
       </div>
 
-      {!loading && searched && suggestions.length === 0 && !position && (
-        <div
-          style={{
-            fontSize: 12,
-            color: "var(--text-secondary)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 8,
-          }}
-        >
-          <span>
-            {hideMap
-              ? "No encontramos esa dirección — probá con calle y número."
-              : "No encontramos esa dirección — probá con calle y número, o marcala directo en el mapa."}
-          </span>
-          {!hideMap && fallbackCenter && (
-            <button
-              type="button"
-              onClick={markOnMapManually}
-              style={{
-                flexShrink: 0,
-                background: "none",
-                border: "1px solid var(--border)",
-                borderRadius: 8,
-                padding: "6px 10px",
-                color: "var(--accent)",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              Marcar en el mapa
-            </button>
-          )}
-        </div>
-      )}
+      {!manualEntry &&
+        !loading &&
+        searched &&
+        suggestions.length === 0 &&
+        !position && (
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 8,
+            }}
+          >
+            <span>
+              No encontramos esa dirección — probá con calle y número, o marcala
+              directo en el mapa.
+            </span>
+            {fallbackCenter && (
+              <button
+                type="button"
+                onClick={markOnMapManually}
+                style={{
+                  flexShrink: 0,
+                  background: "none",
+                  border: "1px solid var(--border)",
+                  borderRadius: 8,
+                  padding: "6px 10px",
+                  color: "var(--accent)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Marcar en el mapa
+              </button>
+            )}
+          </div>
+        )}
 
-      {!hideMap && position && suggestions.length === 0 && (
+      {!manualEntry && position && suggestions.length === 0 && (
         <>
           <DeliveryMap
             lat={position.lat}

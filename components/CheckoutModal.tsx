@@ -343,14 +343,6 @@ export default function CheckoutModal({
       setError("Ingresá la dirección de entrega");
       return;
     }
-    if (
-      form.delivery === "delivery" &&
-      deliveryMode === "zones" &&
-      !deliveryPosition
-    ) {
-      setError("Marcá tu ubicación en el mapa para calcular la zona");
-      return;
-    }
     if (deliveryOutOfRange) {
       setError(
         deliveryQuote?.message ?? "Tu dirección está fuera del área de entrega",
@@ -418,7 +410,7 @@ export default function CheckoutModal({
                 ? `🚚 Envío: a coordinar (${tenant.delivery_out_of_range_msg ?? "consultar por WhatsApp"})`
                 : deliveryQuote
                   ? `🚚 Envío: ${fmt(deliveryQuote.price)} (${deliveryQuote.zoneName ?? `${deliveryQuote.distanceKm} km`})`
-                  : null,
+                  : `🚚 Envío: a coordinar (no pudimos ubicar la dirección automáticamente)`,
           ];
 
     const lines = [
@@ -1397,7 +1389,11 @@ export default function CheckoutModal({
                         ? { lat: tenant.latitude, lng: tenant.longitude }
                         : null
                     }
-                    hideMap
+                    manualEntry
+                    onQueryChange={(text) => {
+                      set("address", text);
+                      touch("address");
+                    }}
                     onChange={(pos) => {
                       set("address", pos.label);
                       touch("address");
@@ -1422,7 +1418,11 @@ export default function CheckoutModal({
                         ? { lat: tenant.latitude, lng: tenant.longitude }
                         : null
                     }
-                    hideMap
+                    manualEntry
+                    onQueryChange={(text) => {
+                      set("address", text);
+                      touch("address");
+                    }}
                     onChange={(pos) => {
                       set("address", pos.label);
                       touch("address");
@@ -1464,6 +1464,20 @@ export default function CheckoutModal({
                         {deliveryQuote.price.toLocaleString("es-AR")}
                       </p>
                     )}
+                  {!quoteLoading &&
+                    !deliveryPosition &&
+                    form.address.trim().length >= 4 && (
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "var(--text-secondary)",
+                          marginTop: 6,
+                        }}
+                      >
+                        Envío a coordinar por WhatsApp — no pudimos ubicar la
+                        zona automáticamente.
+                      </p>
+                    )}
                 </div>
               )}
 
@@ -1478,7 +1492,11 @@ export default function CheckoutModal({
                         ? { lat: tenant.latitude, lng: tenant.longitude }
                         : null
                     }
-                    hideMap
+                    manualEntry
+                    onQueryChange={(text) => {
+                      set("address", text);
+                      touch("address");
+                    }}
                     onChange={(pos) => {
                       set("address", pos.label);
                       touch("address");
@@ -1529,6 +1547,20 @@ export default function CheckoutModal({
                       {deliveryQuote.distanceKm} km)
                     </p>
                   )}
+                  {!quoteLoading &&
+                    !deliveryPosition &&
+                    form.address.trim().length >= 4 && (
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "var(--text-secondary)",
+                          marginTop: 6,
+                        }}
+                      >
+                        Envío a coordinar por WhatsApp — no pudimos calcular la
+                        distancia automáticamente.
+                      </p>
+                    )}
                 </div>
               )}
 
