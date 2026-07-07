@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { Search, Users, Gift, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
 import { getCustomerTier, type CustomerSummary } from "@/lib/customers";
-import { Toast } from "@/components/admin/Toast";
 
 function fmtARS(n: number) {
   return "$ " + n.toLocaleString("es-AR");
@@ -38,7 +38,6 @@ export function CustomersTable({
 }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("spent");
-  const [toast, setToast] = useState<string | null>(null);
   const [rewardingKey, setRewardingKey] = useState<string | null>(null);
   const [rewardLinks, setRewardLinks] = useState<Record<string, string>>({});
 
@@ -90,7 +89,7 @@ export function CustomersTable({
             ? `https://wa.me/${c.phone.replace(/\D/g, "")}?text=${waText}`
             : null;
           setRewardLinks((prev) => ({ ...prev, [c.key]: code }));
-          setToast(
+          toast.success(
             waLink
               ? `Cupón ${code} creado`
               : `Cupón ${code} creado (sin teléfono para enviarlo por WhatsApp)`,
@@ -106,12 +105,12 @@ export function CustomersTable({
         const data = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
-        setToast(data.error ?? "Error al crear el cupón");
+        toast.error(data.error ?? "Error al crear el cupón");
         return;
       }
-      setToast("No se pudo generar un código único, probá de nuevo");
+      toast.error("No se pudo generar un código único, probá de nuevo");
     } catch {
-      setToast("Error al crear el cupón");
+      toast.error("Error al crear el cupón");
     } finally {
       setRewardingKey(null);
     }
@@ -363,8 +362,6 @@ export function CustomersTable({
           </div>
         )}
       </div>
-
-      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
     </div>
   );
 }

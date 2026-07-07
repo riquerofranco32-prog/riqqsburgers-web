@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
-import { Toast } from "@/components/admin/Toast";
+import { toast } from "sonner";
 import {
   ProductModal,
   type ProductForm,
@@ -33,7 +33,6 @@ export default function ProductsAdmin({
   const [filterCat, setFilterCat] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortKey>("default");
-  const [toast, setToast] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [inlinePriceId, setInlinePriceId] = useState<string | null>(null);
@@ -90,13 +89,13 @@ export default function ProductsAdmin({
     );
     const failed = ids.length - okIds.size;
     vibrate(failed > 0 ? [50, 30, 50] : 30);
-    setToast(
+    const msg =
       failed > 0
         ? `${okIds.size} actualizados, ${failed} fallaron`
         : nextAvailable
           ? `${okIds.size} marcados disponibles`
-          : `${okIds.size} marcados agotados`,
-    );
+          : `${okIds.size} marcados agotados`;
+    failed > 0 ? toast.error(msg) : toast.success(msg);
     setBulkWorking(false);
     clearSelection();
   }
@@ -123,11 +122,11 @@ export default function ProductsAdmin({
     setProducts((prev) => prev.filter((p) => !okIds.has(p.id)));
     const failed = ids.length - okIds.size;
     vibrate(failed > 0 ? [50, 30, 50] : [60, 40, 60]);
-    setToast(
+    const msg =
       failed > 0
         ? `${okIds.size} eliminados, ${failed} fallaron`
-        : `${okIds.size} productos eliminados`,
-    );
+        : `${okIds.size} productos eliminados`;
+    failed > 0 ? toast.error(msg) : toast.success(msg);
     setBulkWorking(false);
     clearSelection();
   }
@@ -244,18 +243,18 @@ export default function ProductsAdmin({
               return p;
             }),
           );
-          setToast("Producto actualizado");
+          toast.success("Producto actualizado");
           setShowModal(false);
         } else {
           vibrate([50, 30, 50]);
           const data = (await res.json().catch(() => ({}))) as {
             error?: string;
           };
-          setToast(data.error ?? "Error al actualizar producto");
+          toast.error(data.error ?? "Error al actualizar producto");
         }
       } catch {
         vibrate([50, 30, 50]);
-        setToast("Error al actualizar producto");
+        toast.error("Error al actualizar producto");
       }
     } else {
       try {
@@ -277,18 +276,18 @@ export default function ProductsAdmin({
             ),
             data,
           ]);
-          setToast("Producto creado");
+          toast.success("Producto creado");
           setShowModal(false);
         } else {
           vibrate([50, 30, 50]);
           const errData = (await res.json().catch(() => ({}))) as {
             error?: string;
           };
-          setToast(errData.error ?? "Error al crear producto");
+          toast.error(errData.error ?? "Error al crear producto");
         }
       } catch {
         vibrate([50, 30, 50]);
-        setToast("Error al crear producto");
+        toast.error("Error al crear producto");
       }
     }
   }
@@ -310,14 +309,14 @@ export default function ProductsAdmin({
       if (res.ok) {
         vibrate(40);
         setProducts((prev) => prev.filter((p) => p.id !== product.id));
-        setToast("Producto eliminado");
+        toast.success("Producto eliminado");
       } else {
         vibrate([50, 30, 50]);
-        setToast("Error al eliminar producto");
+        toast.error("Error al eliminar producto");
       }
     } catch {
       vibrate([50, 30, 50]);
-      setToast("Error al eliminar producto");
+      toast.error("Error al eliminar producto");
     } finally {
       setDeletingId(null);
     }
@@ -351,15 +350,15 @@ export default function ProductsAdmin({
         const data: Product = (await res.json()) as Product;
         vibrate(40);
         setProducts((prev) => [...prev, data]);
-        setToast("Producto duplicado");
+        toast.success("Producto duplicado");
       } else {
         vibrate([50, 30, 50]);
         const err = (await res.json().catch(() => ({}))) as { error?: string };
-        setToast(err.error ?? "Error al duplicar producto");
+        toast.error(err.error ?? "Error al duplicar producto");
       }
     } catch {
       vibrate([50, 30, 50]);
-      setToast("Error al duplicar producto");
+      toast.error("Error al duplicar producto");
     } finally {
       setDuplicatingId(null);
     }
@@ -399,7 +398,7 @@ export default function ProductsAdmin({
     if (results.some((r) => r.status === "rejected")) {
       setProducts(snapshot);
       vibrate([50, 30, 50]);
-      setToast("Error al reordenar");
+      toast.error("Error al reordenar");
     } else {
       vibrate(30);
     }
@@ -431,7 +430,7 @@ export default function ProductsAdmin({
       });
       if (!res.ok) throw new Error("update failed");
       vibrate(40);
-      setToast("Precio actualizado");
+      toast.success("Precio actualizado");
     } catch {
       vibrate([50, 30, 50]);
       setProducts((prev) =>
@@ -439,7 +438,7 @@ export default function ProductsAdmin({
           p.id === product.id ? { ...p, price: product.price } : p,
         ),
       );
-      setToast("Error al actualizar precio");
+      toast.error("Error al actualizar precio");
     }
   }
 
@@ -726,8 +725,6 @@ export default function ProductsAdmin({
           )}
         </div>
       )}
-
-      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
     </div>
   );
 }

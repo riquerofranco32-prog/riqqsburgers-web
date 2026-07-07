@@ -94,6 +94,7 @@ export default function CheckoutModal({
 
   const [loading, setLoading] = useState(false);
   const [orderRef, setOrderRef] = useState("");
+  const [orderSaved, setOrderSaved] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -212,6 +213,7 @@ export default function CheckoutModal({
       setDone(false);
       setError("");
       setOrderRef("");
+      setOrderSaved(false);
       setLoading(false);
       setTouched({});
       setCouponInput("");
@@ -521,6 +523,7 @@ export default function CheckoutModal({
         const data = (await res.json()) as { order_ref: string; total: number };
         finalRef = data.order_ref;
         setOrderRef(data.order_ref);
+        setOrderSaved(true);
       } else {
         setOrderRef(tempRef);
       }
@@ -878,7 +881,7 @@ export default function CheckoutModal({
             >
               Guardá el código para hacer el seguimiento.
             </p>
-            {orderRef && (
+            {orderRef && orderSaved && (
               <p
                 style={{
                   fontSize: 13,
@@ -896,6 +899,20 @@ export default function CheckoutModal({
                 >
                   takefyy.com/pedido/{orderRef}
                 </a>
+              </p>
+            )}
+            {orderRef && !orderSaved && (
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "var(--warning, #b45309)",
+                  marginBottom: 8,
+                  marginTop: -16,
+                }}
+              >
+                No pudimos confirmar tu pedido en el sistema — el seguimiento en
+                vivo no va a estar disponible. Si no te responden por WhatsApp
+                en unos minutos, escribinos de nuevo con este código.
               </p>
             )}
             <div
@@ -940,7 +957,7 @@ export default function CheckoutModal({
                 padding: "0 4px",
               }}
             >
-              {orderRef && (
+              {orderRef && orderSaved && (
                 <a
                   href={`/pedido/${orderRef}`}
                   target="_blank"

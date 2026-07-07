@@ -97,6 +97,7 @@ export default function DeliveryZonesEditor({
   }
 
   async function deleteZone(id: string) {
+    if (!confirm("¿Eliminar esta zona de envío? No se puede deshacer.")) return;
     const res = await fetch(`/api/delivery-zones/${id}`, { method: "DELETE" });
     if (res.ok) {
       setZones((prev) => prev.filter((z) => z.id !== id));

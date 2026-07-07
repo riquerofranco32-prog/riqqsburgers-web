@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
   const { data: tenant, error: tenantError } = await supabase
     .from("tenants")
     .select(
-      "id, slug, delivery_cost, active, is_open, business_hours, delivery_mode, latitude, longitude, delivery_out_of_range_msg",
+      "id, slug, delivery_cost, active, is_open, business_hours, delivery_mode, latitude, longitude, delivery_out_of_range_msg, min_order_amount",
     )
     .eq("id", tenant_id)
     .single();
@@ -260,6 +260,19 @@ export async function POST(req: NextRequest) {
     }, 0);
     return sum + (product.price + extraPrice + addonsPrice) * item.quantity;
   }, 0);
+
+  if (
+    delivery_type === "delivery" &&
+    tenant.min_order_amount !== null &&
+    subtotal < tenant.min_order_amount
+  ) {
+    return NextResponse.json(
+      {
+        error: `El monto mínimo para delivery es $${tenant.min_order_amount.toLocaleString("es-AR")}`,
+      },
+      { status: 400 },
+    );
+  }
 
   // Cupón: se revalida server-side con el subtotal real. El monto de
   // descuento que haya mostrado el checkout es solo informativo — nunca se
