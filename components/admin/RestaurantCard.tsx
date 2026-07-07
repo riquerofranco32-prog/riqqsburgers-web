@@ -181,7 +181,7 @@ export default function RestaurantCard({ tenant }: RestaurantCardProps) {
           Panel admin ↗
         </Link>
         <Link
-          href={`/admin/restaurants/new?edit=${tenant.id}`}
+          href={`/${tenant.slug}/admin/configuracion`}
           onMouseEnter={(e) =>
             (e.currentTarget.style.background = "rgba(255,107,53,0.18)")
           }
