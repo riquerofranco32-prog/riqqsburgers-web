@@ -274,6 +274,47 @@ export function OrdersTable({
     };
   }, [orders]);
 
+  // `counts` y `stats.pending/active/ready` arriba solo ven lo cargado en el
+  // cliente (máx. 50 + "cargar más" manual) — igual que pasaba con
+  // todaySales, un local con más de 50 pedidos en total ve badges y KPIs
+  // incompletos. Se recalculan con una query aparte, trayendo solo la
+  // columna status sin límite, para tener conteos exactos.
+  const [accurateStatusCounts, setAccurateStatusCounts] = useState<Record<
+    string,
+    number
+  > | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchStatusCounts() {
+      const supabase = createSupabaseBrowser();
+      const { data } = await supabase
+        .from("orders")
+        .select("status")
+        .eq("tenant_id", tenantId);
+      if (cancelled) return;
+      const rows = (data ?? []) as { status: string }[];
+      const map: Record<string, number> = { all: rows.length };
+      FILTER_PILLS.slice(1).forEach(({ key }) => {
+        map[key] = rows.filter((o) => matchesFilter(o as Order, key)).length;
+      });
+      setAccurateStatusCounts(map);
+    }
+    void fetchStatusCounts();
+    return () => {
+      cancelled = true;
+    };
+  }, [tenantId, orders]);
+
+  const accurateStats = useMemo(() => {
+    if (!accurateStatusCounts) return null;
+    return {
+      pending: accurateStatusCounts.pending ?? 0,
+      active: accurateStatusCounts.confirmed ?? 0,
+      ready: accurateStatusCounts.ready ?? 0,
+    };
+  }, [accurateStatusCounts]);
+
   // Las ventas de hoy derivadas de `orders` solo cubren la página cargada
   // (máx. 50 + "cargar más"); en un día con más pedidos que eso el KPI
   // quedaría mal. Se recalcula con una query aparte, sin límite, filtrada
@@ -384,9 +425,9 @@ export function OrdersTable({
     <>
       {/* Live stats KPIs */}
       <OrdersKpiGrid
-        pending={stats.pending}
-        active={stats.active}
-        ready={stats.ready}
+        pending={accurateStats?.pending ?? stats.pending}
+        active={accurateStats?.active ?? stats.active}
+        ready={accurateStats?.ready ?? stats.ready}
         todaySales={todaySalesAccurate ?? stats.todaySales}
       />
 
@@ -518,7 +559,7 @@ export function OrdersTable({
                   userSelect: "none",
                 }}
               >
-                {pill.label} ({counts[pill.key] ?? 0})
+                {pill.label} ({(accurateStatusCounts ?? counts)[pill.key] ?? 0})
               </button>
             );
           })}
@@ -677,8 +718,11 @@ export function OrdersTable({
           </div>
         )}
 
-        {/* Cargar más pedidos */}
-        {hasMore && (
+        {/* Cargar más pedidos — oculto con un rango de fecha activo: esa
+            consulta ya trae el período completo sin límite, y mezclar sus
+            resultados con la paginación por offset de acá desincroniza
+            offset/hasMore. */}
+        {hasMore && dateRange === "all" && (
           <div
             style={{
               padding: "12px 20px",

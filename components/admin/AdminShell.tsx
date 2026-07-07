@@ -799,6 +799,7 @@ export default function AdminShell({
               { href: "", label: "Dashboard", icon: LayoutDashboard },
               { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
               { href: "/productos", label: "Productos", icon: Package },
+              { href: "/configuracion", label: "Config", icon: Settings },
             ]
         ).map((item) => {
           const href = `/${slug}/admin${item.href}`;

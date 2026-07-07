@@ -24,6 +24,7 @@ export function ProductDesktopRow({
   canMoveUp,
   canMoveDown,
   reorderBusy,
+  onRestock,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -44,6 +45,7 @@ export function ProductDesktopRow({
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   reorderBusy?: boolean;
+  onRestock?: (p: Product) => void;
 }) {
   return (
     <div
@@ -110,11 +112,21 @@ export function ProductDesktopRow({
           </p>
         )}
         {product.stock_quantity !== null && (
-          <p
-            className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-zinc-600"}`}
-          >
-            Stock: {product.stock_quantity}
-          </p>
+          <div className="flex items-center gap-2">
+            <p
+              className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-zinc-600"}`}
+            >
+              Stock: {product.stock_quantity}
+            </p>
+            {product.stock_quantity === 0 && onRestock && (
+              <button
+                onClick={() => onRestock(product)}
+                className="text-[10px] font-bold text-yellow-400 hover:text-yellow-300 underline"
+              >
+                Reponer stock
+              </button>
+            )}
+          </div>
         )}
       </div>
 

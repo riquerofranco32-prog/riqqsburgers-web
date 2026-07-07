@@ -29,6 +29,7 @@ export function ProductMobileCard({
   onToggleSelect,
   onDuplicate,
   duplicatingId,
+  onRestock,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -52,6 +53,7 @@ export function ProductMobileCard({
   onToggleSelect: (id: string) => void;
   onDuplicate?: (p: Product) => void;
   duplicatingId?: string | null;
+  onRestock?: (p: Product) => void;
 }) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
@@ -262,11 +264,21 @@ export function ProductMobileCard({
         )}
 
         {product.stock_quantity !== null && (
-          <p
-            className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-zinc-500"}`}
-          >
-            Stock: {product.stock_quantity}
-          </p>
+          <div className="flex items-center gap-2">
+            <p
+              className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-zinc-500"}`}
+            >
+              Stock: {product.stock_quantity}
+            </p>
+            {product.stock_quantity === 0 && onRestock && (
+              <button
+                onClick={() => onRestock(product)}
+                className="text-[10px] font-bold text-yellow-400 hover:text-yellow-300 underline"
+              >
+                Reponer stock
+              </button>
+            )}
+          </div>
         )}
 
         {/* Actions */}

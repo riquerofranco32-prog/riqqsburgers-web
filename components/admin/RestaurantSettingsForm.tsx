@@ -979,6 +979,27 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
           ))}
         </div>
 
+        {(tenant.delivery_mode === "zones" ||
+          tenant.delivery_mode === "distance") &&
+          form.delivery_mode !== tenant.delivery_mode && (
+            <p
+              style={{
+                fontSize: 12,
+                color: "#d97706",
+                margin: 0,
+                padding: "8px 12px",
+                background: "rgba(217,119,6,0.08)",
+                border: "1px solid rgba(217,119,6,0.25)",
+                borderRadius: 8,
+              }}
+            >
+              ⚠️{" "}
+              {tenant.delivery_mode === "zones"
+                ? 'Tus zonas de envío configuradas quedan guardadas pero no se van a usar hasta que vuelvas a elegir "Zonas".'
+                : 'Tus rangos de distancia configurados quedan guardados pero no se van a usar hasta que vuelvas a elegir "Por distancia".'}
+            </p>
+          )}
+
         {/* Modo: Costo fijo */}
         {form.delivery_mode === "fixed" && (
           <div

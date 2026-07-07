@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { buildWhatsAppLink } from "@/lib/whatsapp-notify";
 
 function escapeHtml(str: string): string {
@@ -54,13 +55,16 @@ export default function TicketActions({
   async function handleSaveNotes() {
     setSavingNotes(true);
     try {
-      await fetch(`/api/orders/${orderId}`, {
+      const res = await fetch(`/api/orders/${orderId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ kitchen_notes: kitchenNotes.trim() || null }),
       });
+      if (!res.ok) throw new Error("Error al guardar la nota");
       setNotesSaved(true);
       setTimeout(() => setNotesSaved(false), 2000);
+    } catch {
+      toast.error("No se pudo guardar la nota, probá de nuevo");
     } finally {
       setSavingNotes(false);
     }
@@ -142,9 +146,9 @@ export default function TicketActions({
     currentStatus !== "entregado";
 
   const waLink =
-    (["confirmed", "preparing", "ready", "delivered"] as string[]).includes(
-      currentStatus,
-    ) &&
+    (
+      ["pending", "confirmed", "preparing", "ready", "delivered"] as string[]
+    ).includes(currentStatus) &&
     customerPhone &&
     orderRef
       ? buildWhatsAppLink(

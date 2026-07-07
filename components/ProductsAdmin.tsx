@@ -465,6 +465,45 @@ export default function ProductsAdmin({
     }
   }
 
+  async function restockProduct(product: Product) {
+    const input = window.prompt("¿Cuántas unidades repusiste?", "10");
+    if (input === null) return;
+    const qty = parseInt(input, 10);
+    if (isNaN(qty) || qty < 0) {
+      toast.error("Ingresá un número válido");
+      return;
+    }
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === product.id
+          ? { ...p, stock_quantity: qty, available: true }
+          : p,
+      ),
+    );
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ stock_quantity: qty, available: true }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success("Stock actualizado");
+    } catch {
+      toast.error("No se pudo actualizar el stock");
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id
+            ? {
+                ...p,
+                stock_quantity: product.stock_quantity,
+                available: product.available,
+              }
+            : p,
+        ),
+      );
+    }
+  }
+
   return (
     <div className="p-5 md:p-8 flex flex-col gap-5 w-full">
       {/* Header */}
@@ -617,6 +656,7 @@ export default function ProductsAdmin({
                   onToggleSelect={toggleSelect}
                   onDuplicate={canAddMore ? handleDuplicate : undefined}
                   duplicatingId={duplicatingId}
+                  onRestock={restockProduct}
                 />
               );
             })}
@@ -644,10 +684,15 @@ export default function ProductsAdmin({
                   onCancelDelete={() => setConfirmDeleteId(null)}
                   onDuplicate={canAddMore ? handleDuplicate : undefined}
                   duplicatingId={duplicatingId}
-                  onMove={sort === "default" ? moveProduct : undefined}
+                  onMove={
+                    sort === "default" && filterCat === "all" && !search.trim()
+                      ? moveProduct
+                      : undefined
+                  }
                   canMoveUp={i > 0}
                   canMoveDown={i < filtered.length - 1}
                   reorderBusy={reorderBusy}
+                  onRestock={restockProduct}
                 />
               );
             })}
