@@ -1,7 +1,9 @@
 import { createServerClient } from "@/lib/supabase";
+import { createAuthClient } from "@/lib/auth";
 import type { Metadata } from "next";
 import type { Tenant } from "@/types/supabase";
 import { TeamAdmin } from "@/components/admin/team/TeamAdmin";
+import { ChangePasswordCard } from "@/components/admin/team/ChangePasswordCard";
 import BackButton from "@/components/BackButton";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +16,11 @@ export default async function EquipoPage({
 }) {
   const { slug } = await params;
   const db = createServerClient();
+
+  const authClient = await createAuthClient();
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
 
   const { data: rawTenant } = await db
     .from("tenants")
@@ -45,6 +52,8 @@ export default async function EquipoPage({
           acceso solo a Pedidos
         </p>
       </div>
+
+      {user?.email && <ChangePasswordCard userEmail={user.email} />}
 
       <TeamAdmin slug={slug} initialMembers={members} />
     </div>

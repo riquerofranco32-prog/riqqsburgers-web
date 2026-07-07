@@ -82,7 +82,7 @@ function InviteModal({
         />
         <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: 6 }}>
           Se la pasás vos directamente a la persona. Puede cambiarla luego desde
-          &quot;Olvidé mi contraseña&quot; en el login.
+          su propia sección &quot;Mi contraseña&quot; acá en Equipo.
         </p>
       </AdminField>
 
