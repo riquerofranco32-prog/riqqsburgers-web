@@ -314,6 +314,22 @@ export default async function OrderTicketPage({
               }}
             >
               {order.customer_address}
+              {order.delivery_lat != null && order.delivery_lng != null && (
+                <div style={{ marginTop: 4 }}>
+                  <a
+                    href={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#1a73e8",
+                    }}
+                  >
+                    🗺️ Abrir en Google Maps
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </div>

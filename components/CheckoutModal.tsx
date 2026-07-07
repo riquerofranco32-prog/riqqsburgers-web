@@ -1397,6 +1397,7 @@ export default function CheckoutModal({
                         ? { lat: tenant.latitude, lng: tenant.longitude }
                         : null
                     }
+                    hideMap
                     onChange={(pos) => {
                       set("address", pos.label);
                       touch("address");
@@ -1421,6 +1422,7 @@ export default function CheckoutModal({
                         ? { lat: tenant.latitude, lng: tenant.longitude }
                         : null
                     }
+                    hideMap
                     onChange={(pos) => {
                       set("address", pos.label);
                       touch("address");
@@ -1476,6 +1478,7 @@ export default function CheckoutModal({
                         ? { lat: tenant.latitude, lng: tenant.longitude }
                         : null
                     }
+                    hideMap
                     onChange={(pos) => {
                       set("address", pos.label);
                       touch("address");

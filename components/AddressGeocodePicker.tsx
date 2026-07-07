@@ -36,12 +36,17 @@ export default function AddressGeocodePicker({
   initialPosition = null,
   onChange,
   mapHeight = 220,
+  hideMap = false,
 }: {
   slug: string;
   fallbackCenter: { lat: number; lng: number } | null;
   initialPosition?: DeliveryPosition | null;
   onChange: (pos: DeliveryPosition) => void;
   mapHeight?: number;
+  // El cliente del checkout solo tipea y elige una sugerencia — el pin
+  // arrastrable queda para el admin, que sí necesita ajustar la ubicación
+  // exacta del local/zona a mano.
+  hideMap?: boolean;
 }) {
   const [query, setQuery] = useState(initialPosition?.label ?? "");
   const [suggestions, setSuggestions] = useState<GeocodeResult[]>([]);
@@ -209,10 +214,11 @@ export default function AddressGeocodePicker({
           }}
         >
           <span>
-            No encontramos esa dirección — probá con calle y número, o marcala
-            directo en el mapa.
+            {hideMap
+              ? "No encontramos esa dirección — probá con calle y número."
+              : "No encontramos esa dirección — probá con calle y número, o marcala directo en el mapa."}
           </span>
-          {fallbackCenter && (
+          {!hideMap && fallbackCenter && (
             <button
               type="button"
               onClick={markOnMapManually}
@@ -234,7 +240,7 @@ export default function AddressGeocodePicker({
         </div>
       )}
 
-      {position && suggestions.length === 0 && (
+      {!hideMap && position && suggestions.length === 0 && (
         <>
           <DeliveryMap
             lat={position.lat}

@@ -139,6 +139,21 @@ export function OrderDetailView({
                 {order.customer_address ?? order.address}
               </p>
             )}
+            {order.delivery_lat != null && order.delivery_lng != null && (
+              <a
+                href={`https://www.google.com/maps?q=${order.delivery_lat},${order.delivery_lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "var(--accent)",
+                  textDecoration: "none",
+                  fontSize: 12,
+                  fontWeight: 600,
+                }}
+              >
+                🗺️ Abrir en Google Maps
+              </a>
+            )}
           </div>
         </div>
 
