@@ -232,7 +232,7 @@ export default function AddressGeocodePicker({
         </div>
       )}
 
-      {position && suggestions.length === 0 && (
+      {position && (
         <>
           <DeliveryMap
             lat={position.lat}
