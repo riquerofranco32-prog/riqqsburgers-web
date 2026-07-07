@@ -2,17 +2,28 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import type { TenantWithStats } from "@/lib/tenants";
+
+const PLAN_LABELS: Record<string, string> = {
+  free: "Starter",
+  pro: "Pro",
+  premium: "Growth",
+};
+
+function daysAgo(dateStr: string): number {
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
+}
+
+function formatLastOrder(dateStr: string | null): string {
+  if (!dateStr) return "Sin pedidos todavía";
+  const days = daysAgo(dateStr);
+  if (days <= 0) return "Último pedido: hoy";
+  if (days === 1) return "Último pedido: ayer";
+  return `Último pedido: hace ${days} días`;
+}
 
 interface RestaurantCardProps {
-  tenant: {
-    id: string;
-    name: string;
-    slug: string;
-    tagline?: string | null;
-    active: boolean;
-    primary_color?: string | null;
-    logo_url?: string | null;
-  };
+  tenant: TenantWithStats;
 }
 
 export default function RestaurantCard({ tenant }: RestaurantCardProps) {
@@ -23,6 +34,15 @@ export default function RestaurantCard({ tenant }: RestaurantCardProps) {
     .map((w) => w[0])
     .join("")
     .toUpperCase();
+
+  const isTrialing = tenant.subscriptionStatus === "trialing";
+  const trialUrgent =
+    isTrialing && tenant.trialDaysLeft !== null && tenant.trialDaysLeft <= 3;
+  const isExpired = tenant.subscriptionStatus === "expired";
+  const clienteDesde = new Date(tenant.created_at).toLocaleDateString("es-AR", {
+    month: "short",
+    year: "numeric",
+  });
 
   return (
     <div
@@ -128,6 +148,87 @@ export default function RestaurantCard({ tenant }: RestaurantCardProps) {
           {tenant.tagline}
         </p>
       )}
+
+      {/* Plan + trial */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            padding: "3px 10px",
+            borderRadius: 20,
+            background: "rgba(255,107,53,0.1)",
+            color: "var(--accent)",
+            border: "1px solid rgba(255,107,53,0.2)",
+          }}
+        >
+          {PLAN_LABELS[tenant.plan] ?? tenant.plan}
+        </span>
+        {isTrialing && tenant.trialDaysLeft !== null && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              padding: "3px 10px",
+              borderRadius: 20,
+              background: trialUrgent
+                ? "rgba(239,68,68,0.12)"
+                : "rgba(217,119,6,0.12)",
+              color: trialUrgent ? "#ef4444" : "#d97706",
+              border: `1px solid ${trialUrgent ? "rgba(239,68,68,0.25)" : "rgba(217,119,6,0.25)"}`,
+            }}
+          >
+            ⏳{" "}
+            {tenant.trialDaysLeft === 0
+              ? "Trial vence hoy"
+              : `${tenant.trialDaysLeft} día${tenant.trialDaysLeft === 1 ? "" : "s"} de trial`}
+          </span>
+        )}
+        {isExpired && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              padding: "3px 10px",
+              borderRadius: 20,
+              background: "rgba(239,68,68,0.12)",
+              color: "#ef4444",
+              border: "1px solid rgba(239,68,68,0.25)",
+            }}
+          >
+            Trial vencido
+          </span>
+        )}
+      </div>
+
+      {/* Stats */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 12,
+          color: "var(--dash-muted)",
+          paddingTop: 4,
+          borderTop: "1px solid var(--dash-border)",
+        }}
+      >
+        <span>
+          {tenant.productCount} producto{tenant.productCount === 1 ? "" : "s"}
+        </span>
+        <span>
+          {tenant.orderCount} pedido{tenant.orderCount === 1 ? "" : "s"}
+        </span>
+        <span>Cliente desde {clienteDesde}</span>
+      </div>
+      <p
+        style={{
+          fontSize: 11,
+          color: "var(--dash-muted)",
+          margin: "-10px 0 0",
+        }}
+      >
+        {formatLastOrder(tenant.lastOrderAt)}
+      </p>
 
       {/* Actions */}
       <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
