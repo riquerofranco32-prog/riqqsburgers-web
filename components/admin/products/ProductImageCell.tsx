@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { Camera, Loader2, Check } from "lucide-react";
+import { toast } from "sonner";
 import type { Product } from "@/types/supabase";
 import { uploadImage, type UploadState } from "./utils";
 
@@ -40,8 +41,9 @@ export function ProductImageCell({
       onUploaded(product.id, publicUrl);
       setState("success");
       setTimeout(() => setState("idle"), 2000);
-    } catch {
+    } catch (err) {
       setState("error");
+      toast.error(err instanceof Error ? err.message : "Error al subir imagen");
       setTimeout(() => setState("idle"), 2500);
     }
   }

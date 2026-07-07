@@ -154,6 +154,35 @@ export function TeamAdmin({
     }
   }
 
+  async function handleRoleChange(member: TeamMember, role: string) {
+    if (role === member.role) return;
+    const prevRole = member.role;
+    setMembers((prev) =>
+      prev.map((m) => (m.id === member.id ? { ...m, role } : m)),
+    );
+    try {
+      const res = await fetch(`/api/tenant/${slug}/team/${member.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Error al cambiar el rol");
+      }
+      toast.success("Rol actualizado");
+    } catch (err) {
+      setMembers((prev) =>
+        prev.map((m) => (m.id === member.id ? { ...m, role: prevRole } : m)),
+      );
+      toast.error(
+        err instanceof Error ? err.message : "Error al cambiar el rol",
+      );
+    }
+  }
+
   async function handleDelete(member: TeamMember) {
     setConfirmDeleteId(null);
     try {
@@ -235,12 +264,21 @@ export function TeamAdmin({
                   >
                     {m.email ?? "—"}
                   </span>
-                  <span
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void handleRoleChange(
+                        m,
+                        m.role === "admin" ? "staff" : "admin",
+                      )
+                    }
+                    title="Click para cambiar de rol"
                     style={{
                       fontSize: 12,
                       padding: "2px 8px",
                       borderRadius: 999,
                       fontWeight: 600,
+                      cursor: "pointer",
                       background:
                         m.role === "admin"
                           ? "rgba(255,107,53,0.1)"
@@ -253,8 +291,8 @@ export function TeamAdmin({
                       }`,
                     }}
                   >
-                    {ROLE_LABEL[m.role] ?? m.role}
-                  </span>
+                    {ROLE_LABEL[m.role] ?? m.role} ⇄
+                  </button>
                 </div>
               </div>
 

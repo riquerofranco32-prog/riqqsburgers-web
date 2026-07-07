@@ -109,9 +109,11 @@ export function ProductModal({
       const url = await uploadImage(file, tenantSlug, product?.id);
       set("image_url", url);
       setPreviewUrl(url);
-    } catch {
+    } catch (err) {
       setPreviewUrl(null);
-      setUploadError("Error al subir imagen. Podés pegar una URL manualmente.");
+      const reason =
+        err instanceof Error ? err.message : "Error al subir imagen";
+      setUploadError(`${reason}. Podés pegar una URL manualmente.`);
     } finally {
       setUploading(false);
     }

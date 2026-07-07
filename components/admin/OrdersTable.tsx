@@ -46,6 +46,10 @@ export function OrdersTable({
 
   const notifPermissionRef = useRef<NotificationPermission>("default");
   const unseenCountRef = useRef(0);
+  const [realtimeStatus, setRealtimeStatus] = useState<
+    "connecting" | "connected" | "disconnected"
+  >("connecting");
+  const [reconnectKey, setReconnectKey] = useState(0);
 
   // Request browser notification permission once on mount
   useEffect(() => {
@@ -76,6 +80,7 @@ export function OrdersTable({
   }, []);
 
   useEffect(() => {
+    setRealtimeStatus("connecting");
     const supabase = createSupabaseBrowser();
     const uniqueId = Math.random().toString(36).substring(7);
     const channel = supabase
@@ -158,11 +163,20 @@ export function OrdersTable({
           setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") setRealtimeStatus("connected");
+        else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
+          setRealtimeStatus("disconnected");
+        }
+      });
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [tenantId]);
+  }, [tenantId, reconnectKey]);
 
   async function updateStatus(orderId: string, status: string) {
     const prevStatus = orders.find((o) => o.id === orderId)?.status;
@@ -640,6 +654,46 @@ export function OrdersTable({
             </span>
           )}
         </div>
+
+        {/* Realtime connection banner */}
+        {realtimeStatus === "disconnected" && (
+          <div
+            style={{
+              padding: "10px 16px",
+              background: "rgba(239,68,68,0.1)",
+              borderBottom: "1px solid rgba(239,68,68,0.2)",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#f87171",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
+            <span>
+              ⚠️ Se perdió la conexión en vivo — puede que no veas pedidos
+              nuevos hasta reconectar.
+            </span>
+            <button
+              onClick={() => setReconnectKey((k) => k + 1)}
+              style={{
+                flexShrink: 0,
+                background: "none",
+                border: "1px solid rgba(239,68,68,0.4)",
+                borderRadius: 8,
+                padding: "5px 12px",
+                color: "#f87171",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Reconectar
+            </button>
+          </div>
+        )}
 
         {/* Urgent orders banner */}
         {(() => {

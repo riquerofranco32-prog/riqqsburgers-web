@@ -35,9 +35,11 @@ function fmtARS(n: number) {
 function CouponModal({
   onSave,
   onClose,
+  existingCodes,
 }: {
   onSave: (data: CouponForm) => Promise<void>;
   onClose: () => void;
+  existingCodes: string[];
 }) {
   const [form, setForm] = useState<CouponForm>(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -51,6 +53,10 @@ function CouponModal({
   async function doSave() {
     if (!form.code.trim()) {
       setError("El código es obligatorio");
+      return;
+    }
+    if (existingCodes.includes(form.code.trim().toUpperCase())) {
+      setError("Ya existe un cupón con ese código");
       return;
     }
     const value = Number(form.discount_value);
@@ -534,7 +540,11 @@ export function CouponsAdmin({
       )}
 
       {showModal && (
-        <CouponModal onSave={handleSave} onClose={() => setShowModal(false)} />
+        <CouponModal
+          onSave={handleSave}
+          onClose={() => setShowModal(false)}
+          existingCodes={coupons.map((c) => c.code.toUpperCase())}
+        />
       )}
     </div>
   );
