@@ -52,10 +52,12 @@ export default function AddressGeocodePicker({
   );
   const [mapRevision, setMapRevision] = useState(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Evita que setQuery(s.label) al elegir una sugerencia dispare una nueva
+  // Evita que setQuery(s.label) al elegir una sugerencia (o el label ya
+  // confirmado con el que se monta el componente) dispare una nueva
   // búsqueda para ese mismo label — sin esto, el dropdown se reabre y tapa
-  // el mapa apenas el usuario elige una dirección.
-  const skipNextSearchRef = useRef(false);
+  // el mapa apenas el usuario elige una dirección, o incluso al cargar una
+  // dirección ya guardada.
+  const skipNextSearchRef = useRef(initialPosition != null);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -232,7 +234,7 @@ export default function AddressGeocodePicker({
         </div>
       )}
 
-      {position && (
+      {position && suggestions.length === 0 && (
         <>
           <DeliveryMap
             lat={position.lat}
