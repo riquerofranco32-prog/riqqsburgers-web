@@ -30,6 +30,7 @@ import NotificationToggle from "@/components/admin/NotificationToggle";
 interface AdminShellProps {
   children: React.ReactNode;
   tenantName: string;
+  tenantLogoUrl?: string | null;
   slug: string;
   tenantId: string;
   userEmail: string;
@@ -273,6 +274,7 @@ function DesktopNavLinks({
 export default function AdminShell({
   children,
   tenantName,
+  tenantLogoUrl,
   slug,
   tenantId,
   userEmail,
@@ -715,7 +717,9 @@ export default function AdminShell({
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  background: "linear-gradient(135deg, var(--accent), #ff8c5a)",
+                  background: tenantLogoUrl
+                    ? "var(--dash-surface)"
+                    : "linear-gradient(135deg, var(--accent), #ff8c5a)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -723,9 +727,23 @@ export default function AdminShell({
                   fontWeight: 800,
                   color: "#fff",
                   flexShrink: 0,
+                  overflow: "hidden",
                 }}
               >
-                {tenantName.charAt(0).toUpperCase()}
+                {tenantLogoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={tenantLogoUrl}
+                    alt={tenantName}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  tenantName.charAt(0).toUpperCase()
+                )}
               </div>
               <div style={{ minWidth: 0 }}>
                 <p

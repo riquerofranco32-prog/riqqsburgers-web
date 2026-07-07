@@ -24,11 +24,14 @@ export default async function AdminLayout({
 
   const { data: rawTenant } = await db
     .from("tenants")
-    .select("id, name, slug")
+    .select("id, name, slug, logo_url")
     .eq("slug", slug)
     .maybeSingle();
 
-  const tenant = rawTenant as Pick<Tenant, "id" | "name" | "slug"> | null;
+  const tenant = rawTenant as Pick<
+    Tenant,
+    "id" | "name" | "slug" | "logo_url"
+  > | null;
   if (!tenant) {
     return (
       <div
@@ -81,6 +84,7 @@ export default async function AdminLayout({
     <AdminShell
       slug={slug}
       tenantName={tenant.name}
+      tenantLogoUrl={tenant.logo_url}
       tenantId={tenant.id}
       userEmail={user.email ?? ""}
       isSuperAdmin={!!superAdminAccess}
