@@ -78,6 +78,12 @@ export interface Category {
   allow_half: boolean;
 }
 
+export interface ProductOptionGroup {
+  name: string;
+  required: boolean;
+  options: Array<{ name: string; price: number }>;
+}
+
 export interface Product {
   id: string;
   tenant_id: string;
@@ -94,6 +100,7 @@ export interface Product {
   created_at: string;
   extras: Array<{ name: string; price: number }>;
   addons: Array<{ name: string; price: number }>;
+  option_groups: ProductOptionGroup[];
   stock_quantity: number | null;
   ingredients: string[];
 }

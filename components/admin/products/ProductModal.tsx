@@ -17,6 +17,11 @@ export interface ProductForm {
   featured_order: string;
   extras: Array<{ name: string; price: string }>;
   addons: Array<{ name: string; price: string }>;
+  option_groups: Array<{
+    name: string;
+    required: boolean;
+    options: Array<{ name: string; price: string }>;
+  }>;
   stock_quantity: string;
   ingredients: string[];
 }
@@ -33,6 +38,7 @@ export const emptyForm: ProductForm = {
   featured_order: "0",
   extras: [],
   addons: [],
+  option_groups: [],
   stock_quantity: "",
   ingredients: [],
 };
@@ -74,6 +80,14 @@ export function ProductModal({
               price: String(e.price),
             }),
           ),
+          option_groups: (product.option_groups ?? []).map((g) => ({
+            name: g.name,
+            required: g.required,
+            options: g.options.map((o) => ({
+              name: o.name,
+              price: String(o.price),
+            })),
+          })),
           stock_quantity:
             product.stock_quantity === null
               ? ""
@@ -438,6 +452,189 @@ export function ProductModal({
                     >
                       ×
                     </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Grupos de opciones obligatorias — ej: "Elegí tu salsa" */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                  Grupos de opciones obligatorias
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({
+                      ...f,
+                      option_groups: [
+                        ...f.option_groups,
+                        { name: "", required: true, options: [] },
+                      ],
+                    }))
+                  }
+                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                >
+                  + Agregar grupo
+                </button>
+              </div>
+              <p className="text-xs text-zinc-600 mb-2">
+                Para cosas que el cliente tiene que elegir sí o sí, sin costo
+                extra. Ej: &quot;Elegí tu salsa&quot; (Ketchup / Mayonesa),
+                &quot;Tipo de papas&quot; (Sazonadas / Con sal).
+              </p>
+              <div className="flex flex-col gap-3">
+                {form.option_groups.map((group, gi) => (
+                  <div
+                    key={gi}
+                    className="border border-zinc-700 rounded-xl p-3 flex flex-col gap-2"
+                  >
+                    <div className="flex gap-2 items-center">
+                      <input
+                        value={group.name}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            option_groups: f.option_groups.map((g, idx) =>
+                              idx === gi ? { ...g, name: e.target.value } : g,
+                            ),
+                          }))
+                        }
+                        placeholder="Ej: Elegí tu salsa"
+                        style={{ fontSize: 16 }}
+                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                      />
+                      <label className="flex items-center gap-1.5 text-xs text-zinc-400 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={group.required}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...f,
+                              option_groups: f.option_groups.map((g, idx) =>
+                                idx === gi
+                                  ? { ...g, required: e.target.checked }
+                                  : g,
+                              ),
+                            }))
+                          }
+                        />
+                        Obligatorio
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            option_groups: f.option_groups.filter(
+                              (_, idx) => idx !== gi,
+                            ),
+                          }))
+                        }
+                        className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="flex flex-col gap-2 pl-2">
+                      {group.options.map((option, oi) => (
+                        <div key={oi} className="flex gap-2 items-center">
+                          <input
+                            value={option.name}
+                            onChange={(e) =>
+                              setForm((f) => ({
+                                ...f,
+                                option_groups: f.option_groups.map((g, idx) =>
+                                  idx === gi
+                                    ? {
+                                        ...g,
+                                        options: g.options.map((o, oidx) =>
+                                          oidx === oi
+                                            ? { ...o, name: e.target.value }
+                                            : o,
+                                        ),
+                                      }
+                                    : g,
+                                ),
+                              }))
+                            }
+                            placeholder="Ej: Ketchup"
+                            style={{ fontSize: 16 }}
+                            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                          />
+                          <input
+                            type="number"
+                            value={option.price}
+                            onChange={(e) =>
+                              setForm((f) => ({
+                                ...f,
+                                option_groups: f.option_groups.map((g, idx) =>
+                                  idx === gi
+                                    ? {
+                                        ...g,
+                                        options: g.options.map((o, oidx) =>
+                                          oidx === oi
+                                            ? { ...o, price: e.target.value }
+                                            : o,
+                                        ),
+                                      }
+                                    : g,
+                                ),
+                              }))
+                            }
+                            placeholder="$+ precio"
+                            min={0}
+                            style={{ fontSize: 16 }}
+                            className="w-24 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setForm((f) => ({
+                                ...f,
+                                option_groups: f.option_groups.map((g, idx) =>
+                                  idx === gi
+                                    ? {
+                                        ...g,
+                                        options: g.options.filter(
+                                          (_, oidx) => oidx !== oi,
+                                        ),
+                                      }
+                                    : g,
+                                ),
+                              }))
+                            }
+                            className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setForm((f) => ({
+                            ...f,
+                            option_groups: f.option_groups.map((g, idx) =>
+                              idx === gi
+                                ? {
+                                    ...g,
+                                    options: [
+                                      ...g.options,
+                                      { name: "", price: "0" },
+                                    ],
+                                  }
+                                : g,
+                            ),
+                          }))
+                        }
+                        className="self-start text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                      >
+                        + Agregar opción
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

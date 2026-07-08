@@ -11,7 +11,12 @@ import {
 import { createServerClient } from "./supabase";
 import { computeEffectiveOpen, type BusinessHours } from "./businessHours";
 import { isCategoryVisibleNow } from "./categoryVisibility";
-import type { Tenant, Category, Product } from "@/types/supabase";
+import type {
+  Tenant,
+  Category,
+  Product,
+  ProductOptionGroup,
+} from "@/types/supabase";
 
 export interface RestaurantBrand {
   bg: string;
@@ -33,6 +38,7 @@ export interface MenuItem {
   badge: string | null;
   extras: Array<{ name: string; price: number }>;
   addons: Array<{ name: string; price: number }>;
+  option_groups: ProductOptionGroup[];
   is_featured: boolean;
   featured_order: number;
   ingredients: string[];
@@ -206,6 +212,7 @@ function mapToRestaurant(
                 (p.extras as Array<{ name: string; price: number }>) ?? [],
               addons:
                 (p.addons as Array<{ name: string; price: number }>) ?? [],
+              option_groups: (p.option_groups as ProductOptionGroup[]) ?? [],
               is_featured: p.is_featured ?? false,
               featured_order: p.featured_order ?? 0,
               ingredients: p.ingredients ?? [],
@@ -230,6 +237,7 @@ function mapToRestaurant(
                 : (p.badge ?? null),
             extras: (p.extras as Array<{ name: string; price: number }>) ?? [],
             addons: (p.addons as Array<{ name: string; price: number }>) ?? [],
+            option_groups: (p.option_groups as ProductOptionGroup[]) ?? [],
             is_featured: p.is_featured ?? false,
             featured_order: p.featured_order ?? 0,
             ingredients: p.ingredients ?? [],

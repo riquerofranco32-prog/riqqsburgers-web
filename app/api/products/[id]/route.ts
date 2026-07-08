@@ -15,6 +15,7 @@ const ALLOWED_FIELDS = [
   "category_id",
   "extras",
   "addons",
+  "option_groups",
   "is_featured",
   "featured_order",
   "stock_quantity",
@@ -39,6 +40,19 @@ function isValidOptionList(list: unknown): boolean {
 function isValidIngredientList(list: unknown): boolean {
   if (!Array.isArray(list) || list.length > 30) return false;
   return list.every((s) => typeof s === "string" && s.length <= 60);
+}
+
+function isValidOptionGroupList(list: unknown): boolean {
+  if (!Array.isArray(list) || list.length > 10) return false;
+  return (
+    list as Array<{ name: unknown; required: unknown; options: unknown }>
+  ).every(
+    (g) =>
+      typeof g.name === "string" &&
+      g.name.length <= 100 &&
+      typeof g.required === "boolean" &&
+      isValidOptionList(g.options),
+  );
 }
 
 export async function PATCH(
@@ -192,6 +206,18 @@ export async function PATCH(
   ) {
     return NextResponse.json(
       { error: "Extras inválidos (máx. 20)" },
+      { status: 400 },
+    );
+  }
+  if (
+    "option_groups" in patch &&
+    patch.option_groups !== null &&
+    !isValidOptionGroupList(patch.option_groups)
+  ) {
+    return NextResponse.json(
+      {
+        error: "Grupos de opciones inválidos (máx. 10 grupos, 20 opciones c/u)",
+      },
       { status: 400 },
     );
   }

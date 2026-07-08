@@ -218,6 +218,21 @@ export default function ProductsAdmin({
             Number(e.price) >= 0,
         )
         .map((e) => ({ name: e.name.trim(), price: Number(e.price) })),
+      option_groups: form.option_groups
+        .filter((g) => g.name.trim() && g.options.length > 0)
+        .map((g) => ({
+          name: g.name.trim(),
+          required: g.required,
+          options: g.options
+            .filter(
+              (o) =>
+                o.name.trim() &&
+                o.price !== "" &&
+                !isNaN(Number(o.price)) &&
+                Number(o.price) >= 0,
+            )
+            .map((o) => ({ name: o.name.trim(), price: Number(o.price) })),
+        })),
       ingredients: form.ingredients
         .map((i) => i.trim())
         .filter((i) => i.length > 0),
@@ -343,6 +358,7 @@ export default function ProductsAdmin({
           featured_order: 0,
           extras: product.extras ?? [],
           addons: product.addons ?? [],
+          option_groups: product.option_groups ?? [],
           stock_quantity: product.stock_quantity,
         }),
       });

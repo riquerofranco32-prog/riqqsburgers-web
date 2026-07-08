@@ -28,6 +28,25 @@ function isValidIngredientList(list: unknown): list is string[] {
   return list.every((s) => typeof s === "string" && s.length <= 60);
 }
 
+interface OptionGroupInput {
+  name: string;
+  required: boolean;
+  options: Array<{ name: string; price: number }>;
+}
+
+function isValidOptionGroupList(list: unknown): list is OptionGroupInput[] {
+  if (!Array.isArray(list) || list.length > 10) return false;
+  return (
+    list as Array<{ name: unknown; required: unknown; options: unknown }>
+  ).every(
+    (g) =>
+      typeof g.name === "string" &&
+      g.name.length <= 100 &&
+      typeof g.required === "boolean" &&
+      isValidOptionList(g.options),
+  );
+}
+
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     slug: string;
@@ -43,6 +62,7 @@ export async function POST(req: NextRequest) {
     featured_order?: number;
     extras?: Array<{ name: string; price: number }>;
     addons?: Array<{ name: string; price: number }>;
+    option_groups?: OptionGroupInput[];
     stock_quantity?: number | null;
     ingredients?: string[];
   };
@@ -113,6 +133,19 @@ export async function POST(req: NextRequest) {
   ) {
     return NextResponse.json(
       { error: "Extras inválidos (máx. 20)" },
+      { status: 400 },
+    );
+  }
+
+  if (
+    body.option_groups !== undefined &&
+    body.option_groups !== null &&
+    !isValidOptionGroupList(body.option_groups)
+  ) {
+    return NextResponse.json(
+      {
+        error: "Grupos de opciones inválidos (máx. 10 grupos, 20 opciones c/u)",
+      },
       { status: 400 },
     );
   }
@@ -191,6 +224,7 @@ export async function POST(req: NextRequest) {
       featured_order: body.featured_order ?? 0,
       extras: body.extras ?? [],
       addons: body.addons ?? [],
+      option_groups: body.option_groups ?? [],
       stock_quantity: body.stock_quantity ?? null,
       ingredients: body.ingredients ?? [],
     })

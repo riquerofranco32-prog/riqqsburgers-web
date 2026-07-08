@@ -146,9 +146,26 @@ export default function ProductDetailSheet({
     setTimeout(() => setPricePulse(false), 300);
   }
 
-  const [selectedAddons, setSelectedAddons] = useState<SelectedExtra[]>(
-    initialAddons ?? [],
+  // Opciones de grupos obligatorios (ej: "Elegí tu salsa") se guardan en el
+  // mismo carrito como addons planos — item.option_groups solo determina qué
+  // botones mostrar y si hay que validar selección mínima antes de agregar.
+  const groupOptionNames = new Set(
+    item.option_groups.flatMap((g) => g.options.map((o) => o.name)),
   );
+  const [selectedAddons, setSelectedAddons] = useState<SelectedExtra[]>(
+    (initialAddons ?? []).filter((a) => !groupOptionNames.has(a.name)),
+  );
+  const [selectedGroups, setSelectedGroups] = useState<
+    Record<string, SelectedExtra[]>
+  >(() => {
+    const init: Record<string, SelectedExtra[]> = {};
+    for (const g of item.option_groups) {
+      init[g.name] = g.options.filter((o) =>
+        (initialAddons ?? []).some((a) => a.name === o.name),
+      );
+    }
+    return init;
+  });
   const [removedIngredients, setRemovedIngredients] = useState<string[]>(
     initialRemovedIngredients ?? [],
   );
@@ -169,6 +186,22 @@ export default function ProductDetailSheet({
     setTimeout(() => setPricePulse(false), 300);
   }
 
+  function toggleGroupOption(groupName: string, option: SelectedExtra) {
+    setSelectedGroups((prev) => {
+      const current = prev[groupName] ?? [];
+      const next = current.some((o) => o.name === option.name)
+        ? current.filter((o) => o.name !== option.name)
+        : [...current, option];
+      return { ...prev, [groupName]: next };
+    });
+    setPricePulse(true);
+    setTimeout(() => setPricePulse(false), 300);
+  }
+
+  const missingRequiredGroups = item.option_groups.filter(
+    (g) => g.required && (selectedGroups[g.name]?.length ?? 0) === 0,
+  );
+
   // Mitad y mitad: combina este producto con otro de la misma categoría en
   // un solo ítem. Se cobra el precio del sabor más caro — ver addItemWithNotes.
   const halfCandidates = categoryItems.filter(
@@ -181,10 +214,13 @@ export default function ProductDetailSheet({
 
   const extraPrice = selectedExtraDraft?.price ?? 0;
   const addonsPrice = selectedAddons.reduce((sum, a) => sum + a.price, 0);
+  const groupsPrice = Object.values(selectedGroups)
+    .flat()
+    .reduce((sum, o) => sum + o.price, 0);
   const basePrice = combinedFlavor
     ? Math.max(item.price, combinedFlavor.price)
     : item.price;
-  const totalPriceDisplay = basePrice + extraPrice + addonsPrice;
+  const totalPriceDisplay = basePrice + extraPrice + addonsPrice + groupsPrice;
   const isSoldOut = item.badge === "Agotado";
 
   async function handleShareProduct(productId: string, productName: string) {
@@ -704,6 +740,97 @@ export default function ProductDetailSheet({
             </div>
           )}
 
+          {/* Grupos de opciones obligatorias (ej: "Elegí tu salsa") */}
+          {item.option_groups.map((group) => {
+            const selected = selectedGroups[group.name] ?? [];
+            const isMissing = group.required && selected.length === 0;
+            return (
+              <div key={group.name} style={{ marginBottom: 20 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 10,
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: 11,
+                      color: TEXTM,
+                      fontWeight: 700,
+                      letterSpacing: "0.07em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {group.name}
+                  </label>
+                  {group.required && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: "2px 8px",
+                        borderRadius: 999,
+                        background: isMissing
+                          ? "rgba(239,68,68,0.12)"
+                          : SURFACE2,
+                        color: isMissing ? "#ef4444" : TEXTM,
+                        border: `1px solid ${isMissing ? "rgba(239,68,68,0.3)" : BORDER}`,
+                      }}
+                    >
+                      Obligatorio
+                    </span>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {group.options.map((option) => {
+                    const isSelected = selected.some(
+                      (o) => o.name === option.name,
+                    );
+                    return (
+                      <button
+                        type="button"
+                        key={option.name}
+                        onClick={() => toggleGroupOption(group.name, option)}
+                        style={{
+                          padding: "8px 18px",
+                          borderRadius: 999,
+                          border: "1.5px solid",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          background: isSelected ? accent : "transparent",
+                          color: isSelected ? onAccent : TEXT2,
+                          borderColor: isSelected ? accent : BORDER,
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        {isSelected && (
+                          <CheckCircle2 size={13} strokeWidth={2.5} />
+                        )}
+                        {option.name}
+                        {option.price > 0 && (
+                          <span style={{ opacity: 0.8, fontSize: 12 }}>
+                            +{fmt(option.price)}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {isMissing && (
+                  <p style={{ fontSize: 11, color: "#ef4444", marginTop: 6 }}>
+                    Elegí al menos una opción
+                  </p>
+                )}
+              </div>
+            );
+          })}
+
           {/* Addons — extras que se suman aparte, selección múltiple */}
           {item.addons && item.addons.length > 0 && (
             <div style={{ marginBottom: 20 }}>
@@ -873,7 +1000,9 @@ export default function ProductDetailSheet({
             </div>
           ) : qty === 0 ? (
             <button
+              disabled={missingRequiredGroups.length > 0}
               onClick={() => {
+                if (missingRequiredGroups.length > 0) return;
                 // El ítem que se agrega al carrito es siempre el sabor más
                 // caro (así el precio ya sale correcto sin tocar ningún
                 // cálculo de subtotal) — el otro sabor queda solo como dato
@@ -886,11 +1015,15 @@ export default function ProductDetailSheet({
                   combinedFlavor && combinedFlavor.price > item.price
                     ? item
                     : combinedFlavor;
+                const allAddons = [
+                  ...selectedAddons,
+                  ...Object.values(selectedGroups).flat(),
+                ];
                 addItemWithNotes(
                   primary,
                   itemNotesDraft || undefined,
                   selectedExtraDraft ?? undefined,
-                  selectedAddons.length > 0 ? selectedAddons : undefined,
+                  allAddons.length > 0 ? allAddons : undefined,
                   removedIngredients.length > 0
                     ? removedIngredients
                     : undefined,
@@ -902,20 +1035,23 @@ export default function ProductDetailSheet({
               }}
               style={{
                 width: "100%",
-                background: accent,
-                color: onAccent,
+                background: missingRequiredGroups.length > 0 ? BORDER : accent,
+                color: missingRequiredGroups.length > 0 ? TEXTM : onAccent,
                 border: "none",
                 borderRadius: 14,
                 padding: "16px",
                 fontSize: 16,
                 fontWeight: 700,
-                cursor: "pointer",
+                cursor:
+                  missingRequiredGroups.length > 0 ? "not-allowed" : "pointer",
                 WebkitTapHighlightColor: "transparent",
               }}
               onTouchStart={(e) => (e.currentTarget.style.opacity = "0.88")}
               onTouchEnd={(e) => (e.currentTarget.style.opacity = "1")}
             >
-              Agregar al pedido →
+              {missingRequiredGroups.length > 0
+                ? "Elegí las opciones obligatorias"
+                : "Agregar al pedido →"}
             </button>
           ) : (
             <div
