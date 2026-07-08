@@ -116,6 +116,12 @@ export async function POST(
     data: { publicUrl },
   } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
+  // Append timestamp so browser/CDN don't serve a stale cached version
+  // when the same path is overwritten with a new image — same pattern as
+  // the tenant logo upload. Without this, replacing a photo keeps showing
+  // the old one everywhere until the cache expires.
+  const url = `${publicUrl}?t=${Date.now()}`;
+
   revalidatePath(`/${slug}`, "layout");
-  return NextResponse.json({ url: publicUrl });
+  return NextResponse.json({ url });
 }
