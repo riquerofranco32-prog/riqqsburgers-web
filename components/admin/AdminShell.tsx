@@ -20,6 +20,7 @@ import {
   Percent,
   Star,
   UserCog,
+  UserCircle,
   type LucideIcon,
 } from "lucide-react";
 import { createSupabaseBrowser } from "@/lib/supabase";
@@ -51,6 +52,7 @@ const FULL_NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> =
     { href: "/equipo", label: "Equipo", icon: UserCog },
     { href: "/configuracion", label: "Configuración", icon: Settings },
     { href: "/plan", label: "Mi Plan", icon: Crown },
+    { href: "/mi-cuenta", label: "Mi cuenta", icon: UserCircle },
   ];
 
 // Personal de cocina/mozo: solo ve y gestiona pedidos, nada de precios/config/billing
@@ -58,7 +60,10 @@ const STAFF_NAV_ITEMS: Array<{
   href: string;
   label: string;
   icon: LucideIcon;
-}> = [{ href: "/pedidos", label: "Pedidos", icon: ClipboardList }];
+}> = [
+  { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
+  { href: "/mi-cuenta", label: "Mi cuenta", icon: UserCircle },
+];
 
 function getNavItems(role?: string) {
   return role === "staff" ? STAFF_NAV_ITEMS : FULL_NAV_ITEMS;
