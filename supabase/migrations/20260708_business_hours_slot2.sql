@@ -1,0 +1,37 @@
+-- Migration: business_hours_slot2
+-- Fecha: 2026-07-08
+--
+-- La columna business_hours ya existe como jsonb en la tabla tenants
+-- (añadida en 20260704_add_business_hours_to_tenants.sql).
+--
+-- Este archivo documenta el NUEVO FORMATO del JSON almacenado,
+-- que agrega soporte para una segunda franja horaria (slot2) por día.
+-- No se requiere ALTER TABLE porque jsonb acepta cualquier shape.
+--
+-- Formato anterior (sigue siendo válido):
+-- [
+--   { "open": "11:00", "close": "23:00", "closed": false },
+--   ...7 días (0=domingo..6=sábado)
+-- ]
+--
+-- Formato nuevo con slot2 (retrocompatible — slot2 es opcional):
+-- [
+--   {
+--     "open":   "11:30",
+--     "close":  "15:00",
+--     "closed": false,
+--     "slot2":  { "open": "20:00", "close": "00:30" }
+--   },
+--   ...
+-- ]
+--
+-- Reglas de negocio:
+--   - slot2 es opcional. Omitirlo es equivalente a no tener segundo turno.
+--   - El local está abierto si la hora actual cae en slot1 O en slot2.
+--   - Ambas franjas soportan cruce de medianoche (close < open).
+--   - La validación en app/api/tenant/[slug]/route.ts rechaza configuraciones
+--     donde slot1 y slot2 se superponen (en franjas normales sin medianoche).
+
+-- No se ejecuta ningún DDL. Este archivo existe únicamente como documentación
+-- del cambio de schema lógico dentro de la columna jsonb.
+SELECT 1; -- no-op para que el runner de migraciones lo marque como ejecutado

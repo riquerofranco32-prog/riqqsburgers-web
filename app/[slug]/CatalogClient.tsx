@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   useState,
@@ -63,7 +63,11 @@ import CartDrawer, {
 import { useFavorites } from "@/hooks/useFavorites";
 import { trackEvent, trackGA4Event } from "@/lib/analytics";
 import { createSupabaseBrowser } from "@/lib/supabase";
-import { computeEffectiveOpen } from "@/lib/businessHours";
+import {
+  computeEffectiveOpen,
+  getOpenStatus,
+  formatOpenStatus,
+} from "@/lib/businessHours";
 import ImmersiveView from "@/components/menu/ImmersiveView";
 
 export interface PublicCoupon {
@@ -878,6 +882,19 @@ export default function CatalogClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [manualIsOpen, restaurant.business_hours, hoursTick],
   );
+  const openStatus = useMemo(
+    () =>
+      restaurant.business_hours && manualIsOpen
+        ? getOpenStatus(restaurant.business_hours)
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [manualIsOpen, restaurant.business_hours, hoursTick],
+  );
+  const openStatusLabel = useMemo(() => {
+    if (!manualIsOpen) return "Cerrado";
+    if (!openStatus) return isOpen ? "Abierto" : "Cerrado";
+    return formatOpenStatus(openStatus);
+  }, [manualIsOpen, openStatus, isOpen]);
   const [pillIndicator, setPillIndicator] = useState({ left: 0, width: 0 });
   const [lastOrderPill, setLastOrderPill] = useState<{
     ref: string;
@@ -1924,7 +1941,7 @@ export default function CatalogClient({
               ) : (
                 <XCircle size={11} strokeWidth={2.5} />
               )}
-              {isOpen ? "Abierto" : "Cerrado"}
+              {openStatusLabel}
             </span>
           </div>
 
@@ -2105,7 +2122,10 @@ export default function CatalogClient({
               fontWeight: 600,
             }}
           >
-            Cerrado por ahora. Podés explorar la carta igual.
+            Cerrado por ahora.{" "}
+            {openStatus?.kind === "closed" && openStatus.opensAt
+              ? `Abre a las ${openStatus.opensAt}.`
+              : "Podés explorar la carta igual."}
           </div>
         )}
         {/* ── Desktop 3-column layout ── */}
@@ -3978,7 +3998,17 @@ export default function CatalogClient({
                       <span style={{ fontWeight: 700 }}>
                         Local cerrado ahora
                       </span>
-                      {restaurant.schedule && (
+                      {openStatus?.kind === "closed" && openStatus.opensAt ? (
+                        <span
+                          style={{
+                            color: TEXT2,
+                            fontWeight: 400,
+                            fontSize: 12,
+                          }}
+                        >
+                          Abre a las {openStatus.opensAt}
+                        </span>
+                      ) : restaurant.schedule ? (
                         <span
                           style={{
                             color: TEXT2,
@@ -3988,7 +4018,7 @@ export default function CatalogClient({
                         >
                           {restaurant.schedule}
                         </span>
-                      )}
+                      ) : null}
                       {restaurant.phone && (
                         <a
                           href={`https://wa.me/${restaurant.phone.replace(/\D/g, "")}?text=${encodeURIComponent("Hola! ¿A qué hora abren hoy?")}`}
