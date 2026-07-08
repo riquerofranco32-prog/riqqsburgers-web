@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import type { TopProduct } from "@/types/dashboard";
 
-function fmtARS(n: number) {
-  return "$" + n.toLocaleString("es-AR");
+// n puede llegar null desde la API si un pedido tiene items con shape
+// inesperado (NaN se serializa como null) — no vale tirar todo el dashboard.
+function fmtARS(n: number | null | undefined) {
+  return "$" + (n ?? 0).toLocaleString("es-AR");
 }
 
 function fallbackEmoji(categoryName: string | null): string {
