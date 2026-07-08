@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getAllPosts, getPostBySlug } from "@/lib/blog";
+import {
+  getAllPosts,
+  getPostBySlug,
+  getRelatedPosts,
+} from "@/lib/blog";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -17,12 +21,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!post) return { title: "No encontrado — Takefyy" };
 
   const url = `https://takefyy.com/blog/${post.slug}`;
+  const ogImage = post.image ?? "/opengraph-image";
+
   return {
     metadataBase: new URL("https://takefyy.com"),
     title: `${post.title} | Blog Takefyy`,
     description: post.description,
     keywords: post.keywords,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      types: { "application/rss+xml": "https://takefyy.com/feed.xml" },
+    },
     openGraph: {
       title: post.title,
       description: post.description,
@@ -31,11 +40,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: "es_AR",
       type: "article",
       publishedTime: post.date,
+      modifiedTime: post.dateModified ?? post.date,
+      authors: ["https://takefyy.com"],
+      section: post.category,
+      tags: post.tags ?? post.keywords,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.description,
+      images: [ogImage],
     },
   };
 }
@@ -45,30 +67,71 @@ export default async function BlogPostPage({ params }: Props) {
   const post = getPostBySlug(slug);
   if (!post) notFound();
 
-  const allPosts = getAllPosts().filter((p) => p.slug !== slug);
+  const relatedPosts = getRelatedPosts(slug, 3);
+  const url = `https://takefyy.com/blog/${slug}`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.description,
-    datePublished: post.date,
-    dateModified: post.date,
-    author: {
-      "@type": "Organization",
-      name: "Takefyy",
-      url: "https://takefyy.com",
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "@id": url,
+      headline: post.title,
+      description: post.description,
+      datePublished: post.date,
+      dateModified: post.dateModified ?? post.date,
+      image: post.image
+        ? `https://takefyy.com${post.image}`
+        : "https://takefyy.com/opengraph-image",
+      url,
+      inLanguage: "es-AR",
+      author: {
+        "@type": "Organization",
+        "@id": "https://takefyy.com/#organization",
+        name: "Takefyy",
+        url: "https://takefyy.com",
+      },
+      publisher: {
+        "@type": "Organization",
+        "@id": "https://takefyy.com/#organization",
+        name: "Takefyy",
+        url: "https://takefyy.com",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://takefyy.com/takefyy-logo.png",
+        },
+      },
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": url,
+      },
+      articleSection: post.category,
+      keywords: post.keywords?.join(", "),
     },
-    publisher: {
-      "@type": "Organization",
-      name: "Takefyy",
-      url: "https://takefyy.com",
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Inicio",
+          item: "https://takefyy.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Blog",
+          item: "https://takefyy.com/blog",
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: post.title,
+          item: url,
+        },
+      ],
     },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `https://takefyy.com/blog/${post.slug}`,
-    },
-  };
+  ];
 
   return (
     <>
@@ -92,19 +155,44 @@ export default async function BlogPostPage({ params }: Props) {
           }}
         >
           <div style={{ maxWidth: 720, margin: "0 auto" }}>
-            <Link
-              href="/blog"
+            {/* Breadcrumb */}
+            <nav
+              aria-label="Breadcrumb"
               style={{
-                display: "inline-block",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
                 marginBottom: 28,
-                color: "rgba(255,255,255,0.45)",
                 fontSize: 13,
-                fontWeight: 500,
-                textDecoration: "none",
               }}
             >
-              ← Blog
-            </Link>
+              <Link
+                href="/"
+                style={{
+                  color: "rgba(255,255,255,0.35)",
+                  textDecoration: "none",
+                }}
+              >
+                Takefyy
+              </Link>
+              <span style={{ color: "rgba(255,255,255,0.2)" }}>›</span>
+              <Link
+                href="/blog"
+                style={{
+                  color: "rgba(255,255,255,0.45)",
+                  textDecoration: "none",
+                }}
+              >
+                Blog
+              </Link>
+              <span style={{ color: "rgba(255,255,255,0.2)" }}>›</span>
+              <span
+                style={{ color: "rgba(255,255,255,0.55)" }}
+                aria-current="page"
+              >
+                {post.category}
+              </span>
+            </nav>
 
             <div
               style={{
@@ -130,11 +218,13 @@ export default async function BlogPostPage({ params }: Props) {
               </span>
               <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
                 {post.readingTime} min de lectura ·{" "}
-                {new Date(post.date).toLocaleDateString("es-AR", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                <time dateTime={post.date}>
+                  {new Date(post.date).toLocaleDateString("es-AR", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </time>
               </span>
             </div>
 
@@ -161,6 +251,33 @@ export default async function BlogPostPage({ params }: Props) {
             >
               {post.description}
             </p>
+
+            {/* Tags */}
+            {post.tags && post.tags.length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 8,
+                  marginTop: 20,
+                }}
+              >
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    style={{
+                      fontSize: 11,
+                      color: "rgba(255,255,255,0.4)",
+                      background: "rgba(255,255,255,0.06)",
+                      borderRadius: 6,
+                      padding: "2px 8px",
+                    }}
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -168,10 +285,12 @@ export default async function BlogPostPage({ params }: Props) {
         <div
           style={{ maxWidth: 720, margin: "0 auto", padding: "56px 20px 80px" }}
         >
-          <div
-            className="blog-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <article>
+            <div
+              className="blog-content"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          </article>
 
           {/* CTA */}
           <div
@@ -225,9 +344,9 @@ export default async function BlogPostPage({ params }: Props) {
             </a>
           </div>
 
-          {/* More articles */}
-          {allPosts.length > 0 && (
-            <div style={{ marginTop: 64 }}>
+          {/* Related articles */}
+          {relatedPosts.length > 0 && (
+            <aside style={{ marginTop: 64 }} aria-label="Artículos relacionados">
               <p
                 style={{
                   fontSize: 12,
@@ -238,12 +357,12 @@ export default async function BlogPostPage({ params }: Props) {
                   marginBottom: 20,
                 }}
               >
-                Más artículos
+                Artículos relacionados
               </p>
               <div
                 style={{ display: "flex", flexDirection: "column", gap: 12 }}
               >
-                {allPosts.slice(0, 2).map((p) => (
+                {relatedPosts.map((p) => (
                   <Link
                     key={p.slug}
                     href={`/blog/${p.slug}`}
@@ -279,7 +398,7 @@ export default async function BlogPostPage({ params }: Props) {
                   </Link>
                 ))}
               </div>
-            </div>
+            </aside>
           )}
         </div>
       </div>

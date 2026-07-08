@@ -3,8 +3,14 @@ export interface BlogPost {
   title: string;
   description: string;
   date: string;
+  /** Optional last-modified date (ISO). If absent, equals date. */
+  dateModified?: string;
   readingTime: number;
   category: string;
+  /** Optional topic tags for filtering and related articles */
+  tags?: string[];
+  /** Optional OG image path (relative to /public or absolute URL) */
+  image?: string;
   keywords: string[];
   content: string;
 }
@@ -348,4 +354,33 @@ export function getAllPosts(): BlogPost[] {
 
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return posts.find((p) => p.slug === slug);
+}
+
+export function getPostsByCategory(category: string): BlogPost[] {
+  return getAllPosts().filter((p) => p.category === category);
+}
+
+/**
+ * Returns up to `limit` related posts for a given post.
+ * Priority: same category > shared tags > recency.
+ */
+export function getRelatedPosts(slug: string, limit = 3): BlogPost[] {
+  const current = getPostBySlug(slug);
+  if (!current) return [];
+
+  const others = getAllPosts().filter((p) => p.slug !== slug);
+  const scored = others.map((p) => {
+    let score = 0;
+    if (p.category === current.category) score += 3;
+    if (current.tags && p.tags) {
+      const sharedTags = current.tags.filter((t) => p.tags!.includes(t));
+      score += sharedTags.length * 2;
+    }
+    return { post: p, score };
+  });
+
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((s) => s.post);
 }

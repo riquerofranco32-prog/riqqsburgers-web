@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     siteName: "Takefyy",
     locale: "es_AR",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Menú Digital para Pizzerías — Takefyy" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -92,6 +93,13 @@ const jsonLd = {
             text: "Sí. Podés crear categorías de combos con precio propio. Pizza + bebida + postre en un solo producto, para subir el ticket promedio sin complicaciones.",
           },
         },
+      ],
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Inicio", item: "https://takefyy.com" },
+        { "@type": "ListItem", position: 2, name: "Menú Digital para Pizzerías", item: "https://takefyy.com/pizzerias" },
       ],
     },
   ],

@@ -101,6 +101,12 @@ export const metadata: Metadata = {
   verification: {
     google: "hOLlft_b-QqSqQPzBTVd6eEgyMok-R0tNb7TnvLHedI",
   },
+  alternates: {
+    canonical: "https://takefyy.com",
+    types: {
+      "application/rss+xml": "https://takefyy.com/feed.xml",
+    },
+  },
 };
 
 export default function RootLayout({
@@ -110,10 +116,36 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="es"
+      lang="es-AR"
       className={`${syne.variable} ${anton.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} ${playfair.variable} ${dmSans.variable}`}
     >
       <body className="min-h-screen antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "@id": "https://takefyy.com/#website",
+              name: "Takefyy",
+              url: "https://takefyy.com",
+              description:
+                "Plataforma de menú digital para restaurantes argentinos. Pedidos directo por WhatsApp.",
+              publisher: {
+                "@id": "https://takefyy.com/#organization",
+              },
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate:
+                    "https://takefyy.com/blog?q={search_term_string}",
+                },
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
         {children}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />

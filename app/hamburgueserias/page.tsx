@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     siteName: "Takefyy",
     locale: "es_AR",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Menú Digital para Hamburguerías — Takefyy" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -92,6 +93,13 @@ const jsonLd = {
             text: "Cero. Takefyy cobra una suscripción mensual fija en pesos y no cobra comisión por pedido. El 100% de tu venta es tuyo.",
           },
         },
+      ],
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Inicio", item: "https://takefyy.com" },
+        { "@type": "ListItem", position: 2, name: "Menú Digital para Hamburguerías", item: "https://takefyy.com/hamburgueserias" },
       ],
     },
   ],

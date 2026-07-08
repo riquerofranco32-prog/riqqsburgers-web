@@ -1,12 +1,14 @@
 {
-  "name": "Takefyy Admin",
+  "name": "Takefyy — Menú Digital para Restaurantes",
   "short_name": "Takefyy",
-  "description": "Panel de administración de tu restaurante",
+  "description": "Creá el menú digital de tu restaurante y recibí pedidos por WhatsApp. Sin comisiones, sin apps.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d1628",
-  "theme_color": "#ff6b35",
+  "background_color": "#0E1116",
+  "theme_color": "#FF6B35",
   "orientation": "portrait-primary",
+  "lang": "es-AR",
+  "categories": ["business", "food"],
   "icons": [
     {
       "src": "/icon-192.png",
