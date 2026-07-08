@@ -290,32 +290,31 @@ export default function AdminShell({
   const pathname = usePathname();
   const navItems = getNavItems(role);
   const isStaff = role === "staff";
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("sidebar_collapsed") === "true";
-    }
-    return false;
-  });
+  // Ambos estados arrancan con el valor del server y se corrigen recién en un
+  // efecto: leerlos en el initializer (localStorage / hora local) hacía que el
+  // primer render del cliente no coincidiera con el HTML del server (que corre
+  // en UTC y sin localStorage) — error de hidratación #425 en prod.
+  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [clockTime, setClockTime] = useState(() =>
-    new Date().toLocaleTimeString("es-AR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  );
+  const [clockTime, setClockTime] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = setInterval(
-      () =>
-        setClockTime(
-          new Date().toLocaleTimeString("es-AR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        ),
-      10_000,
-    );
+    if (localStorage.getItem("sidebar_collapsed") === "true") {
+      setCollapsed(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    const tick = () =>
+      setClockTime(
+        new Date().toLocaleTimeString("es-AR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
+    tick();
+    const id = setInterval(tick, 10_000);
     return () => clearInterval(id);
   }, []);
 

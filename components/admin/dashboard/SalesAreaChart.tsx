@@ -91,7 +91,10 @@ function fmtTotal(n: number) {
 
 // Get today's abbreviated day name in es-AR
 const TODAY_LABEL = new Date()
-  .toLocaleDateString("es-AR", { weekday: "short" })
+  .toLocaleDateString("es-AR", {
+    weekday: "short",
+    timeZone: "America/Argentina/Buenos_Aires",
+  })
   .replace(".", "");
 
 interface SalesAreaChartProps {

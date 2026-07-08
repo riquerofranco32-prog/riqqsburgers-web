@@ -101,8 +101,15 @@ export default function AdminDashboard({
   onboarding,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
-  const dateLabel = getDateLabel();
-  const greeting = getGreeting();
+  // Saludo y fecha dependen de la hora local del usuario — calcularlos en el
+  // render generaba mismatch de hidratación (el server corre en UTC, 3hs
+  // adelantado a ART): #425 en prod. Se calculan recién montado el cliente.
+  const [dateLabel, setDateLabel] = useState("");
+  const [greeting, setGreeting] = useState("Hola");
+  useEffect(() => {
+    setDateLabel(getDateLabel());
+    setGreeting(getGreeting());
+  }, []);
 
   const [orders, setOrders] = useState<Order[]>(allOrders);
   const [range, setRange] = useState<AnalyticsRange>("today");

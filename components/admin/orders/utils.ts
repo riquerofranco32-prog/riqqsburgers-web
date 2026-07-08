@@ -6,11 +6,14 @@ export function fmtARS(n: number) {
 }
 
 export function fmtFecha(iso: string) {
+  // TZ fija: el server (UTC) y el browser deben producir el mismo texto o
+  // explota la hidratación (#425)
   return new Date(iso).toLocaleString("es-AR", {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
   });
 }
 

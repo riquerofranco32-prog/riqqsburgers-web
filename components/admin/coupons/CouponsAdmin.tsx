@@ -413,7 +413,7 @@ export function CouponsAdmin({
                       ? ` · mín. ${fmtARS(c.min_order_amount)}`
                       : ""}
                     {c.expires_at
-                      ? ` · vence ${new Date(c.expires_at).toLocaleDateString("es-AR")}`
+                      ? ` · vence ${new Date(c.expires_at).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`
                       : ""}
                   </p>
                 </div>

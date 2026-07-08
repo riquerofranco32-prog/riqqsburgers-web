@@ -13,9 +13,12 @@ function fmtARS(n: number) {
 }
 
 function fmtHora(iso: string) {
+  // TZ fija: el server (UTC) y el browser deben producir el mismo texto o
+  // explota la hidratación (#425)
   return new Date(iso).toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
   });
 }
 
@@ -168,8 +171,6 @@ function useIsMobile() {
   }, []);
   return isMobile;
 }
-
-
 
 interface RecentOrdersTableProps {
   orders: Order[];

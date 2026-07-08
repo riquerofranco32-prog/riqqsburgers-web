@@ -42,6 +42,7 @@ export default function RestaurantCard({ tenant }: RestaurantCardProps) {
   const clienteDesde = new Date(tenant.created_at).toLocaleDateString("es-AR", {
     month: "short",
     year: "numeric",
+    timeZone: "America/Argentina/Buenos_Aires",
   });
 
   return (
