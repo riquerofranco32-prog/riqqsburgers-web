@@ -37,6 +37,9 @@ const LANDING_PAGES: MetadataRoute.Sitemap = [
     changeFrequency: "monthly",
     priority: 0.85,
   },
+  /* Community pages */
+  { url: `${SITE}/explorar`, changeFrequency: "daily", priority: 0.9 },
+  { url: `${SITE}/ofertas`, changeFrequency: "daily", priority: 0.85 },
   { url: `${SITE}/blog`, changeFrequency: "weekly", priority: 0.9 },
 ];
 

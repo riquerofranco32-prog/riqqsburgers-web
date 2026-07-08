@@ -30,6 +30,7 @@ export interface Tenant {
   delivery_mode: "none" | "fixed" | "zones" | "distance";
   delivery_city_hint: string | null;
   delivery_out_of_range_msg: string;
+  tags: string[];
 }
 
 export interface DeliveryZone {

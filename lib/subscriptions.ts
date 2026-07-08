@@ -96,9 +96,11 @@ export async function getProductCount(tenantId: string): Promise<number> {
 export async function canAddProduct(
   tenantId: string,
 ): Promise<{ allowed: boolean; current: number; max: number | null }> {
-  const subscription = await getEffectiveSubscription(tenantId);
+  const [subscription, current] = await Promise.all([
+    getEffectiveSubscription(tenantId),
+    getProductCount(tenantId),
+  ]);
   const limits = getPlanLimits(subscription.plan as PlanId);
-  const current = await getProductCount(tenantId);
 
   if (limits.maxProducts === null) {
     return { allowed: true, current, max: null };

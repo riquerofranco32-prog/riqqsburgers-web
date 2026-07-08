@@ -28,6 +28,7 @@ const ALLOWED_FIELDS = [
   "delivery_mode",
   "delivery_city_hint",
   "delivery_out_of_range_msg",
+  "tags",
 ] as const;
 
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
@@ -204,6 +205,21 @@ export async function PATCH(
           { status: 400 },
         );
       }
+    }
+  }
+
+  // Validate tags — must be an array of short strings, max 10
+  if ("tags" in patch) {
+    const val = patch["tags"];
+    if (
+      !Array.isArray(val) ||
+      val.length > 10 ||
+      val.some((t: unknown) => typeof t !== "string" || t.length > 50)
+    ) {
+      return NextResponse.json(
+        { error: "Tags inválidos: máximo 10, cada uno hasta 50 caracteres" },
+        { status: 400 },
+      );
     }
   }
 

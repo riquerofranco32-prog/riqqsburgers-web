@@ -1,6 +1,6 @@
 import { createServerClient } from "@/lib/supabase";
+import { getTenantId } from "@/lib/tenants";
 import type { Metadata } from "next";
-import type { Tenant } from "@/types/supabase";
 import { TeamAdmin } from "@/components/admin/team/TeamAdmin";
 import BackButton from "@/components/BackButton";
 
@@ -15,19 +15,13 @@ export default async function EquipoPage({
   const { slug } = await params;
   const db = createServerClient();
 
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Pick<Tenant, "id"> | null;
-  if (!tenant) return null;
+  const tenantId = await getTenantId(slug);
+  if (!tenantId) return null;
 
   const { data: rawMembers } = await db
     .from("tenant_users")
     .select("id, email, role")
-    .eq("tenant_id", tenant.id)
+    .eq("tenant_id", tenantId)
     .neq("role", "superadmin")
     .order("role", { ascending: false });
 

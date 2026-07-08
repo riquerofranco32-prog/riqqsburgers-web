@@ -182,6 +182,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
     hero_video_url: tenant.hero_video_url ?? "",
     is_open: tenant.is_open,
     business_hours: tenant.business_hours ?? (null as BusinessHours | null),
+    tags: tenant.tags ?? [],
   });
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
@@ -468,6 +469,82 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                   }}
                 />
               </button>
+            </div>
+
+            {/* Tags de negocio */}
+            <div>
+              <label style={labelStyle}>Tipo de negocio</label>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--dash-muted)",
+                  marginBottom: 8,
+                }}
+              >
+                Elegí los tags que describen tu negocio. Se muestran en el
+                explorador público de Takefyy.
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: 6,
+                }}
+              >
+                {[
+                  ["pizzeria", "🍕 Pizzería"],
+                  ["hamburgueseria", "🍔 Hamburguesería"],
+                  ["heladeria", "🍦 Heladería"],
+                  ["cafeteria", "☕ Cafetería"],
+                  ["dark-kitchen", "🏭 Dark Kitchen"],
+                  ["sushi", "🍣 Sushi"],
+                  ["parrilla", "🥩 Parrilla"],
+                  ["empanadas", "🥟 Empanadas"],
+                  ["pastas", "🍝 Pastas"],
+                  ["saludable", "🥗 Saludable"],
+                  ["rotiseria", "🍗 Rotisería"],
+                  ["bakery", "🥐 Panadería"],
+                  ["bar", "🍺 Bar"],
+                  ["delivery", "🛵 Delivery"],
+                  ["takeaway", "📦 Takeaway"],
+                ].map(([key, label]) => {
+                  const active = form.tags.includes(key);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() =>
+                        set(
+                          "tags",
+                          active
+                            ? form.tags.filter((t: string) => t !== key)
+                            : [...form.tags, key],
+                        )
+                      }
+                      style={{
+                        padding: "6px 12px",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        fontFamily: "var(--font-sans)",
+                        borderRadius: 999,
+                        border: active
+                          ? "1px solid var(--accent)"
+                          : "1px solid var(--dash-border)",
+                        background: active
+                          ? "rgba(255,107,53,0.12)"
+                          : "var(--dash-surface-2)",
+                        color: active
+                          ? "var(--accent)"
+                          : "var(--dash-muted)",
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

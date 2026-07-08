@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase";
-import { createAuthClient } from "@/lib/auth";
+import { getSessionUser, getTenantRole } from "@/lib/authz";
+import { getTenant } from "@/lib/tenants";
 import type { Metadata } from "next";
-import type { Tenant } from "@/types/supabase";
 import { AccountInfoCard } from "@/components/admin/team/AccountInfoCard";
 import { ChangePasswordCard } from "@/components/admin/team/ChangePasswordCard";
 import BackButton from "@/components/BackButton";
@@ -16,39 +15,13 @@ export default async function MiCuentaPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const db = createServerClient();
 
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
+  const [user, tenant] = await Promise.all([getSessionUser(), getTenant(slug)]);
   if (!user) redirect("/login");
-
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("id, name, slug")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Pick<Tenant, "id" | "name" | "slug"> | null;
   if (!tenant) return null;
 
-  const [{ data: directAccess }, { data: superAdmin }] = await Promise.all([
-    db
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("tenant_id", tenant.id)
-      .maybeSingle(),
-    db
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "superadmin")
-      .maybeSingle(),
-  ]);
-
-  const role = superAdmin ? "superadmin" : (directAccess?.role ?? "admin");
+  const access = await getTenantRole(user.id, tenant.id);
+  const role = access.superadmin ? "superadmin" : (access.direct ?? "admin");
 
   return (
     <div className="p-5 md:p-8 flex flex-col gap-6 w-full max-w-lg">

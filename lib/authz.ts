@@ -1,15 +1,46 @@
+import { cache } from "react";
 import { NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { createAuthClient } from "@/lib/auth";
 import { createServerClient } from "@/lib/supabase";
 
-export async function getSessionUser(): Promise<User | null> {
+// cache() dedupea la llamada de red a Supabase Auth dentro del mismo request
+// (admin/layout + (full)/layout + page la piden por separado).
+export const getSessionUser = cache(async (): Promise<User | null> => {
   const supabase = await createAuthClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user ?? null;
-}
+});
+
+// Rol del usuario en un tenant: { direct } = fila en tenant_users del tenant,
+// { superadmin } = tiene rol superadmin en cualquier tenant. Deduplicado por
+// request — los dos layouts del admin hacían estas mismas 2 consultas cada uno.
+export const getTenantRole = cache(
+  async (
+    userId: string,
+    tenantId: string,
+  ): Promise<{ direct: string | null; superadmin: boolean }> => {
+    const db = createServerClient();
+    const [{ data: directAccess }, { data: superAdmin }] = await Promise.all([
+      db
+        .from("tenant_users")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("tenant_id", tenantId)
+        .maybeSingle(),
+      db
+        .from("tenant_users")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "superadmin")
+        .limit(1)
+        .maybeSingle(),
+    ]);
+    return { direct: directAccess?.role ?? null, superadmin: !!superAdmin };
+  },
+);
 
 export async function assertSuperAdmin(): Promise<User> {
   const user = await getSessionUser();

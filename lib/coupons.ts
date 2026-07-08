@@ -48,3 +48,75 @@ export async function validateCoupon(
 
   return { ok: true, coupon: c, discountAmount: computeDiscount(c, subtotal) };
 }
+
+// --- Community: /ofertas page ---
+
+export interface PublicOffer {
+  id: string;
+  code: string;
+  discount_type: "percent" | "fixed";
+  discount_value: number;
+  min_order_amount: number | null;
+  expires_at: string | null;
+  business: {
+    slug: string;
+    name: string;
+    logo_url: string | null;
+    primary_color: string;
+  };
+}
+
+export async function getAllPublicOffers(): Promise<PublicOffer[]> {
+  const supabase = createServerClient();
+
+  const { data: coupons } = await supabase
+    .from("coupons")
+    .select("id, code, discount_type, discount_value, min_order_amount, max_uses, uses, expires_at, tenant_id")
+    .eq("active", true)
+    .eq("show_in_menu", true)
+    .order("created_at", { ascending: false });
+
+  if (!coupons || coupons.length === 0) return [];
+
+  // Filter out exhausted/expired
+  const validCoupons = coupons.filter(
+    (c) =>
+      (c.max_uses === null || c.uses < c.max_uses) &&
+      (!c.expires_at || new Date(c.expires_at) > new Date()),
+  );
+
+  if (validCoupons.length === 0) return [];
+
+  // Fetch tenant info for each unique tenant
+  const tenantIds = Array.from(new Set(validCoupons.map((c) => c.tenant_id)));
+  const { data: tenants } = await supabase
+    .from("tenants")
+    .select("id, slug, name, logo_url, primary_color")
+    .eq("active", true)
+    .in("id", tenantIds);
+
+  const tenantMap = new Map(
+    (tenants ?? []).map((t) => [t.id, t]),
+  );
+
+  return validCoupons
+    .filter((c) => tenantMap.has(c.tenant_id))
+    .map((c) => {
+      const t = tenantMap.get(c.tenant_id)!;
+      return {
+        id: c.id,
+        code: c.code,
+        discount_type: c.discount_type as "percent" | "fixed",
+        discount_value: c.discount_value,
+        min_order_amount: c.min_order_amount,
+        expires_at: c.expires_at,
+        business: {
+          slug: t.slug,
+          name: t.name,
+          logo_url: t.logo_url,
+          primary_color: t.primary_color,
+        },
+      };
+    });
+}
+

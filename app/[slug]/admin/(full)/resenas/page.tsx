@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase";
+import { getTenantId } from "@/lib/tenants";
 import type { Metadata } from "next";
-import type { Tenant, Review } from "@/types/supabase";
+import type { Review } from "@/types/supabase";
 import { ReviewsAdmin } from "@/components/admin/reviews/ReviewsAdmin";
 import BackButton from "@/components/BackButton";
 
@@ -15,19 +16,13 @@ export default async function ResenasPage({
   const { slug } = await params;
   const db = createServerClient();
 
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Pick<Tenant, "id"> | null;
-  if (!tenant) return null;
+  const tenantId = await getTenantId(slug);
+  if (!tenantId) return null;
 
   const { data: rawReviews } = await db
     .from("reviews")
     .select("*")
-    .eq("tenant_id", tenant.id)
+    .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
   const reviews = (rawReviews ?? []) as Review[];

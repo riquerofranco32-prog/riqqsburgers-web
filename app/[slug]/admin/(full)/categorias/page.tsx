@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase";
+import { getTenantId } from "@/lib/tenants";
 import type { Metadata } from "next";
-import type { Tenant, Category } from "@/types/supabase";
+import type { Category } from "@/types/supabase";
 import CategoriesAdmin from "@/components/admin/CategoriesAdmin";
 import BackButton from "@/components/BackButton";
 
@@ -15,22 +16,16 @@ export default async function CategoriasPage({
   const { slug } = await params;
   const db = createServerClient();
 
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Tenant | null;
-  if (!tenant) return null;
+  const tenantId = await getTenantId(slug);
+  if (!tenantId) return null;
 
   const [{ data: rawCats }, { data: rawProds }] = await Promise.all([
     db
       .from("categories")
       .select("*")
-      .eq("tenant_id", tenant.id)
+      .eq("tenant_id", tenantId)
       .order("sort_order"),
-    db.from("products").select("category_id").eq("tenant_id", tenant.id),
+    db.from("products").select("category_id").eq("tenant_id", tenantId),
   ]);
 
   const categories = (rawCats ?? []) as Category[];

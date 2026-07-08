@@ -1,9 +1,8 @@
-import { createServerClient } from "@/lib/supabase";
-import { createAuthClient } from "@/lib/auth";
+import { getSessionUser, getTenantRole } from "@/lib/authz";
+import { getTenant } from "@/lib/tenants";
 import { redirect } from "next/navigation";
 import AdminShell from "@/components/admin/AdminShell";
 import { Toaster } from "sonner";
-import type { Tenant } from "@/types/supabase";
 
 export default async function AdminLayout({
   children,
@@ -14,24 +13,11 @@ export default async function AdminLayout({
 }) {
   const { slug } = await params;
 
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
+  // En paralelo: auth (red a Supabase Auth) + tenant. Ambos cacheados por
+  // request — (full)/layout y las pages reusan el resultado sin re-consultar.
+  const [user, tenant] = await Promise.all([getSessionUser(), getTenant(slug)]);
   if (!user) redirect("/login");
 
-  const db = createServerClient();
-
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("id, name, slug, logo_url")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Pick<
-    Tenant,
-    "id" | "name" | "slug" | "logo_url"
-  > | null;
   if (!tenant) {
     return (
       <div
@@ -57,28 +43,10 @@ export default async function AdminLayout({
   }
 
   // Verificar acceso: admin del tenant específico O superadmin en cualquier tenant
-  const [{ data: directAccess }, { data: superAdminAccess }] =
-    await Promise.all([
-      db
-        .from("tenant_users")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("tenant_id", tenant.id)
-        .maybeSingle(),
-      db
-        .from("tenant_users")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "superadmin")
-        .limit(1)
-        .maybeSingle(),
-    ]);
+  const access = await getTenantRole(user.id, tenant.id);
+  if (!access.direct && !access.superadmin) redirect("/login");
 
-  if (!directAccess && !superAdminAccess) redirect("/login");
-
-  const role = superAdminAccess
-    ? "superadmin"
-    : (directAccess?.role ?? "admin");
+  const role = access.superadmin ? "superadmin" : (access.direct ?? "admin");
 
   return (
     <AdminShell
@@ -87,7 +55,7 @@ export default async function AdminLayout({
       tenantLogoUrl={tenant.logo_url}
       tenantId={tenant.id}
       userEmail={user.email ?? ""}
-      isSuperAdmin={!!superAdminAccess}
+      isSuperAdmin={access.superadmin}
       role={role}
     >
       {children}

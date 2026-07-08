@@ -1,6 +1,5 @@
-import { createServerClient } from "@/lib/supabase";
+import { getTenant } from "@/lib/tenants";
 import type { Metadata } from "next";
-import type { Tenant } from "@/types/supabase";
 import RestaurantSettingsForm from "@/components/admin/RestaurantSettingsForm";
 
 export const dynamic = "force-dynamic";
@@ -13,14 +12,7 @@ export default async function ConfiguracionPage({
 }) {
   const { slug } = await params;
 
-  const db = createServerClient();
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Tenant | null;
+  const tenant = await getTenant(slug);
 
   if (!tenant) {
     return (

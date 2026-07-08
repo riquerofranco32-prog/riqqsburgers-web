@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { createServerClient } from "@/lib/supabase";
-import type { Tenant } from "@/types/supabase";
+import { getTenant } from "@/lib/tenants";
 import BackButton from "@/components/BackButton";
 import QRActions from "@/components/admin/QRActions";
 
@@ -14,17 +13,7 @@ export default async function QRPage({
 }) {
   const { slug } = await params;
 
-  const db = createServerClient();
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("id, name, slug, logo_url, primary_color")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Pick<
-    Tenant,
-    "id" | "name" | "slug" | "logo_url" | "primary_color"
-  > | null;
+  const tenant = await getTenant(slug);
   if (!tenant) return null;
 
   const menuUrl = `https://takefyy.com/${slug}`;

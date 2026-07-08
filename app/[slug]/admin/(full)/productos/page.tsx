@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase";
+import { getTenant } from "@/lib/tenants";
 import type { Metadata } from "next";
-import type { Tenant, Category, Product } from "@/types/supabase";
+import type { Category, Product } from "@/types/supabase";
 import ProductsAdmin from "@/components/ProductsAdmin";
 import BackButton from "@/components/BackButton";
 import { canAddProduct } from "@/lib/subscriptions";
@@ -16,16 +17,10 @@ export default async function ProductsPage({
   const { slug } = await params;
   const db = createServerClient();
 
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  const tenant = rawTenant as Tenant | null;
+  const tenant = await getTenant(slug);
   if (!tenant) return null;
 
-  const [{ data: rawCats }, { data: rawProds }] = await Promise.all([
+  const [{ data: rawCats }, { data: rawProds }, planCheck] = await Promise.all([
     db
       .from("categories")
       .select("*")
@@ -37,14 +32,12 @@ export default async function ProductsPage({
       .select("*")
       .eq("tenant_id", tenant.id)
       .order("sort_order"),
+    canAddProduct(tenant.id),
   ]);
 
   const categories = (rawCats ?? []) as Category[];
   const products = (rawProds ?? []) as Product[];
-
-  const { allowed: canAddMore, max: productLimit } = await canAddProduct(
-    tenant.id,
-  );
+  const { allowed: canAddMore, max: productLimit } = planCheck;
 
   return (
     <>

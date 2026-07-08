@@ -1,4 +1,5 @@
 import { createServerClient } from "@/lib/supabase";
+import { getTenantId } from "@/lib/tenants";
 import { notFound } from "next/navigation";
 import TicketActions from "@/components/admin/TicketActions";
 import PrintButton from "@/components/admin/PrintButton";
@@ -14,17 +15,13 @@ export default async function OrderTicketPage({
   const { slug, ref } = await params;
   const supabase = createServerClient();
 
-  const { data: tenantRow } = await supabase
-    .from("tenants")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
+  const tenantId = await getTenantId(slug);
 
   const { data: order } = await supabase
     .from("orders")
     .select("*, tenants(name, address, whatsapp_number)")
     .eq("order_ref", ref.toUpperCase())
-    .eq("tenant_id", tenantRow?.id ?? "")
+    .eq("tenant_id", tenantId ?? "")
     .maybeSingle();
 
   if (!order) notFound();

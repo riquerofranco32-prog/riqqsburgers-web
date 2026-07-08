@@ -1,11 +1,14 @@
-import { createServerClient } from "@/lib/supabase";
-import { createAuthClient } from "@/lib/auth";
+import { getSessionUser, getTenantRole } from "@/lib/authz";
+import { getTenant } from "@/lib/tenants";
 import { redirect } from "next/navigation";
 
 /**
  * Segmentos que requieren rol admin/superadmin del tenant.
  * El personal de cocina/mozo (role="staff") solo puede acceder a /pedidos,
  * fuera de este route group — ver app/[slug]/admin/layout.tsx.
+ *
+ * getSessionUser/getTenant/getTenantRole están cacheados por request, así
+ * que este layout reusa los resultados del layout padre sin re-consultar.
  */
 export default async function FullAdminLayout({
   children,
@@ -16,38 +19,12 @@ export default async function FullAdminLayout({
 }) {
   const { slug } = await params;
 
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
+  const [user, tenant] = await Promise.all([getSessionUser(), getTenant(slug)]);
   if (!user) redirect("/login");
-
-  const db = createServerClient();
-
-  const { data: tenant } = await db
-    .from("tenants")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
   if (!tenant) redirect(`/${slug}/admin`);
 
-  const [{ data: directAccess }, { data: superAdmin }] = await Promise.all([
-    db
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("tenant_id", tenant.id)
-      .maybeSingle(),
-    db
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "superadmin")
-      .maybeSingle(),
-  ]);
-
-  const isFullAccess = directAccess?.role === "admin" || !!superAdmin;
+  const access = await getTenantRole(user.id, tenant.id);
+  const isFullAccess = access.direct === "admin" || access.superadmin;
   if (!isFullAccess) redirect(`/${slug}/admin/pedidos`);
 
   return <>{children}</>;

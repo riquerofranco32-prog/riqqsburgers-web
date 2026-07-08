@@ -1,7 +1,8 @@
 import { createServerClient } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/authz";
+import { getTenantId } from "@/lib/tenants";
 import type { Metadata } from "next";
-import type { Tenant, Order } from "@/types/supabase";
+import type { Order } from "@/types/supabase";
 import { OrdersTable } from "@/components/admin/OrdersTable";
 import BackButton from "@/components/BackButton";
 
@@ -16,31 +17,27 @@ export default async function PedidosPage({
   const { slug } = await params;
   const db = createServerClient();
 
-  const { data: rawTenant } = await db
-    .from("tenants")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
+  const tenantId = await getTenantId(slug);
+  if (!tenantId) return null;
 
-  const tenant = rawTenant as Pick<Tenant, "id"> | null;
-  if (!tenant) return null;
-
-  const { data: rawOrders } = await db
-    .from("orders")
-    .select("*")
-    .eq("tenant_id", tenant.id)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [{ data: rawOrders }, user] = await Promise.all([
+    db
+      .from("orders")
+      .select("*")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    getSessionUser(),
+  ]);
 
   const orders = (rawOrders ?? []) as Order[];
 
-  const user = await getSessionUser();
   const { data: membership } = user
     ? await db
         .from("tenant_users")
         .select("role")
         .eq("user_id", user.id)
-        .eq("tenant_id", tenant.id)
+        .eq("tenant_id", tenantId)
         .maybeSingle()
     : { data: null };
   const canDelete = membership?.role !== "staff";
@@ -60,7 +57,7 @@ export default async function PedidosPage({
       <OrdersTable
         initialOrders={orders}
         slug={slug}
-        tenantId={tenant.id}
+        tenantId={tenantId}
         canDelete={canDelete}
       />
     </div>

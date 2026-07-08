@@ -79,6 +79,8 @@ export interface Restaurant {
   delivery_mode: "none" | "fixed" | "zones" | "distance";
   delivery_city_hint: string | null;
   delivery_out_of_range_msg: string;
+  tags: string[];
+  plan: string;
   deliveryZones: Array<{ id: string; name: string; price: number }>;
   menu: {
     categories: MenuCategory[];
@@ -180,6 +182,8 @@ function mapToRestaurant(
     delivery_out_of_range_msg:
       tenant.delivery_out_of_range_msg ??
       "Consultanos por WhatsApp el costo de envío a tu zona",
+    tags: tenant.tags ?? [],
+    plan: tenant.plan ?? "starter",
     deliveryZones,
     menu: {
       categories: (() => {
