@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Store, Volume2, VolumeX, Wifi, Loader2, Play } from "lucide-react";
+import {
+  Store,
+  Volume2,
+  VolumeX,
+  Wifi,
+  WifiOff,
+  Loader2,
+  Play,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   SOUND_OPTIONS,
@@ -10,6 +18,7 @@ import {
   playSound,
   type SoundType,
 } from "@/lib/sounds";
+import type { RealtimeStatus } from "@/hooks/useOrdersRealtime";
 
 interface OperationControlsProps {
   isOpen: boolean;
@@ -17,6 +26,7 @@ interface OperationControlsProps {
   soundEnabled: boolean;
   setSoundEnabled: (enabled: boolean) => void;
   slug: string;
+  realtimeStatus: RealtimeStatus;
 }
 
 export function OperationControls({
@@ -25,6 +35,7 @@ export function OperationControls({
   soundEnabled,
   setSoundEnabled,
   slug,
+  realtimeStatus,
 }: OperationControlsProps) {
   const [loading, setLoading] = useState(false);
   const [selectedSound, setSelectedSound] = useState<SoundType>(() =>
@@ -381,12 +392,28 @@ export function OperationControls({
         className="flex-row justify-between items-center lg:flex-col lg:items-end lg:justify-center lg:gap-1.5 flex-shrink-0 w-full lg:w-auto"
       >
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <Wifi size={11} className="text-emerald-400" />
+          {realtimeStatus === "connected" ? (
+            <Wifi size={11} className="text-emerald-400" />
+          ) : realtimeStatus === "connecting" ? (
+            <Loader2 size={11} className="animate-spin text-amber-400" />
+          ) : (
+            <WifiOff size={11} className="text-red-400" />
+          )}
           <span style={{ fontWeight: 600, color: "var(--dash-text)" }}>
-            WebSocket activo
+            {realtimeStatus === "connected"
+              ? "WebSocket activo"
+              : realtimeStatus === "connecting"
+                ? "Conectando..."
+                : "Desconectado"}
           </span>
         </div>
-        <span>Tiempo real activo</span>
+        <span>
+          {realtimeStatus === "connected"
+            ? "Tiempo real activo"
+            : realtimeStatus === "connecting"
+              ? "Estableciendo conexión"
+              : "Reconectando automáticamente..."}
+        </span>
       </div>
     </div>
   );

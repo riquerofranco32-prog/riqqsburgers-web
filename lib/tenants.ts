@@ -52,6 +52,7 @@ export interface TenantWithStats {
   active: boolean;
   primary_color: string | null;
   logo_url: string | null;
+  banner_url: string | null;
   whatsapp_number: string;
   created_at: string;
   plan: string;
@@ -77,7 +78,7 @@ export async function getAllTenantsWithStats(): Promise<TenantWithStats[]> {
     supabase
       .from("tenants")
       .select(
-        "id, slug, name, tagline, active, primary_color, logo_url, whatsapp_number, created_at, plan",
+        "id, slug, name, tagline, active, primary_color, logo_url, banner_url, whatsapp_number, created_at, plan",
       )
       .order("created_at", { ascending: false }),
     supabase
@@ -132,6 +133,7 @@ export async function getAllTenantsWithStats(): Promise<TenantWithStats[]> {
       active: t.active,
       primary_color: t.primary_color,
       logo_url: t.logo_url,
+      banner_url: t.banner_url,
       whatsapp_number: t.whatsapp_number,
       created_at: t.created_at,
       plan: sub?.plan ?? t.plan,

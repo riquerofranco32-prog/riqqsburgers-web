@@ -27,7 +27,7 @@ import {
 import { OperationControls } from "@/components/admin/dashboard/OperationControls";
 import CierreCaja from "@/components/admin/dashboard/CierreCaja";
 import ExportReportButton from "@/components/admin/ExportReportButton";
-import { createSupabaseBrowser } from "@/lib/supabase";
+import { useOrdersRealtime } from "@/hooks/useOrdersRealtime";
 import type { Product, Order } from "@/types/supabase";
 import type {
   TodayKPIsResponse,
@@ -147,64 +147,23 @@ export default function AdminDashboard({
     void fetchKPIs();
   }, [fetchKPIs]);
 
-  useEffect(() => {
-    const supabase = createSupabaseBrowser();
-    const uniqueId = Math.random().toString(36).substring(7);
-    const channel = supabase
-      .channel(`dashboard-orders-${tenantId}-${uniqueId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "orders",
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          const incoming = payload.new as Order;
-          setOrders((prev) => {
-            if (prev.some((o) => o.id === incoming.id)) return prev;
-            return [incoming, ...prev];
-          });
-          void fetchKPIs();
-          setNewOrderFlash(true);
-          setTimeout(() => setNewOrderFlash(false), 2500);
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          const updated = payload.new as Order;
-          setOrders((prev) =>
-            prev.map((o) => (o.id === updated.id ? updated : o)),
-          );
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "orders",
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          const deleted = payload.old as { id: string };
-          setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [tenantId, fetchKPIs]);
+  const { status: realtimeStatus } = useOrdersRealtime(tenantId, {
+    onInsert: (incoming) => {
+      setOrders((prev) => {
+        if (prev.some((o) => o.id === incoming.id)) return prev;
+        return [incoming, ...prev];
+      });
+      void fetchKPIs();
+      setNewOrderFlash(true);
+      setTimeout(() => setNewOrderFlash(false), 2500);
+    },
+    onUpdate: (updated) => {
+      setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    },
+    onDelete: (id) => {
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+    },
+  });
 
   const currentRecentOrders = useMemo(() => {
     return orders.slice(0, 10);
@@ -738,6 +697,7 @@ export default function AdminDashboard({
               soundEnabled={soundEnabled}
               setSoundEnabled={setSoundEnabled}
               slug={slug}
+              realtimeStatus={realtimeStatus}
             />
           </div>
 

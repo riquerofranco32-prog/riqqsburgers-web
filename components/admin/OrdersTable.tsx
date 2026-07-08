@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { Search, X, AlertTriangle, WifiOff, ClipboardList } from "lucide-react";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
+import { useOrdersRealtime } from "@/hooks/useOrdersRealtime";
 import { playSound } from "@/lib/sounds";
 import type { Order } from "@/types/supabase";
 import { MobileOrderCard } from "@/components/admin/orders/MobileOrderCard";
@@ -46,10 +47,6 @@ export function OrdersTable({
 
   const notifPermissionRef = useRef<NotificationPermission>("default");
   const unseenCountRef = useRef(0);
-  const [realtimeStatus, setRealtimeStatus] = useState<
-    "connecting" | "connected" | "disconnected"
-  >("connecting");
-  const [reconnectKey, setReconnectKey] = useState(0);
 
   // Request browser notification permission once on mount
   useEffect(() => {
@@ -79,104 +76,59 @@ export function OrdersTable({
       document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
-  useEffect(() => {
-    setRealtimeStatus("connecting");
-    const supabase = createSupabaseBrowser();
-    const uniqueId = Math.random().toString(36).substring(7);
-    const channel = supabase
-      .channel(`orders-${tenantId}-${uniqueId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "orders",
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          const incoming = payload.new as Order;
-          setOrders((prev) => {
-            if (prev.some((o) => o.id === incoming.id)) return prev;
-            return [incoming, ...prev];
-          });
+  const { status: realtimeStatus, forceReconnect } = useOrdersRealtime(
+    tenantId,
+    {
+      onInsert: (incoming) => {
+        setOrders((prev) => {
+          if (prev.some((o) => o.id === incoming.id)) return prev;
+          return [incoming, ...prev];
+        });
+        setNewOrderIds((prev) => {
+          const s = new Set(prev);
+          s.add(incoming.id);
+          return s;
+        });
+        setTimeout(() => {
           setNewOrderIds((prev) => {
             const s = new Set(prev);
-            s.add(incoming.id);
+            s.delete(incoming.id);
             return s;
           });
-          setTimeout(() => {
-            setNewOrderIds((prev) => {
-              const s = new Set(prev);
-              s.delete(incoming.id);
-              return s;
-            });
-          }, 8000);
-          // Notification sound using saved preference
-          playSound();
-          // Tab title badge when tab is in background
-          if (typeof document !== "undefined" && document.hidden) {
-            unseenCountRef.current += 1;
-            document.title = `(${unseenCountRef.current}) Nuevo pedido — Admin`;
-          }
-          // Browser push notification
-          if (
-            typeof window !== "undefined" &&
-            "Notification" in window &&
-            notifPermissionRef.current === "granted"
-          ) {
-            try {
-              new Notification("Nuevo pedido", {
-                body: incoming.customer_name
-                  ? `${incoming.customer_name} — $ ${incoming.total.toLocaleString("es-AR")}`
-                  : `Pedido por $ ${incoming.total.toLocaleString("es-AR")}`,
-                icon: "/favicon.ico",
-              });
-            } catch {}
-          }
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "orders",
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          const updated = payload.new as Order;
-          setOrders((prev) =>
-            prev.map((o) => (o.id === updated.id ? updated : o)),
-          );
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "DELETE",
-          schema: "public",
-          table: "orders",
-          filter: `tenant_id=eq.${tenantId}`,
-        },
-        (payload) => {
-          const deleted = payload.old as { id: string };
-          setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
-        },
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") setRealtimeStatus("connected");
-        else if (
-          status === "CHANNEL_ERROR" ||
-          status === "TIMED_OUT" ||
-          status === "CLOSED"
-        ) {
-          setRealtimeStatus("disconnected");
+        }, 8000);
+        // Notification sound using saved preference
+        playSound();
+        // Tab title badge when tab is in background
+        if (typeof document !== "undefined" && document.hidden) {
+          unseenCountRef.current += 1;
+          document.title = `(${unseenCountRef.current}) Nuevo pedido — Admin`;
         }
-      });
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [tenantId, reconnectKey]);
+        // Browser push notification
+        if (
+          typeof window !== "undefined" &&
+          "Notification" in window &&
+          notifPermissionRef.current === "granted"
+        ) {
+          try {
+            new Notification("Nuevo pedido", {
+              body: incoming.customer_name
+                ? `${incoming.customer_name} — $ ${incoming.total.toLocaleString("es-AR")}`
+                : `Pedido por $ ${incoming.total.toLocaleString("es-AR")}`,
+              icon: "/favicon.ico",
+            });
+          } catch {}
+        }
+      },
+      onUpdate: (updated) => {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === updated.id ? updated : o)),
+        );
+      },
+      onDelete: (id) => {
+        setOrders((prev) => prev.filter((o) => o.id !== id));
+      },
+    },
+  );
 
   async function updateStatus(orderId: string, status: string) {
     const prevStatus = orders.find((o) => o.id === orderId)?.status;
@@ -681,7 +633,7 @@ export function OrdersTable({
               hasta reconectar.
             </span>
             <button
-              onClick={() => setReconnectKey((k) => k + 1)}
+              onClick={forceReconnect}
               style={{
                 flexShrink: 0,
                 background: "none",
