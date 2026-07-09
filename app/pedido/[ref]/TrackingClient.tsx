@@ -84,7 +84,11 @@ export default function TrackingClient({
   const isCancelled = status === "cancelled";
   const estimatedReadyAt = new Date(
     new Date(createdAt).getTime() + etaMinutes * 60_000,
-  ).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+  ).toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Argentina/Buenos_Aires",
+  });
 
   return (
     <div style={{ marginBottom: 24 }}>

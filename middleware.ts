@@ -14,6 +14,7 @@ const couponValidateHits = new Map<
 >();
 const reviewHits = new Map<string, { count: number; resetAt: number }>();
 const signupHits = new Map<string, { count: number; resetAt: number }>();
+const aiParseHits = new Map<string, { count: number; resetAt: number }>();
 
 const WINDOW_MS = 60_000; // 1 minute
 
@@ -25,6 +26,7 @@ const LIMITS = {
   couponValidate: 15, // 15 tries/min per IP — public endpoint, guards against code enumeration
   reviews: 5, // 5 reseñas/min per IP — público sin auth, evita spam
   signup: 8, // 8 intentos/min per IP — cubre chequeos de slug + el submit real
+  aiParse: 5, // 5/min per IP — llama a Anthropic (cuesta plata), bucket propio y más chico que adminMutations
 } as const;
 
 function getClientIp(req: NextRequest): string {
@@ -136,6 +138,18 @@ export function middleware(req: NextRequest) {
         { status: 429 },
       );
     }
+  }
+
+  // Rate limit: AI product parsing (llama a Anthropic, cuesta plata por request)
+  if (method === "POST" && pathname === "/api/products/parse-ai") {
+    const ip = getClientIp(req);
+    if (!checkRateLimit(aiParseHits, ip, LIMITS.aiParse)) {
+      return NextResponse.json(
+        { error: "Demasiadas solicitudes de IA. Esperá un minuto." },
+        { status: 429 },
+      );
+    }
+    return NextResponse.next();
   }
 
   // Rate limit: other admin mutations (products/categories/orders/tenant writes)

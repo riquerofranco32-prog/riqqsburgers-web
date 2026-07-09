@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
   ProductModal,
   type ProductForm,
 } from "@/components/admin/products/ProductModal";
+import { AIBulkUploadModal } from "@/components/admin/products/AIBulkUploadModal";
 import { ProductMobileCard } from "@/components/admin/products/ProductMobileCard";
 import { ProductDesktopRow } from "@/components/admin/products/ProductDesktopRow";
 import { vibrate } from "@/components/admin/products/utils";
@@ -29,6 +30,7 @@ export default function ProductsAdmin({
 }) {
   const [products, setProducts] = useState(initialProducts);
   const [showModal, setShowModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [filterCat, setFilterCat] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -557,6 +559,15 @@ export default function ProductsAdmin({
                 ? `Límite alcanzado (${products.length}/${productLimit})`
                 : "+ Nuevo"}
           </button>
+          {canAddMore && (
+            <button
+              onClick={() => setShowAIModal(true)}
+              className="flex items-center gap-1.5 text-zinc-400 text-xs font-bold px-3 py-1.5 rounded-lg hover:text-yellow-400 hover:bg-zinc-900 transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Carga con IA
+            </button>
+          )}
           {!canAddMore && (
             <p className="text-xs text-zinc-500">Límite del plan alcanzado</p>
           )}
@@ -723,6 +734,18 @@ export default function ProductsAdmin({
           tenantSlug={tenant.slug}
           onSave={handleSave}
           onClose={() => setShowModal(false)}
+        />
+      )}
+
+      {showAIModal && (
+        <AIBulkUploadModal
+          categories={categories}
+          tenantSlug={tenant.slug}
+          onDone={(newProducts) => {
+            setProducts((prev) => [...prev, ...newProducts]);
+            setShowAIModal(false);
+          }}
+          onClose={() => setShowAIModal(false)}
         />
       )}
 
