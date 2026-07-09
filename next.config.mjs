@@ -26,6 +26,12 @@ const securityHeaders = [
 
 const nextConfig = {
   compress: true, // gzip/brotli compression
+  async redirects() {
+    return [
+      { source: "/menu-online", destination: "/menu-digital", permanent: true },
+      { source: "/software-gastronomico", destination: "/software-restaurantes", permanent: true },
+    ];
+  },
   async headers() {
     return [
       // Security headers for all routes

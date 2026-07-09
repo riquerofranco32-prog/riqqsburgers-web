@@ -27,12 +27,6 @@ const LANDING_PAGES: MetadataRoute.Sitemap = [
   },
   { url: `${SITE}/pizzerias`, changeFrequency: "monthly", priority: 0.9 },
   {
-    url: `${SITE}/software-gastronomico`,
-    changeFrequency: "monthly",
-    priority: 0.85,
-  },
-  { url: `${SITE}/menu-online`, changeFrequency: "monthly", priority: 0.85 },
-  {
     url: `${SITE}/dark-kitchens`,
     changeFrequency: "monthly",
     priority: 0.85,
