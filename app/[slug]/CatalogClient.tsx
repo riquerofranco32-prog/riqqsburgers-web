@@ -44,18 +44,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import type {
   Restaurant,
   MenuItem,
   RestaurantBrand,
 } from "@/lib/getRestaurant";
-import CheckoutModal from "@/components/CheckoutModal";
 import InfoRotator from "@/components/menu/InfoRotator";
-import MenuHeroShader from "@/components/menu/MenuHeroShader";
 import MenuBackground from "@/components/menu/MenuBackground";
-import FavoritesSheet from "@/components/menu/FavoritesSheet";
 import Badge from "@/components/menu/Badge";
-import ProductDetailSheet from "@/components/menu/ProductDetailSheet";
 import CartDrawer, {
   type CartItem,
   type SelectedExtra,
@@ -68,7 +65,27 @@ import {
   getOpenStatus,
   formatOpenStatus,
 } from "@/lib/businessHours";
-import ImmersiveView from "@/components/menu/ImmersiveView";
+
+// Se montan on-demand (carrito, checkout, vista inmersiva, favoritos, detalle
+// de producto). No hace falta que vayan en el bundle inicial ni en SSR.
+const CheckoutModal = dynamic(() => import("@/components/CheckoutModal"), {
+  ssr: false,
+});
+const MenuHeroShader = dynamic(
+  () => import("@/components/menu/MenuHeroShader"),
+  { ssr: false },
+);
+const FavoritesSheet = dynamic(
+  () => import("@/components/menu/FavoritesSheet"),
+  { ssr: false },
+);
+const ProductDetailSheet = dynamic(
+  () => import("@/components/menu/ProductDetailSheet"),
+  { ssr: false },
+);
+const ImmersiveView = dynamic(() => import("@/components/menu/ImmersiveView"), {
+  ssr: false,
+});
 
 export interface PublicCoupon {
   code: string;

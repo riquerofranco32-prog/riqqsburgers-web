@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { unstable_noStore as noStore } from "next/cache";
+import { unstable_cache } from "next/cache";
 import {
   getActiveTenant,
   getAllTenants,
@@ -87,56 +87,64 @@ export interface Restaurant {
   };
 }
 
-async function getTopProductId(tenantId: string): Promise<string | null> {
-  noStore();
-  const supabase = createServerClient();
-  const since = new Date();
-  since.setDate(since.getDate() - 90);
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("items")
-    .eq("tenant_id", tenantId)
-    .not("items", "is", null)
-    .gte("created_at", since.toISOString())
-    .limit(500);
+// Producto más pedido en los últimos 90 días. No necesita estar fresco al
+// segundo (a diferencia del catálogo), así que se cachea entre requests.
+// El tenantId va como parte de la key para no mezclar datos entre tenants.
+const getTopProductId = unstable_cache(
+  async (tenantId: string): Promise<string | null> => {
+    const supabase = createServerClient();
+    const since = new Date();
+    since.setDate(since.getDate() - 90);
+    const { data: orders } = await supabase
+      .from("orders")
+      .select("items")
+      .eq("tenant_id", tenantId)
+      .not("items", "is", null)
+      .gte("created_at", since.toISOString())
+      .limit(500);
 
-  if (!orders || orders.length === 0) return null;
+    if (!orders || orders.length === 0) return null;
 
-  const counts: Record<string, number> = {};
-  for (const order of orders) {
-    const items = order.items as Array<{
-      product_id: string;
-      quantity: number;
-    }> | null;
-    if (!Array.isArray(items)) continue;
-    for (const item of items) {
-      if (item.product_id) {
-        counts[item.product_id] =
-          (counts[item.product_id] ?? 0) + item.quantity;
+    const counts: Record<string, number> = {};
+    for (const order of orders) {
+      const items = order.items as Array<{
+        product_id: string;
+        quantity: number;
+      }> | null;
+      if (!Array.isArray(items)) continue;
+      for (const item of items) {
+        if (item.product_id) {
+          counts[item.product_id] =
+            (counts[item.product_id] ?? 0) + item.quantity;
+        }
       }
     }
-  }
 
-  const entries = Object.entries(counts);
-  if (entries.length === 0) return null;
-  return entries.sort((a, b) => b[1] - a[1])[0][0];
-}
+    const entries = Object.entries(counts);
+    if (entries.length === 0) return null;
+    return entries.sort((a, b) => b[1] - a[1])[0][0];
+  },
+  ["top-product-id-by-tenant"],
+  { revalidate: 600 },
+);
 
 const MIN_REVIEWS_TO_SHOW = 3;
 
-async function getRatingSummary(
-  tenantId: string,
-): Promise<{ avg: number; count: number } | null> {
-  noStore();
-  const supabase = createServerClient();
-  const { data } = await supabase
-    .from("reviews")
-    .select("rating")
-    .eq("tenant_id", tenantId);
-  if (!data || data.length < MIN_REVIEWS_TO_SHOW) return null;
-  const sum = data.reduce((s, r) => s + (r.rating as number), 0);
-  return { avg: sum / data.length, count: data.length };
-}
+// Resumen de rating del tenant, cacheado entre requests por la misma razón.
+const getRatingSummary = unstable_cache(
+  async (tenantId: string): Promise<{ avg: number; count: number } | null> => {
+    const supabase = createServerClient();
+    const { data } = await supabase
+      .from("reviews")
+      .select("rating")
+      .eq("tenant_id", tenantId);
+    if (!data || data.length < MIN_REVIEWS_TO_SHOW) return null;
+    const sum = data.reduce((s, r) => s + (r.rating as number), 0);
+    return { avg: sum / data.length, count: data.length };
+  },
+  ["rating-summary-by-tenant"],
+  { revalidate: 300 },
+);
 
 function mapToRestaurant(
   tenant: Tenant,
