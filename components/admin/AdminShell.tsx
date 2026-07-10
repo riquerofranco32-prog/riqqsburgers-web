@@ -22,6 +22,7 @@ import {
   UserCog,
   UserCircle,
   WifiOff,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -45,6 +46,7 @@ const FULL_NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> =
   [
     { href: "", label: "Dashboard", icon: LayoutDashboard },
     { href: "/pedidos", label: "Pedidos", icon: ClipboardList },
+    { href: "/reportes", label: "Reportes", icon: BarChart3 },
     { href: "/clientes", label: "Clientes", icon: Users },
     { href: "/productos", label: "Productos", icon: Package },
     { href: "/categorias", label: "Categorías", icon: Tag },

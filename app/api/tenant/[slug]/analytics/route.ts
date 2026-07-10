@@ -127,6 +127,18 @@ function buildTopProducts(
     .slice(0, 5);
 }
 
+function buildPeakHour(
+  orders: Order[],
+): { hour: number; count: number } | null {
+  const byHour: Record<number, number> = {};
+  for (const o of orders) {
+    const h = new Date(o.created_at).getHours();
+    byHour[h] = (byHour[h] ?? 0) + 1;
+  }
+  const top = Object.entries(byHour).sort((a, b) => b[1] - a[1])[0];
+  return top ? { hour: Number(top[0]), count: top[1] } : null;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -143,14 +155,14 @@ export async function GET(
   }
 
   const range = req.nextUrl.searchParams.get("range");
-  if (range !== "week" && range !== "month") {
+  if (range !== "today" && range !== "week" && range !== "month") {
     return NextResponse.json(
-      { error: 'range debe ser "week" o "month"' },
+      { error: 'range debe ser "today", "week" o "month"' },
       { status: 400 },
     );
   }
 
-  const days = range === "week" ? 7 : 30;
+  const days = range === "today" ? 1 : range === "week" ? 7 : 30;
   const now = new Date();
   const from = startOfDay(new Date(now));
   from.setDate(from.getDate() - (days - 1));
@@ -212,6 +224,7 @@ export async function GET(
   const topProducts = buildTopProducts(orders, products, categories);
   const dailyRevenue = buildDailyRevenue(orders, days, now);
   const categoryRevenue = buildCategoryRevenue(orders, products, categories);
+  const peakHour = buildPeakHour(orders);
 
   const body: AnalyticsResponse = {
     revenue,
@@ -223,6 +236,7 @@ export async function GET(
     topProducts,
     dailyRevenue,
     categoryRevenue,
+    peakHour,
   };
   return NextResponse.json(body);
 }

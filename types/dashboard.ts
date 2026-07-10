@@ -45,4 +45,5 @@ export type AnalyticsResponse = {
   topProducts: TopProduct[];
   dailyRevenue: DailyRevenue[];
   categoryRevenue: CategoryRevenue[];
+  peakHour: { hour: number; count: number } | null;
 };
