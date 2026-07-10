@@ -43,7 +43,7 @@ import {
   Copy,
   type LucideIcon,
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import type {
   Restaurant,
@@ -850,6 +850,7 @@ export default function CatalogClient({
   coupons?: PublicCoupon[];
 }) {
   const CART_KEY = `cart_${restaurant.slug}`;
+  const router = useRouter();
   const catBarRef = useRef<HTMLDivElement>(null);
   const catBtnRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const catSectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -1230,6 +1231,37 @@ export default function CatalogClient({
       supabase.removeChannel(channel);
     };
   }, [restaurant.id]);
+
+  // ── products realtime — refleja "agotado" / cambios sin recargar manual ──
+  // ponytail: los productos no-disponibles ya vienen filtrados desde el server
+  // (getRestaurant), así que la forma más simple y correcta de reflejar un
+  // toggle en vivo es re-pedir los datos del server component (router.refresh),
+  // en vez de duplicar la lógica de armado de `restaurant.menu` acá. El estado
+  // de cliente (carrito, filtros) sobrevive porque CatalogClient no se remonta.
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const channel = supabase
+      .channel(`tenant-products-${restaurant.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "products",
+          filter: `tenant_id=eq.${restaurant.id}`,
+        },
+        () => {
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => router.refresh(), 400);
+        },
+      )
+      .subscribe();
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      supabase.removeChannel(channel);
+    };
+  }, [restaurant.id, router]);
 
   // ── Sliding category indicator ─────────────────────────────────────────────
   useEffect(() => {
