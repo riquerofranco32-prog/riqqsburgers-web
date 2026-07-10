@@ -94,7 +94,6 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
-    apple: "/takefyy-logo.png",
   },
   manifest: "/manifest.json",
   robots: { index: true, follow: true },
