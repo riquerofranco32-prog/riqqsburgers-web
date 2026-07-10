@@ -161,6 +161,36 @@ export function getNextStatus(
   return STATUS_FLOW[idx + 1].key;
 }
 
+function csvCell(value: string): string {
+  // Comilla doble + separador por punto y coma: Excel AR abre bien con ; y
+  // reconoce campos entre comillas con comas/saltos de línea adentro.
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+export function exportOrdersToCsv(orders: Order[]) {
+  const header = ["Fecha", "Cliente", "Teléfono", "Items", "Total", "Estado"];
+  const rows = orders.map((o) => [
+    fmtFecha(o.created_at),
+    o.customer_name ?? "",
+    o.customer_phone ?? "",
+    (o.items ?? []).map((it) => `${it.quantity}x ${it.name}`).join(", "),
+    String(o.total ?? 0),
+    getStatusMeta(o.status).label,
+  ]);
+  const csv = [header, ...rows]
+    .map((row) => row.map(csvCell).join(";"))
+    .join("\r\n");
+
+  // BOM para que Excel abra los acentos bien en UTF-8
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `pedidos-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function paymentLabel(method: string) {
   if (method === "transfer") return "📲 Transfer";
   if (method === "mercadopago") return "📲 MP";

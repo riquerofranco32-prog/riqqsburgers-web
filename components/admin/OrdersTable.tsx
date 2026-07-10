@@ -1,7 +1,14 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { Search, X, AlertTriangle, WifiOff, ClipboardList } from "lucide-react";
+import {
+  Search,
+  X,
+  AlertTriangle,
+  WifiOff,
+  ClipboardList,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import { useOrdersRealtime } from "@/hooks/useOrdersRealtime";
@@ -16,6 +23,7 @@ import {
   useIsMobile,
   getOrderAgeMinutes,
   matchesFilter,
+  exportOrdersToCsv,
   FILTER_PILLS,
   type FilterKey,
 } from "@/components/admin/orders/utils";
@@ -489,6 +497,30 @@ export function OrdersTable({
               </button>
             )}
           </div>
+          <button
+            onClick={() => exportOrdersToCsv(filtered)}
+            disabled={filtered.length === 0}
+            title="Exportar pedidos filtrados a CSV"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 12px",
+              borderRadius: 8,
+              background: "var(--dash-surface-2)",
+              border: "1px solid var(--dash-border)",
+              color: "var(--dash-text)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: filtered.length === 0 ? "not-allowed" : "pointer",
+              opacity: filtered.length === 0 ? 0.5 : 1,
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            <Download size={14} strokeWidth={2} />
+            CSV
+          </button>
         </div>
 
         <div
