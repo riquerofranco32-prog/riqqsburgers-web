@@ -26,6 +26,22 @@ export default async function OrderTicketPage({
 
   if (!order) notFound();
 
+  // Historial simple del cliente — cuenta pedidos previos por teléfono
+  // (único dato de contacto confiable que se guarda en todos los pedidos).
+  let previousOrderCount = 0;
+  let lastPreviousOrderAt: string | null = null;
+  if (order.customer_phone) {
+    const { data: previousOrders } = await supabase
+      .from("orders")
+      .select("created_at")
+      .eq("tenant_id", tenantId ?? "")
+      .eq("customer_phone", order.customer_phone)
+      .neq("id", order.id)
+      .order("created_at", { ascending: false });
+    previousOrderCount = previousOrders?.length ?? 0;
+    lastPreviousOrderAt = previousOrders?.[0]?.created_at ?? null;
+  }
+
   const items = order.items as OrderItem[];
   const tenant = order.tenants as { name: string; address?: string } | null;
   const isDelivery = order.delivery_type === "delivery";
@@ -80,6 +96,41 @@ export default async function OrderTicketPage({
         </div>
         <PrintButton />
       </div>
+
+      {order.customer_phone && (
+        <div
+          className="no-print"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 14px",
+            marginBottom: 16,
+            borderRadius: 10,
+            fontSize: 13,
+            fontWeight: 600,
+            background:
+              previousOrderCount > 0
+                ? "rgba(59,130,246,0.08)"
+                : "rgba(107,91,78,0.08)",
+            border: `1px solid ${previousOrderCount > 0 ? "rgba(59,130,246,0.25)" : "rgba(107,91,78,0.2)"}`,
+            color: previousOrderCount > 0 ? "#3b82f6" : "#6b5b4e",
+          }}
+        >
+          {previousOrderCount > 0 ? (
+            <span>
+              🔁 Cliente recurrente — {previousOrderCount}{" "}
+              {previousOrderCount === 1
+                ? "pedido anterior"
+                : "pedidos anteriores"}
+              {lastPreviousOrderAt &&
+                ` · último el ${new Date(lastPreviousOrderAt).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })}`}
+            </span>
+          ) : (
+            <span>🆕 Primer pedido de este cliente</span>
+          )}
+        </div>
+      )}
 
       <TicketActions
         slug={slug}
