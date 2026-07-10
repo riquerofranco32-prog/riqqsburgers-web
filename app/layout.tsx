@@ -91,10 +91,6 @@ export const metadata: Metadata = {
     description:
       "Menú digital + pedidos por WhatsApp para negocios en Argentina.",
   },
-  icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-  },
   manifest: "/manifest.json",
   robots: { index: true, follow: true },
   verification: {
