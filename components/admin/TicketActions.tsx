@@ -48,6 +48,7 @@ export default function TicketActions({
 }: TicketActionsProps) {
   const router = useRouter();
   const [cancelling, setCancelling] = useState(false);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const [kitchenNotes, setKitchenNotes] = useState(initialKitchenNotes ?? "");
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
@@ -75,7 +76,7 @@ export default function TicketActions({
   }
 
   async function handleCancel() {
-    if (!confirm("¿Cancelar este pedido? No se podrá revertir.")) return;
+    setConfirmCancel(false);
     setCancelling(true);
     try {
       const res = await fetch(`/api/orders/${orderId}`, {
@@ -280,10 +281,48 @@ export default function TicketActions({
           Avisar al cliente por WhatsApp
         </a>
       )}
-      {isCancellable && (
+      {isCancellable && confirmCancel && (
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={handleCancel}
+            disabled={cancelling}
+            style={{
+              flex: 1,
+              padding: "12px",
+              background: "rgba(239,68,68,0.15)",
+              color: "#f87171",
+              border: "1px solid rgba(239,68,68,0.5)",
+              borderRadius: 8,
+              cursor: cancelling ? "not-allowed" : "pointer",
+              fontWeight: 700,
+              fontSize: 15,
+              opacity: cancelling ? 0.7 : 1,
+            }}
+          >
+            {cancelling ? "Cancelando..." : "Sí, cancelar"}
+          </button>
+          <button
+            onClick={() => setConfirmCancel(false)}
+            disabled={cancelling}
+            style={{
+              flex: 1,
+              padding: "12px",
+              background: "#f3f3f3",
+              color: "#333",
+              border: "none",
+              borderRadius: 8,
+              cursor: cancelling ? "not-allowed" : "pointer",
+              fontWeight: 600,
+              fontSize: 15,
+            }}
+          >
+            No
+          </button>
+        </div>
+      )}
+      {isCancellable && !confirmCancel && (
         <button
-          onClick={handleCancel}
-          disabled={cancelling}
+          onClick={() => setConfirmCancel(true)}
           style={{
             width: "100%",
             padding: "12px",
@@ -291,13 +330,12 @@ export default function TicketActions({
             color: "#f87171",
             border: "1px solid rgba(239,68,68,0.4)",
             borderRadius: 8,
-            cursor: cancelling ? "not-allowed" : "pointer",
+            cursor: "pointer",
             fontWeight: 600,
             fontSize: 15,
-            opacity: cancelling ? 0.7 : 1,
           }}
         >
-          {cancelling ? "Cancelando..." : "✕ Cancelar pedido"}
+          ✕ Cancelar pedido
         </button>
       )}
       <Link

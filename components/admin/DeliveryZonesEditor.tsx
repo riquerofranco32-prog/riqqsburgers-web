@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Trash2, Plus, MapPin } from "lucide-react";
 import type { DeliveryZone } from "@/types/supabase";
 import type { DeliveryPosition } from "@/components/AddressGeocodePicker";
+import { AdminButton } from "@/components/ui/admin/AdminButton";
 
 const AddressGeocodePicker = dynamic(
   () => import("@/components/AddressGeocodePicker"),
@@ -39,6 +40,7 @@ export default function DeliveryZonesEditor({
   const [newName, setNewName] = useState("");
   const [newPrice, setNewPrice] = useState<number | "">("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -97,7 +99,7 @@ export default function DeliveryZonesEditor({
   }
 
   async function deleteZone(id: string) {
-    if (!confirm("¿Eliminar esta zona de envío? No se puede deshacer.")) return;
+    setConfirmDeleteId(null);
     const res = await fetch(`/api/delivery-zones/${id}`, { method: "DELETE" });
     if (res.ok) {
       setZones((prev) => prev.filter((z) => z.id !== id));
@@ -182,22 +184,41 @@ export default function DeliveryZonesEditor({
             >
               <MapPin size={15} />
             </button>
-            <button
-              type="button"
-              onClick={() => void deleteZone(z.id)}
-              aria-label={`Eliminar zona ${z.name}`}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#ef4444",
-                cursor: "pointer",
-                padding: 4,
-                display: "flex",
-              }}
-            >
-              <Trash2 size={15} />
-            </button>
+            {confirmDeleteId !== z.id && (
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(z.id)}
+                aria-label={`Eliminar zona ${z.name}`}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#ef4444",
+                  cursor: "pointer",
+                  padding: 4,
+                  display: "flex",
+                }}
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
           </div>
+
+          {confirmDeleteId === z.id && (
+            <div style={{ display: "flex", gap: 6 }}>
+              <AdminButton
+                variant="danger"
+                onClick={() => void deleteZone(z.id)}
+              >
+                Sí, eliminar zona
+              </AdminButton>
+              <AdminButton
+                variant="secondary"
+                onClick={() => setConfirmDeleteId(null)}
+              >
+                Cancelar
+              </AdminButton>
+            </div>
+          )}
 
           {z.lat === null && (
             <p style={{ fontSize: 11, color: "#d97706", margin: 0 }}>

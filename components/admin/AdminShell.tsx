@@ -21,8 +21,10 @@ import {
   Star,
   UserCog,
   UserCircle,
+  WifiOff,
   type LucideIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import TakefyyLogo from "@/components/TakefyyLogo";
 import PendingOrdersBadge from "@/components/admin/PendingOrdersBadge";
@@ -298,11 +300,29 @@ export default function AdminShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [clockTime, setClockTime] = useState<string | null>(null);
+  // Arranca en true (asumido online) para no desincronizar con el HTML del
+  // server; se corrige al montar, mismo criterio que collapsed más arriba.
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
     if (localStorage.getItem("sidebar_collapsed") === "true") {
       setCollapsed(true);
     }
+  }, []);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success("Conexión restablecida");
+    };
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -905,7 +925,29 @@ export default function AdminShell({
           to { transform: rotate(360deg); }
         }
       `}</style>
-      <main className="admin-shell-main">{children}</main>
+      <main className="admin-shell-main">
+        {!isOnline && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "8px 12px",
+              background: "#f59e0b",
+              color: "#1a1208",
+              fontSize: 12,
+              fontWeight: 700,
+              textAlign: "center",
+            }}
+          >
+            <WifiOff size={14} strokeWidth={2.2} />
+            Sin conexión — los cambios no se van a guardar hasta que vuelva
+            internet
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

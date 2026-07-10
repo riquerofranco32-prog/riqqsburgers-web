@@ -80,6 +80,9 @@ export default function CategoriesAdmin({
   const [nameError, setNameError] = useState("");
   const [saving, setSaving] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  // Snapshot del form al abrir el modal, para detectar cambios sin guardar
+  // al cerrar (mismo patrón que ProductModal).
+  const [formSnapshot, setFormSnapshot] = useState("");
 
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -98,28 +101,39 @@ export default function CategoriesAdmin({
   // ── Modal ────────────────────────────────────────────────────────────────
   function openNew() {
     setEditing(null);
-    setForm({
+    const initial: CategoryForm = {
       name: "",
       emoji: "🍽️",
       visible_from: "",
       visible_to: "",
       allow_half: false,
-    });
+    };
+    setForm(initial);
+    setFormSnapshot(JSON.stringify(initial));
     setNameError("");
     setModalOpen(true);
   }
 
   function openEdit(cat: Category) {
     setEditing(cat);
-    setForm({
+    const initial: CategoryForm = {
       name: cat.name,
       emoji: cat.emoji ?? "🍽️",
       visible_from: cat.visible_from ?? "",
       visible_to: cat.visible_to ?? "",
       allow_half: cat.allow_half,
-    });
+    };
+    setForm(initial);
+    setFormSnapshot(JSON.stringify(initial));
     setNameError("");
     setModalOpen(true);
+  }
+
+  function requestCloseModal() {
+    if (JSON.stringify(form) !== formSnapshot) {
+      if (!confirm("¿Descartar los cambios sin guardar?")) return;
+    }
+    setModalOpen(false);
   }
 
   async function handleSave() {
@@ -575,7 +589,7 @@ export default function CategoriesAdmin({
             padding: 16,
           }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) setModalOpen(false);
+            if (e.target === e.currentTarget) requestCloseModal();
           }}
         >
           <div
@@ -608,7 +622,7 @@ export default function CategoriesAdmin({
                 {editing ? "Editar categoría" : "Nueva categoría"}
               </h2>
               <button
-                onClick={() => setModalOpen(false)}
+                onClick={requestCloseModal}
                 style={{
                   width: 32,
                   height: 32,
