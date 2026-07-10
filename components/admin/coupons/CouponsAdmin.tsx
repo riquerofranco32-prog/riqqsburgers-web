@@ -14,6 +14,7 @@ interface CouponForm {
   discount_value: string;
   min_order_amount: string;
   max_uses: string;
+  starts_at: string;
   expires_at: string;
   show_in_menu: boolean;
 }
@@ -24,6 +25,7 @@ const emptyForm: CouponForm = {
   discount_value: "",
   min_order_amount: "",
   max_uses: "",
+  starts_at: "",
   expires_at: "",
   show_in_menu: true,
 };
@@ -66,6 +68,14 @@ function CouponModal({
     }
     if (form.discount_type === "percent" && value > 100) {
       setError("El porcentaje no puede superar 100");
+      return;
+    }
+    if (
+      form.starts_at &&
+      form.expires_at &&
+      new Date(form.starts_at) >= new Date(form.expires_at)
+    ) {
+      setError("La fecha de inicio debe ser anterior a la de vencimiento");
       return;
     }
     setSaving(true);
@@ -144,14 +154,24 @@ function CouponModal({
         </AdminField>
       </div>
 
-      <AdminField label="Vence el">
-        <input
-          type="date"
-          value={form.expires_at}
-          onChange={(e) => set("expires_at", e.target.value)}
-          style={adminInputStyle}
-        />
-      </AdminField>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <AdminField label="Empieza el">
+          <input
+            type="date"
+            value={form.starts_at}
+            onChange={(e) => set("starts_at", e.target.value)}
+            style={adminInputStyle}
+          />
+        </AdminField>
+        <AdminField label="Vence el">
+          <input
+            type="date"
+            value={form.expires_at}
+            onChange={(e) => set("expires_at", e.target.value)}
+            style={adminInputStyle}
+          />
+        </AdminField>
+      </div>
 
       <label
         style={{
@@ -212,6 +232,9 @@ export function CouponsAdmin({
             : null,
           max_uses: form.max_uses ? Number(form.max_uses) : null,
           show_in_menu: form.show_in_menu,
+          starts_at: form.starts_at
+            ? new Date(form.starts_at).toISOString()
+            : null,
           expires_at: form.expires_at
             ? new Date(form.expires_at).toISOString()
             : null,
@@ -331,6 +354,9 @@ export function CouponsAdmin({
             const isExpired = c.expires_at
               ? new Date(c.expires_at) < new Date()
               : false;
+            const isNotStarted = c.starts_at
+              ? new Date(c.starts_at) > new Date()
+              : false;
             return (
               <div
                 key={c.id}
@@ -343,7 +369,7 @@ export function CouponsAdmin({
                   gap: 12,
                   padding: 16,
                   flexWrap: "wrap",
-                  opacity: c.active ? 1 : 0.6,
+                  opacity: c.active && !isExpired && !isNotStarted ? 1 : 0.6,
                 }}
               >
                 <div style={{ flex: 1, minWidth: 180 }}>
@@ -399,6 +425,19 @@ export function CouponsAdmin({
                         Vencido
                       </span>
                     )}
+                    {!isExpired && isNotStarted && (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          padding: "2px 8px",
+                          borderRadius: 999,
+                          background: "rgba(59,130,246,0.1)",
+                          color: "#3b82f6",
+                        }}
+                      >
+                        Programado
+                      </span>
+                    )}
                   </div>
                   <p
                     style={{
@@ -411,6 +450,9 @@ export function CouponsAdmin({
                     {c.max_uses !== null ? ` / ${c.max_uses}` : ""}
                     {c.min_order_amount
                       ? ` · mín. ${fmtARS(c.min_order_amount)}`
+                      : ""}
+                    {c.starts_at
+                      ? ` · empieza ${new Date(c.starts_at).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`
                       : ""}
                     {c.expires_at
                       ? ` · vence ${new Date(c.expires_at).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" })}`

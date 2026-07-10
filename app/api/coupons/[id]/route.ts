@@ -11,6 +11,7 @@ const ALLOWED_FIELDS = [
   "max_uses",
   "active",
   "show_in_menu",
+  "starts_at",
   "expires_at",
 ] as const;
 
@@ -135,6 +136,17 @@ export async function PATCH(
       { error: "show_in_menu debe ser boolean" },
       { status: 400 },
     );
+  }
+  if ("starts_at" in patch && patch.starts_at !== null) {
+    if (
+      typeof patch.starts_at !== "string" ||
+      isNaN(Date.parse(patch.starts_at))
+    ) {
+      return NextResponse.json(
+        { error: "Fecha de inicio inválida" },
+        { status: 400 },
+      );
+    }
   }
   if ("expires_at" in patch && patch.expires_at !== null) {
     if (

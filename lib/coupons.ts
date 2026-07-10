@@ -33,6 +33,9 @@ export async function validateCoupon(
   const c = coupon as Coupon;
 
   if (!c.active) return { ok: false, error: "Cupón inactivo" };
+  if (c.starts_at && new Date(c.starts_at) > new Date()) {
+    return { ok: false, error: "Cupón todavía no está activo" };
+  }
   if (c.expires_at && new Date(c.expires_at) < new Date()) {
     return { ok: false, error: "Cupón vencido" };
   }
@@ -71,17 +74,20 @@ export async function getAllPublicOffers(): Promise<PublicOffer[]> {
 
   const { data: coupons } = await supabase
     .from("coupons")
-    .select("id, code, discount_type, discount_value, min_order_amount, max_uses, uses, expires_at, tenant_id")
+    .select(
+      "id, code, discount_type, discount_value, min_order_amount, max_uses, uses, starts_at, expires_at, tenant_id",
+    )
     .eq("active", true)
     .eq("show_in_menu", true)
     .order("created_at", { ascending: false });
 
   if (!coupons || coupons.length === 0) return [];
 
-  // Filter out exhausted/expired
+  // Filter out exhausted/expired/not-started-yet
   const validCoupons = coupons.filter(
     (c) =>
       (c.max_uses === null || c.uses < c.max_uses) &&
+      (!c.starts_at || new Date(c.starts_at) <= new Date()) &&
       (!c.expires_at || new Date(c.expires_at) > new Date()),
   );
 
@@ -95,9 +101,7 @@ export async function getAllPublicOffers(): Promise<PublicOffer[]> {
     .eq("active", true)
     .in("id", tenantIds);
 
-  const tenantMap = new Map(
-    (tenants ?? []).map((t) => [t.id, t]),
-  );
+  const tenantMap = new Map((tenants ?? []).map((t) => [t.id, t]));
 
   return validCoupons
     .filter((c) => tenantMap.has(c.tenant_id))
@@ -119,4 +123,3 @@ export async function getAllPublicOffers(): Promise<PublicOffer[]> {
       };
     });
 }
-

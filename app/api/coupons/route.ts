@@ -12,6 +12,7 @@ function isValidCouponBody(body: {
   discount_value?: unknown;
   min_order_amount?: unknown;
   max_uses?: unknown;
+  starts_at?: unknown;
   expires_at?: unknown;
 }): string | null {
   if (
@@ -52,6 +53,14 @@ function isValidCouponBody(body: {
       return "Cantidad de usos inválida";
     }
   }
+  if (body.starts_at !== undefined && body.starts_at !== null) {
+    if (
+      typeof body.starts_at !== "string" ||
+      isNaN(Date.parse(body.starts_at))
+    ) {
+      return "Fecha de inicio inválida";
+    }
+  }
   if (body.expires_at !== undefined && body.expires_at !== null) {
     if (
       typeof body.expires_at !== "string" ||
@@ -59,6 +68,13 @@ function isValidCouponBody(body: {
     ) {
       return "Fecha de vencimiento inválida";
     }
+  }
+  if (
+    typeof body.starts_at === "string" &&
+    typeof body.expires_at === "string" &&
+    Date.parse(body.starts_at) >= Date.parse(body.expires_at)
+  ) {
+    return "La fecha de inicio debe ser anterior a la de vencimiento";
   }
   return null;
 }
@@ -101,6 +117,7 @@ export async function POST(req: NextRequest) {
     max_uses?: number | null;
     active?: boolean;
     show_in_menu?: boolean;
+    starts_at?: string | null;
     expires_at?: string | null;
   };
 
@@ -144,6 +161,7 @@ export async function POST(req: NextRequest) {
       max_uses: body.max_uses ?? null,
       active: body.active ?? true,
       show_in_menu: body.show_in_menu ?? false,
+      starts_at: body.starts_at ?? null,
       expires_at: body.expires_at ?? null,
     })
     .select()
