@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title:
-    "Menú Digital para Restaurantes en Argentina | Gratis — Takefyy",
+  title: "Menú Digital para Restaurantes en Argentina | Gratis — Takefyy",
   description:
     "Creá el menú digital de tu restaurante en minutos. Sin programar, sin costos en dólares. Pedidos directo a tu WhatsApp, sin comisiones. Gratis para empezar.",
   keywords: [
@@ -28,7 +28,14 @@ export const metadata: Metadata = {
     siteName: "Takefyy",
     locale: "es_AR",
     type: "website",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Menú Digital para Restaurantes — Takefyy" }],
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Menú Digital para Restaurantes — Takefyy",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -65,8 +72,18 @@ const jsonLd = {
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Inicio", item: "https://takefyy.com" },
-        { "@type": "ListItem", position: 2, name: "Menú Digital", item: "https://takefyy.com/menu-digital" },
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Inicio",
+          item: "https://takefyy.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Menú Digital",
+          item: "https://takefyy.com/menu-digital",
+        },
       ],
     },
     {
@@ -212,7 +229,10 @@ export default function MenuDigitalPage() {
           >
             <Link
               href="/"
-              style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}
+              style={{
+                color: "rgba(255,255,255,0.35)",
+                textDecoration: "none",
+              }}
             >
               Takefyy
             </Link>
@@ -272,9 +292,8 @@ export default function MenuDigitalPage() {
               lineHeight: 1.65,
             }}
           >
-            Creá tu carta online en minutos. Pedidos directo a tu WhatsApp,
-            sin Rappi, sin comisiones, sin costos en dólares. Gratis para
-            empezar.
+            Creá tu carta online en minutos. Pedidos directo a tu WhatsApp, sin
+            Rappi, sin comisiones, sin costos en dólares. Gratis para empezar.
           </p>
 
           <div
@@ -647,6 +666,8 @@ export default function MenuDigitalPage() {
             Empezar gratis →
           </a>
         </div>
+
+        <RelatedLinks exclude="/menu-digital" />
       </div>
     </>
   );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
@@ -27,7 +28,14 @@ export const metadata: Metadata = {
     siteName: "Takefyy",
     locale: "es_AR",
     type: "website",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Menú Digital para Hamburguerías — Takefyy" }],
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Menú Digital para Hamburguerías — Takefyy",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
@@ -98,8 +106,18 @@ const jsonLd = {
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Inicio", item: "https://takefyy.com" },
-        { "@type": "ListItem", position: 2, name: "Menú Digital para Hamburguerías", item: "https://takefyy.com/hamburgueserias" },
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Inicio",
+          item: "https://takefyy.com",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Menú Digital para Hamburguerías",
+          item: "https://takefyy.com/hamburgueserias",
+        },
       ],
     },
   ],
@@ -235,7 +253,12 @@ export default function HamburgueseriasPage() {
           </p>
 
           <div
-            style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}
+            style={{
+              display: "flex",
+              gap: 12,
+              justifyContent: "center",
+              flexWrap: "wrap",
+            }}
           >
             <a
               href="https://wa.me/542994247985?text=Hola!%20Quiero%20crear%20el%20men%C3%BA%20digital%20de%20mi%20hamburguesar%C3%ADa%20%F0%9F%94%A5"
@@ -394,7 +417,11 @@ export default function HamburgueseriasPage() {
               }}
             >
               {[
-                { label: "Rappi / PedidosYa", value: "−35% por pedido", bad: true },
+                {
+                  label: "Rappi / PedidosYa",
+                  value: "−35% por pedido",
+                  bad: true,
+                },
                 { label: "Takefyy", value: "0% de comisión", bad: false },
               ].map((item) => (
                 <div
@@ -548,7 +575,12 @@ export default function HamburgueseriasPage() {
               También te puede interesar
             </p>
             <div
-              style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}
+              style={{
+                display: "flex",
+                gap: 12,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
             >
               <Link
                 href="/blog/menu-digital-hamburguesia-guia-completa"
@@ -583,6 +615,8 @@ export default function HamburgueseriasPage() {
             </div>
           </div>
         </div>
+
+        <RelatedLinks exclude="/hamburgueserias" />
       </div>
     </>
   );

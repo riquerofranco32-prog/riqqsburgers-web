@@ -5060,7 +5060,7 @@ export default function HomeClient({
                 </a>
               </div>
             </div>
-            <div className="flex gap-12 md:gap-20">
+            <div className="flex flex-wrap gap-x-12 gap-y-8 md:gap-x-16">
               <div>
                 <div
                   className="text-xs font-semibold mb-4"
@@ -5098,9 +5098,81 @@ export default function HomeClient({
                   className="text-xs font-semibold mb-4"
                   style={{ color: "var(--dash-muted)", letterSpacing: "0.1em" }}
                 >
+                  SOLUCIONES
+                </div>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { href: "/menu-digital", label: "Menú digital" },
+                    { href: "/carta-digital", label: "Carta digital" },
+                    { href: "/menu-qr", label: "Menú QR" },
+                    {
+                      href: "/pedidos-whatsapp",
+                      label: "Pedidos por WhatsApp",
+                    },
+                    {
+                      href: "/software-restaurantes",
+                      label: "Software para restaurantes",
+                    },
+                  ].map((l) => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      className="text-sm"
+                      style={{
+                        color: "var(--dash-muted)",
+                        textDecoration: "none",
+                      }}
+                    >
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div
+                  className="text-xs font-semibold mb-4"
+                  style={{ color: "var(--dash-muted)", letterSpacing: "0.1em" }}
+                >
+                  RUBROS
+                </div>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { href: "/pizzerias", label: "Pizzerías" },
+                    { href: "/hamburgueserias", label: "Hamburgueserías" },
+                    { href: "/dark-kitchens", label: "Dark kitchens" },
+                  ].map((l) => (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      className="text-sm"
+                      style={{
+                        color: "var(--dash-muted)",
+                        textDecoration: "none",
+                      }}
+                    >
+                      {l.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div
+                  className="text-xs font-semibold mb-4"
+                  style={{ color: "var(--dash-muted)", letterSpacing: "0.1em" }}
+                >
                   EMPRESA
                 </div>
                 <div className="flex flex-col gap-3">
+                  <Link
+                    href="/blog"
+                    className="text-sm"
+                    style={{
+                      color: "var(--dash-muted)",
+                      textDecoration: "none",
+                    }}
+                  >
+                    Blog
+                  </Link>
                   <a
                     href="https://instagram.com/takefyy"
                     target="_blank"
