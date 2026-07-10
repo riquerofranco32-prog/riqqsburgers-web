@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { Category, Product } from "@/types/supabase";
 import { uploadImage } from "./utils";
@@ -96,6 +96,9 @@ export function ProductModal({
         }
       : emptyForm,
   );
+  // Snapshot para detectar cambios sin guardar al cerrar (tap accidental en el
+  // backdrop en mobile no debe borrar lo que el dueño tipeó).
+  const initialFormRef = useRef(JSON.stringify(form));
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -160,11 +163,18 @@ export function ProductModal({
     setSaving(false);
   }
 
+  function requestClose() {
+    if (JSON.stringify(form) !== initialFormRef.current) {
+      if (!confirm("¿Descartar los cambios sin guardar?")) return;
+    }
+    onClose();
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       <div
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={requestClose}
       />
       <div className="relative bg-zinc-950 w-full max-w-lg rounded-t-3xl md:rounded-3xl flex flex-col max-h-[92dvh] shadow-2xl border border-zinc-800">
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0 md:hidden">
@@ -176,7 +186,7 @@ export function ProductModal({
             {product ? "Editar producto" : "Nuevo producto"}
           </h2>
           <button
-            onClick={onClose}
+            onClick={requestClose}
             className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
           >
             ×

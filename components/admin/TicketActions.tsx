@@ -85,8 +85,9 @@ export default function TicketActions({
       });
       if (!res.ok) throw new Error("Error al cancelar");
       router.refresh();
+      toast.success("Pedido cancelado");
     } catch {
-      alert("No se pudo cancelar. Intentá de nuevo.");
+      toast.error("No se pudo cancelar. Intentá de nuevo.");
     } finally {
       setCancelling(false);
     }
