@@ -548,8 +548,14 @@ export function OrderDetailView({
                     key={key}
                     style={{
                       flex: i === STATUS_FLOW.length - 1 ? undefined : 1,
-                      width: i === STATUS_FLOW.length - 1 ? 26 : undefined,
-                      textAlign: i === 0 ? "left" : "center",
+                      width: i === STATUS_FLOW.length - 1 ? "auto" : undefined,
+                      maxWidth: i === STATUS_FLOW.length - 1 ? 70 : undefined,
+                      textAlign:
+                        i === 0
+                          ? "left"
+                          : i === STATUS_FLOW.length - 1
+                            ? "right"
+                            : "center",
                       fontSize: 10,
                       fontWeight: i === currentIdx ? 700 : 500,
                       color:
