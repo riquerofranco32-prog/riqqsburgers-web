@@ -42,7 +42,7 @@ export function TopProductsList({
 
   if (loading) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
+      <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5">
         <div className="h-2.5 w-40 bg-dash-surface-2 rounded animate-pulse mb-6" />
         <div className="flex flex-col gap-5">
           {[...Array(5)].map((_, i) => (
@@ -65,7 +65,7 @@ export function TopProductsList({
 
   if (products.length === 0) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl p-5 flex flex-col items-center justify-center min-h-[200px]">
+      <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5 flex flex-col items-center justify-center min-h-[200px]">
         <p className="text-dash-muted text-sm">Sin datos esta semana</p>
       </div>
     );
@@ -74,7 +74,7 @@ export function TopProductsList({
   const maxQty = products[0].quantity;
 
   return (
-    <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
+    <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5">
       <p className="text-[11px] uppercase tracking-wider text-dash-muted font-medium mb-6">
         Top productos — 7 días
       </p>

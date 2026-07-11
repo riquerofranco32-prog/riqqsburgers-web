@@ -140,6 +140,7 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
             flexDirection: "column",
             gap: 8,
             justifyContent: "center",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
           }}
         >
           <div

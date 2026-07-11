@@ -407,8 +407,23 @@ export default function CategoriesAdmin({
                   borderRadius: 14,
                   padding: "12px 14px",
                   opacity: isDragging ? 0.4 : cat.active ? 1 : 0.5,
-                  boxShadow: isOver ? "0 0 0 1px var(--accent)" : "none",
-                  transition: "border-color 0.15s, box-shadow 0.15s",
+                  boxShadow: isOver
+                    ? "0 0 0 1px var(--accent)"
+                    : "0 2px 8px rgba(0,0,0,0.12)",
+                  transition:
+                    "border-color 0.15s, box-shadow 0.15s, transform 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  if (isOver) return;
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 14px rgba(0,0,0,0.2)";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  if (isOver) return;
+                  e.currentTarget.style.boxShadow =
+                    "0 2px 8px rgba(0,0,0,0.12)";
+                  e.currentTarget.style.transform = "translateY(0)";
                 }}
               >
                 {/* Drag handle */}

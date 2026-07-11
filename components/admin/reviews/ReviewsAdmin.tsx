@@ -80,6 +80,7 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
           alignItems: "center",
           gap: 24,
           flexWrap: "wrap",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
         }}
       >
         <div style={{ textAlign: "center" }}>
@@ -182,6 +183,7 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
           border: "1px solid var(--dash-border)",
           borderRadius: 16,
           overflow: "hidden",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
         }}
       >
         {filter !== "all" && (
@@ -228,7 +230,14 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
               display: "flex",
               flexDirection: "column",
               gap: 6,
+              transition: "background 0.15s",
             }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "var(--dash-surface-2)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "transparent")
+            }
           >
             <div
               style={{

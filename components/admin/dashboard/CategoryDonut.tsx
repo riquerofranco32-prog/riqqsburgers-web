@@ -65,7 +65,7 @@ export function CategoryDonut({
 }: CategoryDonutProps) {
   if (loading) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
+      <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5">
         <div className="h-4 w-40 bg-dash-surface-2 rounded animate-pulse mb-1" />
         <div className="h-3 w-24 bg-dash-surface-2 rounded animate-pulse mb-5" />
         <div className="flex items-center gap-5">
@@ -85,7 +85,7 @@ export function CategoryDonut({
 
   if (data.length === 0) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl p-5 flex flex-col items-center justify-center min-h-[240px]">
+      <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5 flex flex-col items-center justify-center min-h-[240px]">
         <p className="text-dash-muted text-sm">Sin datos de ventas</p>
       </div>
     );
@@ -95,7 +95,7 @@ export function CategoryDonut({
   const enriched = data.map((d) => ({ ...d, total }));
 
   return (
-    <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
+    <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5">
       {/* Header */}
       <div className="mb-5">
         <p

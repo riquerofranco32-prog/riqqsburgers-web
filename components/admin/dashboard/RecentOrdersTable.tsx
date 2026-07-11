@@ -264,7 +264,7 @@ export function RecentOrdersTable({
 
   if (loading) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
+      <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] overflow-hidden">
         <div className="px-5 py-4 border-b border-dash-border flex items-center justify-between">
           <div className="h-3 w-36 bg-dash-surface-2 rounded animate-pulse" />
           <div className="h-3 w-16 bg-dash-surface-2 rounded animate-pulse" />
@@ -285,7 +285,7 @@ export function RecentOrdersTable({
 
   if (orders.length === 0) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
+      <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] overflow-hidden">
         <div className="px-5 py-4 border-b border-dash-border">
           <h2 className="text-sm font-semibold text-dash-text">
             Pedidos recientes
@@ -300,7 +300,7 @@ export function RecentOrdersTable({
   }
 
   return (
-    <div className="bg-dash-surface border border-dash-border rounded-2xl overflow-hidden">
+    <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] overflow-hidden">
       <style>{`
         @keyframes slide-down-fade {
           from { opacity: 0; transform: translateY(-8px); }

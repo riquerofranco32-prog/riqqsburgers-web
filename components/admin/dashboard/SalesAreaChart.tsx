@@ -112,7 +112,7 @@ export function SalesAreaChart({
 }: SalesAreaChartProps) {
   if (loading) {
     return (
-      <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
+      <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5">
         <div className="h-4 w-44 bg-dash-surface-2 rounded animate-pulse mb-1" />
         <div className="h-3 w-28 bg-dash-surface-2 rounded animate-pulse mb-5" />
         <div className="h-[220px] bg-dash-surface-2/60 rounded-xl animate-pulse" />
@@ -132,7 +132,7 @@ export function SalesAreaChart({
         : "var(--dash-muted)";
 
   return (
-    <div className="bg-dash-surface border border-dash-border rounded-2xl p-5">
+    <div className="bg-dash-surface border border-dash-border rounded-2xl shadow-[0_4px_16px_rgba(0,0,0,0.15)] p-5">
       {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div>

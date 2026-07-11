@@ -146,6 +146,7 @@ export function CustomersTable({
         border: "1px solid var(--dash-border)",
         borderRadius: 16,
         overflow: "hidden",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
       }}
     >
       {/* Header */}
@@ -233,7 +234,14 @@ export function CustomersTable({
                 justifyContent: "space-between",
                 gap: 12,
                 flexWrap: "wrap",
+                transition: "background 0.15s",
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "var(--dash-surface-2)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
             >
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
