@@ -57,7 +57,7 @@ const jsonLd = {
       "@id": "https://takefyy.com/#organization",
       name: "Takefyy",
       url: "https://takefyy.com",
-      logo: "https://takefyy.com/opengraph-image",
+      logo: "https://takefyy.com/takefyy-logo-square.jpg",
       description:
         "Plataforma argentina de menús digitales para restaurantes. Pedidos directo por WhatsApp, sin comisiones ni apps intermediarias.",
       foundingLocation: { "@type": "Place", name: "Argentina" },
