@@ -25,7 +25,10 @@ import {
   type OnboardingState,
 } from "@/components/admin/dashboard/OnboardingChecklist";
 import { OperationControls } from "@/components/admin/dashboard/OperationControls";
-import CierreCaja from "@/components/admin/dashboard/CierreCaja";
+import CierreCaja, {
+  dayLabelFor,
+  type CajaData,
+} from "@/components/admin/dashboard/CierreCaja";
 import ExportReportButton from "@/components/admin/ExportReportButton";
 import { useOrdersRealtime } from "@/hooks/useOrdersRealtime";
 import type { Product, Order } from "@/types/supabase";
@@ -115,6 +118,7 @@ export default function AdminDashboard({
   const [orders, setOrders] = useState<Order[]>(allOrders);
   const [range, setRange] = useState<AnalyticsRange>("today");
   const [cajaDate, setCajaDate] = useState<string | undefined>(undefined);
+  const [cajaViewData, setCajaViewData] = useState<CajaData | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(
     null,
@@ -218,22 +222,36 @@ export default function AdminDashboard({
     }
   };
 
-  const activeRevenue =
-    range === "today"
+  // Cuando el usuario navegó a un día específico desde el cierre de caja
+  // (flechas o click en una barra del gráfico), las KPI de arriba muestran
+  // ese día puntual en vez del agregado del `range` elegido.
+  const viewingSpecificDay = cajaDate !== undefined && cajaViewData !== null;
+
+  const activeRevenue = viewingSpecificDay
+    ? cajaViewData.total
+    : range === "today"
       ? (kpisData?.revenueToday ?? 0)
       : (analyticsData?.revenue ?? 0);
-  const activeOrderCount =
-    range === "today"
+  const activeOrderCount = viewingSpecificDay
+    ? cajaViewData.cantidad
+    : range === "today"
       ? (kpisData?.ordersToday ?? 0)
       : (analyticsData?.orderCount ?? 0);
-  const activeAvgTicket =
-    range === "today"
+  const activeAvgTicket = viewingSpecificDay
+    ? cajaViewData.cantidad > 0
+      ? Math.round(cajaViewData.total / cajaViewData.cantidad)
+      : 0
+    : range === "today"
       ? (kpisData?.avgTicketToday ?? 0)
       : (analyticsData?.avgTicket ?? 0);
   const activeSalesData =
     range === "today"
       ? (kpisData?.salesLast7Days ?? [])
       : (analyticsData?.dailyRevenue ?? []);
+
+  const kpiDayLabel = viewingSpecificDay
+    ? dayLabelFor(cajaViewData.fechaIso, cajaViewData.fecha)
+    : null;
 
   const rangeLabel =
     range === "today"
@@ -735,13 +753,25 @@ export default function AdminDashboard({
                 />
               )}
               <KPICard
-                loading={range === "today" ? kpisLoading : analyticsLoading}
-                label={`Pedidos${range === "today" ? " hoy" : ""}`}
+                loading={
+                  viewingSpecificDay
+                    ? false
+                    : range === "today"
+                      ? kpisLoading
+                      : analyticsLoading
+                }
+                label={
+                  kpiDayLabel
+                    ? `Pedidos (${kpiDayLabel})`
+                    : `Pedidos${range === "today" ? " hoy" : ""}`
+                }
                 value={String(activeOrderCount)}
                 change={
-                  range === "today"
-                    ? (kpisData?.ordersTodayChange ?? null)
-                    : (analyticsData?.orderCountChange ?? null)
+                  viewingSpecificDay
+                    ? null
+                    : range === "today"
+                      ? (kpisData?.ordersTodayChange ?? null)
+                      : (analyticsData?.orderCountChange ?? null)
                 }
                 changeLabel={rangeLabel}
                 icon={ShoppingCart}
@@ -749,28 +779,56 @@ export default function AdminDashboard({
             </div>
             <div className="stagger-item" style={{ animationDelay: "300ms" }}>
               <KPICard
-                loading={range === "today" ? kpisLoading : analyticsLoading}
-                label={`Ventas${range === "today" ? " hoy" : ""}`}
+                loading={
+                  viewingSpecificDay
+                    ? false
+                    : range === "today"
+                      ? kpisLoading
+                      : analyticsLoading
+                }
+                label={
+                  kpiDayLabel
+                    ? `Ventas (${kpiDayLabel})`
+                    : `Ventas${range === "today" ? " hoy" : ""}`
+                }
                 value={fmtARS(activeRevenue)}
                 change={
-                  range === "today"
-                    ? (kpisData?.revenueTodayChange ?? null)
-                    : (analyticsData?.revenueChange ?? null)
+                  viewingSpecificDay
+                    ? null
+                    : range === "today"
+                      ? (kpisData?.revenueTodayChange ?? null)
+                      : (analyticsData?.revenueChange ?? null)
                 }
                 changeLabel={rangeLabel}
                 icon={DollarSign}
-                sparkline={activeSalesData.map((d) => d.total)}
+                sparkline={
+                  viewingSpecificDay
+                    ? undefined
+                    : activeSalesData.map((d) => d.total)
+                }
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "360ms" }}>
               <KPICard
-                loading={range === "today" ? kpisLoading : analyticsLoading}
-                label="Ticket promedio"
+                loading={
+                  viewingSpecificDay
+                    ? false
+                    : range === "today"
+                      ? kpisLoading
+                      : analyticsLoading
+                }
+                label={
+                  kpiDayLabel
+                    ? `Ticket promedio (${kpiDayLabel})`
+                    : "Ticket promedio"
+                }
                 value={activeAvgTicket > 0 ? fmtARS(activeAvgTicket) : "—"}
                 change={
-                  range === "today"
-                    ? (kpisData?.avgTicketChange ?? null)
-                    : (analyticsData?.avgTicketChange ?? null)
+                  viewingSpecificDay
+                    ? null
+                    : range === "today"
+                      ? (kpisData?.avgTicketChange ?? null)
+                      : (analyticsData?.avgTicketChange ?? null)
                 }
                 changeLabel={rangeLabel}
                 icon={TrendingUp}
@@ -822,11 +880,13 @@ export default function AdminDashboard({
               slug={slug}
               date={cajaDate}
               onDateChange={setCajaDate}
+              onData={setCajaViewData}
             />
           </div>
 
           {/* Empty state — no orders today (existing tenant) */}
-          {range === "today" &&
+          {!viewingSpecificDay &&
+            range === "today" &&
             !kpisLoading &&
             kpisData !== null &&
             kpisData.ordersToday === 0 && (

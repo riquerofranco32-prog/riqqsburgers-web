@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface CajaData {
+export interface CajaData {
   fecha: string;
   fechaIso: string;
   total: number;
@@ -25,7 +25,7 @@ function fmt(n: number) {
 }
 
 /** Hoy en Argentina, como YYYY-MM-DD — sin importar la timezone del browser */
-function getTodayIsoInBA(): string {
+export function getTodayIsoInBA(): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Argentina/Buenos_Aires",
   }).format(new Date());
@@ -33,10 +33,19 @@ function getTodayIsoInBA(): string {
 
 /** Suma/resta días a un YYYY-MM-DD, anclado a mediodía UTC para evitar
  * corrimientos de un día por DST o timezone del server/browser. */
-function shiftIsoDate(iso: string, deltaDays: number): string {
+export function shiftIsoDate(iso: string, deltaDays: number): string {
   const d = new Date(`${iso}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + deltaDays);
   return d.toISOString().slice(0, 10);
+}
+
+/** "Hoy" / "Ayer" / fecha formateada, para reusar el mismo criterio de
+ * etiquetado en cualquier lugar que muestre datos de un día específico. */
+export function dayLabelFor(fechaIso: string, fecha: string): string {
+  const todayIso = getTodayIsoInBA();
+  if (fechaIso === todayIso) return "Hoy";
+  if (fechaIso === shiftIsoDate(todayIso, -1)) return "Ayer";
+  return fecha;
 }
 
 function pct(part: number, total: number) {
@@ -55,11 +64,16 @@ export default function CierreCaja({
   slug,
   date,
   onDateChange,
+  onData,
 }: {
   slug: string;
   /** YYYY-MM-DD; si se omite, usa el día actual en Argentina */
   date?: string;
   onDateChange?: (isoDate: string) => void;
+  /** Notifica al padre cada vez que llegan datos frescos, para que otras
+   * partes del dashboard (ej. las KPI cards) puedan reflejar el mismo día
+   * sin duplicar el fetch. */
+  onData?: (data: CajaData) => void;
 }) {
   const [data, setData] = useState<CajaData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,8 +83,12 @@ export default function CierreCaja({
     const qs = date ? `?date=${date}` : "";
     void fetch(`/api/${slug}/admin/caja${qs}`)
       .then((r) => (r.ok ? r.json() : null))
-      .then((d: CajaData | null) => setData(d))
+      .then((d: CajaData | null) => {
+        setData(d);
+        if (d) onData?.(d);
+      })
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, date]);
 
   function handleShare() {
@@ -110,12 +128,7 @@ export default function CierreCaja({
   const change = changePct(data.total, data.vs_ayer.total);
   const isUp = change?.startsWith("↑");
   const todayIso = getTodayIsoInBA();
-  const dayLabel =
-    data.fechaIso === todayIso
-      ? "Hoy"
-      : data.fechaIso === shiftIsoDate(todayIso, -1)
-        ? "Ayer"
-        : data.fecha;
+  const dayLabel = dayLabelFor(data.fechaIso, data.fecha);
 
   return (
     <div
