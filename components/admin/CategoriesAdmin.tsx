@@ -341,7 +341,12 @@ export default function CategoriesAdmin({
             cursor: "pointer",
             flexShrink: 0,
             WebkitTapHighlightColor: "transparent",
+            transition: "filter 0.15s",
           }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.filter = "brightness(1.1)")
+          }
+          onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
         >
           + Agregar
         </button>
@@ -481,7 +486,14 @@ export default function CategoriesAdmin({
                         fontWeight: 600,
                         cursor: "pointer",
                         WebkitTapHighlightColor: "transparent",
+                        transition: "filter 0.15s",
                       }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.filter = "brightness(1.1)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.filter = "none")
+                      }
                     >
                       Sí
                     </button>
@@ -497,7 +509,16 @@ export default function CategoriesAdmin({
                         fontWeight: 600,
                         cursor: "pointer",
                         WebkitTapHighlightColor: "transparent",
+                        transition: "border-color 0.15s",
                       }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.borderColor =
+                          "var(--dash-muted)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.borderColor =
+                          "var(--dash-border)")
+                      }
                     >
                       No
                     </button>
@@ -518,6 +539,7 @@ export default function CategoriesAdmin({
                       title="Subir"
                       className="hidden sm:flex items-center justify-center"
                       style={iconBtn(index === 0)}
+                      {...iconBtnHover(index === 0)}
                     >
                       <ChevronUp size={16} />
                     </button>
@@ -527,6 +549,7 @@ export default function CategoriesAdmin({
                       title="Bajar"
                       className="hidden sm:flex items-center justify-center"
                       style={iconBtn(index === categories.length - 1)}
+                      {...iconBtnHover(index === categories.length - 1)}
                     >
                       <ChevronDown size={16} />
                     </button>
@@ -535,6 +558,7 @@ export default function CategoriesAdmin({
                       title="Editar"
                       className="flex items-center justify-center"
                       style={iconBtn(false)}
+                      {...iconBtnHover(false)}
                     >
                       <Pencil size={15} />
                     </button>
@@ -547,6 +571,7 @@ export default function CategoriesAdmin({
                       }
                       className="flex items-center justify-center"
                       style={iconBtn(false)}
+                      {...iconBtnHover(false)}
                     >
                       {cat.active ? <Eye size={15} /> : <EyeOff size={15} />}
                     </button>
@@ -563,6 +588,7 @@ export default function CategoriesAdmin({
                         color: count > 0 ? "var(--dash-muted)" : "#f87171",
                         opacity: count > 0 ? 0.5 : 1,
                       }}
+                      {...iconBtnHover(count > 0)}
                     >
                       <Trash2 size={15} />
                     </button>
@@ -884,6 +910,19 @@ function iconBtn(disabled: boolean): React.CSSProperties {
     opacity: disabled ? 0.3 : 1,
     flexShrink: 0,
     WebkitTapHighlightColor: "transparent",
+    transition: "background 0.15s",
+  };
+}
+
+function iconBtnHover(disabled: boolean) {
+  return {
+    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (disabled) return;
+      e.currentTarget.style.background = "var(--dash-surface-2)";
+    },
+    onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.currentTarget.style.background = "none";
+    },
   };
 }
 

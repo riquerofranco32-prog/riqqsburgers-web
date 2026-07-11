@@ -50,6 +50,23 @@ export function AdminButton({
         alignItems: "center",
         justifyContent: "center",
         gap: 6,
+        transition: "filter 0.15s, transform 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.filter = "brightness(1.1)";
+      }}
+      onMouseLeave={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.filter = "none";
+      }}
+      onMouseDown={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.transform = "scale(0.98)";
+      }}
+      onMouseUp={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.transform = "scale(1)";
       }}
     >
       {children}

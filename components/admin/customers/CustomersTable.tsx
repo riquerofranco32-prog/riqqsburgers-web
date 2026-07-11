@@ -334,9 +334,19 @@ export function CustomersTable({
                     borderRadius: 8,
                     fontSize: 12,
                     fontWeight: 700,
-                    cursor: "pointer",
+                    cursor: rewardingKey === c.key ? "not-allowed" : "pointer",
                     whiteSpace: "nowrap",
                     opacity: rewardingKey === c.key ? 0.5 : 1,
+                    transition: "background 0.15s, border-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (rewardingKey === c.key) return;
+                    e.currentTarget.style.background = "rgba(250,204,21,0.18)";
+                    e.currentTarget.style.borderColor = "rgba(250,204,21,0.5)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(250,204,21,0.1)";
+                    e.currentTarget.style.borderColor = "rgba(250,204,21,0.3)";
                   }}
                 >
                   {c.phone ? (

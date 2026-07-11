@@ -89,10 +89,10 @@ export function ProductMobileCard({
 
   return (
     <div
-      className={`bg-zinc-900 rounded-2xl border overflow-hidden flex flex-col transition-opacity ${selected ? "border-yellow-400/60" : "border-zinc-800"} ${!product.available ? "opacity-60" : ""}`}
+      className={`bg-[var(--dash-surface)] rounded-2xl border overflow-hidden flex flex-col transition-opacity ${selected ? "border-[var(--accent)]/60" : "border-[var(--dash-border)]"} ${!product.available ? "opacity-60" : ""}`}
     >
       {/* Photo */}
-      <div className="relative aspect-[4/3] bg-zinc-800">
+      <div className="relative aspect-[4/3] bg-[var(--dash-surface-2)]">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -104,7 +104,7 @@ export function ProductMobileCard({
             type="checkbox"
             checked={selected}
             readOnly
-            className="w-4 h-4 accent-yellow-400 pointer-events-none"
+            className="w-4 h-4 accent-[var(--accent)] pointer-events-none"
           />
         </button>
         {displayUrl ? (
@@ -130,13 +130,13 @@ export function ProductMobileCard({
           className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center disabled:opacity-40"
         >
           {uploadState === "uploading" && (
-            <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 text-[var(--dash-text)] animate-spin" />
           )}
           {uploadState === "success" && (
             <Check className="w-3.5 h-3.5 text-emerald-400" />
           )}
           {(uploadState === "idle" || uploadState === "error") && (
-            <Camera className="w-3.5 h-3.5 text-white" />
+            <Camera className="w-3.5 h-3.5 text-[var(--dash-text)]" />
           )}
         </button>
         <input
@@ -158,26 +158,26 @@ export function ProductMobileCard({
             className="absolute bottom-2 left-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center disabled:opacity-40"
           >
             {duplicatingId === product.id ? (
-              <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 text-[var(--dash-text)] animate-spin" />
             ) : (
-              <Copy className="w-3.5 h-3.5 text-white" />
+              <Copy className="w-3.5 h-3.5 text-[var(--dash-text)]" />
             )}
           </button>
         )}
         {product.badge && (
-          <span className="absolute top-9 left-2 text-[10px] bg-yellow-400 text-black px-1.5 py-0.5 rounded-full font-bold pointer-events-none">
+          <span className="absolute top-9 left-2 text-[10px] bg-[var(--accent)] text-black px-1.5 py-0.5 rounded-full font-bold pointer-events-none">
             {product.badge.replace(/^\S+\s/, "")}
           </span>
         )}
         {!product.available && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
-            <span className="text-[10px] bg-zinc-800/90 text-zinc-300 px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[10px] bg-[var(--dash-surface-2)]/90 text-[var(--dash-muted)] px-2 py-0.5 rounded-full font-bold">
               Agotado
             </span>
           </div>
         )}
         {!displayUrl && (
-          <span className="absolute top-2 right-2 text-[8px] font-bold bg-orange-500 text-white px-1.5 py-0.5 rounded-full pointer-events-none">
+          <span className="absolute top-2 right-2 text-[8px] font-bold bg-orange-500 text-[var(--dash-text)] px-1.5 py-0.5 rounded-full pointer-events-none">
             Sin foto
           </span>
         )}
@@ -188,7 +188,7 @@ export function ProductMobileCard({
         {/* Name + Toggle */}
         <div className="flex items-center gap-2">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-white truncate leading-tight">
+            <p className="font-semibold text-sm text-[var(--dash-text)] truncate leading-tight">
               {product.name}
             </p>
             {product.is_featured && (
@@ -211,7 +211,7 @@ export function ProductMobileCard({
             className="flex items-center justify-center"
           >
             <div
-              className={`w-10 h-6 rounded-full transition-colors relative ${product.available ? "bg-yellow-400" : "bg-zinc-700"}`}
+              className={`w-10 h-6 rounded-full transition-colors relative ${product.available ? "bg-[var(--accent)]" : "bg-[var(--dash-surface-3)]"}`}
             >
               <div
                 className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${product.available ? "translate-x-4" : "translate-x-0.5"}`}
@@ -238,7 +238,7 @@ export function ProductMobileCard({
             }}
             min={0}
             style={{ fontSize: 16 }}
-            className="w-full bg-zinc-800 border border-yellow-400 rounded-xl px-3 py-2 text-yellow-400 font-bold outline-none"
+            className="w-full bg-[var(--dash-surface-2)] border border-[var(--accent)] rounded-xl px-3 py-2 text-[var(--accent)] font-bold outline-none"
           />
         ) : (
           <button
@@ -251,16 +251,16 @@ export function ProductMobileCard({
             }
             className="flex items-baseline gap-1.5 min-h-[36px] text-left"
           >
-            <span className="text-yellow-400 text-sm font-bold">
+            <span className="text-[var(--accent)] text-sm font-bold">
               ${product.price.toLocaleString("es-AR")}
             </span>
-            <span className="text-[9px] text-zinc-600">toca para editar</span>
+            <span className="text-[9px] text-[var(--dash-muted)]">toca para editar</span>
           </button>
         )}
 
         {/* Category */}
         {cat && (
-          <p className="text-zinc-600 text-xs">
+          <p className="text-[var(--dash-muted)] text-xs">
             {cat.emoji} {cat.name}
           </p>
         )}
@@ -268,14 +268,14 @@ export function ProductMobileCard({
         {product.stock_quantity !== null && (
           <div className="flex items-center gap-2">
             <p
-              className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-zinc-500"}`}
+              className={`text-xs font-semibold ${product.stock_quantity <= 3 ? "text-amber-400" : "text-[var(--dash-muted)]"}`}
             >
               Stock: {product.stock_quantity}
             </p>
             {product.stock_quantity === 0 && onRestock && (
               <button
                 onClick={() => onRestock(product)}
-                className="text-[10px] font-bold text-yellow-400 hover:text-yellow-300 underline"
+                className="text-[10px] font-bold text-[var(--accent)] hover:text-[var(--accent-hover)] underline"
               >
                 Reponer stock
               </button>
@@ -293,7 +293,7 @@ export function ProductMobileCard({
                 userSelect: "none",
               } as React.CSSProperties
             }
-            className="flex-1 h-11 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-white text-sm font-semibold rounded-xl transition-colors"
+            className="flex-1 h-11 bg-[var(--dash-surface-2)] hover:bg-[var(--dash-surface-3)] active:bg-[var(--dash-border)] text-[var(--dash-text)] text-sm font-semibold rounded-xl transition-colors"
           >
             Editar
           </button>
@@ -307,7 +307,7 @@ export function ProductMobileCard({
                     userSelect: "none",
                   } as React.CSSProperties
                 }
-                className="flex-1 h-11 bg-red-600 hover:bg-red-500 active:bg-red-700 text-white text-xs font-bold rounded-xl transition-colors"
+                className="flex-1 h-11 bg-red-600 hover:bg-red-500 active:bg-red-700 text-[var(--dash-text)] text-xs font-bold rounded-xl transition-colors"
               >
                 Sí, eliminar
               </button>
@@ -319,7 +319,7 @@ export function ProductMobileCard({
                     userSelect: "none",
                   } as React.CSSProperties
                 }
-                className="w-11 h-11 bg-zinc-800 text-zinc-400 rounded-xl transition-colors flex items-center justify-center text-xs"
+                className="w-11 h-11 bg-[var(--dash-surface-2)] text-[var(--dash-muted)] rounded-xl transition-colors flex items-center justify-center text-xs"
               >
                 No
               </button>
@@ -334,7 +334,7 @@ export function ProductMobileCard({
                   userSelect: "none",
                 } as React.CSSProperties
               }
-              className="w-11 h-11 bg-zinc-800 hover:bg-red-950 active:bg-red-900 text-zinc-500 hover:text-red-400 rounded-xl transition-colors flex items-center justify-center disabled:opacity-40 text-sm"
+              className="w-11 h-11 bg-[var(--dash-surface-2)] hover:bg-red-950 active:bg-red-900 text-[var(--dash-muted)] hover:text-red-400 rounded-xl transition-colors flex items-center justify-center disabled:opacity-40 text-sm"
             >
               {deletingId === product.id ? "…" : "🗑"}
             </button>

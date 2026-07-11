@@ -124,7 +124,14 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
                   border: "none",
                   cursor: "pointer",
                   padding: 0,
+                  opacity: filter === "all" || filter === star ? 1 : 0.5,
+                  transition: "opacity 0.15s",
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.opacity =
+                    filter === "all" || filter === star ? "1" : "0.5")
+                }
               >
                 <span
                   style={{
@@ -198,7 +205,15 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
                 color: "var(--accent)",
                 cursor: "pointer",
                 fontWeight: 600,
+                textDecoration: "none",
+                transition: "text-decoration-color 0.15s",
               }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.textDecoration = "underline")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.textDecoration = "none")
+              }
             >
               Ver todas
             </button>

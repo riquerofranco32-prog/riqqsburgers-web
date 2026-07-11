@@ -77,6 +77,18 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
                   range === opt.key ? "var(--accent)" : "var(--dash-surface-2)",
                 color: range === opt.key ? "#fff" : "var(--dash-text)",
                 border: "1px solid var(--dash-border)",
+                transition: "border-color 0.15s, filter 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                if (range === opt.key) {
+                  e.currentTarget.style.filter = "brightness(1.1)";
+                } else {
+                  e.currentTarget.style.borderColor = "var(--dash-muted)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = "none";
+                e.currentTarget.style.borderColor = "var(--dash-border)";
               }}
             >
               {opt.label}

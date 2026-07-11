@@ -176,18 +176,18 @@ export function ProductModal({
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={requestClose}
       />
-      <div className="relative bg-zinc-950 w-full max-w-lg rounded-t-3xl md:rounded-3xl flex flex-col max-h-[92dvh] shadow-2xl border border-zinc-800">
+      <div className="relative bg-[var(--dash-surface)] w-full max-w-lg rounded-t-3xl md:rounded-3xl flex flex-col max-h-[92dvh] shadow-2xl border border-[var(--dash-border)]">
         <div className="flex justify-center pt-3 pb-1 flex-shrink-0 md:hidden">
-          <div className="w-10 h-1 rounded-full bg-zinc-700" />
+          <div className="w-10 h-1 rounded-full bg-[var(--dash-surface-3)]" />
         </div>
 
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--dash-border)] flex-shrink-0">
           <h2 className="font-bold font-[family-name:var(--font-syne)]">
             {product ? "Editar producto" : "Nuevo producto"}
           </h2>
           <button
             onClick={requestClose}
-            className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors"
+            className="w-8 h-8 rounded-full bg-[var(--dash-surface-2)] flex items-center justify-center text-[var(--dash-muted)] hover:text-[var(--dash-text)] transition-colors"
           >
             ×
           </button>
@@ -202,7 +202,7 @@ export function ProductModal({
         >
           <div className="flex flex-col gap-4 pb-4">
             <div>
-              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide block mb-1.5">
                 Nombre *
               </label>
               <input
@@ -210,7 +210,7 @@ export function ProductModal({
                 onChange={(e) => set("name", e.target.value)}
                 placeholder="Ej: AMERICAN"
                 style={{ fontSize: 16 }}
-                className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${nameError ? "border-red-500" : "border-zinc-700"}`}
+                className={`w-full bg-[var(--dash-surface)] border rounded-xl px-4 py-3 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors ${nameError ? "border-red-500" : "border-[var(--dash-border)]"}`}
               />
               {nameError && (
                 <p className="text-red-400 text-xs mt-1">{nameError}</p>
@@ -218,7 +218,7 @@ export function ProductModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide block mb-1.5">
                 Descripción
               </label>
               <textarea
@@ -227,13 +227,13 @@ export function ProductModal({
                 placeholder="Ingredientes o descripción"
                 rows={2}
                 style={{ fontSize: 16 }}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors resize-none"
+                className="w-full bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors resize-none"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide block mb-1.5">
                   Precio (ARS) *
                 </label>
                 <input
@@ -243,21 +243,21 @@ export function ProductModal({
                   min={0}
                   placeholder="9500"
                   style={{ fontSize: 16 }}
-                  className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${priceError ? "border-red-500" : "border-zinc-700"}`}
+                  className={`w-full bg-[var(--dash-surface)] border rounded-xl px-4 py-3 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors ${priceError ? "border-red-500" : "border-[var(--dash-border)]"}`}
                 />
                 {priceError && (
                   <p className="text-red-400 text-xs mt-1">{priceError}</p>
                 )}
               </div>
               <div>
-                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+                <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide block mb-1.5">
                   Categoría
                 </label>
                 <select
                   value={form.category_id}
                   onChange={(e) => set("category_id", e.target.value)}
                   style={{ fontSize: 16 }}
-                  className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-[var(--dash-text)] outline-none focus:border-[var(--accent)] transition-colors"
                 >
                   <option value="">Sin categoría</option>
                   {categories.map((c) => (
@@ -270,7 +270,7 @@ export function ProductModal({
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide block mb-1.5">
                 Badge (opcional)
               </label>
               <input
@@ -278,21 +278,21 @@ export function ProductModal({
                 onChange={(e) => set("badge", e.target.value)}
                 placeholder="🔥 Popular"
                 style={{ fontSize: 16 }}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                className="w-full bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
               />
             </div>
 
             {/* Image */}
             <div>
-              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide block mb-1.5">
                 Imagen
               </label>
               <div className="flex gap-3 items-start">
                 {(previewUrl ?? form.image_url) && (
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-zinc-700">
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border border-[var(--dash-border)]">
                     {uploading && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-10">
-                        <Loader2 className="w-4 h-4 text-white animate-spin" />
+                        <Loader2 className="w-4 h-4 text-[var(--dash-text)] animate-spin" />
                       </div>
                     )}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -304,7 +304,7 @@ export function ProductModal({
                   </div>
                 )}
                 <div className="flex-1 flex flex-col gap-2">
-                  <label className="flex items-center justify-center gap-2 border border-dashed border-zinc-700 rounded-xl px-4 py-3 text-zinc-500 text-sm hover:border-yellow-400 hover:text-white transition-colors cursor-pointer min-h-[48px]">
+                  <label className="flex items-center justify-center gap-2 border border-dashed border-[var(--dash-border)] rounded-xl px-4 py-3 text-[var(--dash-muted)] text-sm hover:border-[var(--accent)] hover:text-[var(--dash-text)] transition-colors cursor-pointer min-h-[48px]">
                     {uploading ? "Subiendo..." : "📁 Subir desde archivo"}
                     <input
                       type="file"
@@ -319,7 +319,7 @@ export function ProductModal({
                     onChange={(e) => set("image_url", e.target.value)}
                     placeholder="O pegá una URL de imagen"
                     style={{ fontSize: 16 }}
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                    className="w-full bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-4 py-3 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                   />
                   {uploadError && (
                     <p className="text-red-400 text-xs">{uploadError}</p>
@@ -331,17 +331,17 @@ export function ProductModal({
             <label className="flex items-center gap-3 cursor-pointer">
               <div
                 onClick={() => set("available", !form.available)}
-                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.available ? "bg-yellow-400" : "bg-zinc-700"}`}
+                className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.available ? "bg-[var(--accent)]" : "bg-[var(--dash-surface-3)]"}`}
               >
                 <div
                   className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.available ? "translate-x-5" : "translate-x-0.5"}`}
                 />
               </div>
-              <span className="text-sm text-white">Disponible</span>
+              <span className="text-sm text-[var(--dash-text)]">Disponible</span>
             </label>
 
             <div>
-              <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide block mb-1.5">
+              <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide block mb-1.5">
                 Stock (opcional)
               </label>
               <input
@@ -351,12 +351,12 @@ export function ProductModal({
                 placeholder="Sin control de stock"
                 min={0}
                 style={{ fontSize: 16 }}
-                className={`w-full bg-zinc-900 border rounded-xl px-4 py-3 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors ${stockError ? "border-red-500" : "border-zinc-700"}`}
+                className={`w-full bg-[var(--dash-surface)] border rounded-xl px-4 py-3 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors ${stockError ? "border-red-500" : "border-[var(--dash-border)]"}`}
               />
               {stockError && (
                 <p className="text-red-400 text-xs mt-1">{stockError}</p>
               )}
-              <p className="text-xs text-zinc-600 mt-1">
+              <p className="text-xs text-[var(--dash-muted)] mt-1">
                 Si cargás una cantidad, se descuenta en cada pedido y al llegar
                 a 0 se marca automáticamente como agotado.
               </p>
@@ -367,28 +367,28 @@ export function ProductModal({
               <label className="flex items-center gap-3 cursor-pointer flex-1">
                 <div
                   onClick={() => set("is_featured", !form.is_featured)}
-                  className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.is_featured ? "bg-orange-500" : "bg-zinc-700"}`}
+                  className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${form.is_featured ? "bg-orange-500" : "bg-[var(--dash-surface-3)]"}`}
                 >
                   <div
                     className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.is_featured ? "translate-x-5" : "translate-x-0.5"}`}
                   />
                 </div>
-                <span className="text-sm text-white">
+                <span className="text-sm text-[var(--dash-text)]">
                   ⭐ Destacado{" "}
-                  <span className="text-zinc-500">
+                  <span className="text-[var(--dash-muted)]">
                     (aparece en &quot;Lo más pedido&quot;)
                   </span>
                 </span>
               </label>
               {form.is_featured && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-zinc-500">Orden</span>
+                  <span className="text-xs text-[var(--dash-muted)]">Orden</span>
                   <input
                     type="number"
                     min="0"
                     value={form.featured_order}
                     onChange={(e) => set("featured_order", e.target.value)}
-                    className="w-16 bg-zinc-800 border border-zinc-700 rounded-md px-2 py-1 text-sm text-white text-center"
+                    className="w-16 bg-[var(--dash-surface-2)] border border-[var(--dash-border)] rounded-md px-2 py-1 text-sm text-[var(--dash-text)] text-center"
                   />
                 </div>
               )}
@@ -397,7 +397,7 @@ export function ProductModal({
             {/* Opciones de tamaño */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide">
                   Opciones de tamaño
                 </label>
                 <button
@@ -408,12 +408,12 @@ export function ProductModal({
                       extras: [...f.extras, { name: "", price: "" }],
                     }))
                   }
-                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                  className="text-xs text-[var(--accent)] font-semibold hover:text-[var(--accent-hover)] transition-colors"
                 >
                   + Agregar
                 </button>
               </div>
-              <p className="text-xs text-zinc-600 mb-2">
+              <p className="text-xs text-[var(--dash-muted)] mb-2">
                 El precio base es &quot;Simple&quot;. Agregá &quot;Doble&quot;,
                 &quot;Triple&quot;, etc. con su precio adicional.
               </p>
@@ -432,7 +432,7 @@ export function ProductModal({
                       }
                       placeholder="Ej: Doble"
                       style={{ fontSize: 16 }}
-                      className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                      className="flex-1 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                     />
                     <input
                       type="number"
@@ -448,7 +448,7 @@ export function ProductModal({
                       placeholder="$+ precio"
                       min={0}
                       style={{ fontSize: 16 }}
-                      className="w-28 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                      className="w-28 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                     />
                     <button
                       type="button"
@@ -458,7 +458,7 @@ export function ProductModal({
                           extras: f.extras.filter((_, idx) => idx !== i),
                         }))
                       }
-                      className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                      className="text-[var(--dash-muted)] hover:text-red-400 transition-colors text-lg px-1"
                     >
                       ×
                     </button>
@@ -470,7 +470,7 @@ export function ProductModal({
             {/* Grupos de opciones obligatorias — ej: "Elegí tu salsa" */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide">
                   Grupos de opciones obligatorias
                 </label>
                 <button
@@ -484,12 +484,12 @@ export function ProductModal({
                       ],
                     }))
                   }
-                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                  className="text-xs text-[var(--accent)] font-semibold hover:text-[var(--accent-hover)] transition-colors"
                 >
                   + Agregar grupo
                 </button>
               </div>
-              <p className="text-xs text-zinc-600 mb-2">
+              <p className="text-xs text-[var(--dash-muted)] mb-2">
                 Para cosas que el cliente tiene que elegir sí o sí, sin costo
                 extra. Ej: &quot;Elegí tu salsa&quot; (Ketchup / Mayonesa),
                 &quot;Tipo de papas&quot; (Sazonadas / Con sal).
@@ -498,7 +498,7 @@ export function ProductModal({
                 {form.option_groups.map((group, gi) => (
                   <div
                     key={gi}
-                    className="border border-zinc-700 rounded-xl p-3 flex flex-col gap-2"
+                    className="border border-[var(--dash-border)] rounded-xl p-3 flex flex-col gap-2"
                   >
                     <div className="flex gap-2 items-center">
                       <input
@@ -513,9 +513,9 @@ export function ProductModal({
                         }
                         placeholder="Ej: Elegí tu salsa"
                         style={{ fontSize: 16 }}
-                        className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                        className="flex-1 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                       />
-                      <label className="flex items-center gap-1.5 text-xs text-zinc-400 whitespace-nowrap">
+                      <label className="flex items-center gap-1.5 text-xs text-[var(--dash-muted)] whitespace-nowrap">
                         <input
                           type="checkbox"
                           checked={group.required}
@@ -542,7 +542,7 @@ export function ProductModal({
                             ),
                           }))
                         }
-                        className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                        className="text-[var(--dash-muted)] hover:text-red-400 transition-colors text-lg px-1"
                       >
                         ×
                       </button>
@@ -572,7 +572,7 @@ export function ProductModal({
                             }
                             placeholder="Ej: Ketchup"
                             style={{ fontSize: 16 }}
-                            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                            className="flex-1 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                           />
                           <input
                             type="number"
@@ -597,7 +597,7 @@ export function ProductModal({
                             placeholder="$+ precio"
                             min={0}
                             style={{ fontSize: 16 }}
-                            className="w-24 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                            className="w-24 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                           />
                           <button
                             type="button"
@@ -616,7 +616,7 @@ export function ProductModal({
                                 ),
                               }))
                             }
-                            className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                            className="text-[var(--dash-muted)] hover:text-red-400 transition-colors text-lg px-1"
                           >
                             ×
                           </button>
@@ -640,7 +640,7 @@ export function ProductModal({
                             ),
                           }))
                         }
-                        className="self-start text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                        className="self-start text-xs text-[var(--accent)] font-semibold hover:text-[var(--accent-hover)] transition-colors"
                       >
                         + Agregar opción
                       </button>
@@ -653,7 +653,7 @@ export function ProductModal({
             {/* Extras — agregados aparte, se suman al precio */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide">
                   Extras
                 </label>
                 <button
@@ -664,12 +664,12 @@ export function ProductModal({
                       addons: [...f.addons, { name: "", price: "" }],
                     }))
                   }
-                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                  className="text-xs text-[var(--accent)] font-semibold hover:text-[var(--accent-hover)] transition-colors"
                 >
                   + Agregar
                 </button>
               </div>
-              <p className="text-xs text-zinc-600 mb-2">
+              <p className="text-xs text-[var(--dash-muted)] mb-2">
                 Agregados que el cliente puede sumar aparte, además de la opción
                 de tamaño. Ej: &quot;Bacon&quot;, &quot;Cheddar extra&quot;.
               </p>
@@ -688,7 +688,7 @@ export function ProductModal({
                       }
                       placeholder="Ej: Bacon"
                       style={{ fontSize: 16 }}
-                      className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                      className="flex-1 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                     />
                     <input
                       type="number"
@@ -704,7 +704,7 @@ export function ProductModal({
                       placeholder="$+ precio"
                       min={0}
                       style={{ fontSize: 16 }}
-                      className="w-28 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                      className="w-28 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                     />
                     <button
                       type="button"
@@ -714,7 +714,7 @@ export function ProductModal({
                           addons: f.addons.filter((_, idx) => idx !== i),
                         }))
                       }
-                      className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                      className="text-[var(--dash-muted)] hover:text-red-400 transition-colors text-lg px-1"
                     >
                       ×
                     </button>
@@ -726,7 +726,7 @@ export function ProductModal({
             {/* Ingredientes removibles — el cliente puede sacarlos sin costo */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+                <label className="text-xs font-semibold text-[var(--dash-muted)] uppercase tracking-wide">
                   Ingredientes
                 </label>
                 <button
@@ -737,12 +737,12 @@ export function ProductModal({
                       ingredients: [...f.ingredients, ""],
                     }))
                   }
-                  className="text-xs text-yellow-400 font-semibold hover:text-yellow-300 transition-colors"
+                  className="text-xs text-[var(--accent)] font-semibold hover:text-[var(--accent-hover)] transition-colors"
                 >
                   + Agregar
                 </button>
               </div>
-              <p className="text-xs text-zinc-600 mb-2">
+              <p className="text-xs text-[var(--dash-muted)] mb-2">
                 Ingredientes que vienen incluidos y el cliente puede sacar sin
                 costo. Ej: &quot;Lechuga&quot;, &quot;Cebolla&quot;,
                 &quot;Panceta&quot;.
@@ -762,7 +762,7 @@ export function ProductModal({
                       }
                       placeholder="Ej: Cebolla"
                       style={{ fontSize: 16 }}
-                      className="flex-1 bg-zinc-900 border border-zinc-700 rounded-xl px-3 py-2 text-white placeholder-zinc-600 outline-none focus:border-yellow-400 transition-colors"
+                      className="flex-1 bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-xl px-3 py-2 text-[var(--dash-text)] placeholder-[var(--dash-muted)] outline-none focus:border-[var(--accent)] transition-colors"
                     />
                     <button
                       type="button"
@@ -774,7 +774,7 @@ export function ProductModal({
                           ),
                         }))
                       }
-                      className="text-zinc-500 hover:text-red-400 transition-colors text-lg px-1"
+                      className="text-[var(--dash-muted)] hover:text-red-400 transition-colors text-lg px-1"
                     >
                       ×
                     </button>
@@ -785,7 +785,7 @@ export function ProductModal({
           </div>
         </form>
 
-        <div className="px-5 py-4 border-t border-zinc-800 flex-shrink-0">
+        <div className="px-5 py-4 border-t border-[var(--dash-border)] flex-shrink-0">
           <button
             onClick={doSave}
             disabled={saving || uploading}
@@ -795,7 +795,7 @@ export function ProductModal({
                 userSelect: "none",
               } as React.CSSProperties
             }
-            className="w-full bg-yellow-400 text-black font-bold py-3.5 rounded-2xl hover:bg-amber-400 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full bg-[var(--accent)] text-black font-bold py-3.5 rounded-2xl hover:bg-amber-400 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {saving
               ? "Guardando..."
