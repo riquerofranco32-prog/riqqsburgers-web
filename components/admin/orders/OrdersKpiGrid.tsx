@@ -50,6 +50,8 @@ export function OrdersKpiGrid({
         <div
           key={label}
           style={{
+            position: "relative",
+            overflow: "hidden",
             background:
               "linear-gradient(145deg, var(--dash-surface, #1e1e1e) 0%, rgba(28,33,40,0.95) 100%)",
             border: "1px solid var(--dash-border, rgba(255,255,255,0.08))",
@@ -65,12 +67,38 @@ export function OrdersKpiGrid({
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-2px)";
             e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.25)";
+            e.currentTarget.style.setProperty("--spot-o", "1");
+          }}
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            e.currentTarget.style.setProperty(
+              "--spot-x",
+              `${e.clientX - rect.left}px`,
+            );
+            e.currentTarget.style.setProperty(
+              "--spot-y",
+              `${e.clientY - rect.top}px`,
+            );
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = "translateY(0)";
             e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.18)";
+            e.currentTarget.style.setProperty("--spot-o", "0");
           }}
         >
+          {/* Spotlight que sigue el cursor — ponytail: JS solo mueve custom
+              properties, el radial-gradient vive en CSS puro sin re-render */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "inherit",
+              pointerEvents: "none",
+              opacity: "var(--spot-o, 0)",
+              transition: "opacity 0.2s ease",
+              background: `radial-gradient(160px circle at var(--spot-x, 50%) var(--spot-y, 50%), ${color}22, transparent 70%)`,
+            }}
+          />
           <div
             style={{
               background: bg,
@@ -80,11 +108,12 @@ export function OrdersKpiGrid({
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
+              position: "relative",
             }}
           >
             <Icon style={{ color, width: 18, height: 18 }} />
           </div>
-          <div style={{ minWidth: 0 }}>
+          <div style={{ minWidth: 0, position: "relative" }}>
             <p
               style={{
                 margin: 0,
