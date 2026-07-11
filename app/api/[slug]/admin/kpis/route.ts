@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
-import { startOfDayInBuenosAires } from "@/lib/businessHours";
 import type { Order, OrderItem, Product, Category } from "@/types/supabase";
 import type {
   TodayKPIsResponse,
@@ -29,6 +28,12 @@ function categoryColor(name: string): string {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length];
+}
+
+function startOfDay(d: Date): Date {
+  const r = new Date(d);
+  r.setHours(0, 0, 0, 0);
+  return r;
 }
 
 export async function GET(
@@ -90,7 +95,7 @@ export async function GET(
     );
 
   const now = new Date();
-  const today = startOfDayInBuenosAires(now);
+  const today = startOfDay(now);
   const yesterday = new Date(today.getTime() - 86_400_000);
 
   const allOrders = (rawOrders ?? []) as Order[];
@@ -148,7 +153,7 @@ export async function GET(
 
   const salesLast7Days: DailyRevenue[] = [];
   for (let i = 6; i >= 0; i--) {
-    const day = startOfDayInBuenosAires(now);
+    const day = startOfDay(new Date());
     day.setDate(day.getDate() - i);
     const nextDay = new Date(day.getTime() + 86_400_000);
     const dayTotal = activeOrders

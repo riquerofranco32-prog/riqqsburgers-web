@@ -21,25 +21,6 @@ export function toMinutes(hhmm: string): number {
   return h * 60 + m;
 }
 
-/**
- * Medianoche del día actual en Argentina (UTC-3 fijo, sin DST), como instante
- * UTC. Evita el bug de usar `Date#setHours` en el server (Vercel corre en
- * UTC), que desplaza el corte de "hoy" 3hs y hace desaparecer pedidos de la
- * noche del dashboard.
- */
-export function startOfDayInBuenosAires(at: Date = new Date()): Date {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(at);
-  const y = Number(parts.find((p) => p.type === "year")!.value);
-  const m = Number(parts.find((p) => p.type === "month")!.value);
-  const d = Number(parts.find((p) => p.type === "day")!.value);
-  return new Date(Date.UTC(y, m - 1, d, 3, 0, 0));
-}
-
 export function nowInBuenosAires(at: Date): { day: number; minutes: number } {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: TZ,
