@@ -23,6 +23,7 @@ import {
   UserCircle,
   WifiOff,
   BarChart3,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ import { createSupabaseBrowser } from "@/lib/supabase";
 import TakefyyLogo from "@/components/TakefyyLogo";
 import PendingOrdersBadge from "@/components/admin/PendingOrdersBadge";
 import NotificationToggle from "@/components/admin/NotificationToggle";
+import { CommandPalette } from "@/components/admin/CommandPalette";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -811,6 +813,58 @@ export default function AdminShell({
           </div>
         )}
 
+        <div style={{ padding: collapsed ? "8px" : "0 8px", marginTop: 8 }}>
+          <button
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("open-command-palette"))
+            }
+            title="Buscar (Ctrl+K)"
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: collapsed ? "center" : "flex-start",
+              gap: 8,
+              padding: collapsed ? "8px" : "8px 10px",
+              borderRadius: 8,
+              background: "var(--dash-surface-2)",
+              border: "1px solid var(--dash-border)",
+              color: "var(--dash-muted)",
+              fontSize: 12,
+              cursor: "pointer",
+              transition: "border-color 0.15s, color 0.15s",
+              WebkitTapHighlightColor: "transparent",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent)";
+              e.currentTarget.style.color = "var(--dash-text)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--dash-border)";
+              e.currentTarget.style.color = "var(--dash-muted)";
+            }}
+          >
+            <Search size={14} strokeWidth={1.8} />
+            {!collapsed && (
+              <>
+                <span style={{ flex: 1, textAlign: "left" }}>Buscar</span>
+                <kbd
+                  style={{
+                    fontSize: 10,
+                    color: "var(--dash-muted)",
+                    background: "var(--dash-bg)",
+                    border: "1px solid var(--dash-border)",
+                    borderRadius: 4,
+                    padding: "1px 5px",
+                  }}
+                >
+                  Ctrl K
+                </kbd>
+              </>
+            )}
+          </button>
+        </div>
+
         <DesktopNavLinks
           slug={slug}
           tenantId={tenantId}
@@ -910,9 +964,27 @@ export default function AdminShell({
         .admin-shell-main {
           flex: 1;
           min-height: 100vh;
+          position: relative;
           background: var(--dash-bg);
           padding-top: calc(56px + env(safe-area-inset-top, 0px));
           padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+        }
+        .admin-shell-main::before {
+          content: "";
+          position: fixed;
+          top: -10%;
+          right: -10%;
+          width: 60vw;
+          height: 60vw;
+          max-width: 700px;
+          max-height: 700px;
+          background: radial-gradient(circle, rgba(255,107,53,0.08) 0%, rgba(255,107,53,0) 70%);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .admin-shell-main > * {
+          position: relative;
+          z-index: 1;
         }
         @media (min-width: 1024px) {
           .admin-shell-main {
@@ -950,6 +1022,7 @@ export default function AdminShell({
         )}
         {children}
       </main>
+      <CommandPalette navItems={navItems} slug={slug} />
     </div>
   );
 }

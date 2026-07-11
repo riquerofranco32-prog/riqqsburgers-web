@@ -533,9 +533,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                         background: active
                           ? "rgba(255,107,53,0.12)"
                           : "var(--dash-surface-2)",
-                        color: active
-                          ? "var(--accent)"
-                          : "var(--dash-muted)",
+                        color: active ? "var(--accent)" : "var(--dash-muted)",
                         cursor: "pointer",
                         transition: "all 0.15s",
                       }}
@@ -769,6 +767,14 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     alignItems: "center",
                     justifyContent: "center",
                     position: "relative",
+                    transition: "border-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (uploadingField === "logo_url") return;
+                    e.currentTarget.style.borderColor = "var(--accent)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--dash-border)";
                   }}
                 >
                   {form.logo_url ? (
@@ -817,6 +823,14 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                           : "pointer",
                       fontFamily: "var(--font-sans)",
                       textAlign: "left" as const,
+                      transition: "border-color 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (uploadingField === "logo_url") return;
+                      e.currentTarget.style.borderColor = "var(--accent)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "var(--dash-border)";
                     }}
                   >
                     {uploadingField === "logo_url"
@@ -895,6 +909,14 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                         : "pointer",
                     fontFamily: "var(--font-sans)",
                     textAlign: "left" as const,
+                    transition: "border-color 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (uploadingField === "banner_url") return;
+                    e.currentTarget.style.borderColor = "var(--accent)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--dash-border)";
                   }}
                 >
                   {uploadingField === "banner_url"
