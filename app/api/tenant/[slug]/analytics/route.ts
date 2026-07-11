@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
+import { startOfDayInBuenosAires } from "@/lib/businessHours";
 import type {
   AnalyticsResponse,
   DailyRevenue,
@@ -30,12 +31,6 @@ function categoryColor(name: string): string {
   return CATEGORY_PALETTE[Math.abs(hash) % CATEGORY_PALETTE.length];
 }
 
-function startOfDay(d: Date): Date {
-  const r = new Date(d);
-  r.setHours(0, 0, 0, 0);
-  return r;
-}
-
 function buildDailyRevenue(
   orders: Order[],
   days: number,
@@ -43,7 +38,7 @@ function buildDailyRevenue(
 ): DailyRevenue[] {
   const result: DailyRevenue[] = [];
   for (let i = days - 1; i >= 0; i--) {
-    const day = startOfDay(new Date(from));
+    const day = startOfDayInBuenosAires(from);
     day.setDate(day.getDate() - i);
     const nextDay = new Date(day.getTime() + 86_400_000);
 
@@ -164,7 +159,7 @@ export async function GET(
 
   const days = range === "today" ? 1 : range === "week" ? 7 : 30;
   const now = new Date();
-  const from = startOfDay(new Date(now));
+  const from = startOfDayInBuenosAires(now);
   from.setDate(from.getDate() - (days - 1));
   // Período anterior de igual longitud, para comparar (semana vs. semana
   // anterior / mes vs. mes anterior) — una sola query cubre ambos rangos.
