@@ -162,7 +162,10 @@ export async function GET(
     const label = isToday
       ? "Hoy"
       : raw.charAt(0).toUpperCase() + raw.slice(1).replace(".", "");
-    salesLast7Days.push({ date: label, total: dayTotal });
+    // `day` es medianoche ART representada como instante UTC (3hs), así que
+    // sus componentes UTC son directamente el día calendario en Argentina.
+    const isoDate = `${day.getUTCFullYear()}-${String(day.getUTCMonth() + 1).padStart(2, "0")}-${String(day.getUTCDate()).padStart(2, "0")}`;
+    salesLast7Days.push({ date: label, total: dayTotal, isoDate });
   }
 
   // ── Category revenue (last 8 days) ────────────────────────────────────────

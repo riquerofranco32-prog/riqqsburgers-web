@@ -55,7 +55,10 @@ function buildDailyRevenue(
       month: "short",
     });
     const label = isToday ? "Hoy" : raw;
-    result.push({ date: label, total: dayTotal });
+    // `day` es medianoche ART representada como instante UTC (3hs), así que
+    // sus componentes UTC son directamente el día calendario en Argentina.
+    const isoDate = `${day.getUTCFullYear()}-${String(day.getUTCMonth() + 1).padStart(2, "0")}-${String(day.getUTCDate()).padStart(2, "0")}`;
+    result.push({ date: label, total: dayTotal, isoDate });
   }
   return result;
 }

@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
+import { startOfDayInBuenosAires } from "@/lib/businessHours";
 import type { Order } from "@/types/supabase";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await params;
@@ -20,9 +21,14 @@ export async function GET(
   }
 
   const db = createServerClient();
-  const now = new Date();
-  const todayStart = new Date(now);
-  todayStart.setHours(0, 0, 0, 0);
+  // `date` (YYYY-MM-DD) permite pedir el cierre de un día pasado, ej. desde
+  // el gráfico de ventas semanal. Mediodía UTC de esa fecha cae siempre
+  // dentro del mismo día en Argentina (UTC-3), así que sirve de ancla segura
+  // para startOfDayInBuenosAires sin importar en qué timezone corra el server.
+  const dateParam = req.nextUrl.searchParams.get("date");
+  const isValidDate = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam);
+  const anchor = isValidDate ? new Date(`${dateParam}T12:00:00Z`) : new Date();
+  const todayStart = startOfDayInBuenosAires(anchor);
   const tomorrowStart = new Date(todayStart.getTime() + 86_400_000);
   const yesterdayStart = new Date(todayStart.getTime() - 86_400_000);
 
@@ -74,6 +80,7 @@ export async function GET(
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
+    timeZone: "America/Argentina/Buenos_Aires",
   });
 
   return NextResponse.json({

@@ -1,6 +1,8 @@
 export type DailyRevenue = {
   date: string;
   total: number;
+  /** YYYY-MM-DD en Argentina — permite pedir el cierre de caja de este día */
+  isoDate: string;
 };
 
 export type CategoryRevenue = {

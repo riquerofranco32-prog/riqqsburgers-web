@@ -113,6 +113,7 @@ export default function AdminDashboard({
 
   const [orders, setOrders] = useState<Order[]>(allOrders);
   const [range, setRange] = useState<AnalyticsRange>("today");
+  const [cajaDate, setCajaDate] = useState<string | undefined>(undefined);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(
     null,
@@ -787,7 +788,32 @@ export default function AdminDashboard({
 
           {/* Cierre de caja diario */}
           <div className="stagger-item" style={{ animationDelay: "480ms" }}>
-            <CierreCaja slug={slug} />
+            {cajaDate && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  marginBottom: 8,
+                }}
+              >
+                <button
+                  onClick={() => setCajaDate(undefined)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--accent)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  ← Volver al cierre de hoy
+                </button>
+              </div>
+            )}
+            <CierreCaja slug={slug} date={cajaDate} />
           </div>
 
           {/* Empty state — no orders today (existing tenant) */}
@@ -854,6 +880,7 @@ export default function AdminDashboard({
                 loading={range === "today" ? kpisLoading : analyticsLoading}
                 chartHeight={isMobile ? 200 : 280}
                 title={chartTitle}
+                onDayClick={setCajaDate}
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "560ms" }}>

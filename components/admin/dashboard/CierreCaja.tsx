@@ -34,16 +34,25 @@ function changePct(current: number, prev: number): string | null {
   return `${sign} ${Math.abs(Math.round(delta))}% vs ayer`;
 }
 
-export default function CierreCaja({ slug }: { slug: string }) {
+export default function CierreCaja({
+  slug,
+  date,
+}: {
+  slug: string;
+  /** YYYY-MM-DD; si se omite, usa el día actual en Argentina */
+  date?: string;
+}) {
   const [data, setData] = useState<CajaData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    void fetch(`/api/${slug}/admin/caja`)
+    setLoading(true);
+    const qs = date ? `?date=${date}` : "";
+    void fetch(`/api/${slug}/admin/caja${qs}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d: CajaData | null) => setData(d))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, date]);
 
   function handleShare() {
     if (!data) return;

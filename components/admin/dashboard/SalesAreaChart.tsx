@@ -102,6 +102,7 @@ interface SalesAreaChartProps {
   loading?: boolean;
   chartHeight?: number;
   title?: string;
+  onDayClick?: (isoDate: string) => void;
 }
 
 export function SalesAreaChart({
@@ -109,6 +110,7 @@ export function SalesAreaChart({
   loading = false,
   chartHeight = 280,
   title = "Ventas últimos 7 días",
+  onDayClick,
 }: SalesAreaChartProps) {
   if (loading) {
     return (
@@ -218,6 +220,14 @@ export function SalesAreaChart({
             radius={[6, 6, 0, 0]}
             maxBarSize={48}
             isAnimationActive
+            onClick={
+              onDayClick
+                ? (entry: { payload?: DailyRevenue }) => {
+                    if (entry.payload) onDayClick(entry.payload.isoDate);
+                  }
+                : undefined
+            }
+            cursor={onDayClick ? "pointer" : undefined}
           >
             {data.map((entry, i) => {
               const isToday = entry.date
