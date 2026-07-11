@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     restaurant.tagline ||
     `Mirá el menú de ${restaurant.name} y pedí por WhatsApp.`;
-  const image = restaurant.banner_url || restaurant.logo || undefined;
+  const image = restaurant.logo || restaurant.banner_url || undefined;
   const url = `https://takefyy.com/${restaurant.slug}`;
 
   return {
@@ -93,7 +93,7 @@ export default async function RestaurantPage({ params }: Props) {
       restaurant.tagline ||
       `Mirá el menú de ${restaurant.name} y pedí por WhatsApp.`,
     url: `https://takefyy.com/${restaurant.slug}`,
-    image: restaurant.banner_url || restaurant.logo || undefined,
+    image: restaurant.logo || restaurant.banner_url || undefined,
     telephone: restaurant.phone || undefined,
     address: restaurant.address
       ? {
