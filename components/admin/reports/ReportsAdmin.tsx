@@ -14,12 +14,14 @@ function fmtARS(n: number) {
 const RANGE_OPTIONS: Array<{ key: AnalyticsRange; label: string }> = [
   { key: "today", label: "Hoy" },
   { key: "week", label: "7 días" },
+  { key: "twoWeeks", label: "14 días" },
   { key: "month", label: "30 días" },
 ];
 
 const RANGE_LABEL: Record<AnalyticsRange, string> = {
   today: "vs. ayer",
   week: "vs. semana anterior",
+  twoWeeks: "vs. quincena anterior",
   month: "vs. mes anterior",
 };
 

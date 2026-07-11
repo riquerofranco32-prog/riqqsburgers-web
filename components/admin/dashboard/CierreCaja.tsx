@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface CajaData {
   fecha: string;
+  fechaIso: string;
   total: number;
   efectivo: number;
   transferencia: number;
@@ -22,6 +24,21 @@ function fmt(n: number) {
   }).format(n);
 }
 
+/** Hoy en Argentina, como YYYY-MM-DD — sin importar la timezone del browser */
+function getTodayIsoInBA(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Buenos_Aires",
+  }).format(new Date());
+}
+
+/** Suma/resta días a un YYYY-MM-DD, anclado a mediodía UTC para evitar
+ * corrimientos de un día por DST o timezone del server/browser. */
+function shiftIsoDate(iso: string, deltaDays: number): string {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + deltaDays);
+  return d.toISOString().slice(0, 10);
+}
+
 function pct(part: number, total: number) {
   if (total === 0) return "0%";
   return `${Math.round((part / total) * 100)}%`;
@@ -37,10 +54,12 @@ function changePct(current: number, prev: number): string | null {
 export default function CierreCaja({
   slug,
   date,
+  onDateChange,
 }: {
   slug: string;
   /** YYYY-MM-DD; si se omite, usa el día actual en Argentina */
   date?: string;
+  onDateChange?: (isoDate: string) => void;
 }) {
   const [data, setData] = useState<CajaData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,6 +109,13 @@ export default function CierreCaja({
 
   const change = changePct(data.total, data.vs_ayer.total);
   const isUp = change?.startsWith("↑");
+  const todayIso = getTodayIsoInBA();
+  const dayLabel =
+    data.fechaIso === todayIso
+      ? "Hoy"
+      : data.fechaIso === shiftIsoDate(todayIso, -1)
+        ? "Ayer"
+        : data.fecha;
 
   return (
     <div
@@ -114,17 +140,86 @@ export default function CierreCaja({
         }}
       >
         <div>
-          <h3
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {onDateChange && (
+              <button
+                onClick={() => onDateChange(shiftIsoDate(data.fechaIso, -1))}
+                title="Día anterior"
+                style={{
+                  width: 22,
+                  height: 22,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "none",
+                  border: "none",
+                  color: "var(--dash-muted)",
+                  cursor: "pointer",
+                  borderRadius: 6,
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--dash-surface-2)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "none")
+                }
+              >
+                <ChevronLeft size={14} />
+              </button>
+            )}
+            <h3
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: "var(--dash-text)",
+                margin: 0,
+              }}
+            >
+              Cierre de caja —{" "}
+              {dayLabel === data.fecha
+                ? data.fecha
+                : `${dayLabel} (${data.fecha})`}
+            </h3>
+            {onDateChange && (
+              <button
+                onClick={() => onDateChange(shiftIsoDate(data.fechaIso, 1))}
+                disabled={data.fechaIso >= todayIso}
+                title="Día siguiente"
+                style={{
+                  width: 22,
+                  height: 22,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "none",
+                  border: "none",
+                  color: "var(--dash-muted)",
+                  cursor: data.fechaIso >= todayIso ? "default" : "pointer",
+                  opacity: data.fechaIso >= todayIso ? 0.3 : 1,
+                  borderRadius: 6,
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  if (data.fechaIso >= todayIso) return;
+                  e.currentTarget.style.background = "var(--dash-surface-2)";
+                }}
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "none")
+                }
+              >
+                <ChevronRight size={14} />
+              </button>
+            )}
+          </div>
+          <p
             style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: "var(--dash-text)",
+              fontSize: 12,
+              color: "var(--dash-muted)",
               margin: 0,
+              paddingLeft: onDateChange ? 26 : 0,
             }}
           >
-            Cierre de caja — {data.fecha}
-          </h3>
-          <p style={{ fontSize: 12, color: "var(--dash-muted)", margin: 0 }}>
             {data.cantidad} pedido{data.cantidad !== 1 ? "s" : ""}
             {data.cancelados > 0 &&
               ` · ${data.cancelados} cancelado${data.cancelados !== 1 ? "s" : ""}`}

@@ -20,7 +20,7 @@ export type TopProduct = {
   revenue: number;
 };
 
-export type AnalyticsRange = "today" | "week" | "month";
+export type AnalyticsRange = "today" | "week" | "twoWeeks" | "month";
 
 /** Returned by /api/[slug]/admin/kpis — today KPIs computed server-side */
 export type TodayKPIsResponse = {

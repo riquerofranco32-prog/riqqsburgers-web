@@ -153,14 +153,26 @@ export async function GET(
   }
 
   const range = req.nextUrl.searchParams.get("range");
-  if (range !== "today" && range !== "week" && range !== "month") {
+  if (
+    range !== "today" &&
+    range !== "week" &&
+    range !== "twoWeeks" &&
+    range !== "month"
+  ) {
     return NextResponse.json(
-      { error: 'range debe ser "today", "week" o "month"' },
+      { error: 'range debe ser "today", "week", "twoWeeks" o "month"' },
       { status: 400 },
     );
   }
 
-  const days = range === "today" ? 1 : range === "week" ? 7 : 30;
+  const days =
+    range === "today"
+      ? 1
+      : range === "week"
+        ? 7
+        : range === "twoWeeks"
+          ? 14
+          : 30;
   const now = new Date();
   const from = startOfDayInBuenosAires(now);
   from.setDate(from.getDate() - (days - 1));

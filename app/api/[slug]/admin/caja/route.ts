@@ -82,9 +82,13 @@ export async function GET(
     year: "numeric",
     timeZone: "America/Argentina/Buenos_Aires",
   });
+  // `todayStart` es medianoche ART representada como instante UTC (3hs), así
+  // que sus componentes UTC son directamente el día calendario en Argentina.
+  const fechaIso = `${todayStart.getUTCFullYear()}-${String(todayStart.getUTCMonth() + 1).padStart(2, "0")}-${String(todayStart.getUTCDate()).padStart(2, "0")}`;
 
   return NextResponse.json({
     fecha,
+    fechaIso,
     total,
     efectivo,
     transferencia,

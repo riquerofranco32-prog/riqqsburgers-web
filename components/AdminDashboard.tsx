@@ -74,10 +74,11 @@ function getDateLabel(): string {
 const RANGE_LABELS: Record<AnalyticsRange, string> = {
   today: "Hoy",
   week: "7 días",
+  twoWeeks: "14 días",
   month: "30 días",
 };
 
-const RANGES: AnalyticsRange[] = ["today", "week", "month"];
+const RANGES: AnalyticsRange[] = ["today", "week", "twoWeeks", "month"];
 
 interface AdminDashboardProps {
   tenantName: string;
@@ -189,7 +190,7 @@ export default function AdminDashboard({
   }, [soundEnabled]);
 
   const fetchAnalytics = useCallback(
-    async (r: "week" | "month") => {
+    async (r: "week" | "twoWeeks" | "month") => {
       setAnalyticsLoading(true);
       try {
         const res = await fetch(`/api/tenant/${slug}/analytics?range=${r}`);
@@ -239,13 +240,17 @@ export default function AdminDashboard({
       ? "vs ayer"
       : range === "week"
         ? "vs. semana anterior"
-        : "vs. mes anterior";
+        : range === "twoWeeks"
+          ? "vs. quincena anterior"
+          : "vs. mes anterior";
   const chartTitle =
     range === "today"
       ? "Ventas últimos 7 días"
       : range === "week"
         ? "Ventas por día — 7 días"
-        : "Ventas por día — 30 días";
+        : range === "twoWeeks"
+          ? "Ventas por día — 14 días"
+          : "Ventas por día — 30 días";
 
   // ponytail: activeProducts defaults to 1 while kpisData loads to avoid flashing empty state
   const isNewTenant =
@@ -813,7 +818,11 @@ export default function AdminDashboard({
                 </button>
               </div>
             )}
-            <CierreCaja slug={slug} date={cajaDate} />
+            <CierreCaja
+              slug={slug}
+              date={cajaDate}
+              onDateChange={setCajaDate}
+            />
           </div>
 
           {/* Empty state — no orders today (existing tenant) */}
