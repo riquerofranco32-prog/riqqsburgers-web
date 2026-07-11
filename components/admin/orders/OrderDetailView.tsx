@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Printer, Trash2, MessageCircle } from "lucide-react";
+import { Printer, Trash2, MessageCircle, Check } from "lucide-react";
 import type { Order } from "@/types/supabase";
 import { buildWhatsAppLink } from "@/lib/whatsapp-notify";
 import { StatusBadge } from "./StatusBadge";
@@ -12,6 +12,7 @@ import {
   deliveryLabel,
   getStatusMeta,
   STATUS_FLOW,
+  normalizeStatus,
 } from "./utils";
 
 interface OrderItemDetailed {
@@ -455,90 +456,150 @@ export function OrderDetailView({
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-          flexWrap: "wrap",
+          flexDirection: "column",
+          gap: 14,
           borderTop: "1px solid var(--dash-border)",
           paddingTop: 14,
         }}
       >
-        {/* Actualizacion de estados */}
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {STATUS_FLOW.map(({ key, label }) => {
-            const m = getStatusMeta(key);
-            const isCurrent =
-              order.status === key ||
-              (key === "pending" && order.status === "nuevo") ||
-              (key === "confirmed" && order.status === "preparando") ||
-              (key === "ready" && order.status === "listo") ||
-              (key === "delivered" && order.status === "entregado");
-            return (
-              <button
-                key={key}
-                onClick={() => {
-                  vibrate(40);
-                  onUpdateStatus(order.id, key);
-                }}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition:
-                    "background-color 0.15s, color 0.15s, border-color 0.15s",
-                  border: "1px solid",
-                  background: isCurrent ? m.bg : "transparent",
-                  color: isCurrent ? m.color : "var(--dash-muted)",
-                  borderColor: isCurrent ? m.border : "var(--dash-border)",
-                  minHeight: 32,
-                  WebkitTapHighlightColor: "transparent",
-                  userSelect: "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (isCurrent) return;
-                  e.currentTarget.style.borderColor = "var(--accent)";
-                  e.currentTarget.style.color = "var(--accent)";
-                }}
-                onMouseLeave={(e) => {
-                  if (isCurrent) return;
-                  e.currentTarget.style.borderColor = "var(--dash-border)";
-                  e.currentTarget.style.color = "var(--dash-muted)";
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
-          {order.status !== "cancelled" &&
-            order.status !== "delivered" &&
-            order.status !== "entregado" && (
-              <button
-                onClick={() => {
-                  vibrate([40, 30, 40]);
-                  onUpdateStatus(order.id, "cancelled");
-                }}
-                style={{
-                  padding: "6px 14px",
-                  borderRadius: 999,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition:
-                    "background-color 0.15s, color 0.15s, border-color 0.15s",
-                  border: "1px solid rgba(239,68,68,0.4)",
-                  background: "rgba(239,68,68,0.08)",
-                  color: "#f87171",
-                  minHeight: 32,
-                  WebkitTapHighlightColor: "transparent",
-                  userSelect: "none",
-                }}
-              >
-                ✕ Cancelar
-              </button>
-            )}
-        </div>
+        {/* Stepper de progreso del pedido */}
+        {order.status === "cancelled" ? (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#f87171",
+            }}
+          >
+            Este pedido fue cancelado.
+          </p>
+        ) : (
+          <div>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              {STATUS_FLOW.map(({ key, label }, i) => {
+                const currentIdx = STATUS_FLOW.findIndex(
+                  (s) => s.key === normalizeStatus(order.status),
+                );
+                const isDone = i < currentIdx;
+                const isCurrent = i === currentIdx;
+                const m = getStatusMeta(key);
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flex: i < STATUS_FLOW.length - 1 ? 1 : undefined,
+                    }}
+                  >
+                    <button
+                      onClick={() => {
+                        vibrate(40);
+                        onUpdateStatus(order.id, key);
+                      }}
+                      title={label}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        border: "1.5px solid",
+                        transition: "all 0.2s",
+                        background: isDone || isCurrent ? m.bg : "transparent",
+                        color:
+                          isDone || isCurrent ? m.color : "var(--dash-muted)",
+                        borderColor:
+                          isDone || isCurrent ? m.border : "var(--dash-border)",
+                        WebkitTapHighlightColor: "transparent",
+                      }}
+                    >
+                      {isDone ? <Check size={12} strokeWidth={3} /> : i + 1}
+                    </button>
+                    {i < STATUS_FLOW.length - 1 && (
+                      <div
+                        style={{
+                          flex: 1,
+                          height: 2,
+                          background: isDone
+                            ? "var(--accent)"
+                            : "var(--dash-border)",
+                          transition: "background 0.2s",
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", marginTop: 4 }}>
+              {STATUS_FLOW.map(({ key, label }, i) => {
+                const currentIdx = STATUS_FLOW.findIndex(
+                  (s) => s.key === normalizeStatus(order.status),
+                );
+                return (
+                  <span
+                    key={key}
+                    style={{
+                      flex: i === STATUS_FLOW.length - 1 ? undefined : 1,
+                      width: i === STATUS_FLOW.length - 1 ? 26 : undefined,
+                      textAlign: i === 0 ? "left" : "center",
+                      fontSize: 10,
+                      fontWeight: i === currentIdx ? 700 : 500,
+                      color:
+                        i === currentIdx
+                          ? "var(--dash-text)"
+                          : "var(--dash-muted)",
+                    }}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {order.status !== "cancelled" &&
+          order.status !== "delivered" &&
+          order.status !== "entregado" && (
+            <button
+              onClick={() => {
+                vibrate([40, 30, 40]);
+                onUpdateStatus(order.id, "cancelled");
+              }}
+              style={{
+                alignSelf: "flex-start",
+                padding: "6px 14px",
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition:
+                  "background-color 0.15s, color 0.15s, border-color 0.15s",
+                border: "1px solid rgba(239,68,68,0.4)",
+                background: "rgba(239,68,68,0.08)",
+                color: "#f87171",
+                minHeight: 32,
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+              }}
+            >
+              ✕ Cancelar pedido
+            </button>
+          )}
 
         {/* Acciones del sistema: Imprimir / WA / Eliminar */}
         <div

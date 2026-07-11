@@ -15,6 +15,7 @@ import {
   getStatusMeta,
   paymentLabel,
   deliveryLabel,
+  summarizeItems,
 } from "./utils";
 
 export function MobileOrderCard({
@@ -185,6 +186,21 @@ export function MobileOrderCard({
             {deliveryLabel(order.delivery_type)}
           </span>
         </div>
+
+        {/* Row 2.5: items summary */}
+        <p
+          style={{
+            fontSize: 12,
+            color: "var(--dash-muted)",
+            marginBottom: 6,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
+          }}
+        >
+          🛒 {summarizeItems(order)}
+        </p>
 
         {/* Row 3: total + payment + time */}
         <div

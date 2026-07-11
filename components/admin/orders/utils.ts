@@ -203,6 +203,14 @@ export function deliveryLabel(type: string) {
     : "Retiro en local";
 }
 
+export function summarizeItems(order: Order, maxChars = 60): string {
+  const items = order.items ?? [];
+  if (items.length === 0) return "Sin items";
+  const full = items.map((it) => `${it.quantity}x ${it.name}`).join(", ");
+  if (full.length <= maxChars) return full;
+  return full.slice(0, maxChars - 1).trimEnd() + "…";
+}
+
 export function matchesFilter(order: Order, filter: FilterKey): boolean {
   if (filter === "all") return true;
   const s = order.status;

@@ -14,6 +14,7 @@ import {
   getStatusMeta,
   paymentLabel,
   deliveryLabel,
+  summarizeItems,
 } from "./utils";
 
 export function OrderDesktopRow({
@@ -153,6 +154,19 @@ export function OrderDesktopRow({
             {deliveryLabel(order.delivery_type)} ·{" "}
             {paymentLabel(order.payment_method)} · {fmtFecha(order.created_at)}{" "}
             <OrderAgeBadge createdAt={order.created_at} status={order.status} />
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--dash-muted)",
+              marginTop: 3,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: "100%",
+            }}
+          >
+            🛒 {summarizeItems(order)}
           </p>
         </div>
         <span
