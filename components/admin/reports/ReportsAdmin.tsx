@@ -105,6 +105,7 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
           change={data?.revenueChange ?? null}
           changeLabel={RANGE_LABEL[range]}
           icon={DollarSign}
+          sparkline={data?.dailyRevenue.map((d) => d.total)}
         />
         <KPICard
           loading={loading}
