@@ -62,7 +62,7 @@ export function OrderDesktopRow({
         }}
         style={{
           width: "100%",
-          padding: "12px 20px",
+          padding: "14px 20px",
           display: "flex",
           alignItems: "center",
           gap: 12,
@@ -87,15 +87,27 @@ export function OrderDesktopRow({
               flexWrap: "wrap",
             }}
           >
-            <Link
-              href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+            <span
               style={{
                 color: "var(--dash-text)",
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 14,
+              }}
+            >
+              {order.customer_name ?? "—"}
+            </span>
+            <Link
+              href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+              style={{
+                color: "var(--dash-muted)",
+                fontWeight: 600,
+                fontSize: 11,
                 textDecoration: "none",
                 fontFamily: "var(--font-mono, monospace)",
-                borderBottom: "1px dashed rgba(255,255,255,0.25)",
+                background: "var(--dash-surface-2)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 999,
+                padding: "2px 8px",
                 transition: "color 0.15s, border-color 0.15s",
               }}
               onMouseEnter={(e) => {
@@ -103,8 +115,8 @@ export function OrderDesktopRow({
                 e.currentTarget.style.borderColor = "var(--accent)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--dash-text)";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
+                e.currentTarget.style.color = "var(--dash-muted)";
+                e.currentTarget.style.borderColor = "var(--dash-border)";
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -138,9 +150,8 @@ export function OrderDesktopRow({
               marginTop: 2,
             }}
           >
-            {order.customer_name ?? "—"} · {deliveryLabel(order.delivery_type)}{" "}
-            · {paymentLabel(order.payment_method)} ·{" "}
-            {fmtFecha(order.created_at)}{" "}
+            {deliveryLabel(order.delivery_type)} ·{" "}
+            {paymentLabel(order.payment_method)} · {fmtFecha(order.created_at)}{" "}
             <OrderAgeBadge createdAt={order.created_at} status={order.status} />
           </p>
         </div>

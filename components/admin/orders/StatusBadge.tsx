@@ -17,6 +17,8 @@ export function StatusBadge({ status }: { status: string }) {
         border: `1px solid ${meta.border}`,
         whiteSpace: "nowrap",
         letterSpacing: "0.01em",
+        transition:
+          "background 0.25s ease, color 0.25s ease, border-color 0.25s ease",
       }}
     >
       {meta.label}

@@ -415,6 +415,7 @@ export function OrdersTable({
           border: "1px solid var(--dash-border)",
           borderRadius: 16,
           overflow: "hidden",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
         }}
       >
         {/* Header */}
@@ -474,6 +475,16 @@ export function OrdersTable({
                 color: "var(--dash-text)",
                 outline: "none",
                 width: "100%",
+                transition: "border-color 0.15s, box-shadow 0.15s",
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = "var(--accent)";
+                e.currentTarget.style.boxShadow =
+                  "0 0 0 3px rgba(255,107,53,0.15)";
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = "var(--dash-border)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             />
             {search && (
@@ -516,6 +527,16 @@ export function OrdersTable({
               opacity: filtered.length === 0 ? 0.5 : 1,
               whiteSpace: "nowrap",
               flexShrink: 0,
+              transition: "border-color 0.15s, background 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              if (filtered.length === 0) return;
+              e.currentTarget.style.borderColor = "var(--accent)";
+              e.currentTarget.style.background = "rgba(255,107,53,0.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--dash-border)";
+              e.currentTarget.style.background = "var(--dash-surface-2)";
             }}
           >
             <Download size={14} strokeWidth={2} />
@@ -558,6 +579,14 @@ export function OrdersTable({
                   minHeight: isMobile ? 36 : "auto",
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
+                }}
+                onMouseEnter={(e) => {
+                  if (isActive) return;
+                  e.currentTarget.style.borderColor = "var(--dash-muted)";
+                }}
+                onMouseLeave={(e) => {
+                  if (isActive) return;
+                  e.currentTarget.style.borderColor = "var(--dash-border)";
                 }}
               >
                 {pill.label} ({(accurateStatusCounts ?? counts)[pill.key] ?? 0})
@@ -623,6 +652,14 @@ export function OrdersTable({
                   minHeight: isMobile ? 34 : "auto",
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
+                }}
+                onMouseEnter={(e) => {
+                  if (isActive) return;
+                  e.currentTarget.style.borderColor = "var(--dash-muted)";
+                }}
+                onMouseLeave={(e) => {
+                  if (isActive) return;
+                  e.currentTarget.style.borderColor = "var(--dash-border)";
                 }}
               >
                 {label}

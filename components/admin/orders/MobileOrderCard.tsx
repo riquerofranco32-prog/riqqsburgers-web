@@ -68,6 +68,7 @@ export function MobileOrderCard({
         borderRadius: 14,
         marginBottom: 10,
         overflow: "hidden",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
         transition: "background 1s ease",
         animation: isUrgent ? "urgentBlink 2s ease-in-out infinite" : undefined,
       }}

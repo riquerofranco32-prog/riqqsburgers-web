@@ -284,7 +284,14 @@ export function OrderDetailView({
                   display: "grid",
                   gridTemplateColumns: "3fr 1.2fr 1.5fr",
                   alignItems: "center",
+                  transition: "background 0.15s",
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--dash-surface-2)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
               >
                 <div
                   style={{ display: "flex", flexDirection: "column", gap: 2 }}
@@ -489,6 +496,16 @@ export function OrderDetailView({
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
                 }}
+                onMouseEnter={(e) => {
+                  if (isCurrent) return;
+                  e.currentTarget.style.borderColor = "var(--accent)";
+                  e.currentTarget.style.color = "var(--accent)";
+                }}
+                onMouseLeave={(e) => {
+                  if (isCurrent) return;
+                  e.currentTarget.style.borderColor = "var(--dash-border)";
+                  e.currentTarget.style.color = "var(--dash-muted)";
+                }}
               >
                 {label}
               </button>
@@ -562,8 +579,16 @@ export function OrderDetailView({
                     fontWeight: 600,
                     cursor: "pointer",
                     textDecoration: "none",
-                    transition: "background 0.15s",
+                    transition: "background 0.15s, border-color 0.15s",
                     whiteSpace: "nowrap",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(37,211,102,0.18)";
+                    e.currentTarget.style.borderColor = "rgba(37,211,102,0.5)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(37,211,102,0.1)";
+                    e.currentTarget.style.borderColor = "rgba(37,211,102,0.3)";
                   }}
                 >
                   <MessageCircle style={{ width: 14, height: 14 }} />
