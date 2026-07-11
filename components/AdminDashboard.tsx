@@ -210,6 +210,7 @@ export default function AdminDashboard({
     if (r === "today") {
       setAnalyticsData(null);
       setLastUpdated(null);
+      void fetchKPIs();
     } else {
       void fetchAnalytics(r);
     }
