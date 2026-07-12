@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Search,
   X,
@@ -24,6 +25,7 @@ import {
   getOrderAgeMinutes,
   matchesFilter,
   exportOrdersToCsv,
+  getStatusMeta,
   FILTER_PILLS,
   type FilterKey,
 } from "@/components/admin/orders/utils";
@@ -45,7 +47,13 @@ export function OrdersTable({
   const [loadingMore, setLoadingMore] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
-  const [filter, setFilter] = useState<FilterKey>("all");
+  const searchParams = useSearchParams();
+  const [filter, setFilter] = useState<FilterKey>(() => {
+    const requested = searchParams.get("filter");
+    return FILTER_PILLS.some((p) => p.key === requested)
+      ? (requested as FilterKey)
+      : "all";
+  });
   const [search, setSearch] = useState("");
   const [dateRange, setDateRange] = useState<
     "all" | "today" | "week" | "month"
@@ -138,7 +146,32 @@ export function OrdersTable({
     },
   );
 
-  async function updateStatus(orderId: string, status: string) {
+  // Soporta el atajo del Cmd+K ("Confirmar pendientes" → /pedidos?bulk=confirm-pending)
+  const router = useRouter();
+  const bulkActionRan = useRef(false);
+  useEffect(() => {
+    if (bulkActionRan.current) return;
+    if (searchParams.get("bulk") !== "confirm-pending") return;
+    bulkActionRan.current = true;
+    router.replace(`/${slug}/admin/pedidos`);
+    const pendingIds = orders
+      .filter((o) => matchesFilter(o, "pending"))
+      .map((o) => o.id);
+    if (pendingIds.length === 0) {
+      toast.info("No hay pedidos pendientes para confirmar");
+      return;
+    }
+    void Promise.all(
+      pendingIds.map((id) => updateStatus(id, "confirmed", true)),
+    ).then(() => {
+      toast.success(
+        `${pendingIds.length} pedido${pendingIds.length !== 1 ? "s" : ""} confirmado${pendingIds.length !== 1 ? "s" : ""}`,
+      );
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function updateStatus(orderId: string, status: string, silent = false) {
     const prevStatus = orders.find((o) => o.id === orderId)?.status;
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status } : o)),
@@ -151,6 +184,15 @@ export function OrdersTable({
       });
       if (!res.ok) throw new Error("Failed");
       vibrate(40);
+      if (!silent && prevStatus !== undefined && prevStatus !== status) {
+        toast(`Pedido → ${getStatusMeta(status).label}`, {
+          action: {
+            label: "Deshacer",
+            onClick: () => void updateStatus(orderId, prevStatus, true),
+          },
+          duration: 5000,
+        });
+      }
     } catch {
       if (prevStatus !== undefined) {
         setOrders((prev) =>

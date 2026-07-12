@@ -24,6 +24,8 @@ import {
   WifiOff,
   BarChart3,
   Search,
+  PlusCircle,
+  CheckCheck,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -73,6 +75,36 @@ const STAFF_NAV_ITEMS: Array<{
 
 function getNavItems(role?: string) {
   return role === "staff" ? STAFF_NAV_ITEMS : FULL_NAV_ITEMS;
+}
+
+// Atajos del Cmd+K que ejecutan una acción (vía query param) en vez de solo navegar
+const FULL_ACTION_ITEMS: Array<{
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}> = [
+  { href: "/productos?new=1", label: "Crear producto nuevo", icon: PlusCircle },
+  {
+    href: "/pedidos?bulk=confirm-pending",
+    label: "Confirmar todos los pedidos pendientes",
+    icon: CheckCheck,
+  },
+];
+
+const STAFF_ACTION_ITEMS: Array<{
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}> = [
+  {
+    href: "/pedidos?bulk=confirm-pending",
+    label: "Confirmar todos los pedidos pendientes",
+    icon: CheckCheck,
+  },
+];
+
+function getActionItems(role?: string) {
+  return role === "staff" ? STAFF_ACTION_ITEMS : FULL_ACTION_ITEMS;
 }
 
 function vibrate(pattern: number | number[]) {
@@ -295,6 +327,7 @@ export default function AdminShell({
   const router = useRouter();
   const pathname = usePathname();
   const navItems = getNavItems(role);
+  const actionItems = getActionItems(role);
   const isStaff = role === "staff";
   // Ambos estados arrancan con el valor del server y se corrigen recién en un
   // efecto: leerlos en el initializer (localStorage / hora local) hacía que el
@@ -1022,7 +1055,11 @@ export default function AdminShell({
         )}
         {children}
       </main>
-      <CommandPalette navItems={navItems} slug={slug} />
+      <CommandPalette
+        navItems={navItems}
+        actionItems={actionItems}
+        slug={slug}
+      />
     </div>
   );
 }

@@ -25,6 +25,13 @@ export function ProductDesktopRow({
   canMoveDown,
   reorderBusy,
   onRestock,
+  inlinePriceId,
+  inlinePriceVal,
+  inlinePriceRef,
+  inlinePriceEscaped,
+  onInlinePriceStart,
+  onInlinePriceSave,
+  onInlinePriceValChange,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -46,7 +53,15 @@ export function ProductDesktopRow({
   canMoveDown?: boolean;
   reorderBusy?: boolean;
   onRestock?: (p: Product) => void;
+  inlinePriceId: string | null;
+  inlinePriceVal: string;
+  inlinePriceRef: React.RefObject<HTMLInputElement>;
+  inlinePriceEscaped: React.MutableRefObject<boolean>;
+  onInlinePriceStart: (p: Product) => void;
+  onInlinePriceSave: (p: Product) => void;
+  onInlinePriceValChange: (val: string) => void;
 }) {
+  const isEditingPrice = inlinePriceId === product.id;
   return (
     <div
       className={`bg-[var(--dash-surface)] rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${selected ? "border-[var(--accent)]/60" : "border-[var(--dash-border)]"} ${product.available ? "" : "opacity-50"}`}
@@ -86,7 +101,9 @@ export function ProductDesktopRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="font-semibold text-sm text-[var(--dash-text)]">{product.name}</p>
+          <p className="font-semibold text-sm text-[var(--dash-text)]">
+            {product.name}
+          </p>
           {product.is_featured && (
             <span className="text-[10px] bg-orange-500/15 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-full font-bold">
               ⭐ PROMO
@@ -103,9 +120,45 @@ export function ProductDesktopRow({
             </span>
           )}
         </div>
-        <p className="text-[var(--accent)] text-sm font-bold">
-          ${product.price.toLocaleString("es-AR")}
-        </p>
+        {isEditingPrice ? (
+          <input
+            ref={inlinePriceRef}
+            type="number"
+            inputMode="numeric"
+            value={inlinePriceVal}
+            onChange={(e) => onInlinePriceValChange(e.target.value)}
+            onBlur={() => onInlinePriceSave(product)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") {
+                inlinePriceEscaped.current = true;
+                e.currentTarget.blur();
+              }
+            }}
+            min={0}
+            style={{ fontSize: 14 }}
+            className="w-28 bg-[var(--dash-surface-2)] border border-[var(--accent)] rounded-lg px-2 py-1 text-[var(--accent)] font-bold outline-none"
+          />
+        ) : (
+          <button
+            onClick={() => onInlinePriceStart(product)}
+            style={
+              {
+                WebkitTapHighlightColor: "transparent",
+                userSelect: "none",
+              } as React.CSSProperties
+            }
+            className="flex items-baseline gap-1.5 text-left group"
+            title="Click para editar el precio"
+          >
+            <span className="text-[var(--accent)] text-sm font-bold">
+              ${product.price.toLocaleString("es-AR")}
+            </span>
+            <span className="text-[10px] text-[var(--dash-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
+              editar
+            </span>
+          </button>
+        )}
         {cat && (
           <p className="text-[var(--dash-muted)] text-xs">
             {cat.emoji} {cat.name}

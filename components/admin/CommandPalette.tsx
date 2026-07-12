@@ -10,11 +10,17 @@ interface NavItem {
   icon: LucideIcon;
 }
 
+interface PaletteItem extends NavItem {
+  isAction?: boolean;
+}
+
 export function CommandPalette({
   navItems,
+  actionItems = [],
   slug,
 }: {
   navItems: NavItem[];
+  actionItems?: NavItem[];
   slug: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -23,11 +29,19 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
+  const allItems = useMemo<PaletteItem[]>(
+    () => [
+      ...actionItems.map((item) => ({ ...item, isAction: true })),
+      ...navItems,
+    ],
+    [navItems, actionItems],
+  );
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return navItems;
-    return navItems.filter((item) => item.label.toLowerCase().includes(q));
-  }, [navItems, query]);
+    if (!q) return allItems;
+    return allItems.filter((item) => item.label.toLowerCase().includes(q));
+  }, [allItems, query]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -68,7 +82,7 @@ export function CommandPalette({
     setActiveIndex(0);
   }, [query]);
 
-  function navigate(item: NavItem) {
+  function navigate(item: PaletteItem) {
     router.push(`/${slug}/admin${item.href}`);
     setOpen(false);
   }
@@ -115,7 +129,7 @@ export function CommandPalette({
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ir a..."
+            placeholder="Ir a... o ejecutar una acción"
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") {
                 e.preventDefault();
@@ -193,6 +207,22 @@ export function CommandPalette({
                     color={isActive ? "var(--accent)" : "var(--dash-muted)"}
                   />
                   {item.label}
+                  {item.isAction && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: "var(--accent)",
+                        background: "var(--dash-accent-subtle)",
+                        border: "1px solid var(--accent)44",
+                        borderRadius: 4,
+                        padding: "1px 5px",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      ACCIÓN
+                    </span>
+                  )}
                   {isActive && (
                     <CornerDownLeft
                       size={13}

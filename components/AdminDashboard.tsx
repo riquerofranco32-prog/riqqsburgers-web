@@ -307,41 +307,91 @@ export default function AdminDashboard({
       >
         {/* Left: greeting + date */}
         <div>
-          <h1
-            style={{
-              fontSize: isMobile ? 22 : 26,
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "var(--dash-text)",
-              marginBottom: 6,
-              lineHeight: 1.2,
-            }}
-          >
-            {greeting}, {tenantName} 👋
-          </h1>
-          <p
-            style={{
-              fontSize: 12,
-              color: "var(--dash-muted)",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <span
+          {dateLabel ? (
+            <h1
+              style={{
+                fontSize: isMobile ? 22 : 26,
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                color: "var(--dash-text)",
+                marginBottom: 6,
+                lineHeight: 1.2,
+              }}
+            >
+              {greeting}, {tenantName} 👋
+            </h1>
+          ) : (
+            <div
               className="animate-pulse"
               style={{
-                display: "inline-block",
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "#4ade80",
-                boxShadow: "0 0 6px #4ade8088",
-                flexShrink: 0,
+                width: 220,
+                height: isMobile ? 22 : 26,
+                borderRadius: 6,
+                background: "var(--dash-surface-2)",
+                marginBottom: 6,
               }}
             />
-            {dateLabel} · Panel activo
-          </p>
+          )}
+          {viewingSpecificDay ? (
+            <p
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "#f59e0b",
+                background: "rgba(245,158,11,0.12)",
+                border: "1px solid rgba(245,158,11,0.3)",
+                borderRadius: 8,
+                padding: "4px 10px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                width: "fit-content",
+              }}
+            >
+              📅 Viendo el reporte de {kpiDayLabel}
+              {kpiDayLabel !== cajaViewData.fecha && ` (${cajaViewData.fecha})`}
+              <button
+                onClick={() => setCajaDate(undefined)}
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "#f59e0b",
+                  background: "none",
+                  border: "none",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  padding: 0,
+                  marginLeft: 4,
+                }}
+              >
+                volver a hoy
+              </button>
+            </p>
+          ) : (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--dash-muted)",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <span
+                className="animate-pulse"
+                style={{
+                  display: "inline-block",
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#4ade80",
+                  boxShadow: "0 0 6px #4ade8088",
+                  flexShrink: 0,
+                }}
+              />
+              {dateLabel} · Panel activo
+            </p>
+          )}
         </div>
 
         {/* Right: range selector + export */}

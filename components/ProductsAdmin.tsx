@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Search, SlidersHorizontal, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -182,6 +183,17 @@ export default function ProductsAdmin({
     setEditProduct(null);
     setShowModal(true);
   }
+
+  // Soporta el atajo del Cmd+K ("Crear producto" → /productos?new=1)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  useEffect(() => {
+    if (searchParams.get("new") === "1" && canAddMore) {
+      openNew();
+      router.replace(`/${tenant.slug}/admin/productos`);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function openEdit(product: Product) {
     setEditProduct(product);
@@ -711,6 +723,16 @@ export default function ProductsAdmin({
                   onCancelDelete={() => setConfirmDeleteId(null)}
                   onDuplicate={canAddMore ? handleDuplicate : undefined}
                   duplicatingId={duplicatingId}
+                  inlinePriceId={inlinePriceId}
+                  inlinePriceVal={inlinePriceVal}
+                  inlinePriceRef={inlinePriceRef}
+                  inlinePriceEscaped={inlinePriceEscaped}
+                  onInlinePriceStart={(p) => {
+                    setInlinePriceVal(String(p.price));
+                    setInlinePriceId(p.id);
+                  }}
+                  onInlinePriceSave={saveInlinePrice}
+                  onInlinePriceValChange={setInlinePriceVal}
                   onMove={
                     sort === "default" && filterCat === "all" && !search.trim()
                       ? moveProduct
