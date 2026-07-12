@@ -36,6 +36,8 @@ import type {
   TodayKPIsResponse,
   AnalyticsRange,
   AnalyticsResponse,
+  StockAlertProduct,
+  LowStockAlertProduct,
 } from "@/types/dashboard";
 
 function useIsMobile() {
@@ -90,6 +92,7 @@ interface AdminDashboardProps {
   isOpen: boolean;
   allOrders: Order[];
   unavailableProducts: Product[];
+  lowStockProducts?: LowStockAlertProduct[];
   trialDaysLeft?: number | null;
   onboarding?: OnboardingState;
 }
@@ -100,7 +103,8 @@ export default function AdminDashboard({
   tenantId,
   isOpen: isOpenInitial,
   allOrders,
-  unavailableProducts,
+  unavailableProducts: unavailableProductsInitial,
+  lowStockProducts: lowStockProductsInitial = [],
   trialDaysLeft,
   onboarding,
 }: AdminDashboardProps) {
@@ -116,6 +120,16 @@ export default function AdminDashboard({
   }, []);
 
   const [orders, setOrders] = useState<Order[]>(allOrders);
+  // Se refrescan junto con fetchKPIs (mount + cada pedido nuevo vía la misma
+  // suscripción de orders) porque un pedido nuevo es el único evento que
+  // descuenta stock_quantity — evita abrir un segundo canal realtime solo
+  // para escuchar cambios en products.
+  const [unavailableProducts, setUnavailableProducts] = useState<
+    StockAlertProduct[]
+  >(unavailableProductsInitial);
+  const [lowStockProducts, setLowStockProducts] = useState<
+    LowStockAlertProduct[]
+  >(lowStockProductsInitial);
   const [range, setRange] = useState<AnalyticsRange>("today");
   const [cajaDate, setCajaDate] = useState<string | undefined>(undefined);
   const [cajaViewData, setCajaViewData] = useState<CajaData | null>(null);
@@ -149,6 +163,8 @@ export default function AdminDashboard({
       if (!res.ok) throw new Error("Error al cargar KPIs");
       const data: TodayKPIsResponse = await res.json();
       setKpisData(data);
+      setUnavailableProducts(data.unavailableProducts);
+      setLowStockProducts(data.lowStockProducts);
     } catch {
       // keep previous data on error
     } finally {
@@ -296,7 +312,11 @@ export default function AdminDashboard({
       {onboarding && <OnboardingChecklist slug={slug} state={onboarding} />}
 
       {/* Alerta productos sin stock */}
-      <LowStockAlert unavailableProducts={unavailableProducts} slug={slug} />
+      <LowStockAlert
+        unavailableProducts={unavailableProducts}
+        lowStockProducts={lowStockProducts}
+        slug={slug}
+      />
 
       {/* Header */}
       <div

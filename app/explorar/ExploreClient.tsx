@@ -251,7 +251,8 @@ export default function ExploreClient({
         .explore-bg {
           position: fixed;
           inset: 0;
-          background: radial-gradient(
+          background:
+            radial-gradient(
               ellipse 80% 60% at 50% -20%,
               rgba(255, 107, 53, 0.08),
               transparent 70%
@@ -498,7 +499,8 @@ export default function ExploreClient({
         .tenant-card:hover {
           background: rgba(255, 255, 255, 0.05);
           border-color: rgba(255, 255, 255, 0.1);
-          box-shadow: 0 8px 40px -12px rgba(0, 0, 0, 0.5),
+          box-shadow:
+            0 8px 40px -12px rgba(0, 0, 0, 0.5),
             0 0 0 1px rgba(255, 107, 53, 0.06);
           transform: translateY(-2px);
         }
@@ -558,6 +560,7 @@ export default function ExploreClient({
           gap: 14px;
         }
         .tenant-card-logo {
+          position: relative;
           width: 52px;
           height: 52px;
           border-radius: 14px;
@@ -707,7 +710,7 @@ function TenantCard({
         <div className="tenant-card-body">
           <div className="tenant-card-logo">
             {t.logo_url ? (
-              <img src={t.logo_url} alt={t.name} />
+              <Image src={t.logo_url} alt={t.name} fill sizes="52px" />
             ) : (
               <span
                 className="tenant-card-logo-fallback"

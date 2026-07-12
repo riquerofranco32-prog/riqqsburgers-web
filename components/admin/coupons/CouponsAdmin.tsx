@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Plus, Trash2, Percent, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import type { Coupon } from "@/types/supabase";
+import EmptyState from "@/components/admin/EmptyState";
 import { AdminModal } from "@/components/ui/admin/AdminModal";
 import { AdminField, adminInputStyle } from "@/components/ui/admin/AdminField";
 import { AdminButton } from "@/components/ui/admin/AdminButton";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 
 interface CouponForm {
   code: string;
@@ -337,16 +339,13 @@ export function CouponsAdmin({
       </div>
 
       {coupons.length === 0 ? (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "56px 0",
-            color: "var(--dash-muted)",
-          }}
-        >
-          <Percent className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p style={{ fontSize: 14 }}>Todavía no creaste ningún cupón.</p>
-        </div>
+        <EmptyState
+          icon={Percent}
+          title="Todavía no creaste ningún cupón"
+          description="Los cupones te ayudan a atraer clientes nuevos o premiar a los frecuentes."
+          action={{ label: "Crear cupón", onClick: () => setShowModal(true) }}
+          variant="dashed"
+        />
       ) : (
         <div className="flex flex-col gap-2.5">
           {coupons.map((c) => {
@@ -539,42 +538,47 @@ export function CouponsAdmin({
                   </div>
                 </button>
 
-                {confirmDeleteId === c.id ? (
-                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                    <AdminButton
-                      variant="danger"
-                      onClick={() => handleDelete(c)}
+                <InlineConfirm
+                  active={confirmDeleteId === c.id}
+                  itemKey={c.id}
+                  confirm={
+                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                      <AdminButton
+                        variant="danger"
+                        onClick={() => handleDelete(c)}
+                      >
+                        Sí, eliminar
+                      </AdminButton>
+                      <AdminButton
+                        variant="secondary"
+                        onClick={() => setConfirmDeleteId(null)}
+                      >
+                        No
+                      </AdminButton>
+                    </div>
+                  }
+                  trigger={
+                    <button
+                      onClick={() => setConfirmDeleteId(c.id)}
+                      aria-label="Eliminar cupón"
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 12,
+                        background: "none",
+                        border: "none",
+                        color: "var(--dash-muted)",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
-                      Sí, eliminar
-                    </AdminButton>
-                    <AdminButton
-                      variant="secondary"
-                      onClick={() => setConfirmDeleteId(null)}
-                    >
-                      No
-                    </AdminButton>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setConfirmDeleteId(c.id)}
-                    aria-label="Eliminar cupón"
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 12,
-                      background: "none",
-                      border: "none",
-                      color: "var(--dash-muted)",
-                      cursor: "pointer",
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  }
+                />
               </div>
             );
           })}

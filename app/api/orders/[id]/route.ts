@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase";
 import { getSessionUser } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
 import { sendPushToOrder } from "@/lib/push";
+import { logActivity } from "@/lib/activityLog";
 
 const STATUS_PUSH_MESSAGES: Record<string, { title: string; body: string }> = {
   confirmed: {
@@ -75,7 +76,7 @@ export async function PATCH(
   // Verificar que la orden pertenece a un tenant del que el usuario es admin
   const { data: order } = await supabase
     .from("orders")
-    .select("tenant_id, order_ref")
+    .select("tenant_id, order_ref, status")
     .eq("id", id)
     .maybeSingle();
 
@@ -126,6 +127,19 @@ export async function PATCH(
         url: `/pedido/${order.order_ref}`,
       });
     }
+    void logActivity({
+      tenantId: order.tenant_id,
+      actorEmail: user.email ?? "desconocido",
+      action:
+        body.status === "confirmed"
+          ? "order.confirmed"
+          : body.status === "cancelled"
+            ? "order.cancelled"
+            : "order.status_changed",
+      entityType: "order",
+      entityId: order.order_ref,
+      metadata: { from: order.status, to: body.status },
+    });
   }
 
   return NextResponse.json({ ok: true });
@@ -147,7 +161,7 @@ export async function DELETE(
   // Verificar que la orden pertenece a un tenant del que el usuario es admin
   const { data: order } = await supabase
     .from("orders")
-    .select("tenant_id")
+    .select("tenant_id, order_ref")
     .eq("id", id)
     .maybeSingle();
 
@@ -183,5 +197,13 @@ export async function DELETE(
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
+
+  void logActivity({
+    tenantId: order.tenant_id,
+    actorEmail: user.email ?? "desconocido",
+    action: "order.deleted",
+    entityType: "order",
+    entityId: order.order_ref,
+  });
   return NextResponse.json({ ok: true });
 }

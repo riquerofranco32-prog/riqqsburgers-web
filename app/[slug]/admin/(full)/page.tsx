@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import type { Product, Order } from "@/types/supabase";
 import AdminDashboard from "@/components/AdminDashboard";
 import BackButton from "@/components/BackButton";
+import { LOW_STOCK_THRESHOLD } from "@/lib/stock";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Panel Admin" };
@@ -78,7 +79,7 @@ export default async function AdminPage({
       db
         .from("products")
         .select(
-          "id, name, category_id, tenant_id, description, price, image_url, badge, available, sort_order, created_at",
+          "id, name, category_id, tenant_id, description, price, image_url, badge, available, sort_order, created_at, stock_quantity",
         )
         .eq("tenant_id", tenant.id),
       getEffectiveSubscription(tenant.id),
@@ -87,6 +88,20 @@ export default async function AdminPage({
   const orders = (rawOrders ?? []) as Order[];
   const products = (rawProducts ?? []) as Product[];
   const unavailableProducts = products.filter((p) => !p.available);
+  // ponytail: umbral fijo, no hace falta que sea configurable por tenant todavía
+  const lowStockProducts = products
+    .filter(
+      (p) =>
+        p.available &&
+        p.stock_quantity !== null &&
+        p.stock_quantity > 0 &&
+        p.stock_quantity <= LOW_STOCK_THRESHOLD,
+    )
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      stock_quantity: p.stock_quantity as number,
+    }));
   const trialDays = trialDaysLeft(subscription);
 
   const onboarding = {
@@ -109,6 +124,7 @@ export default async function AdminPage({
         isOpen={tenant.is_open}
         allOrders={orders}
         unavailableProducts={unavailableProducts}
+        lowStockProducts={lowStockProducts}
         trialDaysLeft={trialDays}
         onboarding={onboarding}
       />

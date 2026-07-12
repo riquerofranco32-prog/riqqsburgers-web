@@ -26,6 +26,7 @@ import {
   Search,
   PlusCircle,
   CheckCheck,
+  History,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -33,6 +34,7 @@ import { createSupabaseBrowser } from "@/lib/supabase";
 import TakefyyLogo from "@/components/TakefyyLogo";
 import PendingOrdersBadge from "@/components/admin/PendingOrdersBadge";
 import NotificationToggle from "@/components/admin/NotificationToggle";
+import NotificationCenter from "@/components/admin/NotificationCenter";
 import { CommandPalette } from "@/components/admin/CommandPalette";
 
 interface AdminShellProps {
@@ -58,6 +60,7 @@ const FULL_NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> =
     { href: "/resenas", label: "Reseñas", icon: Star },
     { href: "/qr", label: "Código QR", icon: QrCode },
     { href: "/equipo", label: "Equipo", icon: UserCog },
+    { href: "/actividad", label: "Actividad", icon: History },
     { href: "/configuracion", label: "Configuración", icon: Settings },
     { href: "/plan", label: "Mi Plan", icon: Crown },
     { href: "/mi-cuenta", label: "Mi cuenta", icon: UserCircle },
@@ -488,15 +491,22 @@ export default function AdminShell({
           {tenantName}
         </span>
 
-        {/* Takefyy logo — right */}
+        {/* Notificaciones + logo Takefyy — right */}
         <div
           style={{
             flexShrink: 0,
             display: "flex",
             alignItems: "center",
+            gap: 8,
             paddingRight: 8,
           }}
         >
+          <NotificationCenter
+            tenantId={tenantId}
+            slug={slug}
+            align="right"
+            isStaff={isStaff}
+          />
           <TakefyyLogo size="sm" />
         </div>
       </header>
@@ -846,14 +856,24 @@ export default function AdminShell({
           </div>
         )}
 
-        <div style={{ padding: collapsed ? "8px" : "0 8px", marginTop: 8 }}>
+        <div
+          style={{
+            padding: collapsed ? "8px" : "0 8px",
+            marginTop: 8,
+            display: "flex",
+            flexDirection: collapsed ? "column" : "row",
+            gap: 6,
+          }}
+        >
           <button
             onClick={() =>
               window.dispatchEvent(new CustomEvent("open-command-palette"))
             }
             title="Buscar (Ctrl+K)"
             style={{
-              width: "100%",
+              width: collapsed ? "100%" : undefined,
+              flex: collapsed ? undefined : 1,
+              minWidth: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: collapsed ? "center" : "flex-start",
@@ -896,6 +916,13 @@ export default function AdminShell({
               </>
             )}
           </button>
+          <NotificationCenter
+            tenantId={tenantId}
+            slug={slug}
+            collapsed={collapsed}
+            align="left"
+            isStaff={isStaff}
+          />
         </div>
 
         <DesktopNavLinks
@@ -1059,6 +1086,7 @@ export default function AdminShell({
         navItems={navItems}
         actionItems={actionItems}
         slug={slug}
+        tenantId={tenantId}
       />
     </div>
   );

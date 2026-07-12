@@ -2,28 +2,44 @@
 
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
-import type { Product } from "@/types/supabase";
+import type {
+  StockAlertProduct,
+  LowStockAlertProduct,
+} from "@/types/dashboard";
 
 interface LowStockAlertProps {
-  unavailableProducts: Product[];
+  unavailableProducts: StockAlertProduct[];
+  lowStockProducts?: LowStockAlertProduct[];
   slug: string;
 }
 
-export function LowStockAlert({ unavailableProducts, slug }: LowStockAlertProps) {
+function namesLabel(names: string[]): string {
+  const count = names.length;
+  if (count === 1) return `"${names[0]}"`;
+  if (count === 2) return `"${names[0]}" y "${names[1]}"`;
+  return `"${names[0]}", "${names[1]}" y ${count - 2} más`;
+}
+
+export function LowStockAlert({
+  unavailableProducts,
+  lowStockProducts = [],
+  slug,
+}: LowStockAlertProps) {
   const count = unavailableProducts.length;
-  if (count === 0) return null;
+  const lowCount = lowStockProducts.length;
+  if (count === 0 && lowCount === 0) return null;
 
-  // Formatear nombres de los productos desactivados
-  let itemsLabel = "";
-  if (count === 1) {
-    itemsLabel = `"${unavailableProducts[0].name}"`;
-  } else if (count === 2) {
-    itemsLabel = `"${unavailableProducts[0].name}" y "${unavailableProducts[1].name}"`;
-  } else {
-    itemsLabel = `"${unavailableProducts[0].name}", "${unavailableProducts[1].name}" y ${count - 2} más`;
-  }
+  const itemsLabel = namesLabel(unavailableProducts.map((p) => p.name));
+  const lowItemsLabel = namesLabel(lowStockProducts.map((p) => p.name));
 
-  const titleText = count === 1 ? "Tenés 1 producto desactivado" : `Tenés ${count} productos desactivados`;
+  const titleText =
+    count === 1
+      ? "Tenés 1 producto desactivado"
+      : `Tenés ${count} productos desactivados`;
+  const lowTitleText =
+    lowCount === 1
+      ? "1 producto con stock bajo"
+      : `${lowCount} productos con stock bajo`;
 
   return (
     <div
@@ -59,69 +75,145 @@ export function LowStockAlert({ unavailableProducts, slug }: LowStockAlertProps)
         }}
       />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 260 }}>
-        {/* Pulsing Icon Container */}
-        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <style>{`
-            @keyframes warning-ping {
-              0% { transform: scale(0.85); opacity: 0.5; }
-              70% { transform: scale(1.6); opacity: 0; }
-              100% { transform: scale(1.6); opacity: 0; }
-            }
-          `}</style>
-          <div
-            style={{
-              position: "absolute",
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "rgba(245, 158, 11, 0.3)",
-              animation: "warning-ping 2s cubic-bezier(0.16, 1, 0.3, 1) infinite",
-            }}
-          />
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "rgba(245, 158, 11, 0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              border: "1px solid rgba(245, 158, 11, 0.3)",
-              position: "relative",
-              zIndex: 1,
-            }}
-          >
-            <AlertTriangle
-              size={15}
-              style={{ color: "#f59e0b" }}
-              strokeWidth={2.5}
-            />
-          </div>
-        </div>
+      <style>{`
+        @keyframes warning-ping {
+          0% { transform: scale(0.85); opacity: 0.5; }
+          70% { transform: scale(1.6); opacity: 0; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+      `}</style>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <p
-            style={{
-              fontSize: 13,
-              color: "#fbbf24",
-              fontWeight: 600,
-              lineHeight: 1.2,
-            }}
-          >
-            {titleText} en tu carta
-          </p>
-          <p
-            style={{
-              fontSize: 11,
-              color: "rgba(251, 191, 36, 0.75)",
-              lineHeight: 1.3,
-            }}
-          >
-            Los clientes no podrán pedir <strong style={{ color: "#fbbf24", fontWeight: 600 }}>{itemsLabel}</strong> hasta que los vuelvas a activar.
-          </p>
-        </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          flex: 1,
+          minWidth: 260,
+        }}
+      >
+        {count > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Pulsing Icon Container */}
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: "rgba(245, 158, 11, 0.3)",
+                  animation:
+                    "warning-ping 2s cubic-bezier(0.16, 1, 0.3, 1) infinite",
+                }}
+              />
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: "rgba(245, 158, 11, 0.15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1px solid rgba(245, 158, 11, 0.3)",
+                  position: "relative",
+                  zIndex: 1,
+                }}
+              >
+                <AlertTriangle
+                  size={15}
+                  style={{ color: "#f59e0b" }}
+                  strokeWidth={2.5}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#fbbf24",
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {titleText} en tu carta
+              </p>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "rgba(251, 191, 36, 0.75)",
+                  lineHeight: 1.3,
+                }}
+              >
+                Los clientes no podrán pedir{" "}
+                <strong style={{ color: "#fbbf24", fontWeight: 600 }}>
+                  {itemsLabel}
+                </strong>{" "}
+                hasta que los vuelvas a activar.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {lowCount > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: "50%",
+                background: "rgba(245, 158, 11, 0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid rgba(245, 158, 11, 0.3)",
+                flexShrink: 0,
+              }}
+            >
+              <AlertTriangle
+                size={15}
+                style={{ color: "#f59e0b" }}
+                strokeWidth={2.5}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "#fbbf24",
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {lowTitleText}
+              </p>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "rgba(251, 191, 36, 0.75)",
+                  lineHeight: 1.3,
+                }}
+              >
+                Quedan pocas unidades de{" "}
+                <strong style={{ color: "#fbbf24", fontWeight: 600 }}>
+                  {lowItemsLabel}
+                </strong>
+                . Actualizá el stock antes de que se agote.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <Link
@@ -145,7 +237,8 @@ export function LowStockAlert({ unavailableProducts, slug }: LowStockAlertProps)
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = "translateY(-1px)";
-          e.currentTarget.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.35)";
+          e.currentTarget.style.boxShadow =
+            "0 4px 12px rgba(245, 158, 11, 0.35)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.transform = "translateY(0)";

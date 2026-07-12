@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
@@ -27,11 +28,7 @@ function fmtMinOrder(amount: number | null): string | null {
 
 type FilterType = "all" | "percent" | "fixed";
 
-export default function OffersClient({
-  offers,
-}: {
-  offers: PublicOffer[];
-}) {
+export default function OffersClient({ offers }: { offers: PublicOffer[] }) {
   const [filter, setFilter] = useState<FilterType>("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -134,16 +131,17 @@ export default function OffersClient({
                   <div className="offers-group-header">
                     <div className="offers-group-logo">
                       {group.business.logo_url ? (
-                        <img
+                        <Image
                           src={group.business.logo_url}
                           alt={group.business.name}
+                          fill
+                          sizes="44px"
                         />
                       ) : (
                         <span
                           className="offers-group-logo-fallback"
                           style={{
-                            color:
-                              group.business.primary_color || "#ff6b35",
+                            color: group.business.primary_color || "#ff6b35",
                           }}
                         >
                           {group.business.name.charAt(0)}
@@ -251,7 +249,8 @@ export default function OffersClient({
         .offers-bg {
           position: fixed;
           inset: 0;
-          background: radial-gradient(
+          background:
+            radial-gradient(
               ellipse 80% 50% at 20% -10%,
               rgba(255, 107, 53, 0.06),
               transparent 60%
@@ -398,6 +397,7 @@ export default function OffersClient({
           border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
         .offers-group-logo {
+          position: relative;
           width: 44px;
           height: 44px;
           border-radius: 12px;

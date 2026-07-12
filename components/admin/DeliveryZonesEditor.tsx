@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { Trash2, Plus, MapPin } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { DeliveryZone } from "@/types/supabase";
 import type { DeliveryPosition } from "@/components/AddressGeocodePicker";
 import { AdminButton } from "@/components/ui/admin/AdminButton";
+import {
+  INLINE_CONFIRM_VARIANTS,
+  INLINE_CONFIRM_TRANSITION,
+} from "@/components/ui/admin/InlineConfirm";
 
 const AddressGeocodePicker = dynamic(
   () => import("@/components/AddressGeocodePicker"),
@@ -184,41 +189,57 @@ export default function DeliveryZonesEditor({
             >
               <MapPin size={15} />
             </button>
-            {confirmDeleteId !== z.id && (
-              <button
-                type="button"
-                onClick={() => setConfirmDeleteId(z.id)}
-                aria-label={`Eliminar zona ${z.name}`}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#ef4444",
-                  cursor: "pointer",
-                  padding: 4,
-                  display: "flex",
-                }}
-              >
-                <Trash2 size={15} />
-              </button>
-            )}
+            <AnimatePresence initial={false}>
+              {confirmDeleteId !== z.id && (
+                <motion.button
+                  type="button"
+                  onClick={() => setConfirmDeleteId(z.id)}
+                  aria-label={`Eliminar zona ${z.name}`}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  variants={INLINE_CONFIRM_VARIANTS}
+                  transition={INLINE_CONFIRM_TRANSITION}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#ef4444",
+                    cursor: "pointer",
+                    padding: 4,
+                    display: "flex",
+                  }}
+                >
+                  <Trash2 size={15} />
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
 
-          {confirmDeleteId === z.id && (
-            <div style={{ display: "flex", gap: 6 }}>
-              <AdminButton
-                variant="danger"
-                onClick={() => void deleteZone(z.id)}
+          <AnimatePresence initial={false}>
+            {confirmDeleteId === z.id && (
+              <motion.div
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={INLINE_CONFIRM_VARIANTS}
+                transition={INLINE_CONFIRM_TRANSITION}
+                style={{ display: "flex", gap: 6 }}
               >
-                Sí, eliminar zona
-              </AdminButton>
-              <AdminButton
-                variant="secondary"
-                onClick={() => setConfirmDeleteId(null)}
-              >
-                Cancelar
-              </AdminButton>
-            </div>
-          )}
+                <AdminButton
+                  variant="danger"
+                  onClick={() => void deleteZone(z.id)}
+                >
+                  Sí, eliminar zona
+                </AdminButton>
+                <AdminButton
+                  variant="secondary"
+                  onClick={() => setConfirmDeleteId(null)}
+                >
+                  Cancelar
+                </AdminButton>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {z.lat === null && (
             <p style={{ fontSize: 11, color: "#d97706", margin: 0 }}>

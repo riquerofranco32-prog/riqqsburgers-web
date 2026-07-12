@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
+import { logActivity } from "@/lib/activityLog";
 
 const ALLOWED_FIELDS = [
   "name",
@@ -66,7 +67,9 @@ export async function PATCH(
 
   const { data: product } = await supabase
     .from("products")
-    .select("tenant_id, tenants(slug)")
+    .select(
+      "tenant_id, name, available, stock_quantity, category_id, tenants(slug)",
+    )
     .eq("id", id)
     .maybeSingle();
 
@@ -85,8 +88,10 @@ export async function PATCH(
     );
   }
 
+  let actorEmail = "desconocido";
   try {
-    await assertTenantAdmin(slug);
+    const { user } = await assertTenantAdmin(slug);
+    actorEmail = user.email ?? actorEmail;
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
@@ -242,6 +247,49 @@ export async function PATCH(
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
+
+  if ("available" in patch) {
+    void logActivity({
+      tenantId: product.tenant_id,
+      actorEmail,
+      action: "product.availability_toggled",
+      entityType: "product",
+      entityId: id,
+      metadata: {
+        name: product.name,
+        from: product.available,
+        to: patch.available,
+      },
+    });
+  }
+  if ("stock_quantity" in patch) {
+    void logActivity({
+      tenantId: product.tenant_id,
+      actorEmail,
+      action: "product.stock_updated",
+      entityType: "product",
+      entityId: id,
+      metadata: {
+        name: product.name,
+        from: product.stock_quantity,
+        to: patch.stock_quantity,
+      },
+    });
+  }
+  if ("category_id" in patch && patch.category_id !== product.category_id) {
+    void logActivity({
+      tenantId: product.tenant_id,
+      actorEmail,
+      action: "product.category_changed",
+      entityType: "product",
+      entityId: id,
+      metadata: {
+        name: product.name,
+        from: product.category_id,
+        to: patch.category_id,
+      },
+    });
+  }
 
   revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ ok: true });

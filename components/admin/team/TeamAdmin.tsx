@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AdminModal } from "@/components/ui/admin/AdminModal";
 import { AdminField, adminInputStyle } from "@/components/ui/admin/AdminField";
 import { AdminButton } from "@/components/ui/admin/AdminButton";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 
 interface TeamMember {
   id: string;
@@ -296,39 +297,47 @@ export function TeamAdmin({
                 </div>
               </div>
 
-              {confirmDeleteId === m.id ? (
-                <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                  <AdminButton variant="danger" onClick={() => handleDelete(m)}>
-                    Confirmar
-                  </AdminButton>
-                  <AdminButton
-                    variant="secondary"
-                    onClick={() => setConfirmDeleteId(null)}
+              <InlineConfirm
+                active={confirmDeleteId === m.id}
+                itemKey={m.id}
+                confirm={
+                  <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                    <AdminButton
+                      variant="danger"
+                      onClick={() => handleDelete(m)}
+                    >
+                      Confirmar
+                    </AdminButton>
+                    <AdminButton
+                      variant="secondary"
+                      onClick={() => setConfirmDeleteId(null)}
+                    >
+                      Cancelar
+                    </AdminButton>
+                  </div>
+                }
+                trigger={
+                  <button
+                    onClick={() => setConfirmDeleteId(m.id)}
+                    aria-label="Quitar acceso"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: "var(--dash-surface-2)",
+                      border: "none",
+                      color: "var(--dash-muted)",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                   >
-                    Cancelar
-                  </AdminButton>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmDeleteId(m.id)}
-                  aria-label="Quitar acceso"
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    background: "var(--dash-surface-2)",
-                    border: "none",
-                    color: "var(--dash-muted)",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                }
+              />
             </div>
           ))}
         </div>

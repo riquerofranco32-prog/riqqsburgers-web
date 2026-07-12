@@ -1,8 +1,10 @@
 "use client";
 
-import { ChevronUp, ChevronDown, Copy } from "lucide-react";
+import { ChevronUp, ChevronDown, Copy, GripVertical } from "lucide-react";
+import type { DragControls } from "framer-motion";
 import type { Category, Product } from "@/types/supabase";
 import { ProductImageCell } from "./ProductImageCell";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 
 export function ProductDesktopRow({
   product,
@@ -24,6 +26,7 @@ export function ProductDesktopRow({
   canMoveUp,
   canMoveDown,
   reorderBusy,
+  dragControls,
   onRestock,
   inlinePriceId,
   inlinePriceVal,
@@ -52,6 +55,8 @@ export function ProductDesktopRow({
   canMoveUp?: boolean;
   canMoveDown?: boolean;
   reorderBusy?: boolean;
+  /** Si está presente, muestra un handle de arrastre (drag-and-drop con framer-motion Reorder). */
+  dragControls?: DragControls;
   onRestock?: (p: Product) => void;
   inlinePriceId: string | null;
   inlinePriceVal: string;
@@ -64,8 +69,18 @@ export function ProductDesktopRow({
   const isEditingPrice = inlinePriceId === product.id;
   return (
     <div
-      className={`bg-[var(--dash-surface)] rounded-2xl border flex items-center gap-3 p-3 transition-opacity ${selected ? "border-[var(--accent)]/60" : "border-[var(--dash-border)]"} ${product.available ? "" : "opacity-50"}`}
+      style={{ padding: "var(--row-py, 12px)" }}
+      className={`bg-[var(--dash-surface)] rounded-2xl border flex items-center gap-3 transition-opacity ${selected ? "border-[var(--accent)]/60" : "border-[var(--dash-border)]"} ${product.available ? "" : "opacity-50"}`}
     >
+      {dragControls && (
+        <div
+          onPointerDown={(e) => dragControls.start(e)}
+          title="Arrastrar para reordenar"
+          className="flex-shrink-0 text-[var(--dash-muted)] cursor-grab active:cursor-grabbing flex items-center touch-none"
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+      )}
       {onMove && (
         <div className="flex flex-col flex-shrink-0 -my-1">
           <button
@@ -243,49 +258,54 @@ export function ProductDesktopRow({
             )}
           </button>
         )}
-        {confirmDeleteId === product.id ? (
-          <div className="flex items-center gap-1">
+        <InlineConfirm
+          active={confirmDeleteId === product.id}
+          itemKey={product.id}
+          confirm={
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onConfirmDelete(product)}
+                style={
+                  {
+                    WebkitTapHighlightColor: "transparent",
+                    userSelect: "none",
+                  } as React.CSSProperties
+                }
+                className="text-xs text-[var(--dash-text)] bg-red-600 hover:bg-red-500 min-h-[36px] px-3 rounded-xl transition-all font-semibold"
+              >
+                Sí, eliminar
+              </button>
+              <button
+                onClick={onCancelDelete}
+                style={
+                  {
+                    WebkitTapHighlightColor: "transparent",
+                    userSelect: "none",
+                  } as React.CSSProperties
+                }
+                className="text-xs text-[var(--dash-muted)] hover:text-[var(--dash-text)] min-h-[36px] px-3 rounded-xl hover:bg-[var(--dash-surface-2)] transition-all"
+              >
+                No
+              </button>
+            </div>
+          }
+          trigger={
             <button
-              onClick={() => onConfirmDelete(product)}
+              onClick={() => onDelete(product)}
+              disabled={deletingId === product.id}
+              title="Eliminar"
               style={
                 {
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
                 } as React.CSSProperties
               }
-              className="text-xs text-[var(--dash-text)] bg-red-600 hover:bg-red-500 min-h-[36px] px-3 rounded-xl transition-all font-semibold"
+              className="text-xs text-[var(--dash-muted)] hover:text-red-400 min-h-[44px] px-3 rounded-xl hover:bg-[var(--dash-surface-2)] transition-all disabled:opacity-40 flex items-center"
             >
-              Sí, eliminar
+              {deletingId === product.id ? "…" : "🗑"}
             </button>
-            <button
-              onClick={onCancelDelete}
-              style={
-                {
-                  WebkitTapHighlightColor: "transparent",
-                  userSelect: "none",
-                } as React.CSSProperties
-              }
-              className="text-xs text-[var(--dash-muted)] hover:text-[var(--dash-text)] min-h-[36px] px-3 rounded-xl hover:bg-[var(--dash-surface-2)] transition-all"
-            >
-              No
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => onDelete(product)}
-            disabled={deletingId === product.id}
-            title="Eliminar"
-            style={
-              {
-                WebkitTapHighlightColor: "transparent",
-                userSelect: "none",
-              } as React.CSSProperties
-            }
-            className="text-xs text-[var(--dash-muted)] hover:text-red-400 min-h-[44px] px-3 rounded-xl hover:bg-[var(--dash-surface-2)] transition-all disabled:opacity-40 flex items-center"
-          >
-            {deletingId === product.id ? "…" : "🗑"}
-          </button>
-        )}
+          }
+        />
       </div>
     </div>
   );

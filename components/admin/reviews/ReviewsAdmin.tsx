@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Star } from "lucide-react";
+import EmptyState from "@/components/admin/EmptyState";
 import type { Review } from "@/types/supabase";
 
 function fmtFecha(iso: string) {
@@ -49,21 +50,11 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
 
   if (reviews.length === 0) {
     return (
-      <div
-        style={{
-          background: "var(--dash-surface)",
-          border: "1px solid var(--dash-border)",
-          borderRadius: 16,
-          padding: "56px 20px",
-          textAlign: "center",
-          color: "var(--dash-muted)",
-        }}
-      >
-        <Star
-          style={{ width: 32, height: 32, margin: "0 auto 8px", opacity: 0.5 }}
-        />
-        <p style={{ fontSize: 14 }}>Todavía no hay reseñas de clientes.</p>
-      </div>
+      <EmptyState
+        icon={Star}
+        title="Todavía no hay reseñas"
+        description="Cuando tus clientes dejen su opinión, la vas a ver reflejada acá."
+      />
     );
   }
 
@@ -220,6 +211,14 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
               Ver todas
             </button>
           </div>
+        )}
+        {filtered.length === 0 && (
+          <EmptyState
+            icon={Star}
+            title="Sin reseñas de esa calificación"
+            description={`Nadie dejó ${filter} estrella${filter !== 1 ? "s" : ""} todavía.`}
+            action={{ label: "Ver todas", onClick: () => setFilter("all") }}
+          />
         )}
         {filtered.map((r) => (
           <div

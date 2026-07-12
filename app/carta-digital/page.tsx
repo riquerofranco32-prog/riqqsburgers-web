@@ -77,6 +77,43 @@ const jsonLd = {
         },
       ],
     },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "¿Qué diferencia hay entre una carta digital y un menú digital?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Ninguna funcional: son dos formas de nombrar lo mismo. Con Takefyy tu carta digital incluye productos, precios, fotos y pedidos por WhatsApp, sin importar cómo la llames.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Puedo tener una carta digital sin pagar nada?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Sí. Takefyy tiene un plan gratuito permanente con las funciones básicas para publicar tu carta y recibir pedidos por WhatsApp.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Cuánto tarda en estar lista mi carta digital?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Minutos. Cargás tus categorías y productos desde el panel, sin programar ni depender de un técnico, y tu carta queda publicada al instante.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Puedo actualizar precios y productos de mi carta digital cuando quiera?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Sí, en cualquier momento desde el panel de administración. Los cambios se reflejan al instante para todos los que vean tu carta.",
+          },
+        },
+      ],
+    },
   ],
 };
 
@@ -260,6 +297,71 @@ export default function CartaDigitalPage() {
                   {b.desc}
                 </p>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div
+          style={{ maxWidth: 720, margin: "0 auto", padding: "0 20px 72px" }}
+        >
+          <h2
+            style={{
+              fontFamily: "var(--font-anton)",
+              fontSize: "clamp(1.6rem, 3.5vw, 2.2rem)",
+              textAlign: "center",
+              marginBottom: 40,
+              color: "#0E1116",
+            }}
+          >
+            Preguntas frecuentes sobre carta digital
+          </h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {(
+              jsonLd["@graph"][2] as {
+                mainEntity: Array<{
+                  name: string;
+                  acceptedAnswer: { text: string };
+                }>;
+              }
+            ).mainEntity.map((q) => (
+              <details
+                key={q.name}
+                style={{
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  padding: "18px 20px",
+                }}
+              >
+                <summary
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    cursor: "pointer",
+                    color: "#0E1116",
+                    listStyle: "none",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  {q.name}
+                  <span style={{ flexShrink: 0, fontSize: 18, color: ACCENT }}>
+                    +
+                  </span>
+                </summary>
+                <p
+                  style={{
+                    marginTop: 12,
+                    fontSize: 14,
+                    color: "#6b7280",
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {q.acceptedAnswer.text}
+                </p>
+              </details>
             ))}
           </div>
         </div>

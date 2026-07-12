@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Search, CornerDownLeft, type LucideIcon } from "lucide-react";
+import {
+  Search,
+  CornerDownLeft,
+  ClipboardList,
+  Users,
+  Package,
+  type LucideIcon,
+} from "lucide-react";
+import { createSupabaseBrowser } from "@/lib/supabase";
 
 interface NavItem {
   href: string;
@@ -12,20 +20,30 @@ interface NavItem {
 
 interface PaletteItem extends NavItem {
   isAction?: boolean;
+  isDynamic?: boolean;
+  groupLabel?: string;
 }
+
+const SEARCH_DEBOUNCE_MS = 300;
+const MIN_QUERY_LENGTH = 2;
+const RESULT_LIMIT = 5;
 
 export function CommandPalette({
   navItems,
   actionItems = [],
   slug,
+  tenantId,
 }: {
   navItems: NavItem[];
   actionItems?: NavItem[];
   slug: string;
+  tenantId: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [dynamicResults, setDynamicResults] = useState<PaletteItem[]>([]);
+  const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -37,11 +55,91 @@ export function CommandPalette({
     [navItems, actionItems],
   );
 
-  const results = useMemo(() => {
+  const staticResults = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return allItems;
     return allItems.filter((item) => item.label.toLowerCase().includes(q));
   }, [allItems, query]);
+
+  // Búsqueda de contenido real (pedidos, clientes, productos) con debounce
+  // para no pegarle a Supabase en cada tecla.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < MIN_QUERY_LENGTH) {
+      setDynamicResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const timer = setTimeout(async () => {
+      const supabase = createSupabaseBrowser();
+      const like = `%${q}%`;
+
+      const [ordersRes, customersRes, productsRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("order_ref, customer_name, total")
+          .eq("tenant_id", tenantId)
+          .ilike("order_ref", like)
+          .limit(RESULT_LIMIT),
+        supabase
+          .from("orders")
+          .select("customer_name, customer_phone")
+          .eq("tenant_id", tenantId)
+          .or(`customer_name.ilike.${like},customer_phone.ilike.${like}`)
+          .limit(20),
+        supabase
+          .from("products")
+          .select("id, name")
+          .eq("tenant_id", tenantId)
+          .ilike("name", like)
+          .limit(RESULT_LIMIT),
+      ]);
+
+      const orderItems: PaletteItem[] = (ordersRes.data ?? []).map((o) => ({
+        href: `/pedidos/${o.order_ref}`,
+        label: `#${o.order_ref}${o.customer_name ? " — " + o.customer_name : ""}`,
+        icon: ClipboardList,
+        isDynamic: true,
+        groupLabel: "Pedidos",
+      }));
+
+      // Dedupe clientes por teléfono (o nombre si no hay teléfono)
+      const seen = new Set<string>();
+      const customerItems: PaletteItem[] = [];
+      for (const c of customersRes.data ?? []) {
+        const key = c.customer_phone || c.customer_name || "";
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        customerItems.push({
+          href: `/clientes?q=${encodeURIComponent(c.customer_phone || c.customer_name || "")}`,
+          label: c.customer_name || c.customer_phone || "Cliente",
+          icon: Users,
+          isDynamic: true,
+          groupLabel: "Clientes",
+        });
+        if (customerItems.length >= RESULT_LIMIT) break;
+      }
+
+      const productItems: PaletteItem[] = (productsRes.data ?? []).map((p) => ({
+        href: `/productos?edit=${p.id}`,
+        label: p.name,
+        icon: Package,
+        isDynamic: true,
+        groupLabel: "Productos",
+      }));
+
+      setDynamicResults([...orderItems, ...customerItems, ...productItems]);
+      setSearching(false);
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [query, tenantId]);
+
+  const results = useMemo(
+    () => [...staticResults, ...dynamicResults],
+    [staticResults, dynamicResults],
+  );
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -174,62 +272,82 @@ export function CommandPalette({
                 color: "var(--dash-muted)",
               }}
             >
-              Sin resultados
+              {searching ? "Buscando..." : "Sin resultados"}
             </p>
           ) : (
             results.map((item, i) => {
               const isActive = i === activeIndex;
+              const prevGroup = i > 0 ? results[i - 1].groupLabel : undefined;
+              const showGroupHeader =
+                item.groupLabel && item.groupLabel !== prevGroup;
               return (
-                <button
-                  key={item.href}
-                  onClick={() => navigate(item)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    border: "none",
-                    background: isActive ? "var(--dash-surface-2)" : "none",
-                    color: isActive ? "var(--dash-text)" : "var(--dash-muted)",
-                    fontSize: 14,
-                    fontWeight: isActive ? 600 : 500,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                >
-                  <item.icon
-                    size={16}
-                    strokeWidth={1.8}
-                    color={isActive ? "var(--accent)" : "var(--dash-muted)"}
-                  />
-                  {item.label}
-                  {item.isAction && (
-                    <span
+                <div key={`${item.groupLabel ?? "nav"}-${item.href}-${i}`}>
+                  {showGroupHeader && (
+                    <p
                       style={{
+                        padding: "8px 12px 4px",
                         fontSize: 10,
                         fontWeight: 700,
-                        color: "var(--accent)",
-                        background: "var(--dash-accent-subtle)",
-                        border: "1px solid var(--accent)44",
-                        borderRadius: 4,
-                        padding: "1px 5px",
-                        letterSpacing: "0.02em",
+                        letterSpacing: "0.06em",
+                        textTransform: "uppercase",
+                        color: "var(--dash-muted)",
                       }}
                     >
-                      ACCIÓN
-                    </span>
+                      {item.groupLabel}
+                    </p>
                   )}
-                  {isActive && (
-                    <CornerDownLeft
-                      size={13}
-                      style={{ marginLeft: "auto", opacity: 0.6 }}
+                  <button
+                    onClick={() => navigate(item)}
+                    onMouseEnter={() => setActiveIndex(i)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 12px",
+                      borderRadius: 8,
+                      border: "none",
+                      background: isActive ? "var(--dash-surface-2)" : "none",
+                      color: isActive
+                        ? "var(--dash-text)"
+                        : "var(--dash-muted)",
+                      fontSize: 14,
+                      fontWeight: isActive ? 600 : 500,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      WebkitTapHighlightColor: "transparent",
+                    }}
+                  >
+                    <item.icon
+                      size={16}
+                      strokeWidth={1.8}
+                      color={isActive ? "var(--accent)" : "var(--dash-muted)"}
                     />
-                  )}
-                </button>
+                    {item.label}
+                    {item.isAction && (
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: "var(--accent)",
+                          background: "var(--dash-accent-subtle)",
+                          border: "1px solid var(--accent)44",
+                          borderRadius: 4,
+                          padding: "1px 5px",
+                          letterSpacing: "0.02em",
+                        }}
+                      >
+                        ACCIÓN
+                      </span>
+                    )}
+                    {isActive && (
+                      <CornerDownLeft
+                        size={13}
+                        style={{ marginLeft: "auto", opacity: 0.6 }}
+                      />
+                    )}
+                  </button>
+                </div>
               );
             })
           )}

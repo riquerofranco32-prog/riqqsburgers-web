@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, Users, Gift, MessageCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Search, Users, Gift, MessageCircle, SearchX } from "lucide-react";
 import { toast } from "sonner";
+import EmptyState from "@/components/admin/EmptyState";
 import { getCustomerTier, type CustomerSummary } from "@/lib/customers";
 
 function fmtARS(n: number) {
@@ -37,7 +39,10 @@ export function CustomersTable({
   customers: CustomerSummary[];
   slug: string;
 }) {
-  const [search, setSearch] = useState("");
+  // Soporta el resultado de búsqueda de clientes del Cmd+K
+  // (/clientes?q=<telefono o nombre>)
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
   const [sort, setSort] = useState<SortKey>("spent");
   const [rewardingKey, setRewardingKey] = useState<string | null>(null);
   const [rewardLinks, setRewardLinks] = useState<Record<string, string>>({});
@@ -119,23 +124,11 @@ export function CustomersTable({
 
   if (customers.length === 0) {
     return (
-      <div
-        style={{
-          background: "var(--dash-surface)",
-          border: "1px solid var(--dash-border)",
-          borderRadius: 16,
-          padding: "56px 20px",
-          textAlign: "center",
-          color: "var(--dash-muted)",
-        }}
-      >
-        <Users
-          style={{ width: 32, height: 32, margin: "0 auto 8px", opacity: 0.5 }}
-        />
-        <p style={{ fontSize: 14 }}>
-          Todavía no hay clientes con datos de contacto en los pedidos.
-        </p>
-      </div>
+      <EmptyState
+        icon={Users}
+        title="Todavía no hay clientes"
+        description="Se van a listar acá a medida que entren pedidos con datos de contacto."
+      />
     );
   }
 
@@ -369,16 +362,12 @@ export function CustomersTable({
           );
         })}
         {filtered.length === 0 && (
-          <div
-            style={{
-              padding: "40px 20px",
-              textAlign: "center",
-              color: "var(--dash-muted)",
-              fontSize: 14,
-            }}
-          >
-            Sin resultados para esa búsqueda
-          </div>
+          <EmptyState
+            icon={SearchX}
+            title="Sin resultados"
+            description={`No encontramos clientes para "${search}".`}
+            action={{ label: "Limpiar búsqueda", onClick: () => setSearch("") }}
+          />
         )}
       </div>
     </div>

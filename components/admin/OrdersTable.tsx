@@ -9,15 +9,20 @@ import {
   WifiOff,
   ClipboardList,
   Download,
+  SearchX,
 } from "lucide-react";
 import { toast } from "sonner";
+import EmptyState from "@/components/admin/EmptyState";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import { useOrdersRealtime } from "@/hooks/useOrdersRealtime";
+import { useTableDensity } from "@/hooks/useTableDensity";
 import { playSound } from "@/lib/sounds";
 import type { Order } from "@/types/supabase";
 import { MobileOrderCard } from "@/components/admin/orders/MobileOrderCard";
 import { OrderDesktopRow } from "@/components/admin/orders/OrderDesktopRow";
 import { OrdersKpiGrid } from "@/components/admin/orders/OrdersKpiGrid";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
+import { DensityToggle } from "@/components/ui/admin/DensityToggle";
 import {
   vibrate,
   useNowMinute,
@@ -60,6 +65,32 @@ export function OrdersTable({
   >("all");
   const isMobile = useIsMobile();
   useNowMinute();
+  const { density, toggleDensity } = useTableDensity();
+
+  // Selección bulk — solo tiene UI en desktop (ver nota junto a la barra de
+  // acciones más abajo). Se resetea al cambiar filtro/período/búsqueda: no
+  // hace falta persistirla entre navegaciones (YAGNI).
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkWorking, setBulkWorking] = useState(false);
+  const [bulkConfirmCancel, setBulkConfirmCancel] = useState(false);
+  useEffect(() => {
+    setSelectedIds(new Set());
+    setBulkConfirmCancel(false);
+  }, [filter, dateRange, search]);
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+    setBulkConfirmCancel(false);
+  }
 
   const notifPermissionRef = useRef<NotificationPermission>("default");
   const unseenCountRef = useRef(0);
@@ -204,6 +235,33 @@ export function OrdersTable({
       toast.error("No se pudo actualizar el estado del pedido.");
       vibrate([50, 30, 50]);
     }
+  }
+
+  // Reutiliza `updateStatus` fila por fila, igual que el atajo de Cmd+K
+  // ("Confirmar pendientes" → bulk=confirm-pending, más arriba en este
+  // archivo) — sin duplicar la lógica de fetch/optimistic update.
+  async function bulkConfirmSelected() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkWorking(true);
+    await Promise.all(ids.map((id) => updateStatus(id, "confirmed", true)));
+    toast.success(
+      `${ids.length} pedido${ids.length !== 1 ? "s" : ""} confirmado${ids.length !== 1 ? "s" : ""}`,
+    );
+    setBulkWorking(false);
+    clearSelection();
+  }
+
+  async function bulkCancelSelected() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    setBulkWorking(true);
+    await Promise.all(ids.map((id) => updateStatus(id, "cancelled", true)));
+    toast.success(
+      `${ids.length} pedido${ids.length !== 1 ? "s" : ""} cancelado${ids.length !== 1 ? "s" : ""}`,
+    );
+    setBulkWorking(false);
+    clearSelection();
   }
 
   async function deleteOrder(orderId: string) {
@@ -452,13 +510,16 @@ export function OrdersTable({
 
       {/* Orders table */}
       <div
-        style={{
-          background: "var(--dash-surface)",
-          border: "1px solid var(--dash-border)",
-          borderRadius: 16,
-          overflow: "hidden",
-          boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-        }}
+        style={
+          {
+            background: "var(--dash-surface)",
+            border: "1px solid var(--dash-border)",
+            borderRadius: 16,
+            overflow: "hidden",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+            "--row-py": density === "compact" ? "7px" : "14px",
+          } as React.CSSProperties
+        }
       >
         {/* Header */}
         <div
@@ -584,6 +645,7 @@ export function OrdersTable({
             <Download size={14} strokeWidth={2} />
             CSV
           </button>
+          <DensityToggle density={density} onToggle={toggleDensity} />
         </div>
 
         <div
@@ -794,25 +856,30 @@ export function OrdersTable({
 
         {/* Content */}
         {filtered.length === 0 ? (
-          <div
-            style={{
-              padding: "56px 20px",
-              textAlign: "center",
-              color: "var(--dash-muted)",
-            }}
-          >
-            <ClipboardList
-              style={{
-                width: 32,
-                height: 32,
-                margin: "0 auto 8px",
-                opacity: 0.5,
+          search || filter !== "all" ? (
+            <EmptyState
+              icon={SearchX}
+              title="Sin resultados"
+              description={
+                search
+                  ? `No encontramos pedidos para "${search}".`
+                  : "No hay pedidos en esta categoría."
+              }
+              action={{
+                label: "Limpiar filtros",
+                onClick: () => {
+                  setSearch("");
+                  setFilter("all");
+                },
               }}
             />
-            <p style={{ fontSize: 14 }}>
-              {search ? "Sin resultados" : "No hay pedidos en esta categoría"}
-            </p>
-          </div>
+          ) : (
+            <EmptyState
+              icon={ClipboardList}
+              title="Sin pedidos hoy"
+              description="Los pedidos nuevos van a aparecer acá apenas los clientes empiecen a comprar."
+            />
+          )
         ) : isMobile ? (
           // ── Mobile: cards ──
           <div style={{ padding: "12px 12px 4px" }}>
@@ -832,6 +899,41 @@ export function OrdersTable({
         ) : (
           // ── Desktop: accordion rows ──
           <div>
+            <div
+              style={{
+                padding: "8px 20px",
+                borderBottom: "1px solid var(--dash-border)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={
+                  filtered.length > 0 &&
+                  filtered.every((o) => selectedIds.has(o.id))
+                }
+                onChange={() => {
+                  setSelectedIds((prev) => {
+                    const allSelected =
+                      filtered.length > 0 &&
+                      filtered.every((o) => prev.has(o.id));
+                    if (allSelected) return new Set();
+                    return new Set(filtered.map((o) => o.id));
+                  });
+                }}
+                style={{
+                  width: 16,
+                  height: 16,
+                  accentColor: "var(--accent)",
+                  cursor: "pointer",
+                }}
+              />
+              <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+                Seleccionar todos
+              </span>
+            </div>
             {filtered.map((order) => (
               <OrderDesktopRow
                 key={order.id}
@@ -845,6 +947,8 @@ export function OrdersTable({
                 onUpdateStatus={updateStatus}
                 onDeleteOrder={deleteOrder}
                 canDelete={canDelete}
+                selected={selectedIds.has(order.id)}
+                onToggleSelect={toggleSelect}
               />
             ))}
           </div>
@@ -893,6 +997,185 @@ export function OrdersTable({
           </div>
         )}
       </div>
+
+      {/* Barra de acciones bulk — solo desktop: la selección solo tiene
+          checkbox en OrderDesktopRow (ver nota ahí). En mobile, cada card
+          ocupa todo el ancho para el tap-to-expand y ya tiene acciones
+          rápidas de estado por pedido, así que el multi-select no suma. */}
+      {!isMobile && selectedIds.size > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 70,
+            background: "var(--dash-surface)",
+            border: "1px solid var(--dash-border)",
+            borderRadius: 16,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            padding: "10px 14px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "nowrap",
+            maxWidth: "95vw",
+            overflowX: "auto",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: "var(--dash-text)",
+              padding: "0 4px",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {selectedIds.size} seleccionado{selectedIds.size !== 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={() => void bulkConfirmSelected()}
+            disabled={bulkWorking}
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "8px 12px",
+              borderRadius: 10,
+              background: "rgba(96,165,250,0.12)",
+              color: "#60a5fa",
+              border: "1px solid rgba(96,165,250,0.3)",
+              cursor: bulkWorking ? "not-allowed" : "pointer",
+              opacity: bulkWorking ? 0.5 : 1,
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Confirmar
+          </button>
+          <button
+            onClick={() =>
+              exportOrdersToCsv(orders.filter((o) => selectedIds.has(o.id)))
+            }
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "8px 12px",
+              borderRadius: 10,
+              background: "var(--dash-surface-2)",
+              color: "var(--dash-text)",
+              border: "1px solid var(--dash-border)",
+              cursor: "pointer",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Exportar CSV
+          </button>
+          <InlineConfirm
+            active={bulkConfirmCancel}
+            itemKey="bulk-cancel"
+            confirm={
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "#f87171",
+                    fontWeight: 600,
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  ¿Cancelar {selectedIds.size}?
+                </span>
+                <button
+                  onClick={() => void bulkCancelSelected()}
+                  disabled={bulkWorking}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "8px 12px",
+                    borderRadius: 10,
+                    background: "#dc2626",
+                    color: "#fff",
+                    border: "none",
+                    cursor: bulkWorking ? "not-allowed" : "pointer",
+                    opacity: bulkWorking ? 0.5 : 1,
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Sí, cancelar
+                </button>
+                <button
+                  onClick={() => setBulkConfirmCancel(false)}
+                  disabled={bulkWorking}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "8px 12px",
+                    borderRadius: 10,
+                    background: "var(--dash-surface-2)",
+                    color: "var(--dash-muted)",
+                    border: "1px solid var(--dash-border)",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  No
+                </button>
+              </div>
+            }
+            trigger={
+              <button
+                onClick={() => setBulkConfirmCancel(true)}
+                disabled={bulkWorking}
+                style={{
+                  fontSize: 12,
+                  fontWeight: 700,
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  background: "rgba(239,68,68,0.08)",
+                  color: "#f87171",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  cursor: bulkWorking ? "not-allowed" : "pointer",
+                  opacity: bulkWorking ? 0.5 : 1,
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Cancelar pedidos
+              </button>
+            }
+          />
+          <button
+            onClick={clearSelection}
+            disabled={bulkWorking}
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              padding: "8px 10px",
+              borderRadius: 10,
+              background: "none",
+              color: "var(--dash-muted)",
+              border: "none",
+              cursor: "pointer",
+              flexShrink: 0,
+              whiteSpace: "nowrap",
+            }}
+          >
+            Deseleccionar
+          </button>
+        </div>
+      )}
     </>
   );
 }

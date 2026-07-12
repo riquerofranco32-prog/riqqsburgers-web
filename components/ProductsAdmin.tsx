@@ -2,8 +2,16 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Reorder, useDragControls } from "framer-motion";
+import {
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+  UtensilsCrossed,
+  SearchX,
+} from "lucide-react";
 import { toast } from "sonner";
+import EmptyState from "@/components/admin/EmptyState";
 import {
   ProductModal,
   type ProductForm,
@@ -12,9 +20,36 @@ import { AIBulkUploadModal } from "@/components/admin/products/AIBulkUploadModal
 import { ProductMobileCard } from "@/components/admin/products/ProductMobileCard";
 import { ProductDesktopRow } from "@/components/admin/products/ProductDesktopRow";
 import { vibrate } from "@/components/admin/products/utils";
+import { useTableDensity } from "@/hooks/useTableDensity";
+import { DensityToggle } from "@/components/ui/admin/DensityToggle";
 import type { Tenant, Category, Product } from "@/types/supabase";
 
 type SortKey = "default" | "name" | "price-asc" | "price-desc";
+
+// Fila draggable: envuelve ProductDesktopRow en un Reorder.Item de
+// framer-motion. El drag arranca solo desde el handle (GripVertical) que
+// ProductDesktopRow renderiza cuando recibe `dragControls`, no desde
+// cualquier punto de la fila (evita pisar clicks en botones/inputs).
+function DraggableProductRow(
+  props: React.ComponentProps<typeof ProductDesktopRow>,
+) {
+  const dragControls = useDragControls();
+  return (
+    <Reorder.Item
+      as="div"
+      value={props.product}
+      dragListener={false}
+      dragControls={dragControls}
+      whileDrag={{
+        boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        scale: 1.01,
+        zIndex: 1,
+      }}
+    >
+      <ProductDesktopRow {...props} dragControls={dragControls} />
+    </Reorder.Item>
+  );
+}
 
 export default function ProductsAdmin({
   tenant,
@@ -47,6 +82,7 @@ export default function ProductsAdmin({
   const [bulkConfirmDelete, setBulkConfirmDelete] = useState(false);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [reorderBusy, setReorderBusy] = useState(false);
+  const { density, toggleDensity } = useTableDensity();
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
@@ -98,6 +134,45 @@ export default function ProductsAdmin({
         : nextAvailable
           ? `${okIds.size} marcados disponibles`
           : `${okIds.size} marcados agotados`;
+    failed > 0 ? toast.error(msg) : toast.success(msg);
+    setBulkWorking(false);
+    clearSelection();
+  }
+
+  async function bulkSetCategory(categoryId: string) {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0 || !categoryId) return;
+    setBulkWorking(true);
+    const results = await Promise.allSettled(
+      ids.map((id) =>
+        fetch(`/api/products/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ category_id: categoryId }),
+        }).then((res) => {
+          if (!res.ok) throw new Error();
+          return id;
+        }),
+      ),
+    );
+    const okIds = new Set(
+      results
+        .filter(
+          (r): r is PromiseFulfilledResult<string> => r.status === "fulfilled",
+        )
+        .map((r) => r.value),
+    );
+    setProducts((prev) =>
+      prev.map((p) =>
+        okIds.has(p.id) ? { ...p, category_id: categoryId } : p,
+      ),
+    );
+    const failed = ids.length - okIds.size;
+    vibrate(failed > 0 ? [50, 30, 50] : 30);
+    const msg =
+      failed > 0
+        ? `${okIds.size} actualizados, ${failed} fallaron`
+        : `${okIds.size} productos movidos de categoría`;
     failed > 0 ? toast.error(msg) : toast.success(msg);
     setBulkWorking(false);
     clearSelection();
@@ -176,6 +251,12 @@ export default function ProductsAdmin({
     return list;
   }, [products, filterCat, search, sort]);
 
+  // El reordenamiento (drag o flechas) solo tiene sentido cuando la lista
+  // visible refleja el sort_order real: orden por defecto, sin búsqueda, y
+  // sin el filtro sintético "agotados" (que mezcla categorías).
+  const canReorder =
+    sort === "default" && !search.trim() && filterCat !== "unavailable";
+
   const activeCount = products.filter((p) => p.available).length;
   const inactiveCount = products.length - activeCount;
 
@@ -184,12 +265,20 @@ export default function ProductsAdmin({
     setShowModal(true);
   }
 
-  // Soporta el atajo del Cmd+K ("Crear producto" → /productos?new=1)
+  // Soporta el atajo del Cmd+K ("Crear producto" → /productos?new=1,
+  // "Buscar producto" → /productos?edit=<id>)
   const searchParams = useSearchParams();
   const router = useRouter();
   useEffect(() => {
     if (searchParams.get("new") === "1" && canAddMore) {
       openNew();
+      router.replace(`/${tenant.slug}/admin/productos`);
+      return;
+    }
+    const editId = searchParams.get("edit");
+    if (editId) {
+      const product = products.find((p) => p.id === editId);
+      if (product) openEdit(product);
       router.replace(`/${tenant.slug}/admin/productos`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -394,23 +483,14 @@ export default function ProductsAdmin({
     }
   }
 
-  async function moveProduct(product: Product, dir: -1 | 1) {
-    if (reorderBusy) return;
-    const idx = filtered.findIndex((p) => p.id === product.id);
-    const neighbor = filtered[idx + dir];
-    if (!neighbor) return;
-
+  // Persiste un nuevo orden completo de `products`, actualizando sort_order
+  // solo de los ítems que efectivamente cambiaron de posición.
+  async function applyReorder(next: Product[]) {
     const snapshot = products;
-    const next = [...products];
-    const from = next.findIndex((p) => p.id === product.id);
-    next.splice(from, 1);
-    const to = next.findIndex((p) => p.id === neighbor.id);
-    next.splice(dir === 1 ? to + 1 : to, 0, product);
-
-    // Renumerar todo a índice — se auto-corrige si había sort_order duplicados
     const changed = next
       .map((p, i) => ({ p, i }))
       .filter(({ p, i }) => p.sort_order !== i);
+    if (changed.length === 0) return;
     setProducts(next.map((p, i) => ({ ...p, sort_order: i })));
     setReorderBusy(true);
     const results = await Promise.allSettled(
@@ -432,6 +512,34 @@ export default function ProductsAdmin({
     } else {
       vibrate(30);
     }
+  }
+
+  async function moveProduct(product: Product, dir: -1 | 1) {
+    if (reorderBusy) return;
+    const idx = filtered.findIndex((p) => p.id === product.id);
+    const neighbor = filtered[idx + dir];
+    if (!neighbor) return;
+
+    const next = [...products];
+    const from = next.findIndex((p) => p.id === product.id);
+    next.splice(from, 1);
+    const to = next.findIndex((p) => p.id === neighbor.id);
+    next.splice(dir === 1 ? to + 1 : to, 0, product);
+    void applyReorder(next);
+  }
+
+  // Callback de framer-motion Reorder: recibe la lista filtrada ya reordenada
+  // por el drag y la reinserta en los mismos "slots" que ocupaba dentro de
+  // `products`, dejando intactas las posiciones de productos de otras
+  // categorías/filtros.
+  function handleDragReorder(newFilteredOrder: Product[]) {
+    if (reorderBusy) return;
+    const filteredIds = new Set(filtered.map((p) => p.id));
+    let i = 0;
+    const next = products.map((p) =>
+      filteredIds.has(p.id) ? newFilteredOrder[i++] : p,
+    );
+    void applyReorder(next);
   }
 
   function handleImageUploaded(productId: string, url: string) {
@@ -534,6 +642,40 @@ export default function ProductsAdmin({
     }
   }
 
+  // Props compartidas entre la fila draggable y la fila estática (sin
+  // drag/reorder cuando hay búsqueda, orden custom o filtro "agotados").
+  function productRowProps(product: Product) {
+    const cat = categories.find((c) => c.id === product.category_id);
+    return {
+      product,
+      cat,
+      tenantSlug: tenant.slug,
+      selected: selectedIds.has(product.id),
+      onToggleSelect: toggleSelect,
+      onUploaded: handleImageUploaded,
+      confirmDeleteId,
+      deletingId,
+      onToggle: toggleAvailable,
+      onEdit: openEdit,
+      onDelete: requestDelete,
+      onConfirmDelete: handleDelete,
+      onCancelDelete: () => setConfirmDeleteId(null),
+      onDuplicate: canAddMore ? handleDuplicate : undefined,
+      duplicatingId,
+      inlinePriceId,
+      inlinePriceVal,
+      inlinePriceRef,
+      inlinePriceEscaped,
+      onInlinePriceStart: (p: Product) => {
+        setInlinePriceVal(String(p.price));
+        setInlinePriceId(p.id);
+      },
+      onInlinePriceSave: saveInlinePrice,
+      onInlinePriceValChange: setInlinePriceVal,
+      onRestock: restockProduct,
+    };
+  }
+
   return (
     <div className="p-5 md:p-8 flex flex-col gap-5 w-full">
       {/* Header */}
@@ -618,6 +760,9 @@ export default function ProductsAdmin({
             <option value="price-desc">Precio: mayor → menor</option>
           </select>
         </div>
+        <div className="hidden md:block">
+          <DensityToggle density={density} onToggle={toggleDensity} />
+        </div>
       </div>
 
       {/* Category filter */}
@@ -653,14 +798,32 @@ export default function ProductsAdmin({
 
       {/* Product list */}
       {filtered.length === 0 ? (
-        <div className="text-center py-14 text-zinc-500">
-          <p className="text-3xl mb-2">🍽️</p>
-          <p className="text-sm">
-            {search
-              ? "Sin resultados para esa búsqueda"
-              : "No hay productos. Creá el primero."}
-          </p>
-        </div>
+        search || filterCat !== "all" ? (
+          <EmptyState
+            icon={SearchX}
+            title="Sin resultados"
+            description={
+              search
+                ? `No encontramos productos para "${search}".`
+                : "No hay productos en este filtro."
+            }
+            action={{
+              label: "Limpiar filtros",
+              onClick: () => {
+                setSearch("");
+                setFilterCat("all");
+              },
+            }}
+          />
+        ) : (
+          <EmptyState
+            icon={UtensilsCrossed}
+            title="Tu menú está vacío"
+            description="Agregá tu primer producto para que los clientes puedan empezar a pedir."
+            action={{ label: "Agregar producto", onClick: openNew }}
+            variant="dashed"
+          />
+        )
       ) : (
         <>
           {/* Mobile: 2-column vertical cards */}
@@ -702,49 +865,42 @@ export default function ProductsAdmin({
           </div>
 
           {/* Desktop: horizontal rows */}
-          <div className="hidden md:flex flex-col gap-2.5">
-            {filtered.map((product, i) => {
-              const cat = categories.find((c) => c.id === product.category_id);
-              return (
-                <ProductDesktopRow
-                  key={product.id}
-                  product={product}
-                  cat={cat}
-                  tenantSlug={tenant.slug}
-                  selected={selectedIds.has(product.id)}
-                  onToggleSelect={toggleSelect}
-                  onUploaded={handleImageUploaded}
-                  confirmDeleteId={confirmDeleteId}
-                  deletingId={deletingId}
-                  onToggle={toggleAvailable}
-                  onEdit={openEdit}
-                  onDelete={requestDelete}
-                  onConfirmDelete={handleDelete}
-                  onCancelDelete={() => setConfirmDeleteId(null)}
-                  onDuplicate={canAddMore ? handleDuplicate : undefined}
-                  duplicatingId={duplicatingId}
-                  inlinePriceId={inlinePriceId}
-                  inlinePriceVal={inlinePriceVal}
-                  inlinePriceRef={inlinePriceRef}
-                  inlinePriceEscaped={inlinePriceEscaped}
-                  onInlinePriceStart={(p) => {
-                    setInlinePriceVal(String(p.price));
-                    setInlinePriceId(p.id);
-                  }}
-                  onInlinePriceSave={saveInlinePrice}
-                  onInlinePriceValChange={setInlinePriceVal}
-                  onMove={
-                    sort === "default" && filterCat === "all" && !search.trim()
-                      ? moveProduct
-                      : undefined
-                  }
-                  canMoveUp={i > 0}
-                  canMoveDown={i < filtered.length - 1}
-                  reorderBusy={reorderBusy}
-                  onRestock={restockProduct}
-                />
-              );
-            })}
+          <div
+            style={
+              {
+                "--row-py": density === "compact" ? "6px" : "12px",
+              } as React.CSSProperties
+            }
+          >
+            {canReorder ? (
+              <Reorder.Group
+                as="div"
+                axis="y"
+                values={filtered}
+                onReorder={handleDragReorder}
+                className="hidden md:flex flex-col gap-2.5"
+              >
+                {filtered.map((product, i) => (
+                  <DraggableProductRow
+                    key={product.id}
+                    {...productRowProps(product)}
+                    onMove={moveProduct}
+                    canMoveUp={i > 0}
+                    canMoveDown={i < filtered.length - 1}
+                    reorderBusy={reorderBusy}
+                  />
+                ))}
+              </Reorder.Group>
+            ) : (
+              <div className="hidden md:flex flex-col gap-2.5">
+                {filtered.map((product) => (
+                  <ProductDesktopRow
+                    key={product.id}
+                    {...productRowProps(product)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </>
       )}
@@ -791,6 +947,25 @@ export default function ProductsAdmin({
           >
             Marcar disponible
           </button>
+          <select
+            defaultValue=""
+            disabled={bulkWorking}
+            onChange={(e) => {
+              const categoryId = e.target.value;
+              e.target.value = "";
+              void bulkSetCategory(categoryId);
+            }}
+            className="text-xs font-bold px-3 py-2 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 flex-shrink-0 whitespace-nowrap outline-none cursor-pointer"
+          >
+            <option value="" disabled>
+              Mover a categoría...
+            </option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.emoji} {cat.name}
+              </option>
+            ))}
+          </select>
           {bulkConfirmDelete ? (
             <>
               <span className="text-xs text-red-400 font-semibold px-1 flex-shrink-0 whitespace-nowrap">

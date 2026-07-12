@@ -6,6 +6,7 @@ import { Camera, Loader2, Check, Copy } from "lucide-react";
 import { toast } from "sonner";
 import type { Category, Product } from "@/types/supabase";
 import { uploadImage, type UploadState } from "./utils";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 
 export function ProductMobileCard({
   product,
@@ -254,7 +255,9 @@ export function ProductMobileCard({
             <span className="text-[var(--accent)] text-sm font-bold">
               ${product.price.toLocaleString("es-AR")}
             </span>
-            <span className="text-[9px] text-[var(--dash-muted)]">toca para editar</span>
+            <span className="text-[9px] text-[var(--dash-muted)]">
+              toca para editar
+            </span>
           </button>
         )}
 
@@ -297,48 +300,53 @@ export function ProductMobileCard({
           >
             Editar
           </button>
-          {confirmDeleteId === product.id ? (
-            <div className="flex gap-1 flex-1">
+          <InlineConfirm
+            active={confirmDeleteId === product.id}
+            itemKey={product.id}
+            confirm={
+              <div className="flex gap-1 flex-1">
+                <button
+                  onClick={() => onConfirmDelete(product)}
+                  style={
+                    {
+                      WebkitTapHighlightColor: "transparent",
+                      userSelect: "none",
+                    } as React.CSSProperties
+                  }
+                  className="flex-1 h-11 bg-red-600 hover:bg-red-500 active:bg-red-700 text-[var(--dash-text)] text-xs font-bold rounded-xl transition-colors"
+                >
+                  Sí, eliminar
+                </button>
+                <button
+                  onClick={onCancelDelete}
+                  style={
+                    {
+                      WebkitTapHighlightColor: "transparent",
+                      userSelect: "none",
+                    } as React.CSSProperties
+                  }
+                  className="w-11 h-11 bg-[var(--dash-surface-2)] text-[var(--dash-muted)] rounded-xl transition-colors flex items-center justify-center text-xs"
+                >
+                  No
+                </button>
+              </div>
+            }
+            trigger={
               <button
-                onClick={() => onConfirmDelete(product)}
+                onClick={() => onDelete(product)}
+                disabled={deletingId === product.id}
                 style={
                   {
                     WebkitTapHighlightColor: "transparent",
                     userSelect: "none",
                   } as React.CSSProperties
                 }
-                className="flex-1 h-11 bg-red-600 hover:bg-red-500 active:bg-red-700 text-[var(--dash-text)] text-xs font-bold rounded-xl transition-colors"
+                className="w-11 h-11 bg-[var(--dash-surface-2)] hover:bg-red-950 active:bg-red-900 text-[var(--dash-muted)] hover:text-red-400 rounded-xl transition-colors flex items-center justify-center disabled:opacity-40 text-sm"
               >
-                Sí, eliminar
+                {deletingId === product.id ? "…" : "🗑"}
               </button>
-              <button
-                onClick={onCancelDelete}
-                style={
-                  {
-                    WebkitTapHighlightColor: "transparent",
-                    userSelect: "none",
-                  } as React.CSSProperties
-                }
-                className="w-11 h-11 bg-[var(--dash-surface-2)] text-[var(--dash-muted)] rounded-xl transition-colors flex items-center justify-center text-xs"
-              >
-                No
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => onDelete(product)}
-              disabled={deletingId === product.id}
-              style={
-                {
-                  WebkitTapHighlightColor: "transparent",
-                  userSelect: "none",
-                } as React.CSSProperties
-              }
-              className="w-11 h-11 bg-[var(--dash-surface-2)] hover:bg-red-950 active:bg-red-900 text-[var(--dash-muted)] hover:text-red-400 rounded-xl transition-colors flex items-center justify-center disabled:opacity-40 text-sm"
-            >
-              {deletingId === product.id ? "…" : "🗑"}
-            </button>
-          )}
+            }
+          />
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Reorder, useDragControls } from "framer-motion";
 import {
   GripVertical,
   Pencil,
@@ -10,8 +11,11 @@ import {
   Eye,
   EyeOff,
   X,
+  FolderPlus,
 } from "lucide-react";
 import { toast } from "sonner";
+import EmptyState from "@/components/admin/EmptyState";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 import type { Category } from "@/types/supabase";
 
 const EMOJI_SUGGESTIONS = [
@@ -36,16 +40,6 @@ const EMOJI_SUGGESTIONS = [
 function vibrate(pattern: number | number[]) {
   if (typeof window !== "undefined" && "vibrate" in navigator)
     navigator.vibrate(pattern);
-}
-
-function reorder(list: Category[], fromId: string, toId: string): Category[] {
-  const from = list.findIndex((c) => c.id === fromId);
-  const to = list.findIndex((c) => c.id === toId);
-  if (from === -1 || to === -1 || from === to) return list;
-  const copy = [...list];
-  const [moved] = copy.splice(from, 1);
-  copy.splice(to, 0, moved);
-  return copy;
 }
 
 interface CategoriesAdminProps {
@@ -83,9 +77,6 @@ export default function CategoriesAdmin({
   // Snapshot del form al abrir el modal, para detectar cambios sin guardar
   // al cerrar (mismo patrón que ProductModal).
   const [formSnapshot, setFormSnapshot] = useState("");
-
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
 
   useEffect(() => {
     document.body.style.overflow = modalOpen ? "hidden" : "";
@@ -228,14 +219,6 @@ export default function CategoriesAdmin({
     persistOrder(copy);
   }
 
-  function handleDrop(targetId: string) {
-    if (!dragId || dragId === targetId) return;
-    const newList = reorder(categories, dragId, targetId);
-    setDragId(null);
-    setOverId(null);
-    if (newList !== categories) persistOrder(newList);
-  }
-
   // ── Active toggle ────────────────────────────────────────────────────────
   async function toggleActive(cat: Category) {
     const nextActive = !cat.active;
@@ -354,265 +337,39 @@ export default function CategoriesAdmin({
 
       {/* Empty state */}
       {categories.length === 0 ? (
-        <div
-          style={{
-            background: "var(--dash-surface)",
-            border: "1px dashed var(--dash-border)",
-            borderRadius: 16,
-            padding: "48px 24px",
-            textAlign: "center",
-            color: "var(--dash-muted)",
-          }}
-        >
-          <p style={{ fontSize: 32, marginBottom: 8 }}>📂</p>
-          <p
-            style={{ fontSize: 14, marginBottom: 4, color: "var(--dash-text)" }}
-          >
-            Todavía no hay categorías
-          </p>
-          <p style={{ fontSize: 13 }}>
-            Creá la primera para empezar a organizar el menú.
-          </p>
-        </div>
+        <EmptyState
+          icon={FolderPlus}
+          title="Todavía no hay categorías"
+          description="Creá la primera para empezar a organizar el menú."
+          action={{ label: "Agregar categoría", onClick: openNew }}
+          variant="dashed"
+        />
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {categories.map((cat, index) => {
-            const count = countFor(cat.id);
-            const isDragging = dragId === cat.id;
-            const isOver = overId === cat.id && dragId !== cat.id;
-            const isConfirming = confirmId === cat.id;
-
-            return (
-              <div
-                key={cat.id}
-                draggable={!isConfirming}
-                onDragStart={() => setDragId(cat.id)}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  if (overId !== cat.id) setOverId(cat.id);
-                }}
-                onDragEnd={() => {
-                  setDragId(null);
-                  setOverId(null);
-                }}
-                onDrop={() => handleDrop(cat.id)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  background: "var(--dash-surface)",
-                  border: `1px solid ${
-                    isOver ? "var(--accent)" : "var(--dash-border)"
-                  }`,
-                  borderRadius: 14,
-                  padding: "12px 14px",
-                  opacity: isDragging ? 0.4 : cat.active ? 1 : 0.5,
-                  boxShadow: isOver
-                    ? "0 0 0 1px var(--accent)"
-                    : "0 2px 8px rgba(0,0,0,0.12)",
-                  transition:
-                    "border-color 0.15s, box-shadow 0.15s, transform 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  if (isOver) return;
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 14px rgba(0,0,0,0.2)";
-                  e.currentTarget.style.transform = "translateY(-1px)";
-                }}
-                onMouseLeave={(e) => {
-                  if (isOver) return;
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 8px rgba(0,0,0,0.12)";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
-                {/* Drag handle */}
-                <span
-                  title="Arrastrar para reordenar"
-                  style={{
-                    color: "var(--dash-muted)",
-                    cursor: "grab",
-                    display: "flex",
-                    flexShrink: 0,
-                    touchAction: "none",
-                  }}
-                >
-                  <GripVertical size={16} />
-                </span>
-
-                {/* Emoji */}
-                <span
-                  style={{
-                    fontSize: 22,
-                    width: 32,
-                    textAlign: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  {cat.emoji ?? "🍽️"}
-                </span>
-
-                {/* Name + count */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: "var(--dash-text)",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {cat.name}
-                  </p>
-                  <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-                    {count} producto{count !== 1 ? "s" : ""}
-                    {!cat.active && " · oculta del menú"}
-                    {cat.visible_from &&
-                      cat.visible_to &&
-                      ` · visible ${cat.visible_from}–${cat.visible_to}`}
-                  </p>
-                </div>
-
-                {isConfirming ? (
-                  /* Inline delete confirm */
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 6 }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: "var(--dash-muted)",
-                        marginRight: 2,
-                      }}
-                    >
-                      ¿Eliminar?
-                    </span>
-                    <button
-                      onClick={() => confirmDelete(cat)}
-                      style={{
-                        background: "#f87171",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 8,
-                        padding: "6px 12px",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        WebkitTapHighlightColor: "transparent",
-                        transition: "filter 0.15s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.filter = "brightness(1.1)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.filter = "none")
-                      }
-                    >
-                      Sí
-                    </button>
-                    <button
-                      onClick={() => setConfirmId(null)}
-                      style={{
-                        background: "var(--dash-surface-2)",
-                        color: "var(--dash-text)",
-                        border: "1px solid var(--dash-border)",
-                        borderRadius: 8,
-                        padding: "6px 12px",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        WebkitTapHighlightColor: "transparent",
-                        transition: "border-color 0.15s",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.borderColor =
-                          "var(--dash-muted)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.borderColor =
-                          "var(--dash-border)")
-                      }
-                    >
-                      No
-                    </button>
-                  </div>
-                ) : (
-                  /* Actions */
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 2,
-                      flexShrink: 0,
-                    }}
-                  >
-                    <button
-                      onClick={() => moveBy(index, -1)}
-                      disabled={index === 0}
-                      title="Subir"
-                      className="hidden sm:flex items-center justify-center"
-                      style={iconBtn(index === 0)}
-                      {...iconBtnHover(index === 0)}
-                    >
-                      <ChevronUp size={16} />
-                    </button>
-                    <button
-                      onClick={() => moveBy(index, 1)}
-                      disabled={index === categories.length - 1}
-                      title="Bajar"
-                      className="hidden sm:flex items-center justify-center"
-                      style={iconBtn(index === categories.length - 1)}
-                      {...iconBtnHover(index === categories.length - 1)}
-                    >
-                      <ChevronDown size={16} />
-                    </button>
-                    <button
-                      onClick={() => openEdit(cat)}
-                      title="Editar"
-                      className="flex items-center justify-center"
-                      style={iconBtn(false)}
-                      {...iconBtnHover(false)}
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      onClick={() => toggleActive(cat)}
-                      title={
-                        cat.active
-                          ? "Ocultar del menú público"
-                          : "Mostrar en el menú público"
-                      }
-                      className="flex items-center justify-center"
-                      style={iconBtn(false)}
-                      {...iconBtnHover(false)}
-                    >
-                      {cat.active ? <Eye size={15} /> : <EyeOff size={15} />}
-                    </button>
-                    <button
-                      onClick={() => requestDelete(cat)}
-                      title={
-                        count > 0
-                          ? "Tiene productos asignados"
-                          : "Eliminar categoría"
-                      }
-                      className="flex items-center justify-center"
-                      style={{
-                        ...iconBtn(false),
-                        color: count > 0 ? "var(--dash-muted)" : "#f87171",
-                        opacity: count > 0 ? 0.5 : 1,
-                      }}
-                      {...iconBtnHover(count > 0)}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <Reorder.Group
+          as="div"
+          axis="y"
+          values={categories}
+          onReorder={persistOrder}
+          style={{ display: "flex", flexDirection: "column", gap: 8 }}
+        >
+          {categories.map((cat, index) => (
+            <CategoryRow
+              key={cat.id}
+              cat={cat}
+              index={index}
+              total={categories.length}
+              count={countFor(cat.id)}
+              isConfirming={confirmId === cat.id}
+              onEdit={openEdit}
+              onToggleActive={toggleActive}
+              onRequestDelete={requestDelete}
+              onConfirmDelete={confirmDelete}
+              onCancelConfirm={() => setConfirmId(null)}
+              onMoveUp={() => moveBy(index, -1)}
+              onMoveDown={() => moveBy(index, 1)}
+            />
+          ))}
+        </Reorder.Group>
       )}
 
       {/* Modal */}
@@ -908,6 +665,247 @@ export default function CategoriesAdmin({
         </div>
       )}
     </div>
+  );
+}
+
+// ── Category row (drag-and-drop reorder) ────────────────────────────────────
+
+function CategoryRow({
+  cat,
+  index,
+  total,
+  count,
+  isConfirming,
+  onEdit,
+  onToggleActive,
+  onRequestDelete,
+  onConfirmDelete,
+  onCancelConfirm,
+  onMoveUp,
+  onMoveDown,
+}: {
+  cat: Category;
+  index: number;
+  total: number;
+  count: number;
+  isConfirming: boolean;
+  onEdit: (cat: Category) => void;
+  onToggleActive: (cat: Category) => void;
+  onRequestDelete: (cat: Category) => void;
+  onConfirmDelete: (cat: Category) => void;
+  onCancelConfirm: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item
+      as="div"
+      value={cat}
+      dragListener={false}
+      dragControls={dragControls}
+      whileDrag={{
+        boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+        scale: 1.01,
+        zIndex: 1,
+      }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        background: "var(--dash-surface)",
+        border: "1px solid var(--dash-border)",
+        borderRadius: 14,
+        padding: "12px 14px",
+        opacity: cat.active ? 1 : 0.5,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+        position: "relative",
+      }}
+    >
+      {/* Drag handle */}
+      <span
+        title="Arrastrar para reordenar"
+        onPointerDown={(e) => {
+          if (!isConfirming) dragControls.start(e);
+        }}
+        style={{
+          color: "var(--dash-muted)",
+          cursor: isConfirming ? "default" : "grab",
+          display: "flex",
+          flexShrink: 0,
+          touchAction: "none",
+        }}
+      >
+        <GripVertical size={16} />
+      </span>
+
+      {/* Emoji */}
+      <span
+        style={{
+          fontSize: 22,
+          width: 32,
+          textAlign: "center",
+          flexShrink: 0,
+        }}
+      >
+        {cat.emoji ?? "🍽️"}
+      </span>
+
+      {/* Name + count */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--dash-text)",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {cat.name}
+        </p>
+        <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+          {count} producto{count !== 1 ? "s" : ""}
+          {!cat.active && " · oculta del menú"}
+          {cat.visible_from &&
+            cat.visible_to &&
+            ` · visible ${cat.visible_from}–${cat.visible_to}`}
+        </p>
+      </div>
+
+      <InlineConfirm
+        active={isConfirming}
+        itemKey={cat.id}
+        confirm={
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span
+              style={{
+                fontSize: 12,
+                color: "var(--dash-muted)",
+                marginRight: 2,
+              }}
+            >
+              ¿Eliminar?
+            </span>
+            <button
+              onClick={() => onConfirmDelete(cat)}
+              style={{
+                background: "#f87171",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "6px 12px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                transition: "filter 0.15s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.filter = "brightness(1.1)")
+              }
+              onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
+            >
+              Sí
+            </button>
+            <button
+              onClick={onCancelConfirm}
+              style={{
+                background: "var(--dash-surface-2)",
+                color: "var(--dash-text)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 8,
+                padding: "6px 12px",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                transition: "border-color 0.15s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.borderColor = "var(--dash-muted)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.borderColor = "var(--dash-border)")
+              }
+            >
+              No
+            </button>
+          </div>
+        }
+        trigger={
+          /* Actions */
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              flexShrink: 0,
+            }}
+          >
+            <button
+              onClick={onMoveUp}
+              disabled={index === 0}
+              title="Subir"
+              className="hidden sm:flex items-center justify-center"
+              style={iconBtn(index === 0)}
+              {...iconBtnHover(index === 0)}
+            >
+              <ChevronUp size={16} />
+            </button>
+            <button
+              onClick={onMoveDown}
+              disabled={index === total - 1}
+              title="Bajar"
+              className="hidden sm:flex items-center justify-center"
+              style={iconBtn(index === total - 1)}
+              {...iconBtnHover(index === total - 1)}
+            >
+              <ChevronDown size={16} />
+            </button>
+            <button
+              onClick={() => onEdit(cat)}
+              title="Editar"
+              className="flex items-center justify-center"
+              style={iconBtn(false)}
+              {...iconBtnHover(false)}
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              onClick={() => onToggleActive(cat)}
+              title={
+                cat.active
+                  ? "Ocultar del menú público"
+                  : "Mostrar en el menú público"
+              }
+              className="flex items-center justify-center"
+              style={iconBtn(false)}
+              {...iconBtnHover(false)}
+            >
+              {cat.active ? <Eye size={15} /> : <EyeOff size={15} />}
+            </button>
+            <button
+              onClick={() => onRequestDelete(cat)}
+              title={
+                count > 0 ? "Tiene productos asignados" : "Eliminar categoría"
+              }
+              className="flex items-center justify-center"
+              style={{
+                ...iconBtn(false),
+                color: count > 0 ? "var(--dash-muted)" : "#f87171",
+                opacity: count > 0 ? 0.5 : 1,
+              }}
+              {...iconBtnHover(count > 0)}
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+        }
+      />
+    </Reorder.Item>
   );
 }
 

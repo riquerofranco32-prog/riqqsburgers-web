@@ -10,6 +10,7 @@ import {
 } from "framer-motion";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 // Lazy-load the WebGL shader so it never blocks the hero render
 const HeroShader = dynamic(() => import("@/components/HeroShader"), {
@@ -792,14 +793,12 @@ function PhoneMockup() {
                   flexShrink: 0,
                 }}
               >
-                <img
+                <Image
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/9f9897cc-5cf0-4aac-96ba-e76d2ef8a0fa-1781283776830.jpeg"
                   alt="The Larry"
-                  loading="lazy"
-                  decoding="async"
+                  fill
+                  sizes="56px"
                   style={{
-                    width: "100%",
-                    height: "100%",
                     objectFit: "cover",
                     borderRadius: 8,
                   }}
@@ -881,14 +880,12 @@ function PhoneMockup() {
                   flexShrink: 0,
                 }}
               >
-                <img
+                <Image
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/384d792a-6a88-4c3b-97b7-7019bf6f743b-1781283780827.jpeg"
                   alt="Ultra Chesse"
-                  loading="lazy"
-                  decoding="async"
+                  fill
+                  sizes="56px"
                   style={{
-                    width: "100%",
-                    height: "100%",
                     objectFit: "cover",
                     borderRadius: 8,
                   }}
@@ -970,14 +967,12 @@ function PhoneMockup() {
                   flexShrink: 0,
                 }}
               >
-                <img
+                <Image
                   src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/product-images/larrysburguers/803cf764-89a1-4f4f-8fe2-7d60303f96c6-1781283784115.jpeg"
                   alt="Bacon Larry"
-                  loading="lazy"
-                  decoding="async"
+                  fill
+                  sizes="56px"
                   style={{
-                    width: "100%",
-                    height: "100%",
                     objectFit: "cover",
                     borderRadius: 8,
                   }}
@@ -1446,13 +1441,12 @@ function AnimatedTestimonials() {
             }}
           >
             {item.img ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={item.img}
                 alt={item.name}
-                loading="lazy"
-                decoding="async"
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                fill
+                sizes="48px"
+                style={{ objectFit: "cover" }}
               />
             ) : (
               <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>
@@ -1599,6 +1593,7 @@ function AnimatedTestimonials() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div
                 style={{
+                  position: "relative",
                   width: 44,
                   height: 44,
                   borderRadius: "50%",
@@ -1612,17 +1607,12 @@ function AnimatedTestimonials() {
                 }}
               >
                 {t.img ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={t.img}
                     alt={t.name}
-                    loading="lazy"
-                    decoding="async"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
+                    fill
+                    sizes="44px"
+                    style={{ objectFit: "cover" }}
                   />
                 ) : (
                   <span
@@ -4104,15 +4094,12 @@ export default function HomeClient({
 
                 <div className="flex items-center gap-3 mt-4">
                   {/* Restaurant Logo */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/larryssburgers/logo_url.png?t=1781289992571"
                     alt="Larry's Burgers logo"
-                    loading="lazy"
-                    decoding="async"
+                    width={44}
+                    height={44}
                     style={{
-                      width: 44,
-                      height: 44,
                       borderRadius: 10,
                       objectFit: "cover",
                       border: "1.5px solid rgba(255,255,255,0.15)",
@@ -4251,15 +4238,12 @@ export default function HomeClient({
                             ★ Más pedido
                           </span>
                         )}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={item.img}
                           alt={item.name}
-                          loading="lazy"
-                          decoding="async"
+                          width={58}
+                          height={58}
                           style={{
-                            width: 58,
-                            height: 58,
                             borderRadius: 12,
                             objectFit: "cover",
                             flexShrink: 0,
@@ -4453,15 +4437,12 @@ export default function HomeClient({
 
                 <div className="flex items-center gap-3 mt-4">
                   {/* Restaurant Logo */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src="https://dzsygeidjfncfhhhrefw.supabase.co/storage/v1/object/public/restaurant-logos/manoamano/logo_url.jpg?t=1783045331567"
                     alt="Mano a mano logo"
-                    loading="lazy"
-                    decoding="async"
+                    width={44}
+                    height={44}
                     style={{
-                      width: 44,
-                      height: 44,
                       borderRadius: 10,
                       objectFit: "cover",
                       border: "1.5px solid rgba(255,255,255,0.15)",
@@ -4600,15 +4581,12 @@ export default function HomeClient({
                             ★ Más pedido
                           </span>
                         )}
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <Image
                           src={item.img}
                           alt={item.name}
-                          loading="lazy"
-                          decoding="async"
+                          width={58}
+                          height={58}
                           style={{
-                            width: 58,
-                            height: 58,
                             borderRadius: 12,
                             objectFit: "cover",
                             flexShrink: 0,

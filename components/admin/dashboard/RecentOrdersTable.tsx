@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { ArrowRight, Copy, Check } from "lucide-react";
+import { ArrowRight, Copy, Check, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import EmptyState from "@/components/admin/EmptyState";
 import { createSupabaseBrowser } from "@/lib/supabase";
 import { playSound } from "@/lib/sounds";
 import type { Order } from "@/types/supabase";
@@ -291,10 +292,11 @@ export function RecentOrdersTable({
             Pedidos recientes
           </h2>
         </div>
-        <div className="py-16 flex flex-col items-center gap-3 text-dash-muted">
-          <span className="text-5xl">📋</span>
-          <p className="text-sm">Aún no hay pedidos hoy</p>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="Aún no hay pedidos hoy"
+          description="En cuanto entre el primer pedido del día, lo vas a ver acá."
+        />
       </div>
     );
   }

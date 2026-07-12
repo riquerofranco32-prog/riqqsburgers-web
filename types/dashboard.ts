@@ -22,6 +22,11 @@ export type TopProduct = {
 
 export type AnalyticsRange = "today" | "week" | "twoWeeks" | "month";
 
+export type StockAlertProduct = { id: string; name: string };
+export type LowStockAlertProduct = StockAlertProduct & {
+  stock_quantity: number;
+};
+
 /** Returned by /api/[slug]/admin/kpis — today KPIs computed server-side */
 export type TodayKPIsResponse = {
   ordersToday: number;
@@ -35,6 +40,8 @@ export type TodayKPIsResponse = {
   salesLast7Days: DailyRevenue[];
   categoryRevenue: CategoryRevenue[];
   topProducts: TopProduct[];
+  unavailableProducts: StockAlertProduct[];
+  lowStockProducts: LowStockAlertProduct[];
 };
 
 export type AnalyticsResponse = {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { buildWhatsAppLink } from "@/lib/whatsapp-notify";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 
 function escapeHtml(str: string): string {
   return str
@@ -281,62 +282,69 @@ export default function TicketActions({
           Avisar al cliente por WhatsApp
         </a>
       )}
-      {isCancellable && confirmCancel && (
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={handleCancel}
-            disabled={cancelling}
-            style={{
-              flex: 1,
-              padding: "12px",
-              background: "rgba(239,68,68,0.15)",
-              color: "#f87171",
-              border: "1px solid rgba(239,68,68,0.5)",
-              borderRadius: 8,
-              cursor: cancelling ? "not-allowed" : "pointer",
-              fontWeight: 700,
-              fontSize: 15,
-              opacity: cancelling ? 0.7 : 1,
-            }}
-          >
-            {cancelling ? "Cancelando..." : "Sí, cancelar"}
-          </button>
-          <button
-            onClick={() => setConfirmCancel(false)}
-            disabled={cancelling}
-            style={{
-              flex: 1,
-              padding: "12px",
-              background: "#f3f3f3",
-              color: "#333",
-              border: "none",
-              borderRadius: 8,
-              cursor: cancelling ? "not-allowed" : "pointer",
-              fontWeight: 600,
-              fontSize: 15,
-            }}
-          >
-            No
-          </button>
-        </div>
-      )}
-      {isCancellable && !confirmCancel && (
-        <button
-          onClick={() => setConfirmCancel(true)}
-          style={{
-            width: "100%",
-            padding: "12px",
-            background: "rgba(239,68,68,0.1)",
-            color: "#f87171",
-            border: "1px solid rgba(239,68,68,0.4)",
-            borderRadius: 8,
-            cursor: "pointer",
-            fontWeight: 600,
-            fontSize: 15,
-          }}
-        >
-          ✕ Cancelar pedido
-        </button>
+      {isCancellable && (
+        <InlineConfirm
+          active={confirmCancel}
+          itemKey={orderId}
+          fill
+          confirm={
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  background: "rgba(239,68,68,0.15)",
+                  color: "#f87171",
+                  border: "1px solid rgba(239,68,68,0.5)",
+                  borderRadius: 8,
+                  cursor: cancelling ? "not-allowed" : "pointer",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  opacity: cancelling ? 0.7 : 1,
+                }}
+              >
+                {cancelling ? "Cancelando..." : "Sí, cancelar"}
+              </button>
+              <button
+                onClick={() => setConfirmCancel(false)}
+                disabled={cancelling}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  background: "#f3f3f3",
+                  color: "#333",
+                  border: "none",
+                  borderRadius: 8,
+                  cursor: cancelling ? "not-allowed" : "pointer",
+                  fontWeight: 600,
+                  fontSize: 15,
+                }}
+              >
+                No
+              </button>
+            </div>
+          }
+          trigger={
+            <button
+              onClick={() => setConfirmCancel(true)}
+              style={{
+                width: "100%",
+                padding: "12px",
+                background: "rgba(239,68,68,0.1)",
+                color: "#f87171",
+                border: "1px solid rgba(239,68,68,0.4)",
+                borderRadius: 8,
+                cursor: "pointer",
+                fontWeight: 600,
+                fontSize: 15,
+              }}
+            >
+              ✕ Cancelar pedido
+            </button>
+          }
+        />
       )}
       <Link
         href={`/${slug}/admin/pedidos`}

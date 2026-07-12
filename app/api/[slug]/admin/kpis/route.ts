@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
 import { startOfDayInBuenosAires } from "@/lib/businessHours";
+import { LOW_STOCK_THRESHOLD } from "@/lib/stock";
 import type { Order, OrderItem, Product, Category } from "@/types/supabase";
 import type {
   TodayKPIsResponse,
@@ -64,7 +65,7 @@ export async function GET(
       .order("created_at", { ascending: false }),
     db
       .from("products")
-      .select("id, name, category_id, available")
+      .select("id, name, category_id, available, stock_quantity")
       .eq("tenant_id", tenantId),
     db
       .from("categories")
@@ -143,6 +144,25 @@ export async function GET(
     Object.values(itemMap).sort((a, b) => b.qty - a.qty)[0] ?? null;
 
   const activeProducts = products.filter((p) => p.available).length;
+
+  // ── Alertas de stock (agotados + stock bajo) ─────────────────────────────
+  const unavailableProducts = products
+    .filter((p) => !p.available)
+    .map((p) => ({ id: p.id, name: p.name }));
+  const lowStockProducts = products
+    .filter(
+      (p) =>
+        p.available &&
+        p.stock_quantity !== null &&
+        p.stock_quantity !== undefined &&
+        p.stock_quantity > 0 &&
+        p.stock_quantity <= LOW_STOCK_THRESHOLD,
+    )
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      stock_quantity: p.stock_quantity as number,
+    }));
 
   // ── Sales last 7 days ─────────────────────────────────────────────────────
 
@@ -234,6 +254,8 @@ export async function GET(
     salesLast7Days,
     categoryRevenue,
     topProducts,
+    unavailableProducts,
+    lowStockProducts,
   };
 
   return NextResponse.json(body);

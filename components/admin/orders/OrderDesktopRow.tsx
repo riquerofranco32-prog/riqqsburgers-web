@@ -26,6 +26,8 @@ export function OrderDesktopRow({
   onUpdateStatus,
   onDeleteOrder,
   canDelete = true,
+  selected = false,
+  onToggleSelect,
 }: {
   order: Order;
   slug: string;
@@ -35,6 +37,8 @@ export function OrderDesktopRow({
   onUpdateStatus: (id: string, status: string) => Promise<void>;
   onDeleteOrder: (id: string) => Promise<void>;
   canDelete?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }) {
   const isUrgent =
     (order.status === "pending" || order.status === "nuevo") &&
@@ -63,7 +67,7 @@ export function OrderDesktopRow({
         }}
         style={{
           width: "100%",
-          padding: "14px 20px",
+          padding: "var(--row-py, 14px) 20px",
           display: "flex",
           alignItems: "center",
           gap: 12,
@@ -79,6 +83,21 @@ export function OrderDesktopRow({
         }
         onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       >
+        {onToggleSelect && (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect(order.id)}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 16,
+              height: 16,
+              flexShrink: 0,
+              accentColor: "var(--accent)",
+              cursor: "pointer",
+            }}
+          />
+        )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div
             style={{

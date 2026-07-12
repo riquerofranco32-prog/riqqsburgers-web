@@ -4,8 +4,58 @@ import { createServerClient } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CatalogClient, { type PublicCoupon } from "./CatalogClient";
+import type { BusinessHours } from "@/lib/businessHours";
 
 const MAX_MENU_COUPONS = 3;
+const MAX_SCHEMA_REVIEWS = 5;
+
+const DAY_NAMES = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+// Convierte business_hours (array de 7 días, dom=0..sáb=6) al formato
+// openingHoursSpecification de schema.org. Ignora slot2 por simplicidad
+// (ponytail: cubre el caso común de un solo turno; sumar slot2 si algún
+// tenant con dos franjas necesita el dato reflejado en el schema).
+function toOpeningHoursSpecification(hours: BusinessHours | null) {
+  if (!hours) return undefined;
+  const specs = hours
+    .map((day, i) =>
+      !day.closed && day.open && day.close
+        ? {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: `https://schema.org/${DAY_NAMES[i]}`,
+            opens: day.open,
+            closes: day.close,
+          }
+        : null,
+    )
+    .filter((s): s is NonNullable<typeof s> => s !== null);
+  return specs.length > 0 ? specs : undefined;
+}
+
+async function getSchemaReviews(tenantId: string) {
+  try {
+    const db = createServerClient();
+    const { data } = await db
+      .from("reviews")
+      .select("rating, comment, customer_name, created_at")
+      .eq("tenant_id", tenantId)
+      .not("comment", "is", null)
+      .order("rating", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(MAX_SCHEMA_REVIEWS);
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
 
 async function getPublicCoupons(tenantId: string): Promise<PublicCoupon[]> {
   try {
@@ -83,7 +133,10 @@ export default async function RestaurantPage({ params }: Props) {
   const restaurant = await getRestaurant(slug);
   if (!restaurant) notFound();
 
-  const coupons = await getPublicCoupons(restaurant.id);
+  const [coupons, schemaReviews] = await Promise.all([
+    getPublicCoupons(restaurant.id),
+    getSchemaReviews(restaurant.id),
+  ]);
 
   const schemaOrg = {
     "@context": "https://schema.org",
@@ -102,6 +155,39 @@ export default async function RestaurantPage({ params }: Props) {
           addressCountry: "AR",
         }
       : undefined,
+    geo:
+      restaurant.latitude != null && restaurant.longitude != null
+        ? {
+            "@type": "GeoCoordinates",
+            latitude: restaurant.latitude,
+            longitude: restaurant.longitude,
+          }
+        : undefined,
+    openingHoursSpecification: toOpeningHoursSpecification(
+      restaurant.business_hours,
+    ),
+    aggregateRating: restaurant.rating
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: restaurant.rating.avg,
+          reviewCount: restaurant.rating.count,
+        }
+      : undefined,
+    review:
+      schemaReviews.length > 0
+        ? schemaReviews.map((r) => ({
+            "@type": "Review",
+            author: { "@type": "Person", name: r.customer_name || "Cliente" },
+            datePublished: r.created_at,
+            reviewBody: r.comment,
+            reviewRating: {
+              "@type": "Rating",
+              ratingValue: r.rating,
+              bestRating: 5,
+              worstRating: 1,
+            },
+          }))
+        : undefined,
     servesCuisine: restaurant.menu.categories
       .map((c) => c.name)
       .slice(0, 5)
