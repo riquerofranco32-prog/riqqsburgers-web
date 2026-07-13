@@ -68,7 +68,10 @@ const jsonLd = {
         availableLanguage: "Spanish",
         areaServed: "AR",
       },
-      sameAs: ["https://www.instagram.com/takefyy"],
+      sameAs: [
+        "https://www.instagram.com/takefyy",
+        "https://share.google/nUzrYxvgXx6JUj5pp",
+      ],
     },
     {
       "@type": "SoftwareApplication",
