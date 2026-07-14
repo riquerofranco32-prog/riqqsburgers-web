@@ -1,6 +1,6 @@
 import { createServerClient } from "@/lib/supabase";
 
-const GRAPH_BASE = "https://graph.instagram.com/v21.0";
+const GRAPH_BASE = "https://graph.facebook.com/v21.0";
 const CAROUSEL_BUCKET = "instagram-carousels";
 
 function envOrThrow(name: string): string {

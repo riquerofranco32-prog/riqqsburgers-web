@@ -2,16 +2,13 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 import path from "node:path";
-import {
-  publishCarousel,
-  publishStory,
-  uploadCarouselImages,
-} from "@/lib/instagram";
 
-// Uso:
-//   npx tsx scripts/publish-instagram.ts carousel "caption acá" img1.png img2.png ...
-//   npx tsx scripts/publish-instagram.ts story img1.png
+// Import dinámico: los import estáticos de ESM se evalúan antes que
+// loadEnvConfig corra (hoisting), así que lib/instagram (vía lib/supabase)
+// leería process.env vacío si se importara arriba.
 async function main() {
+  const { publishCarousel, publishStory, uploadCarouselImages } =
+    await import("@/lib/instagram");
   const [type, ...rest] = process.argv.slice(2);
 
   if (type === "carousel") {
