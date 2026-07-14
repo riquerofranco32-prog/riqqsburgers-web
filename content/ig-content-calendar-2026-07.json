@@ -1,0 +1,71 @@
+{
+  "account": "@takefyy",
+  "generated": "2026-07-13",
+  "already_published": [
+    {
+      "date": "2026-06-12",
+      "angle": "como-funciona",
+      "title": "Pedí tu comida en 3 pasos"
+    },
+    {
+      "date": "2026-06-12",
+      "angle": "case-study",
+      "title": "Larry's Burgers ya tiene su menú digital"
+    },
+    {
+      "date": "2026-07-01",
+      "angle": "pain-point",
+      "title": "Tu local toma pedidos por WhatsApp?"
+    },
+    {
+      "date": "2026-07-14",
+      "angle": "como-funciona-v2",
+      "title": "Carrusel 4 — Pedí tu comida en 3 pasos"
+    }
+  ],
+  "manual_posts": [],
+  "schedule": [
+    {
+      "generate_date": "2026-07-15",
+      "publish_date": "2026-07-16",
+      "publish_time": "12:00",
+      "angle": "comparacion-costos",
+      "brief": "Cuánto te comés en comisiones con PedidosYa/Rappi (25-30%) vs Takefyy (0% comisión). Ángulo numérico/shock, tabla comparativa simple."
+    },
+    {
+      "generate_date": "2026-07-20",
+      "publish_date": "2026-07-21",
+      "publish_time": "12:00",
+      "angle": "case-study",
+      "brief": "Mano a Mano (segundo cliente, San Rafael) — cómo pasaron de WhatsApp manual a menú digital Takefyy. Mismo formato que el post de Larry's pero con datos propios de Mano a Mano."
+    },
+    {
+      "generate_date": "2026-07-22",
+      "publish_date": "2026-07-23",
+      "publish_time": "12:00",
+      "angle": "objecion-app",
+      "brief": "Responder la objeción 'no quiero que mis clientes bajen una app'. Takefyy no es una app — es un link que abre el catálogo y manda el pedido por WhatsApp directo."
+    },
+    {
+      "generate_date": "2026-07-27",
+      "publish_date": "2026-07-28",
+      "publish_time": "12:00",
+      "angle": "urgencia-oferta",
+      "brief": "CTA fuerte: configuración gratis en 3 minutos, sin tarjeta, sin compromiso. Ángulo de baja fricción para arrancar."
+    },
+    {
+      "generate_date": "2026-07-29",
+      "publish_date": "2026-07-30",
+      "publish_time": "12:00",
+      "angle": "dato-ahorro-tiempo",
+      "brief": "Cuánto tiempo por noche pierde un local copiando pedidos a mano vs con catálogo ordenado. Ángulo de prueba/dato duro, sin cliente puntual."
+    },
+    {
+      "generate_date": "2026-08-03",
+      "publish_date": "2026-08-04",
+      "publish_time": "12:00",
+      "angle": "pain-point-hora-pico",
+      "brief": "Historia/viñeta de un viernes a la noche: 5 pedidos por WhatsApp a la vez, se pierde uno, cliente enojado. Variante más narrativa del pain-point ya usado el 1/jul — no repetir el mismo copy."
+    }
+  ]
+}

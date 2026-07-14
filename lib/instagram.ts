@@ -90,16 +90,21 @@ export async function publishCarousel(imageUrls: string[], caption: string) {
   const igId = envOrThrow("IG_BUSINESS_ID");
   const accessToken = envOrThrow("IG_ACCESS_TOKEN");
 
-  const childIds = await Promise.all(
-    imageUrls.map(async (image_url) => {
-      const item = await graphPost(`${igId}/media`, {
-        image_url,
-        is_carousel_item: "true",
-        access_token: accessToken,
-      });
-      return item.id as string;
-    }),
-  );
+  // ponytail: sequential, not Promise.all — creating all carousel items in
+  // parallel races Meta's async image processing and the parent container
+  // call fails with "Object with ID ... does not exist" for items still
+  // processing. Waiting for each item's FINISHED status before the next
+  // avoids it.
+  const childIds: string[] = [];
+  for (const image_url of imageUrls) {
+    const item = await graphPost(`${igId}/media`, {
+      image_url,
+      is_carousel_item: "true",
+      access_token: accessToken,
+    });
+    await waitUntilReady(item.id, accessToken);
+    childIds.push(item.id);
+  }
 
   const container = await graphPost(`${igId}/media`, {
     media_type: "CAROUSEL",
