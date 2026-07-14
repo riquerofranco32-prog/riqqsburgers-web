@@ -74,6 +74,43 @@ const jsonLd = {
         },
       ],
     },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "¿Necesito local físico para usar Takefyy en mi dark kitchen?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. El menú digital de Takefyy funciona 100% online, sin salón ni mesas. Compartís el link en Instagram, WhatsApp o donde vendas y tus clientes piden directo desde ahí.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Puedo gestionar varias marcas de dark kitchen desde un mismo panel?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Sí. Si operás varias marcas o cocinas desde el mismo espacio, podés gestionarlas desde un solo panel de administración, cada una con su propio link y menú.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Cómo llegan los pedidos de mi dark kitchen?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Directo a tu WhatsApp. El cliente arma el pedido en tu menú digital y te llega un mensaje con productos, dirección y monto total, sin apps ni bots intermedios.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Takefyy cobra comisión por cada pedido de la dark kitchen?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. Es una suscripción fija en pesos, no un porcentaje por venta. A diferencia de las apps de delivery, el 100% de cada pedido es tuyo.",
+          },
+        },
+      ],
+    },
   ],
 };
 
@@ -333,6 +370,71 @@ export default function DarkKitchensPage() {
                 </Link>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: "72px 20px" }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-anton)",
+              fontSize: "clamp(1.6rem, 3.5vw, 2.2rem)",
+              textAlign: "center",
+              marginBottom: 40,
+              color: "#0E1116",
+            }}
+          >
+            Preguntas frecuentes sobre menú digital para dark kitchens
+          </h2>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {(
+              jsonLd["@graph"][2] as {
+                mainEntity: Array<{
+                  name: string;
+                  acceptedAnswer: { text: string };
+                }>;
+              }
+            ).mainEntity.map((q) => (
+              <details
+                key={q.name}
+                style={{
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  padding: "18px 20px",
+                }}
+              >
+                <summary
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    cursor: "pointer",
+                    color: "#0E1116",
+                    listStyle: "none",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  {q.name}
+                  <span style={{ flexShrink: 0, fontSize: 18, color: ACCENT }}>
+                    +
+                  </span>
+                </summary>
+                <p
+                  style={{
+                    marginTop: 12,
+                    fontSize: 14,
+                    color: "#6b7280",
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {q.acceptedAnswer.text}
+                </p>
+              </details>
+            ))}
           </div>
         </div>
 

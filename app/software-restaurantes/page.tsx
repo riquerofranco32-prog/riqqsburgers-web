@@ -103,6 +103,51 @@ const jsonLd = {
         },
       ],
     },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "¿Qué incluye el software para restaurantes de Takefyy?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Menú digital con URL propia, sistema de pedidos por WhatsApp, panel de administración de productos y pedidos, código QR para mesas, cupones y estadísticas de ventas, todo en un mismo lugar.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Cuánto cuesta el software para restaurantes?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Tiene un plan Starter gratuito permanente. Los planes Pro ($17.000 ARS/mes) y Growth ($27.000 ARS/mes) suman URL propia, personalización y funciones avanzadas. Precio fijo en pesos, sin comisión por venta.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿Necesito contratar un técnico para instalar el software?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. Es 100% web, sin instalación. Te registrás, cargás tu carta desde el panel y publicás tu menú digital en minutos.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿El software cobra comisión por cada pedido?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. Pagás una suscripción mensual fija en pesos, sin porcentaje por venta. A diferencia de las apps de delivery, el 100% de cada pedido es tuyo.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "¿El software sirve para cualquier tipo de restaurante?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Sí. Lo usan hamburgueserías, pizzerías, dark kitchens y restaurantes tradicionales de Argentina, cualquier negocio gastronómico que reciba pedidos por WhatsApp.",
+          },
+        },
+      ],
+    },
   ],
 };
 
@@ -398,6 +443,71 @@ export default function SoftwareRestaurantesPage() {
                 </Link>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: "72px 20px" }}>
+          <h2
+            style={{
+              fontFamily: "var(--font-anton)",
+              fontSize: "clamp(1.6rem, 3.5vw, 2.2rem)",
+              textAlign: "center",
+              marginBottom: 40,
+              color: "#0E1116",
+            }}
+          >
+            Preguntas frecuentes sobre el software para restaurantes
+          </h2>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {(
+              jsonLd["@graph"][2] as {
+                mainEntity: Array<{
+                  name: string;
+                  acceptedAnswer: { text: string };
+                }>;
+              }
+            ).mainEntity.map((q) => (
+              <details
+                key={q.name}
+                style={{
+                  background: "#fff",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: 12,
+                  padding: "18px 20px",
+                }}
+              >
+                <summary
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    cursor: "pointer",
+                    color: "#0E1116",
+                    listStyle: "none",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                  }}
+                >
+                  {q.name}
+                  <span style={{ flexShrink: 0, fontSize: 18, color: ACCENT }}>
+                    +
+                  </span>
+                </summary>
+                <p
+                  style={{
+                    marginTop: 12,
+                    fontSize: 14,
+                    color: "#6b7280",
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {q.acceptedAnswer.text}
+                </p>
+              </details>
+            ))}
           </div>
         </div>
 
