@@ -12,7 +12,7 @@ export interface PlanLimits {
 
 export const PLANS: Record<PlanId, PlanLimits> = {
   free: {
-    maxProducts: null,
+    maxProducts: 20,
     maxTeamMembers: 1,
     analyticsEnabled: false,
     customBranding: false,

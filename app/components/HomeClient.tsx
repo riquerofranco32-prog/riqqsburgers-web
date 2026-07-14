@@ -322,7 +322,7 @@ const plans = [
     desc: "Para arrancar sin riesgo",
     features: [
       "Menú digital completo",
-      "Productos y categorías ilimitados",
+      "Hasta 20 productos",
       "Pedidos por WhatsApp",
       "Link y código QR",
       "Panel admin (1 usuario)",
@@ -338,6 +338,7 @@ const plans = [
     desc: "Para negocios que quieren crecer",
     features: [
       "Todo lo del plan Starter",
+      "Productos ilimitados",
       "URL en takefyy.com/tu-local",
       "Sin logo de Takefyy",
       "Colores personalizados",

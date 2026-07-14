@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 import EmptyState from "@/components/admin/EmptyState";
 import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
+import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
 import type { Category } from "@/types/supabase";
 
 const EMOJI_SUGGESTIONS = [
@@ -77,6 +78,7 @@ export default function CategoriesAdmin({
   // Snapshot del form al abrir el modal, para detectar cambios sin guardar
   // al cerrar (mismo patrón que ProductModal).
   const [formSnapshot, setFormSnapshot] = useState("");
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = modalOpen ? "hidden" : "";
@@ -122,7 +124,8 @@ export default function CategoriesAdmin({
 
   function requestCloseModal() {
     if (JSON.stringify(form) !== formSnapshot) {
-      if (!confirm("¿Descartar los cambios sin guardar?")) return;
+      setConfirmDiscard(true);
+      return;
     }
     setModalOpen(false);
   }
@@ -663,6 +666,18 @@ export default function CategoriesAdmin({
             </div>
           </div>
         </div>
+      )}
+
+      {confirmDiscard && (
+        <ConfirmDialog
+          title="Cambios sin guardar"
+          message="¿Descartar los cambios sin guardar?"
+          onCancel={() => setConfirmDiscard(false)}
+          onConfirm={() => {
+            setConfirmDiscard(false);
+            setModalOpen(false);
+          }}
+        />
       )}
     </div>
   );

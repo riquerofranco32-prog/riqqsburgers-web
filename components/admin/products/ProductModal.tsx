@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { Category, Product } from "@/types/supabase";
 import { uploadImage } from "./utils";
+import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
 
 export interface ProductForm {
   name: string;
@@ -107,6 +108,7 @@ export function ProductModal({
   const [stockError, setStockError] = useState("");
   // Local blob URL shown immediately on file pick, before upload completes
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   function set<K extends keyof ProductForm>(key: K, val: ProductForm[K]) {
     setForm((f) => ({ ...f, [key]: val }));
@@ -165,7 +167,8 @@ export function ProductModal({
 
   function requestClose() {
     if (JSON.stringify(form) !== initialFormRef.current) {
-      if (!confirm("¿Descartar los cambios sin guardar?")) return;
+      setConfirmDiscard(true);
+      return;
     }
     onClose();
   }
@@ -337,7 +340,9 @@ export function ProductModal({
                   className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${form.available ? "translate-x-5" : "translate-x-0.5"}`}
                 />
               </div>
-              <span className="text-sm text-[var(--dash-text)]">Disponible</span>
+              <span className="text-sm text-[var(--dash-text)]">
+                Disponible
+              </span>
             </label>
 
             <div>
@@ -382,7 +387,9 @@ export function ProductModal({
               </label>
               {form.is_featured && (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-[var(--dash-muted)]">Orden</span>
+                  <span className="text-xs text-[var(--dash-muted)]">
+                    Orden
+                  </span>
                   <input
                     type="number"
                     min="0"
@@ -805,6 +812,18 @@ export function ProductModal({
           </button>
         </div>
       </div>
+
+      {confirmDiscard && (
+        <ConfirmDialog
+          title="Cambios sin guardar"
+          message="¿Descartar los cambios sin guardar?"
+          onCancel={() => setConfirmDiscard(false)}
+          onConfirm={() => {
+            setConfirmDiscard(false);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 }

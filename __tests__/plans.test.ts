@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { getPlanLimits, PLANS } from "@/lib/plans";
 
 describe("plan gating — getPlanLimits", () => {
-  it("free plan has unlimited products", () => {
+  it("free plan caps at 20 products", () => {
     const limits = getPlanLimits("free");
-    expect(limits.maxProducts).toBeNull();
+    expect(limits.maxProducts).toBe(20);
     expect(limits.analyticsEnabled).toBe(false);
   });
 
@@ -33,8 +33,9 @@ describe("plan gating — canAddProduct logic", () => {
     return currentCount < maxProducts;
   }
 
-  it("never blocks free plan", () => {
-    expect(canAdd(9999, PLANS.free.maxProducts)).toBe(true);
+  it("blocks free plan at 20 products", () => {
+    expect(canAdd(20, PLANS.free.maxProducts)).toBe(false);
+    expect(canAdd(19, PLANS.free.maxProducts)).toBe(true);
   });
 
   it("never blocks pro plan", () => {

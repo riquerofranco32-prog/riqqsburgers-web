@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, UserCog } from "lucide-react";
+import { Plus, Trash2, UserCog, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { AdminModal } from "@/components/ui/admin/AdminModal";
 import { AdminField, adminInputStyle } from "@/components/ui/admin/AdminField";
@@ -28,6 +28,7 @@ function InviteModal({
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("staff");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -71,16 +72,39 @@ function InviteModal({
       </AdminField>
 
       <AdminField label="Contraseña inicial *">
-        <input
-          type="text"
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-            setError("");
-          }}
-          placeholder="Mínimo 8 caracteres"
-          style={adminInputStyle}
-        />
+        <div style={{ position: "relative" }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError("");
+            }}
+            placeholder="Mínimo 8 caracteres"
+            style={{ ...adminInputStyle, paddingRight: 40 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={
+              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+            }
+            style={{
+              position: "absolute",
+              right: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              color: "var(--dash-muted)",
+              cursor: "pointer",
+              display: "flex",
+              padding: 4,
+            }}
+          >
+            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
         <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: 6 }}>
           Se la pasás vos directamente a la persona. Puede cambiarla luego desde
           &quot;Mi cuenta&quot; en su propio panel.
