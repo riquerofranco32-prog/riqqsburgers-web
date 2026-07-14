@@ -8,9 +8,9 @@ describe("plan gating — getPlanLimits", () => {
     expect(limits.analyticsEnabled).toBe(false);
   });
 
-  it("pro plan caps at 50 products with analytics", () => {
+  it("pro plan has unlimited products with analytics", () => {
     const limits = getPlanLimits("pro");
-    expect(limits.maxProducts).toBe(50);
+    expect(limits.maxProducts).toBeNull();
     expect(limits.analyticsEnabled).toBe(true);
   });
 
@@ -37,12 +37,38 @@ describe("plan gating — canAddProduct logic", () => {
     expect(canAdd(9999, PLANS.free.maxProducts)).toBe(true);
   });
 
-  it("blocks pro plan at 50 products", () => {
-    expect(canAdd(50, PLANS.pro.maxProducts)).toBe(false);
-    expect(canAdd(49, PLANS.pro.maxProducts)).toBe(true);
+  it("never blocks pro plan", () => {
+    expect(canAdd(9999, PLANS.pro.maxProducts)).toBe(true);
   });
 
   it("never blocks premium", () => {
     expect(canAdd(9999, PLANS.premium.maxProducts)).toBe(true);
+  });
+});
+
+describe("plan gating — team seat limits", () => {
+  function canAddMember(
+    currentCount: number,
+    maxTeamMembers: number | null,
+  ): boolean {
+    if (maxTeamMembers === null) return true;
+    return currentCount < maxTeamMembers;
+  }
+
+  it("free plan allows only 1 team member", () => {
+    expect(PLANS.free.maxTeamMembers).toBe(1);
+    expect(canAddMember(1, PLANS.free.maxTeamMembers)).toBe(false);
+    expect(canAddMember(0, PLANS.free.maxTeamMembers)).toBe(true);
+  });
+
+  it("pro plan caps at 3 team members", () => {
+    expect(PLANS.pro.maxTeamMembers).toBe(3);
+    expect(canAddMember(3, PLANS.pro.maxTeamMembers)).toBe(false);
+    expect(canAddMember(2, PLANS.pro.maxTeamMembers)).toBe(true);
+  });
+
+  it("premium plan has unlimited team members", () => {
+    expect(PLANS.premium.maxTeamMembers).toBeNull();
+    expect(canAddMember(9999, PLANS.premium.maxTeamMembers)).toBe(true);
   });
 });

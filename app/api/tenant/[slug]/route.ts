@@ -4,6 +4,16 @@ import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
 import { isValidBusinessHours } from "@/lib/businessHours";
+import { getEffectiveSubscription } from "@/lib/subscriptions";
+import { getPlanLimits, type PlanId } from "@/lib/plans";
+
+const BRANDING_FIELDS = [
+  "logo_url",
+  "banner_url",
+  "primary_color",
+  "secondary_color",
+  "background_color",
+] as const;
 
 const ALLOWED_FIELDS = [
   "name",
@@ -39,8 +49,9 @@ export async function PATCH(
 ) {
   const { slug } = await params;
 
+  let tenantId: string;
   try {
-    await assertTenantAdmin(slug);
+    ({ tenantId } = await assertTenantAdmin(slug));
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
@@ -54,6 +65,21 @@ export async function PATCH(
       body[f],
     ]),
   );
+
+  if (BRANDING_FIELDS.some((f) => f in patch)) {
+    const subscription = await getEffectiveSubscription(tenantId);
+    const limits = getPlanLimits(subscription.plan as PlanId);
+    if (!limits.customBranding) {
+      return NextResponse.json(
+        {
+          error:
+            "Personalizar logo, banner y colores es parte del plan Pro. Actualizá tu plan para editarlos.",
+          code: "PLAN_LIMIT_REACHED",
+        },
+        { status: 403 },
+      );
+    }
+  }
 
   const HEX_COLOR = /^#[0-9A-Fa-f]{6}$/;
   for (const colorField of [
@@ -168,7 +194,9 @@ export async function PATCH(
 
   if (
     "delivery_mode" in patch &&
-    !["none", "fixed", "zones", "distance"].includes(patch.delivery_mode as string)
+    !["none", "fixed", "zones", "distance"].includes(
+      patch.delivery_mode as string,
+    )
   ) {
     return NextResponse.json(
       { error: "delivery_mode inválido" },

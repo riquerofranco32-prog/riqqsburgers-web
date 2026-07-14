@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import type { Tenant } from "@/types/supabase";
 import type { BusinessHours } from "@/lib/businessHours";
+import { getPlanLimits, type PlanId } from "@/lib/plans";
 import BusinessHoursEditor from "@/components/admin/BusinessHoursEditor";
 import DeliveryZonesEditor from "@/components/admin/DeliveryZonesEditor";
 import DeliveryRangesEditor from "@/components/admin/DeliveryRangesEditor";
@@ -56,10 +57,12 @@ function ColorField({
   label,
   value,
   onChange,
+  disabled,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) {
   const [hex, setHex] = useState(value);
 
@@ -74,7 +77,7 @@ function ColorField({
   }
 
   return (
-    <div>
+    <div style={{ opacity: disabled ? 0.5 : 1 }}>
       <label style={labelStyle}>{label}</label>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ position: "relative", flexShrink: 0 }}>
@@ -87,7 +90,7 @@ function ColorField({
               background: /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "#000000",
               border: "2px solid var(--dash-border)",
               boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
-              cursor: "pointer",
+              cursor: disabled ? "not-allowed" : "pointer",
               pointerEvents: "none",
             }}
           />
@@ -95,13 +98,14 @@ function ColorField({
             type="color"
             value={/^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "#000000"}
             onChange={(e) => handleColorPicker(e.target.value)}
+            disabled={disabled}
             style={{
               position: "absolute",
               inset: 0,
               opacity: 0,
               width: "100%",
               height: "100%",
-              cursor: "pointer",
+              cursor: disabled ? "not-allowed" : "pointer",
               borderRadius: "50%",
             }}
           />
@@ -112,7 +116,13 @@ function ColorField({
           onChange={(e) => handleHexInput(e.target.value)}
           placeholder="#FF6B35"
           maxLength={7}
-          style={{ ...inputStyle, fontFamily: "var(--font-mono)", width: 120 }}
+          disabled={disabled}
+          style={{
+            ...inputStyle,
+            fontFamily: "var(--font-mono)",
+            width: 120,
+            cursor: disabled ? "not-allowed" : "text",
+          }}
           onFocus={(e) => (e.currentTarget.style.borderColor = "var(--accent)")}
           onBlur={(e) =>
             (e.currentTarget.style.borderColor = "var(--dash-border)")
@@ -149,6 +159,7 @@ async function uploadRestaurantImage(
 }
 
 export default function RestaurantSettingsForm({ tenant }: Props) {
+  const canBrand = getPlanLimits(tenant.plan as PlanId).customBranding;
   const [loading, setLoading] = useState(false);
   const [uploadingField, setUploadingField] = useState<UploadField | null>(
     null,
@@ -634,7 +645,36 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
         <div className="flex flex-col gap-6 w-full">
           {/* Visual */}
           <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
-            <p style={sectionTitleStyle}>Visual</p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <p style={sectionTitleStyle}>Visual</p>
+              {!canBrand && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "var(--accent)",
+                    background: "rgba(255,107,53,0.12)",
+                    borderRadius: 999,
+                    padding: "3px 10px",
+                  }}
+                >
+                  Plan Pro
+                </span>
+              )}
+            </div>
+            {!canBrand && (
+              <p
+                style={{ fontSize: 12, color: "var(--dash-muted)", margin: 0 }}
+              >
+                Personalizar colores y subir logo/banner requiere el plan Pro.
+              </p>
+            )}
             <div
               style={{
                 display: "grid",
@@ -646,16 +686,19 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 label="Color principal"
                 value={form.primary_color}
                 onChange={(v) => set("primary_color", v)}
+                disabled={!canBrand}
               />
               <ColorField
                 label="Color secundario"
                 value={form.secondary_color}
                 onChange={(v) => set("secondary_color", v)}
+                disabled={!canBrand}
               />
               <ColorField
                 label="Color de fondo"
                 value={form.background_color}
                 onChange={(v) => set("background_color", v)}
+                disabled={!canBrand}
               />
             </div>
 
@@ -738,8 +781,33 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
           </div>
 
           {/* Imágenes */}
-          <div className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4">
-            <p style={sectionTitleStyle}>Imágenes</p>
+          <div
+            className="bg-dash-surface border border-dash-border rounded-xl p-4 md:p-5 flex flex-col gap-4"
+            style={{ opacity: canBrand ? 1 : 0.5 }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <p style={sectionTitleStyle}>Imágenes</p>
+              {!canBrand && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "var(--accent)",
+                    background: "rgba(255,107,53,0.12)",
+                    borderRadius: 999,
+                    padding: "3px 10px",
+                  }}
+                >
+                  Plan Pro
+                </span>
+              )}
+            </div>
 
             {/* Logo */}
             <div>
@@ -751,7 +819,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 <button
                   type="button"
                   onClick={() => logoInputRef.current?.click()}
-                  disabled={uploadingField === "logo_url"}
+                  disabled={!canBrand || uploadingField === "logo_url"}
                   title="Clic para subir logo"
                   style={{
                     width: 64,
@@ -761,7 +829,9 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     background: "var(--dash-surface-2)",
                     overflow: "hidden",
                     cursor:
-                      uploadingField === "logo_url" ? "not-allowed" : "pointer",
+                      !canBrand || uploadingField === "logo_url"
+                        ? "not-allowed"
+                        : "pointer",
                     flexShrink: 0,
                     display: "flex",
                     alignItems: "center",
@@ -770,7 +840,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     transition: "border-color 0.15s",
                   }}
                   onMouseEnter={(e) => {
-                    if (uploadingField === "logo_url") return;
+                    if (!canBrand || uploadingField === "logo_url") return;
                     e.currentTarget.style.borderColor = "var(--accent)";
                   }}
                   onMouseLeave={(e) => {
@@ -805,7 +875,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                   <button
                     type="button"
                     onClick={() => logoInputRef.current?.click()}
-                    disabled={uploadingField === "logo_url"}
+                    disabled={!canBrand || uploadingField === "logo_url"}
                     style={{
                       padding: "9px 16px",
                       borderRadius: 8,
@@ -818,7 +888,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                       fontSize: 13,
                       fontWeight: 500,
                       cursor:
-                        uploadingField === "logo_url"
+                        !canBrand || uploadingField === "logo_url"
                           ? "not-allowed"
                           : "pointer",
                       fontFamily: "var(--font-sans)",
@@ -826,7 +896,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                       transition: "border-color 0.15s",
                     }}
                     onMouseEnter={(e) => {
-                      if (uploadingField === "logo_url") return;
+                      if (!canBrand || uploadingField === "logo_url") return;
                       e.currentTarget.style.borderColor = "var(--accent)";
                     }}
                     onMouseLeave={(e) => {
@@ -842,7 +912,11 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     value={form.logo_url}
                     onChange={(e) => set("logo_url", e.target.value)}
                     placeholder="O pegá una URL de imagen"
-                    style={inputStyle}
+                    disabled={!canBrand}
+                    style={{
+                      ...inputStyle,
+                      cursor: canBrand ? "text" : "not-allowed",
+                    }}
                     onFocus={(e) =>
                       (e.currentTarget.style.borderColor = "var(--accent)")
                     }
@@ -891,7 +965,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 <button
                   type="button"
                   onClick={() => bannerInputRef.current?.click()}
-                  disabled={uploadingField === "banner_url"}
+                  disabled={!canBrand || uploadingField === "banner_url"}
                   style={{
                     padding: "9px 16px",
                     borderRadius: 8,
@@ -904,7 +978,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     fontSize: 13,
                     fontWeight: 500,
                     cursor:
-                      uploadingField === "banner_url"
+                      !canBrand || uploadingField === "banner_url"
                         ? "not-allowed"
                         : "pointer",
                     fontFamily: "var(--font-sans)",
@@ -912,7 +986,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     transition: "border-color 0.15s",
                   }}
                   onMouseEnter={(e) => {
-                    if (uploadingField === "banner_url") return;
+                    if (!canBrand || uploadingField === "banner_url") return;
                     e.currentTarget.style.borderColor = "var(--accent)";
                   }}
                   onMouseLeave={(e) => {
@@ -928,7 +1002,11 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                   value={form.banner_url}
                   onChange={(e) => set("banner_url", e.target.value)}
                   placeholder="O pegá una URL de banner"
-                  style={inputStyle}
+                  disabled={!canBrand}
+                  style={{
+                    ...inputStyle,
+                    cursor: canBrand ? "text" : "not-allowed",
+                  }}
                   onFocus={(e) =>
                     (e.currentTarget.style.borderColor = "var(--accent)")
                   }

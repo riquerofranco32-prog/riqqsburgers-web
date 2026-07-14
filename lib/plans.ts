@@ -2,6 +2,7 @@ export type PlanId = "free" | "pro" | "premium";
 
 export interface PlanLimits {
   maxProducts: number | null; // null = ilimitado
+  maxTeamMembers: number | null; // null = ilimitado
   analyticsEnabled: boolean;
   customBranding: boolean;
   priceArs: number;
@@ -12,6 +13,7 @@ export interface PlanLimits {
 export const PLANS: Record<PlanId, PlanLimits> = {
   free: {
     maxProducts: null,
+    maxTeamMembers: 1,
     analyticsEnabled: false,
     customBranding: false,
     priceArs: 0,
@@ -19,7 +21,8 @@ export const PLANS: Record<PlanId, PlanLimits> = {
     description: "Para arrancar sin riesgo.",
   },
   pro: {
-    maxProducts: 50,
+    maxProducts: null,
+    maxTeamMembers: 3,
     analyticsEnabled: true,
     customBranding: true,
     priceArs: 17000,
@@ -28,6 +31,7 @@ export const PLANS: Record<PlanId, PlanLimits> = {
   },
   premium: {
     maxProducts: null,
+    maxTeamMembers: null,
     analyticsEnabled: true,
     customBranding: true,
     priceArs: 27000,

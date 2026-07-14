@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { EMAIL_RE, MIN_PASSWORD } from "@/lib/validation";
+import { canAddTeamMember } from "@/lib/subscriptions";
 
 const VALID_ROLES = ["admin", "staff"] as const;
 
@@ -60,6 +61,17 @@ export async function POST(
     return NextResponse.json(
       { error: `La contraseña debe tener al menos ${MIN_PASSWORD} caracteres` },
       { status: 400 },
+    );
+  }
+
+  const { allowed, max } = await canAddTeamMember(tenantId);
+  if (!allowed) {
+    return NextResponse.json(
+      {
+        error: `Límite de administradores alcanzado. Tu plan permite hasta ${max}. Actualizá tu plan para agregar más.`,
+        code: "PLAN_LIMIT_REACHED",
+      },
+      { status: 403 },
     );
   }
 

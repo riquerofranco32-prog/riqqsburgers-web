@@ -3,6 +3,8 @@ import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
 import { startOfDayInBuenosAires } from "@/lib/businessHours";
+import { getEffectiveSubscription } from "@/lib/subscriptions";
+import { getPlanLimits, type PlanId } from "@/lib/plans";
 import type {
   AnalyticsResponse,
   DailyRevenue,
@@ -163,6 +165,21 @@ export async function GET(
       { error: 'range debe ser "today", "week", "twoWeeks" o "month"' },
       { status: 400 },
     );
+  }
+
+  if (range !== "today") {
+    const subscription = await getEffectiveSubscription(tenantId);
+    const limits = getPlanLimits(subscription.plan as PlanId);
+    if (!limits.analyticsEnabled) {
+      return NextResponse.json(
+        {
+          error:
+            "Las estadísticas históricas son parte del plan Pro. Actualizá tu plan para verlas.",
+          code: "PLAN_LIMIT_REACHED",
+        },
+        { status: 403 },
+      );
+    }
   }
 
   const days =

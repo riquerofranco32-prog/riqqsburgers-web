@@ -113,6 +113,40 @@ export async function canAddProduct(
   };
 }
 
+// Cuenta miembros de equipo de un tenant (sin contar superadmin)
+export async function getTeamCount(tenantId: string): Promise<number> {
+  const supabase = createServerClient();
+  const { count, error } = await supabase
+    .from("tenant_users")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .neq("role", "superadmin");
+
+  if (error) return 0;
+  return count ?? 0;
+}
+
+// Verifica si el tenant puede agregar un miembro de equipo más según su plan
+export async function canAddTeamMember(
+  tenantId: string,
+): Promise<{ allowed: boolean; current: number; max: number | null }> {
+  const [subscription, current] = await Promise.all([
+    getEffectiveSubscription(tenantId),
+    getTeamCount(tenantId),
+  ]);
+  const limits = getPlanLimits(subscription.plan as PlanId);
+
+  if (limits.maxTeamMembers === null) {
+    return { allowed: true, current, max: null };
+  }
+
+  return {
+    allowed: current < limits.maxTeamMembers,
+    current,
+    max: limits.maxTeamMembers,
+  };
+}
+
 // Cambia el plan de un tenant. tenants.plan se sincroniza solo, vía el
 // trigger sync_tenant_plan sobre subscriptions (un update directo a
 // tenants.plan está bloqueado por enforce_plan_immutability).
