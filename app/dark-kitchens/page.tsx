@@ -4,9 +4,9 @@ import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Menú Digital para Dark Kitchens | Pedidos por WhatsApp — Takefyy",
+  title: "Menú Digital para Dark Kitchens | WhatsApp — Takefyy",
   description:
-    "El menú digital ideal para dark kitchens y cocinas fantasma. Recibí pedidos por WhatsApp sin comisiones, gestioná múltiples marcas y cocinas desde un solo panel.",
+    "El menú digital ideal para dark kitchens. Recibí pedidos por WhatsApp sin comisiones, gestioná varias marcas desde un panel.",
   keywords: [
     "menú digital dark kitchen",
     "dark kitchen argentina menú digital",

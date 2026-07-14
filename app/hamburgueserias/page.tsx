@@ -4,9 +4,9 @@ import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Menú Digital para Hamburguerías | Pedidos por WhatsApp — Takefyy",
+  title: "Menú Digital para Hamburguerías | WhatsApp — Takefyy",
   description:
-    "Creá el menú digital de tu hamburguesería en minutos. Recibí pedidos directo a tu WhatsApp, sin comisiones, sin Rappi. Fotos, combos, extras — todo incluido. Gratis para empezar.",
+    "Creá el menú digital de tu hamburguesería en minutos. Pedidos por WhatsApp, sin comisiones, sin Rappi. Gratis para empezar.",
   keywords: [
     "menú digital hamburguesería",
     "carta digital hamburguesería argentina",

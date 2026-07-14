@@ -4,7 +4,7 @@ import ExploreClient from "./ExploreClient";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Explorá restaurantes | Takefyy — Menús digitales y descuentos",
+  title: "Explorá Restaurantes | Takefyy — Menús y Descuentos",
   description:
     "Descubrí restaurantes, hamburgueserías, pizzerías y más. Mirá sus menús digitales, encontrá descuentos y pedí directo por WhatsApp en Takefyy.",
   keywords: [

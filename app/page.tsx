@@ -4,9 +4,9 @@ import HomeClient from "./components/HomeClient";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Takefyy — Menú digital para restaurantes | Pedidos por WhatsApp",
+  title: "Menú Digital para Restaurantes | Pedidos WhatsApp — Takefyy",
   description:
-    "Creá el menú digital de tu restaurante en minutos y recibí pedidos directo por WhatsApp. Sin comisiones, sin apps, sin costos en dólares. Gratis para empezar. Hecho en Argentina.",
+    "Creá el menú digital de tu restaurante en minutos y recibí pedidos por WhatsApp. Sin comisiones, sin apps. Gratis para empezar.",
   keywords: [
     "menú digital restaurante Argentina",
     "carta digital restaurante gratis",

@@ -4,10 +4,9 @@ import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title:
-    "Menú Digital para Pizzerías | Pedidos por WhatsApp sin Rappi — Takefyy",
+  title: "Menú Digital para Pizzerías | Pedidos WhatsApp — Takefyy",
   description:
-    "Creá el menú digital de tu pizzería en minutos. Recibí pedidos directo a tu WhatsApp sin comisiones. Sin Rappi, sin PedidosYa. Precios en pesos. Gratis para empezar.",
+    "Creá el menú digital de tu pizzería en minutos. Pedidos por WhatsApp sin comisiones, sin Rappi. Gratis para empezar.",
   keywords: [
     "menú digital pizzería argentina",
     "carta digital pizzería gratis",

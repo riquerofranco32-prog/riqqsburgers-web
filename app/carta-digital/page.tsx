@@ -5,9 +5,9 @@ import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Carta Digital para Restaurantes | Menú Online Gratis — Takefyy",
+  title: "Carta Digital para Restaurantes | Gratis — Takefyy",
   description:
-    "Creá la carta digital de tu restaurante en minutos. Tus clientes la ven desde el celular y te mandan el pedido por WhatsApp. Sin comisiones, sin apps. Gratis para empezar.",
+    "Creá la carta digital de tu restaurante en minutos. Pedidos por WhatsApp, sin comisiones ni apps. Gratis para empezar.",
   keywords: [
     "carta digital restaurante",
     "carta digital argentina",

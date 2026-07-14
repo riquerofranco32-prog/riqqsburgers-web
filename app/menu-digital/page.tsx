@@ -4,7 +4,7 @@ import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Menú Digital para Restaurantes en Argentina | Gratis — Takefyy",
+  title: "Menú Digital para Restaurantes Argentina | Gratis — Takefyy",
   description:
     "Creá el menú digital de tu restaurante en minutos. Sin programar, sin costos en dólares. Pedidos directo a tu WhatsApp, sin comisiones. Gratis para empezar.",
   keywords: [

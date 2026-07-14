@@ -4,7 +4,7 @@ import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Menú QR para Restaurantes | Carta Digital con Código QR — Takefyy",
+  title: "Menú QR para Restaurantes | Carta Digital — Takefyy",
   description:
     "Creá el menú QR de tu restaurante en minutos. Imprimí el código QR para las mesas y tus clientes acceden a la carta digital al instante desde el celular.",
   keywords: [

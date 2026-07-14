@@ -4,9 +4,9 @@ import RelatedLinks from "@/app/components/RelatedLinks";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://takefyy.com"),
-  title: "Pedidos por WhatsApp para Restaurantes | Sin Comisiones — Takefyy",
+  title: "Pedidos por WhatsApp para Restaurantes — Takefyy",
   description:
-    "Recibí pedidos directo a tu WhatsApp desde tu menú digital. Sin apps, sin comisiones, sin intermediarios. El cliente elige, te manda el pedido y listo. Gratis para empezar.",
+    "Recibí pedidos directo a tu WhatsApp desde tu menú digital. Sin apps ni comisiones. El cliente elige, pedís y listo. Gratis.",
   keywords: [
     "pedidos por whatsapp restaurante",
     "recibir pedidos whatsapp",
