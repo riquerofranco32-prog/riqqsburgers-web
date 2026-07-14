@@ -322,7 +322,7 @@ const plans = [
     desc: "Para arrancar sin riesgo",
     features: [
       "Menú digital completo",
-      "Hasta 20 productos",
+      "Hasta 5 productos",
       "Pedidos por WhatsApp",
       "Link y código QR",
       "Panel admin (1 usuario)",
