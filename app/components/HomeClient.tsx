@@ -283,6 +283,15 @@ const showcaseFeatures = [
   "Sin comisiones por pedido",
 ];
 
+const adminPanelFeatures = [
+  "Ventas de la semana y por categoría en tiempo real",
+  "Horas pico para planificar tu equipo y tu stock",
+  "Top de productos más vendidos, actualizado solo",
+  "Cierre de caja automático por efectivo, transferencia y delivery",
+  "Pedidos en vivo con timbre de cocina y WebSocket",
+  "Reporte mensual descargable en Excel",
+];
+
 const testimonials = [
   {
     name: "Martina G.",
@@ -1648,6 +1657,7 @@ export default function HomeClient({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [annual, setAnnual] = useState(false);
+  const [ventasDelivery, setVentasDelivery] = useState(800000);
   const [isMobile, setIsMobile] = useState(false);
   const [showSpline, setShowSpline] = useState(false);
   const [splineLoaded, setSplineLoaded] = useState(false);
@@ -3617,6 +3627,443 @@ export default function HomeClient({
               </div>
             </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* ── PANEL ADMIN ─────────────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: "var(--brand-dark)",
+          padding: "100px 0",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            right: "10%",
+            top: "30%",
+            transform: "translate(50%, -50%)",
+            width: 500,
+            height: 500,
+            background:
+              "radial-gradient(circle, rgba(255,107,53,0.1) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          className="max-w-7xl mx-auto px-5 sm:px-8"
+          style={{ position: "relative", zIndex: 1 }}
+        >
+          <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease }}
+            >
+              <SectionLabel>PARA EL DUEÑO DEL LOCAL</SectionLabel>
+              <h2
+                style={{
+                  fontFamily: "var(--font-anton)",
+                  fontSize: "clamp(2rem, 4.5vw, 3.5rem)",
+                  letterSpacing: "0.01em",
+                  color: "#fff",
+                  lineHeight: 1.0,
+                  marginBottom: 20,
+                }}
+              >
+                Un panel que te dice
+                <br />
+                cómo va tu negocio.
+              </h2>
+              <p
+                style={{
+                  fontSize: 16,
+                  color: "rgba(240,237,232,0.65)",
+                  lineHeight: 1.7,
+                  maxWidth: 460,
+                  marginBottom: 32,
+                }}
+              >
+                Nada de planillas ni cuadernos. Entrás, ves cuánto vendiste hoy,
+                qué se agotó y cuánto tenés que rendir de caja — todo
+                actualizado en tiempo real.
+              </p>
+              <div className="flex flex-col gap-3">
+                {adminPanelFeatures.map((f, i) => (
+                  <motion.div
+                    key={f}
+                    initial={{ opacity: 0, x: 20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: i * 0.07, ease }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "10px 14px",
+                      borderRadius: 12,
+                      background: "rgba(255,107,53,0.05)",
+                      border: "1px solid rgba(255,107,53,0.1)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "var(--accent)",
+                        flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Check size={14} strokeWidth={2.5} />
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 14,
+                        color: "rgba(240,237,232,0.85)",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {f}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 32 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ duration: 0.7, ease, delay: 0.1 }}
+              style={{ position: "relative" }}
+            >
+              <div
+                style={{
+                  position: "relative",
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  boxShadow:
+                    "0 40px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.2)",
+                }}
+              >
+                <Image
+                  src="/admin-panel-dashboard.png"
+                  alt="Panel de administración de Takefyy: pedidos en vivo, cierre de caja y ventas de la semana"
+                  width={1672}
+                  height={940}
+                  sizes="(max-width: 1024px) 90vw, 760px"
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                />
+              </div>
+              <div
+                className="hidden lg:block"
+                style={{
+                  position: "absolute",
+                  bottom: -28,
+                  left: -28,
+                  width: "62%",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  boxShadow:
+                    "0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.2)",
+                }}
+              >
+                <Image
+                  src="/admin-panel-ventas.png"
+                  alt="Panel de administración de Takefyy: horas pico y top de productos vendidos"
+                  width={1672}
+                  height={940}
+                  sizes="470px"
+                  style={{ width: "100%", height: "auto", display: "block" }}
+                />
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CALCULADORA DE AHORRO ───────────────────────────────────────────── */}
+      <section style={{ background: "var(--bg)", padding: "100px 0" }}>
+        <div className="max-w-3xl mx-auto px-5 sm:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease }}
+            className="text-center"
+            style={{ marginBottom: 44 }}
+          >
+            <SectionLabel>CALCULÁ TU AHORRO</SectionLabel>
+            <h2
+              style={{
+                fontFamily: "var(--font-anton)",
+                fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
+                letterSpacing: "0.01em",
+                color: "var(--text-primary)",
+                lineHeight: 1.05,
+                marginBottom: 16,
+              }}
+            >
+              ¿Cuánto estás perdiendo
+              <br />
+              en comisiones?
+            </h2>
+            <p
+              style={{
+                fontSize: 15,
+                color: "var(--text-secondary)",
+                maxWidth: 460,
+                margin: "0 auto",
+                lineHeight: 1.7,
+              }}
+            >
+              Las apps de delivery cobran hasta 27% por pedido. Movés el cursor
+              y mirá cuánto te quedaría en el bolsillo con Takefyy.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease, delay: 0.1 }}
+            style={{
+              background: "var(--brand-dark)",
+              borderRadius: 24,
+              padding: "40px clamp(20px, 5vw, 48px)",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                right: "-10%",
+                top: "-20%",
+                width: 360,
+                height: 360,
+                background:
+                  "radial-gradient(circle, rgba(255,107,53,0.15) 0%, transparent 70%)",
+                pointerEvents: "none",
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "baseline",
+                  marginBottom: 12,
+                  flexWrap: "wrap",
+                  gap: 8,
+                }}
+              >
+                <label
+                  htmlFor="ventas-delivery"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "rgba(240,237,232,0.6)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  Ventas mensuales por delivery
+                </label>
+                <span
+                  style={{
+                    fontFamily: "var(--font-anton)",
+                    fontSize: 24,
+                    color: "#fff",
+                  }}
+                >
+                  {ventasDelivery.toLocaleString("es-AR", {
+                    style: "currency",
+                    currency: "ARS",
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
+              </div>
+              <input
+                id="ventas-delivery"
+                type="range"
+                min={100000}
+                max={4000000}
+                step={50000}
+                value={ventasDelivery}
+                onChange={(e) => setVentasDelivery(Number(e.target.value))}
+                style={{
+                  width: "100%",
+                  accentColor: "var(--accent)",
+                  height: 6,
+                  cursor: "pointer",
+                }}
+              />
+
+              <div
+                className="grid sm:grid-cols-2 gap-4"
+                style={{ marginTop: 36 }}
+              >
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 14,
+                    padding: "20px 22px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "rgba(240,237,232,0.5)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Con apps de delivery (27%)
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-anton)",
+                      fontSize: 28,
+                      color: "#F87171",
+                    }}
+                  >
+                    -
+                    {(ventasDelivery * 0.27).toLocaleString("es-AR", {
+                      style: "currency",
+                      currency: "ARS",
+                      maximumFractionDigits: 0,
+                    })}
+                    <span
+                      style={{ fontSize: 14, color: "rgba(240,237,232,0.4)" }}
+                    >
+                      {" "}
+                      /mes
+                    </span>
+                  </p>
+                </div>
+                <div
+                  style={{
+                    background: "rgba(255,107,53,0.08)",
+                    border: "1px solid rgba(255,107,53,0.25)",
+                    borderRadius: 14,
+                    padding: "20px 22px",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "rgba(240,237,232,0.5)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Con Takefyy (plan Pro)
+                  </p>
+                  <p
+                    style={{
+                      fontFamily: "var(--font-anton)",
+                      fontSize: 28,
+                      color: "var(--accent)",
+                    }}
+                  >
+                    -
+                    {(17000).toLocaleString("es-AR", {
+                      style: "currency",
+                      currency: "ARS",
+                      maximumFractionDigits: 0,
+                    })}
+                    <span
+                      style={{ fontSize: 14, color: "rgba(240,237,232,0.4)" }}
+                    >
+                      {" "}
+                      /mes
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 24,
+                  textAlign: "center",
+                  padding: "24px 20px",
+                  borderRadius: 14,
+                  background: "rgba(34,197,94,0.08)",
+                  border: "1px solid rgba(34,197,94,0.25)",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "rgba(240,237,232,0.6)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    marginBottom: 6,
+                  }}
+                >
+                  Lo que te ahorrás por año
+                </p>
+                <p
+                  style={{
+                    fontFamily: "var(--font-anton)",
+                    fontSize: "clamp(2.2rem, 6vw, 3rem)",
+                    color: "#4ADE80",
+                  }}
+                >
+                  {Math.max(
+                    0,
+                    ventasDelivery * 0.27 * 12 - 17000 * 12,
+                  ).toLocaleString("es-AR", {
+                    style: "currency",
+                    currency: "ARS",
+                    maximumFractionDigits: 0,
+                  })}
+                </p>
+              </div>
+
+              <div style={{ textAlign: "center", marginTop: 28 }}>
+                <a
+                  href="/signup"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "14px 32px",
+                    borderRadius: 99,
+                    background: "var(--accent)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: 15,
+                    textDecoration: "none",
+                  }}
+                >
+                  Quiero ese ahorro →
+                </a>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "rgba(240,237,232,0.35)",
+                    marginTop: 12,
+                  }}
+                >
+                  Estimación ilustrativa según comisión promedio de apps de
+                  delivery en Argentina. No incluye costos de envío propio.
+                </p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
