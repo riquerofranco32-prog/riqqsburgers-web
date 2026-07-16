@@ -211,9 +211,12 @@ function CouponModal({
 export function CouponsAdmin({
   slug,
   initialCoupons,
+  revenueByCode = {},
 }: {
   slug: string;
   initialCoupons: Coupon[];
+  /** Facturación de pedidos (no cancelados) que usaron cada código de cupón */
+  revenueByCode?: Record<string, number>;
 }) {
   const [coupons, setCoupons] = useState(initialCoupons);
   const [showModal, setShowModal] = useState(false);
@@ -447,6 +450,9 @@ export function CouponsAdmin({
                   >
                     {c.uses} uso{c.uses !== 1 ? "s" : ""}
                     {c.max_uses !== null ? ` / ${c.max_uses}` : ""}
+                    {revenueByCode[c.code]
+                      ? ` · facturó ${fmtARS(revenueByCode[c.code])}`
+                      : ""}
                     {c.min_order_amount
                       ? ` · mín. ${fmtARS(c.min_order_amount)}`
                       : ""}

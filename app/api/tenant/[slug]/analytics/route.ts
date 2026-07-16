@@ -264,6 +264,22 @@ export async function GET(
   const categoryRevenue = buildCategoryRevenue(orders, products, categories);
   const peakHour = buildPeakHour(orders);
 
+  // Misma comparación que revenue/orderCount/avgTicket de arriba, pero por
+  // categoría — para ver qué está creciendo o cayendo, no solo el total.
+  const prevCategoryRevenue = buildCategoryRevenue(
+    prevOrders,
+    products,
+    categories,
+  );
+  const prevCategoryMap = new Map(
+    prevCategoryRevenue.map((c) => [c.name, c.value]),
+  );
+  const categoryRevenueChange = categoryRevenue.map((c) => ({
+    name: c.name,
+    value: c.value,
+    changePct: pctChange(c.value, prevCategoryMap.get(c.name) ?? 0),
+  }));
+
   const body: AnalyticsResponse = {
     revenue,
     orderCount,
@@ -274,6 +290,7 @@ export async function GET(
     topProducts,
     dailyRevenue,
     categoryRevenue,
+    categoryRevenueChange,
     peakHour,
     cancelledCount,
     cancelledRate,

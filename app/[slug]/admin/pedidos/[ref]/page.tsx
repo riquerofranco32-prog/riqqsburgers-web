@@ -252,6 +252,7 @@ export default async function OrderTicketPage({
               (s, a) => s + a.price,
               0,
             );
+            const removedIngredients = itemWithExtra.removed_ingredients ?? [];
             return (
               <div
                 key={i}
@@ -284,9 +285,10 @@ export default async function OrderTicketPage({
                 {itemWithExtra.selected_extra && (
                   <div
                     style={{
-                      fontSize: 13,
-                      color: "#555",
-                      marginTop: 2,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#000",
+                      marginTop: 3,
                       marginLeft: 8,
                     }}
                   >
@@ -298,9 +300,10 @@ export default async function OrderTicketPage({
                 {itemWithExtra.addons && itemWithExtra.addons.length > 0 && (
                   <div
                     style={{
-                      fontSize: 13,
-                      color: "#555",
-                      marginTop: 2,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#000",
+                      marginTop: 3,
                       marginLeft: 8,
                     }}
                   >
@@ -312,6 +315,24 @@ export default async function OrderTicketPage({
                           : a.name,
                       )
                       .join(", ")}
+                  </div>
+                )}
+                {/* Ingredientes removidos — antes ni se imprimían acá, así
+                    que cocina no se enteraba de un "sin cebolla" salvo que
+                    estuviera en las notas generales del pedido. */}
+                {removedIngredients.length > 0 && (
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 800,
+                      color: "#b45309",
+                      marginTop: 3,
+                      marginLeft: 8,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    ⚠ Sin: {removedIngredients.join(", ")}
                   </div>
                 )}
               </div>

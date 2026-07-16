@@ -329,8 +329,9 @@ export function OrderDetailView({
                   {item.selected_extra && (
                     <span
                       style={{
-                        fontSize: 11,
-                        color: "var(--dash-muted)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "var(--dash-text)",
                         marginLeft: 28,
                       }}
                     >
@@ -342,8 +343,9 @@ export function OrderDetailView({
                   {item.addons && item.addons.length > 0 && (
                     <span
                       style={{
-                        fontSize: 11,
-                        color: "var(--dash-muted)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: "var(--dash-text)",
                         marginLeft: 28,
                       }}
                     >
@@ -361,13 +363,13 @@ export function OrderDetailView({
                     item.removed_ingredients.length > 0 && (
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 12,
                           color: "#d97706",
                           marginLeft: 28,
-                          fontWeight: 600,
+                          fontWeight: 800,
                         }}
                       >
-                        Sin: {item.removed_ingredients.join(", ")}
+                        ⚠ Sin: {item.removed_ingredients.join(", ")}
                       </span>
                     )}
                 </div>

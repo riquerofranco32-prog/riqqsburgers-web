@@ -129,12 +129,7 @@ export default async function QRPage({
 
       {/* Acciones interactivas (Client Component) */}
       <div className="no-print">
-        <QRActions
-          qrApiUrl={qrApiUrl}
-          menuUrl={menuUrl}
-          slug={slug}
-          accent={accent}
-        />
+        <QRActions menuUrl={menuUrl} slug={slug} accent={accent} />
       </div>
 
       <style

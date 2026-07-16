@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DollarSign, ShoppingCart, TrendingUp, Clock } from "lucide-react";
+import {
+  DollarSign,
+  ShoppingCart,
+  TrendingUp,
+  Clock,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+} from "lucide-react";
 import { KPICard } from "@/components/admin/dashboard/KPICard";
 import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
 import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
@@ -207,6 +215,86 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
           )}
         </div>
       </div>
+
+      {!loading && (data?.categoryRevenueChange.length ?? 0) > 0 && (
+        <div
+          style={{
+            background: "var(--dash-surface)",
+            border: "1px solid var(--dash-border)",
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--dash-muted)",
+              marginBottom: 12,
+            }}
+          >
+            Categorías — variación vs. período anterior
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {data!.categoryRevenueChange.map((c) => {
+              const isUp = c.changePct !== null && c.changePct > 0;
+              const isDown = c.changePct !== null && c.changePct < 0;
+              const Icon = isUp ? ArrowUp : isDown ? ArrowDown : Minus;
+              const color = isUp
+                ? "#4ade80"
+                : isDown
+                  ? "#f87171"
+                  : "var(--dash-muted)";
+              return (
+                <div
+                  key={c.name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                  }}
+                >
+                  <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
+                    {c.name}
+                  </span>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "var(--dash-text)",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
+                    >
+                      {fmtARS(c.value)}
+                    </span>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 3,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color,
+                        minWidth: 56,
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <Icon size={12} />
+                      {c.changePct !== null
+                        ? `${Math.abs(c.changePct).toFixed(0)}%`
+                        : "nuevo"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <TopProductsList products={data?.topProducts ?? []} loading={loading} />
     </div>

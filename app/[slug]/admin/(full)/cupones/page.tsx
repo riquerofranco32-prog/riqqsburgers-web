@@ -27,6 +27,26 @@ export default async function CuponesPage({
 
   const coupons = (rawCoupons ?? []) as Coupon[];
 
+  // Cuánto facturaron los pedidos que usaron cada cupón — `orders.coupon_code`
+  // es el vínculo (no hay coupon_id), así que se suma por código en vez de
+  // hacer un join relacional.
+  let revenueByCode: Record<string, number> = {};
+  if (coupons.length > 0) {
+    const { data: couponOrders } = await db
+      .from("orders")
+      .select("coupon_code, total")
+      .eq("tenant_id", tenantId)
+      .not("coupon_code", "is", null)
+      .neq("status", "cancelled");
+    revenueByCode = (
+      (couponOrders ?? []) as { coupon_code: string | null; total: number }[]
+    ).reduce<Record<string, number>>((acc, o) => {
+      if (!o.coupon_code) return acc;
+      acc[o.coupon_code] = (acc[o.coupon_code] ?? 0) + o.total;
+      return acc;
+    }, {});
+  }
+
   return (
     <div className="p-5 md:p-8 flex flex-col gap-6 w-full">
       <BackButton href={`/${slug}/admin`} label="Dashboard" />
@@ -39,7 +59,11 @@ export default async function CuponesPage({
         </p>
       </div>
 
-      <CouponsAdmin slug={slug} initialCoupons={coupons} />
+      <CouponsAdmin
+        slug={slug}
+        initialCoupons={coupons}
+        revenueByCode={revenueByCode}
+      />
     </div>
   );
 }

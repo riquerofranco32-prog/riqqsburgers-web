@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import EmptyState from "@/components/admin/EmptyState";
 import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
+import { isCategoryVisibleNow } from "@/lib/categoryVisibility";
+import { useNowMinute } from "@/components/admin/orders/utils";
 import type { Category } from "@/types/supabase";
 
 const EMOJI_SUGGESTIONS = [
@@ -63,6 +65,9 @@ export default function CategoriesAdmin({
   productCounts,
 }: CategoriesAdminProps) {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
+  // Refresca cada minuto para que "oculta ahora" no quede desactualizada
+  // mientras el dueño tiene la pestaña abierta.
+  useNowMinute();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Category | null>(null);
   const [form, setForm] = useState<CategoryForm>({
@@ -713,6 +718,15 @@ function CategoryRow({
   onMoveDown: () => void;
 }) {
   const dragControls = useDragControls();
+  const isInvalidWindow =
+    !!cat.visible_from &&
+    !!cat.visible_to &&
+    cat.visible_from === cat.visible_to;
+  const hiddenByWindow =
+    cat.active &&
+    !!cat.visible_from &&
+    !!cat.visible_to &&
+    !isCategoryVisibleNow(cat);
 
   return (
     <Reorder.Item
@@ -786,8 +800,35 @@ function CategoryRow({
           {!cat.active && " · oculta del menú"}
           {cat.visible_from &&
             cat.visible_to &&
+            !isInvalidWindow &&
             ` · visible ${cat.visible_from}–${cat.visible_to}`}
         </p>
+        {isInvalidWindow && (
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#f87171",
+              marginTop: 3,
+            }}
+          >
+            ⚠️ Horario inválido ({cat.visible_from} = {cat.visible_to}) — nunca
+            se va a mostrar. Corregilo en &quot;Editar&quot;.
+          </p>
+        )}
+        {!isInvalidWindow && hiddenByWindow && (
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#f59e0b",
+              marginTop: 3,
+            }}
+          >
+            ⏰ Oculta actualmente — visible de {cat.visible_from} a{" "}
+            {cat.visible_to}
+          </p>
+        )}
       </div>
 
       <InlineConfirm

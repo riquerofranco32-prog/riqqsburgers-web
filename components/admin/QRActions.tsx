@@ -4,19 +4,26 @@ import { useState } from "react";
 import { Download, Printer, Link2, Check } from "lucide-react";
 
 interface QRActionsProps {
-  qrApiUrl: string;
   menuUrl: string;
   slug: string;
   accent: string;
 }
 
-export default function QRActions({
-  qrApiUrl,
-  menuUrl,
-  slug,
-  accent,
-}: QRActionsProps) {
+// api.qrserver.com acepta `size=WxH` directo en la URL — no hace falta
+// generar el PNG nosotros mismos, solo variar el parámetro.
+const QR_SIZES = [
+  { key: "small", label: "Chico", px: 300, hint: "Tarjeta / servilleta" },
+  { key: "medium", label: "Mediano", px: 600, hint: "Mostrador / mesa" },
+  { key: "large", label: "Grande", px: 1200, hint: "Vidriera / cartel" },
+] as const;
+
+function buildQrDownloadUrl(menuUrl: string, px: number) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${px}x${px}&data=${encodeURIComponent(menuUrl)}&bgcolor=FFFAF7&color=1A1208&margin=24&format=png`;
+}
+
+export default function QRActions({ menuUrl, slug, accent }: QRActionsProps) {
   const [copied, setCopied] = useState(false);
+  const [size, setSize] = useState<(typeof QR_SIZES)[number]>(QR_SIZES[1]);
 
   async function handleCopy() {
     try {
@@ -30,10 +37,45 @@ export default function QRActions({
 
   return (
     <>
+      {/* Tamaño de descarga — el QR impreso en la tarjeta de arriba no
+          cambia, solo el PNG que se descarga. */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
+        <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+          Tamaño:
+        </span>
+        {QR_SIZES.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setSize(s)}
+            title={s.hint}
+            style={{
+              padding: "5px 12px",
+              borderRadius: 999,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+              border: `1px solid ${size.key === s.key ? accent : "var(--dash-border)"}`,
+              background:
+                size.key === s.key ? `${accent}18` : "var(--dash-surface-2)",
+              color: size.key === s.key ? accent : "var(--dash-muted)",
+            }}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <a
-          href={qrApiUrl}
-          download={`qr-${slug}.png`}
+          href={buildQrDownloadUrl(menuUrl, size.px)}
+          download={`qr-${slug}-${size.px}.png`}
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -51,7 +93,7 @@ export default function QRActions({
           }}
         >
           <Download size={15} strokeWidth={2} />
-          Descargar PNG
+          Descargar PNG ({size.px}px)
         </a>
 
         <button

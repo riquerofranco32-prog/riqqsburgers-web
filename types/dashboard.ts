@@ -47,6 +47,13 @@ export type TodayKPIsResponse = {
   cancelledRate: number;
 };
 
+export type CategoryRevenueTrend = {
+  name: string;
+  value: number;
+  /** % vs. el período anterior de igual longitud, null si no hubo ventas antes */
+  changePct: number | null;
+};
+
 export type AnalyticsResponse = {
   revenue: number;
   orderCount: number;
@@ -57,6 +64,7 @@ export type AnalyticsResponse = {
   topProducts: TopProduct[];
   dailyRevenue: DailyRevenue[];
   categoryRevenue: CategoryRevenue[];
+  categoryRevenueChange: CategoryRevenueTrend[];
   peakHour: { hour: number; count: number } | null;
   /** Pedidos cancelados en el período y su % sobre el total (incl. cancelados) */
   cancelledCount: number;
