@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { type LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useCountUp } from "@/hooks/useCountUp";
 
@@ -12,6 +13,8 @@ interface KPICardProps {
   icon: LucideIcon;
   loading?: boolean;
   sparkline?: number[];
+  /** Si está presente, la tarjeta navega ahí — ej. "Pedidos hoy" → /pedidos */
+  href?: string;
 }
 
 function Sparkline({ data }: { data: number[] }) {
@@ -94,6 +97,7 @@ export function KPICard({
   icon: Icon,
   loading = false,
   sparkline,
+  href,
 }: KPICardProps) {
   if (loading) {
     return (
@@ -139,7 +143,7 @@ export function KPICard({
           "0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)",
         transition:
           "border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease",
-        cursor: "default",
+        cursor: href ? "pointer" : "default",
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.borderColor = "rgba(255,107,53,0.3)";
@@ -154,6 +158,17 @@ export function KPICard({
           "0 4px 24px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)";
       }}
     >
+      {/* Área clickeable que cubre toda la tarjeta — patrón "stretched link"
+          para no tener que reconciliar los tipos de <Link> vs <div> en el
+          wrapper (Link exige href, div no lo acepta). */}
+      {href && (
+        <Link
+          href={href}
+          aria-label={`Ver detalle: ${label}`}
+          style={{ position: "absolute", inset: 0, zIndex: 2 }}
+        />
+      )}
+
       {/* Corner decorative circles */}
       <span className="pointer-events-none absolute -right-6 -top-6 inline-flex h-16 w-16 rounded-full bg-white/[0.03]" />
       <span className="pointer-events-none absolute -right-2 -top-2 inline-flex h-8 w-8 rounded-full bg-white/[0.04]" />

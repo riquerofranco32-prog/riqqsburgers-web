@@ -5,6 +5,7 @@ import { DollarSign, ShoppingCart, TrendingUp, Clock } from "lucide-react";
 import { KPICard } from "@/components/admin/dashboard/KPICard";
 import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
 import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
+import ExportReportButton from "@/components/admin/ExportReportButton";
 import type { AnalyticsResponse, AnalyticsRange } from "@/types/dashboard";
 
 function fmtARS(n: number) {
@@ -98,6 +99,8 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
           ))}
         </div>
       </div>
+
+      <ExportReportButton slug={slug} />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard

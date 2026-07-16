@@ -845,6 +845,7 @@ export default function AdminDashboard({
                 }
                 changeLabel={rangeLabel}
                 icon={ShoppingCart}
+                href={`/${slug}/admin/pedidos`}
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "300ms" }}>
@@ -876,6 +877,7 @@ export default function AdminDashboard({
                     ? undefined
                     : activeSalesData.map((d) => d.total)
                 }
+                href={`/${slug}/admin/reportes`}
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "360ms" }}>
@@ -902,6 +904,7 @@ export default function AdminDashboard({
                 }
                 changeLabel={rangeLabel}
                 icon={TrendingUp}
+                href={`/${slug}/admin/reportes`}
               />
             </div>
             <div className="stagger-item" style={{ animationDelay: "420ms" }}>
@@ -915,6 +918,7 @@ export default function AdminDashboard({
                     : `${kpisData?.activeProducts ?? 0} productos en carta`
                 }
                 icon={Package}
+                href={`/${slug}/admin/productos`}
               />
             </div>
           </div>
