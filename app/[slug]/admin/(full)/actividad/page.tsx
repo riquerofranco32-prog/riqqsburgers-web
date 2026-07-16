@@ -22,16 +22,30 @@ export default async function ActividadPage({
   if (!tenantId) return null;
 
   const db = createServerClient();
-  const { data } = await db
-    .from("activity_log")
-    .select(
-      "id, actor_email, action, entity_type, entity_id, metadata, created_at",
-    )
-    .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false })
-    .limit(MAX_EVENTS);
+  const [{ data }, { data: rawMembers }] = await Promise.all([
+    db
+      .from("activity_log")
+      .select(
+        "id, actor_email, action, entity_type, entity_id, metadata, created_at",
+      )
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(MAX_EVENTS),
+    db
+      .from("tenant_users")
+      .select("email, display_name")
+      .eq("tenant_id", tenantId),
+  ]);
 
   const events = (data ?? []) as ActivityRow[];
+
+  // activity_log guarda el email del actor (no un id) — se resuelve al
+  // nombre visible acá mismo, igual que en /equipo.
+  const nameByEmail = new Map(
+    (rawMembers ?? [])
+      .filter((m) => m.display_name)
+      .map((m) => [m.email, m.display_name as string]),
+  );
 
   return (
     <div className="p-5 md:p-8 flex flex-col gap-6 w-full">
@@ -45,7 +59,7 @@ export default async function ActividadPage({
         </p>
       </div>
 
-      <ActivityTable events={events} />
+      <ActivityTable events={events} nameByEmail={nameByEmail} />
     </div>
   );
 }

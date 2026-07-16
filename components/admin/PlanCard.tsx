@@ -8,6 +8,15 @@ interface PlanCardProps {
   productCount: number;
   limits: PlanLimits;
   trialDaysLeft?: number | null;
+  /** Días estimados hasta llegar al límite de productos, o null si no hay
+   * suficiente historial para proyectar con algo de confianza. */
+  daysToLimit?: number | null;
+}
+
+function formatDaysToLimit(days: number): string {
+  if (days < 14) return `~${days} día${days !== 1 ? "s" : ""}`;
+  if (days < 60) return `~${Math.round(days / 7)} semanas`;
+  return `~${Math.round(days / 30)} meses`;
 }
 
 const PLAN_COLORS: Record<
@@ -39,6 +48,7 @@ export default function PlanCard({
   productCount,
   limits,
   trialDaysLeft,
+  daysToLimit,
 }: PlanCardProps) {
   const isTrialing = trialDaysLeft !== null && trialDaysLeft !== undefined;
   const colors = PLAN_COLORS[currentPlan];
@@ -343,6 +353,19 @@ export default function PlanCard({
                 }}
               >
                 Límite alcanzado — actualizá tu plan para agregar más productos
+              </p>
+            )}
+            {!isAtLimit && daysToLimit != null && (
+              <p
+                style={{
+                  color: nearLimit ? "#fb923c" : "var(--dash-muted)",
+                  fontSize: 12,
+                  marginTop: 8,
+                  fontWeight: nearLimit ? 600 : 400,
+                }}
+              >
+                A este ritmo de carga, llegás al límite en{" "}
+                {formatDaysToLimit(daysToLimit)}
               </p>
             )}
           </div>

@@ -12,12 +12,28 @@ interface TeamMember {
   id: string;
   email: string | null;
   role: string;
+  display_name?: string | null;
 }
 
 const ROLE_LABEL: Record<string, string> = {
   admin: "Administrador",
   staff: "Cocina / Mozo",
 };
+
+const RTF = new Intl.RelativeTimeFormat("es-AR", { numeric: "auto" });
+
+/** "hace 2 días" / "hace 3 horas" — usa Intl nativo, sin librería aparte. */
+function timeAgo(iso: string): string {
+  const diffMs = new Date(iso).getTime() - Date.now();
+  const diffMin = Math.round(diffMs / 60_000);
+  if (Math.abs(diffMin) < 60) return RTF.format(diffMin, "minute");
+  const diffHours = Math.round(diffMin / 60);
+  if (Math.abs(diffHours) < 24) return RTF.format(diffHours, "hour");
+  const diffDays = Math.round(diffHours / 24);
+  if (Math.abs(diffDays) < 30) return RTF.format(diffDays, "day");
+  const diffMonths = Math.round(diffDays / 30);
+  return RTF.format(diffMonths, "month");
+}
 
 function InviteModal({
   onSave,
@@ -148,9 +164,11 @@ function InviteModal({
 export function TeamAdmin({
   slug,
   initialMembers,
+  lastActivityByEmail = {},
 }: {
   slug: string;
   initialMembers: TeamMember[];
+  lastActivityByEmail?: Record<string, string>;
 }) {
   const [members, setMembers] = useState(initialMembers);
   const [showModal, setShowModal] = useState(false);
@@ -287,7 +305,7 @@ export function TeamAdmin({
                       fontSize: 14,
                     }}
                   >
-                    {m.email ?? "—"}
+                    {m.display_name || m.email || "—"}
                   </span>
                   <button
                     type="button"
@@ -319,6 +337,28 @@ export function TeamAdmin({
                     {ROLE_LABEL[m.role] ?? m.role} ⇄
                   </button>
                 </div>
+                {m.display_name && (
+                  <p
+                    style={{
+                      fontSize: 12,
+                      color: "var(--dash-muted)",
+                      marginTop: 2,
+                    }}
+                  >
+                    {m.email}
+                  </p>
+                )}
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "var(--dash-muted)",
+                    marginTop: 2,
+                  }}
+                >
+                  {m.email && lastActivityByEmail[m.email]
+                    ? `Última actividad: ${timeAgo(lastActivityByEmail[m.email])}`
+                    : "Sin actividad registrada"}
+                </p>
               </div>
 
               <InlineConfirm

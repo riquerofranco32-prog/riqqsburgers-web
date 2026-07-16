@@ -46,9 +46,21 @@ function actionLabel(action: string): string {
   return ACTION_LABELS[action] ?? action;
 }
 
-export function ActivityTable({ events }: { events: ActivityRow[] }) {
+export function ActivityTable({
+  events,
+  nameByEmail = new Map(),
+}: {
+  events: ActivityRow[];
+  /** Nombre visible por email, para no mostrar el email crudo cuando el
+   * miembro ya configuró un nombre en "Mi cuenta". */
+  nameByEmail?: Map<string, string>;
+}) {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState<string>("all");
+
+  function actorLabel(email: string): string {
+    return nameByEmail.get(email) || email;
+  }
 
   // Solo ofrece filtrar por acciones que realmente aparecen en los datos —
   // no tiene sentido mostrar opciones vacías.
@@ -69,6 +81,7 @@ export function ActivityTable({ events }: { events: ActivityRow[] }) {
       list = list.filter(
         (e) =>
           e.actor_email?.toLowerCase().includes(q) ||
+          actorLabel(e.actor_email).toLowerCase().includes(q) ||
           e.entity_id?.toLowerCase().includes(q) ||
           actionLabel(e.action).toLowerCase().includes(q),
       );
@@ -201,7 +214,7 @@ export function ActivityTable({ events }: { events: ActivityRow[] }) {
                     {fmtFecha(ev.created_at)}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {ev.actor_email}
+                    {actorLabel(ev.actor_email)}
                   </td>
                   <td className="px-4 py-3">{actionLabel(ev.action)}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-zinc-400">

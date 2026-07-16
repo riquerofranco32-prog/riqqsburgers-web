@@ -18,14 +18,31 @@ export default async function EquipoPage({
   const tenantId = await getTenantId(slug);
   if (!tenantId) return null;
 
-  const { data: rawMembers } = await db
-    .from("tenant_users")
-    .select("id, email, role")
-    .eq("tenant_id", tenantId)
-    .neq("role", "superadmin")
-    .order("role", { ascending: false });
+  const [{ data: rawMembers }, { data: rawActivity }] = await Promise.all([
+    db
+      .from("tenant_users")
+      .select("id, email, role, display_name")
+      .eq("tenant_id", tenantId)
+      .neq("role", "superadmin")
+      .order("role", { ascending: false }),
+    db
+      .from("activity_log")
+      .select("actor_email, created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false }),
+  ]);
 
   const members = rawMembers ?? [];
+
+  // activity_log no tiene user_id, solo actor_email — se linkea por ahí. Ya
+  // viene ordenado desc, así que la primera aparición de cada email es la
+  // más reciente (no hace falta un GROUP BY server-side).
+  const lastActivityByEmail: Record<string, string> = {};
+  for (const ev of rawActivity ?? []) {
+    if (!(ev.actor_email in lastActivityByEmail)) {
+      lastActivityByEmail[ev.actor_email] = ev.created_at;
+    }
+  }
 
   return (
     <div className="p-5 md:p-8 flex flex-col gap-6 w-full">
@@ -40,7 +57,11 @@ export default async function EquipoPage({
         </p>
       </div>
 
-      <TeamAdmin slug={slug} initialMembers={members} />
+      <TeamAdmin
+        slug={slug}
+        initialMembers={members}
+        lastActivityByEmail={lastActivityByEmail}
+      />
     </div>
   );
 }
