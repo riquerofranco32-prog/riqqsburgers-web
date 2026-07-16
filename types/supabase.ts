@@ -141,6 +141,8 @@ export interface Review {
   comment: string | null;
   customer_name: string | null;
   created_at: string;
+  reply: string | null;
+  replied_at: string | null;
 }
 
 export interface Coupon {

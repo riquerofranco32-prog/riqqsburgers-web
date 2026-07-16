@@ -167,6 +167,26 @@ function csvCell(value: string): string {
   return `"${value.replace(/"/g, '""')}"`;
 }
 
+/** Arma y descarga un CSV — usado por pedidos y clientes, mismo formato. */
+export function downloadCsv(
+  filenamePrefix: string,
+  header: string[],
+  rows: string[][],
+) {
+  const csv = [header, ...rows]
+    .map((row) => row.map(csvCell).join(";"))
+    .join("\r\n");
+
+  // BOM para que Excel abra los acentos bien en UTF-8
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${filenamePrefix}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function exportOrdersToCsv(orders: Order[]) {
   const header = ["Fecha", "Cliente", "Teléfono", "Items", "Total", "Estado"];
   const rows = orders.map((o) => [
@@ -177,18 +197,7 @@ export function exportOrdersToCsv(orders: Order[]) {
     String(o.total ?? 0),
     getStatusMeta(o.status).label,
   ]);
-  const csv = [header, ...rows]
-    .map((row) => row.map(csvCell).join(";"))
-    .join("\r\n");
-
-  // BOM para que Excel abra los acentos bien en UTF-8
-  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `pedidos-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  downloadCsv("pedidos", header, rows);
 }
 
 export function paymentLabel(method: string) {

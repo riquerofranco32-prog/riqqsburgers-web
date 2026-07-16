@@ -1,9 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Star } from "lucide-react";
+import Link from "next/link";
+import { Star, MessageSquareReply, ArrowUpRight } from "lucide-react";
+import { toast } from "sonner";
 import EmptyState from "@/components/admin/EmptyState";
+import { adminInputStyle } from "@/components/ui/admin/AdminField";
+import { AdminButton } from "@/components/ui/admin/AdminButton";
 import type { Review } from "@/types/supabase";
+
+export interface ReviewWithOrderRef extends Review {
+  order_ref: string | null;
+}
+
+const MAX_REPLY = 500;
 
 function fmtFecha(iso: string) {
   return new Date(iso).toLocaleDateString("es-AR", {
@@ -31,7 +41,152 @@ function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
 
 type FilterKey = "all" | 1 | 2 | 3 | 4 | 5;
 
-export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
+function ReplyBox({
+  review,
+  slug,
+  onSaved,
+}: {
+  review: ReviewWithOrderRef;
+  slug: string;
+  onSaved: (reply: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(review.reply ?? "");
+  const [saving, setSaving] = useState(false);
+
+  async function save() {
+    if (!draft.trim()) {
+      toast.error("La respuesta no puede estar vacía");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/reviews/${review.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reply: draft.trim() }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Error al guardar la respuesta");
+      }
+      onSaved(draft.trim());
+      setEditing(false);
+      toast.success("Respuesta publicada");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "No se pudo guardar la respuesta",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (review.reply && !editing) {
+    return (
+      <div
+        style={{
+          marginTop: 4,
+          padding: "8px 12px",
+          borderRadius: 8,
+          background: "var(--dash-surface-2)",
+          borderLeft: "3px solid var(--accent)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "var(--accent)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Tu respuesta
+          </span>
+          <button
+            onClick={() => {
+              setDraft(review.reply ?? "");
+              setEditing(true);
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--dash-muted)",
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            Editar
+          </button>
+        </div>
+        <p
+          style={{ fontSize: 13, color: "var(--dash-text)", margin: "4px 0 0" }}
+        >
+          {review.reply}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 6 }}
+    >
+      <textarea
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        maxLength={MAX_REPLY}
+        rows={2}
+        placeholder="Escribí una respuesta pública para este cliente..."
+        style={{ ...adminInputStyle, fontSize: 13, resize: "vertical" }}
+      />
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <AdminButton onClick={() => void save()} disabled={saving}>
+          <MessageSquareReply size={14} />
+          {saving ? "Guardando..." : "Responder"}
+        </AdminButton>
+        {editing && (
+          <button
+            onClick={() => setEditing(false)}
+            disabled={saving}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--dash-muted)",
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ReviewsAdmin({
+  reviews: initialReviews,
+  slug,
+}: {
+  reviews: ReviewWithOrderRef[];
+  slug: string;
+}) {
+  const [reviews, setReviews] = useState(initialReviews);
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const { avg, distribution } = useMemo(() => {
@@ -47,6 +202,14 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
 
   const filtered =
     filter === "all" ? reviews : reviews.filter((r) => r.rating === filter);
+
+  function handleReplySaved(id: string, reply: string) {
+    setReviews((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, reply, replied_at: new Date().toISOString() } : r,
+      ),
+    );
+  }
 
   if (reviews.length === 0) {
     return (
@@ -275,6 +438,35 @@ export function ReviewsAdmin({ reviews }: { reviews: Review[] }) {
                 &ldquo;{r.comment}&rdquo;
               </p>
             )}
+            {r.order_ref && (
+              <Link
+                href={`/${slug}/admin/pedidos/${r.order_ref}`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 3,
+                  width: "fit-content",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "var(--dash-muted)",
+                  textDecoration: "none",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.color = "var(--accent)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.color = "var(--dash-muted)")
+                }
+              >
+                Ver pedido #{r.order_ref}
+                <ArrowUpRight size={11} />
+              </Link>
+            )}
+            <ReplyBox
+              review={r}
+              slug={slug}
+              onSaved={(reply) => handleReplySaved(r.id, reply)}
+            />
           </div>
         ))}
       </div>

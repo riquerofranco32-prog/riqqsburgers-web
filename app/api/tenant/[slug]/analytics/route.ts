@@ -224,9 +224,8 @@ export async function GET(
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
 
-  const allOrders = (rawOrders ?? []).filter(
-    (o) => o.status !== "cancelled",
-  ) as Order[];
+  const rawOrdersAll = (rawOrders ?? []) as Order[];
+  const allOrders = rawOrdersAll.filter((o) => o.status !== "cancelled");
   const orders = allOrders.filter((o) => new Date(o.created_at) >= from);
   const prevOrders = allOrders.filter((o) => {
     const d = new Date(o.created_at);
@@ -234,6 +233,18 @@ export async function GET(
   });
   const products = (rawProducts ?? []) as Product[];
   const categories = (rawCategories ?? []) as Category[];
+
+  // Incluye cancelados (a diferencia de `orders` arriba) para medir qué % del
+  // total de pedidos del período se cancelaron.
+  const allOrdersInPeriodIncludingCancelled = rawOrdersAll.filter(
+    (o) => new Date(o.created_at) >= from,
+  );
+  const cancelledCount =
+    allOrdersInPeriodIncludingCancelled.length - orders.length;
+  const cancelledRate =
+    allOrdersInPeriodIncludingCancelled.length > 0
+      ? (cancelledCount / allOrdersInPeriodIncludingCancelled.length) * 100
+      : 0;
 
   const revenue = orders.reduce((s, o) => s + o.total, 0);
   const orderCount = orders.length;
@@ -264,6 +275,8 @@ export async function GET(
     dailyRevenue,
     categoryRevenue,
     peakHour,
+    cancelledCount,
+    cancelledRate,
   };
   return NextResponse.json(body);
 }

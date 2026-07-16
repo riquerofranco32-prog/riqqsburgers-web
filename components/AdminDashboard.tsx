@@ -265,6 +265,19 @@ export default function AdminDashboard({
       ? (kpisData?.salesLast7Days ?? [])
       : (analyticsData?.dailyRevenue ?? []);
 
+  // Tasa de cancelación — no tiene tile propio para no romper la grilla de 4
+  // KPIs; se muestra como subtexto debajo, solo cuando hay algo que mostrar.
+  const activeCancelledCount = viewingSpecificDay
+    ? null
+    : range === "today"
+      ? (kpisData?.cancelledCount ?? null)
+      : (analyticsData?.cancelledCount ?? null);
+  const activeCancelledRate = viewingSpecificDay
+    ? null
+    : range === "today"
+      ? (kpisData?.cancelledRate ?? null)
+      : (analyticsData?.cancelledRate ?? null);
+
   const kpiDayLabel = viewingSpecificDay
     ? dayLabelFor(cajaViewData.fechaIso, cajaViewData.fecha)
     : null;
@@ -922,6 +935,24 @@ export default function AdminDashboard({
               />
             </div>
           </div>
+
+          {/* Tasa de cancelación — subtexto discreto, no un KPI aparte */}
+          {!!activeCancelledCount && (
+            <p
+              className="stagger-item"
+              style={{
+                fontSize: 12,
+                color: "var(--dash-muted)",
+                marginTop: -12,
+                animationDelay: "440ms",
+              }}
+            >
+              ⚠️ {activeCancelledCount} pedido
+              {activeCancelledCount !== 1 ? "s" : ""} cancelado
+              {activeCancelledCount !== 1 ? "s" : ""} (
+              {(activeCancelledRate ?? 0).toFixed(0)}% del total)
+            </p>
+          )}
 
           {/* Cierre de caja diario */}
           <div className="stagger-item" style={{ animationDelay: "480ms" }}>

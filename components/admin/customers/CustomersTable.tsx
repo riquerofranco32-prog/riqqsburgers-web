@@ -2,10 +2,29 @@
 
 import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, Users, Gift, MessageCircle, SearchX } from "lucide-react";
+import {
+  Search,
+  Users,
+  Gift,
+  MessageCircle,
+  SearchX,
+  Download,
+} from "lucide-react";
 import { toast } from "sonner";
 import EmptyState from "@/components/admin/EmptyState";
+import { downloadCsv } from "@/components/admin/orders/utils";
 import { getCustomerTier, type CustomerSummary } from "@/lib/customers";
+
+function exportCustomersToCsv(customers: CustomerSummary[]) {
+  const header = ["Nombre", "Teléfono", "Pedidos", "Gasto total"];
+  const rows = customers.map((c) => [
+    c.name,
+    c.phone ?? "",
+    String(c.ordersCount),
+    String(c.totalSpent),
+  ]);
+  downloadCsv("clientes", header, rows);
+}
 
 function fmtARS(n: number) {
   return "$ " + n.toLocaleString("es-AR");
@@ -208,6 +227,29 @@ export function CustomersTable({
             <option value="orders">Más pedidos</option>
             <option value="recent">Más reciente</option>
           </select>
+          <button
+            onClick={() => exportCustomersToCsv(filtered)}
+            disabled={filtered.length === 0}
+            title="Exportar clientes filtrados a CSV"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 12px",
+              borderRadius: 8,
+              background: "var(--dash-surface-2)",
+              border: "1px solid var(--dash-border)",
+              color: "var(--dash-text)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: filtered.length === 0 ? "not-allowed" : "pointer",
+              opacity: filtered.length === 0 ? 0.5 : 1,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <Download size={14} strokeWidth={2} />
+            CSV
+          </button>
         </div>
       </div>
 

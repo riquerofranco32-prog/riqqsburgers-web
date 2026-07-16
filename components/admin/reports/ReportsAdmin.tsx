@@ -130,6 +130,15 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
         />
       </div>
 
+      {/* Tasa de cancelación — subtexto discreto, no un KPI aparte */}
+      {!!data?.cancelledCount && (
+        <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: -12 }}>
+          ⚠️ {data.cancelledCount} pedido{data.cancelledCount !== 1 ? "s" : ""}{" "}
+          cancelado{data.cancelledCount !== 1 ? "s" : ""} (
+          {data.cancelledRate.toFixed(0)}% del total en este período)
+        </p>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
         <SalesAreaChart
           data={data?.dailyRevenue ?? []}

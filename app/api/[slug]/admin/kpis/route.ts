@@ -102,6 +102,18 @@ export async function GET(
   const todayOrders = activeOrders.filter(
     (o) => new Date(o.created_at) >= today,
   );
+
+  // Todos los pedidos de hoy incluyendo cancelados — para medir tasa de
+  // cancelación, un dato que hoy no se muestra en ningún lado del panel.
+  const allOrdersTodayIncludingCancelled = allOrders.filter(
+    (o) => new Date(o.created_at) >= today,
+  );
+  const cancelledCount =
+    allOrdersTodayIncludingCancelled.length - todayOrders.length;
+  const cancelledRate =
+    allOrdersTodayIncludingCancelled.length > 0
+      ? (cancelledCount / allOrdersTodayIncludingCancelled.length) * 100
+      : 0;
   const yesterdayOrders = activeOrders.filter((o) => {
     const d = new Date(o.created_at);
     return d >= yesterday && d < today;
@@ -256,6 +268,8 @@ export async function GET(
     topProducts,
     unavailableProducts,
     lowStockProducts,
+    cancelledCount,
+    cancelledRate,
   };
 
   return NextResponse.json(body);

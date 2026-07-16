@@ -42,6 +42,9 @@ export type TodayKPIsResponse = {
   topProducts: TopProduct[];
   unavailableProducts: StockAlertProduct[];
   lowStockProducts: LowStockAlertProduct[];
+  /** Pedidos cancelados hoy y su % sobre el total de pedidos de hoy (incl. cancelados) */
+  cancelledCount: number;
+  cancelledRate: number;
 };
 
 export type AnalyticsResponse = {
@@ -55,4 +58,7 @@ export type AnalyticsResponse = {
   dailyRevenue: DailyRevenue[];
   categoryRevenue: CategoryRevenue[];
   peakHour: { hour: number; count: number } | null;
+  /** Pedidos cancelados en el período y su % sobre el total (incl. cancelados) */
+  cancelledCount: number;
+  cancelledRate: number;
 };
