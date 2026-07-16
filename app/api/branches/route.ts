@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { assertTenantAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
-
-const NAME_MAX = 60;
-const MAX_PRICE = 1_000_000;
+import { validateBranchInput } from "@/lib/branchValidation";
 
 export async function GET(req: NextRequest) {
   const slug = req.nextUrl.searchParams.get("slug");
-  const branchId = req.nextUrl.searchParams.get("branch_id");
   if (!slug) {
     return NextResponse.json({ error: "Falta slug" }, { status: 400 });
   }
@@ -23,15 +20,11 @@ export async function GET(req: NextRequest) {
   }
 
   const supabase = createServerClient();
-  // branch_id es opcional para no romper el caller único-tenant existente
-  // (RestaurantSettingsForm) — la UI de multi-sucursal siempre lo manda.
-  let query = supabase
-    .from("delivery_zones")
+  const { data, error } = await supabase
+    .from("branches")
     .select("*")
     .eq("tenant_id", tenantId)
-    .order("sort_order");
-  if (branchId) query = query.eq("branch_id", branchId);
-  const { data, error } = await query;
+    .order("created_at");
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
@@ -43,32 +36,24 @@ export async function POST(req: NextRequest) {
   const body = (await req.json()) as {
     slug: string;
     name: string;
-    price: number;
+    latitude?: number | null;
+    longitude?: number | null;
+    delivery_mode?: string;
     active?: boolean;
-    sort_order?: number;
-    branch_id?: string;
   };
 
   if (!body.slug) {
     return NextResponse.json({ error: "Falta slug" }, { status: 400 });
   }
-  if (
-    typeof body.name !== "string" ||
-    body.name.trim().length === 0 ||
-    body.name.length > NAME_MAX
-  ) {
-    return NextResponse.json(
-      { error: `Nombre inválido (máx. ${NAME_MAX} caracteres)` },
-      { status: 400 },
-    );
-  }
-  if (
-    typeof body.price !== "number" ||
-    !isFinite(body.price) ||
-    body.price < 0 ||
-    body.price > MAX_PRICE
-  ) {
-    return NextResponse.json({ error: "Precio inválido" }, { status: 400 });
+
+  const validationError = validateBranchInput({
+    name: body.name,
+    ...("latitude" in body ? { latitude: body.latitude } : {}),
+    ...("longitude" in body ? { longitude: body.longitude } : {}),
+    ...("delivery_mode" in body ? { delivery_mode: body.delivery_mode } : {}),
+  });
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
   let tenantId: string;
@@ -81,31 +66,15 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createServerClient();
-
-  if (body.branch_id) {
-    const { data: branch } = await supabase
-      .from("branches")
-      .select("id")
-      .eq("id", body.branch_id)
-      .eq("tenant_id", tenantId)
-      .maybeSingle();
-    if (!branch) {
-      return NextResponse.json({ error: "Sucursal inválida" }, { status: 400 });
-    }
-  }
-
   const { data, error } = await supabase
-    .from("delivery_zones")
+    .from("branches")
     .insert({
       tenant_id: tenantId,
-      // Sin branch_id explícito, el trigger set_delivery_branch_id_from_tenant
-      // (ver 20260716_delivery_zones_ranges_branch_id.sql) lo completa con la
-      // primera sucursal activa del tenant.
-      branch_id: body.branch_id ?? undefined,
       name: body.name.trim(),
-      price: body.price,
+      latitude: body.latitude ?? null,
+      longitude: body.longitude ?? null,
+      delivery_mode: body.delivery_mode ?? "none",
       active: body.active ?? true,
-      sort_order: body.sort_order ?? 0,
     })
     .select()
     .single();

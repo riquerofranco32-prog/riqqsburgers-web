@@ -27,6 +27,7 @@ import {
   PlusCircle,
   CheckCheck,
   History,
+  Store,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -61,6 +62,7 @@ const FULL_NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> =
     { href: "/qr", label: "Código QR", icon: QrCode },
     { href: "/equipo", label: "Equipo", icon: UserCog },
     { href: "/actividad", label: "Actividad", icon: History },
+    { href: "/sucursales", label: "Sucursales", icon: Store },
     { href: "/configuracion", label: "Configuración", icon: Settings },
     { href: "/plan", label: "Mi Plan", icon: Crown },
     { href: "/mi-cuenta", label: "Mi cuenta", icon: UserCircle },

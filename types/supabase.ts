@@ -33,9 +33,22 @@ export interface Tenant {
   tags: string[];
 }
 
+export interface Branch {
+  id: string;
+  tenant_id: string;
+  name: string;
+  latitude: number | null;
+  longitude: number | null;
+  delivery_mode: "none" | "fixed" | "zones" | "distance";
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface DeliveryZone {
   id: string;
   tenant_id: string;
+  branch_id: string | null;
   name: string;
   price: number;
   active: boolean;
@@ -48,6 +61,7 @@ export interface DeliveryZone {
 export interface DeliveryRange {
   id: string;
   tenant_id: string;
+  branch_id: string | null;
   max_km: number;
   price: number;
   active: boolean;

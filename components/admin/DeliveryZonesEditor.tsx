@@ -35,10 +35,15 @@ export default function DeliveryZonesEditor({
   slug,
   tenantLat,
   tenantLng,
+  branchId,
 }: {
   slug: string;
   tenantLat: number | null;
   tenantLng: number | null;
+  // Sucursal a la que pertenecen estas zonas. Si se omite, se mantiene el
+  // comportamiento histórico single-branch: el backend asocia las zonas a
+  // la primera sucursal activa del tenant automáticamente.
+  branchId?: string;
 }) {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +55,9 @@ export default function DeliveryZonesEditor({
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/delivery-zones?slug=${slug}`);
+      const qs = new URLSearchParams({ slug });
+      if (branchId) qs.set("branch_id", branchId);
+      const res = await fetch(`/api/delivery-zones?${qs}`);
       if (res.ok) setZones(await res.json());
     } finally {
       setLoading(false);
@@ -60,7 +67,7 @@ export default function DeliveryZonesEditor({
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, branchId]);
 
   async function addZone() {
     if (!newName.trim() || newPrice === "" || Number(newPrice) < 0) {
@@ -75,6 +82,7 @@ export default function DeliveryZonesEditor({
         name: newName.trim(),
         price: Number(newPrice),
         sort_order: zones.length,
+        ...(branchId ? { branch_id: branchId } : {}),
       }),
     });
     if (res.ok) {

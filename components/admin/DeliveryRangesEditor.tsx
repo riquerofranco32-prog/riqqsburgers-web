@@ -16,7 +16,14 @@ const inputStyle = {
   fontFamily: "var(--font-sans)",
 };
 
-export default function DeliveryRangesEditor({ slug }: { slug: string }) {
+export default function DeliveryRangesEditor({
+  slug,
+  branchId,
+}: {
+  slug: string;
+  // Ver comentario equivalente en DeliveryZonesEditor.
+  branchId?: string;
+}) {
   const [ranges, setRanges] = useState<DeliveryRange[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMaxKm, setNewMaxKm] = useState<number | "">("");
@@ -25,7 +32,9 @@ export default function DeliveryRangesEditor({ slug }: { slug: string }) {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/delivery-ranges?slug=${slug}`);
+      const qs = new URLSearchParams({ slug });
+      if (branchId) qs.set("branch_id", branchId);
+      const res = await fetch(`/api/delivery-ranges?${qs}`);
       if (res.ok) setRanges(await res.json());
     } finally {
       setLoading(false);
@@ -35,7 +44,7 @@ export default function DeliveryRangesEditor({ slug }: { slug: string }) {
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, branchId]);
 
   async function addRange() {
     if (newMaxKm === "" || newPrice === "" || Number(newMaxKm) <= 0) {
@@ -49,6 +58,7 @@ export default function DeliveryRangesEditor({ slug }: { slug: string }) {
         slug,
         max_km: Number(newMaxKm),
         price: Number(newPrice),
+        ...(branchId ? { branch_id: branchId } : {}),
       }),
     });
     if (res.ok) {

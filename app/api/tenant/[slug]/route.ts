@@ -275,6 +275,31 @@ export async function PATCH(
       { status: 404 },
     );
 
+  // Mientras el tenant tenga una sola sucursal, latitude/longitude/
+  // delivery_mode siguen siendo el mismo dato conceptual que branches.* (ver
+  // supabase/migrations/20260716_add_branches_table.sql) — se espejan acá
+  // para que la asignación de sucursal en app/api/orders/route.ts no quede
+  // con datos viejos apenas el admin cambia estos campos.
+  // ponytail: solo aplica con 1 branch; con 2+ sucursales cada una necesita
+  // su propia ubicación desde una UI de multi-sucursal (no construida aún).
+  const branchMirrorFields = (
+    ["latitude", "longitude", "delivery_mode"] as const
+  ).filter((f) => f in patch);
+  if (branchMirrorFields.length > 0) {
+    const { data: tenantBranches } = await supabase
+      .from("branches")
+      .select("id")
+      .eq("tenant_id", tenantId);
+    if (tenantBranches?.length === 1) {
+      await supabase
+        .from("branches")
+        .update(
+          Object.fromEntries(branchMirrorFields.map((f) => [f, patch[f]])),
+        )
+        .eq("id", tenantBranches[0].id);
+    }
+  }
+
   revalidatePath(`/${slug}`, "layout");
   return NextResponse.json({ tenant: data });
 }

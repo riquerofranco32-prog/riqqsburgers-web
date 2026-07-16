@@ -6,6 +6,11 @@ import { sendPushToTenant } from "@/lib/push";
 import { validateCoupon } from "@/lib/coupons";
 import { computeEffectiveOpen, type BusinessHours } from "@/lib/businessHours";
 import { resolveZoneByLocation, resolveDistancePrice } from "@/lib/delivery";
+import { assignBranch, pickLeastBusyBranch } from "@/lib/branchAssignment";
+
+// Estados que ya no cuentan como "en cola" para balancear demanda entre
+// sucursales (ver components/admin/orders/utils.ts STATUS_META/aliases).
+const TERMINAL_ORDER_STATUSES = ["delivered", "entregado", "cancelled"];
 
 // ponytail: in-memory rate limit per IP, resets on cold start. Upgrade to Upstash if abuse is reported.
 const ipBucket = new Map<string, number[]>();
@@ -288,23 +293,76 @@ export async function POST(req: NextRequest) {
     discountAmount = result.discountAmount!;
   }
 
+  // Asignación de sucursal: cercanía + demanda si hay ubicación del cliente
+  // (delivery con pin), demanda sola si no (retiro, o delivery en modo
+  // fixed/none que no pide dirección). Ver lib/branchAssignment.ts.
+  const { data: branches } = await supabase
+    .from("branches")
+    .select("id, name, latitude, longitude, delivery_mode, active")
+    .eq("tenant_id", tenant_id)
+    .eq("active", true);
+
+  const { data: queuedOrders } = await supabase
+    .from("orders")
+    .select("branch_id")
+    .eq("tenant_id", tenant_id)
+    .not("branch_id", "is", null)
+    .not("status", "in", `(${TERMINAL_ORDER_STATUSES.join(",")})`);
+
+  const activeOrderCountByBranch: Record<string, number> = {};
+  for (const o of queuedOrders ?? []) {
+    if (!o.branch_id) continue;
+    activeOrderCountByBranch[o.branch_id] =
+      (activeOrderCountByBranch[o.branch_id] ?? 0) + 1;
+  }
+
+  const hasCustomerLocation =
+    delivery_type === "delivery" &&
+    typeof body.delivery_lat === "number" &&
+    typeof body.delivery_lng === "number";
+
+  const assignment = hasCustomerLocation
+    ? assignBranch(
+        body.delivery_lat as number,
+        body.delivery_lng as number,
+        branches ?? [],
+        activeOrderCountByBranch,
+      )
+    : pickLeastBusyBranch(branches ?? [], activeOrderCountByBranch);
+
+  if (!assignment.branchId) {
+    return NextResponse.json(
+      {
+        error:
+          assignment.error ??
+          "No hay sucursales disponibles para procesar tu pedido",
+      },
+      { status: 400 },
+    );
+  }
+
+  const assignedBranch = (branches ?? []).find(
+    (b) => b.id === assignment.branchId,
+  )!;
+
   // El precio de envío nunca viene del cliente — se recalcula acá con la
   // misma lógica pura que usa /api/delivery/quote, a partir del modo y las
-  // zonas/rangos reales del tenant en la DB.
+  // zonas/rangos de la sucursal asignada (no del tenant entero: dos
+  // sucursales del mismo tenant pueden tener zonas/rangos distintos).
   let deliveryCost = 0;
   let deliveryZoneName: string | null = null;
   let deliveryDistanceKm: number | null = null;
 
   if (delivery_type === "delivery") {
     if (
-      tenant.delivery_mode === "zones" &&
+      assignedBranch.delivery_mode === "zones" &&
       typeof body.delivery_lat === "number" &&
       typeof body.delivery_lng === "number"
     ) {
       const { data: zones } = await supabase
         .from("delivery_zones")
         .select("id, name, price, lat, lng, radius_km")
-        .eq("tenant_id", tenant_id)
+        .eq("branch_id", assignedBranch.id)
         .eq("active", true);
       const result = resolveZoneByLocation(
         zones ?? [],
@@ -321,21 +379,21 @@ export async function POST(req: NextRequest) {
       deliveryCost = result.price;
       deliveryZoneName = result.zoneName ?? null;
     } else if (
-      tenant.delivery_mode === "distance" &&
+      assignedBranch.delivery_mode === "distance" &&
       typeof body.delivery_lat === "number" &&
       typeof body.delivery_lng === "number" &&
-      tenant.latitude !== null &&
-      tenant.longitude !== null
+      assignedBranch.latitude !== null &&
+      assignedBranch.longitude !== null
     ) {
       const { data: ranges } = await supabase
         .from("delivery_ranges")
         .select("max_km, price")
-        .eq("tenant_id", tenant_id)
+        .eq("branch_id", assignedBranch.id)
         .eq("active", true);
       const result = resolveDistancePrice(
         ranges ?? [],
-        tenant.latitude,
-        tenant.longitude,
+        assignedBranch.latitude,
+        assignedBranch.longitude,
         body.delivery_lat,
         body.delivery_lng,
         tenant.delivery_out_of_range_msg,
@@ -348,7 +406,7 @@ export async function POST(req: NextRequest) {
       }
       deliveryDistanceKm = result.distanceKm ?? null;
       deliveryCost = result.price;
-    } else if (tenant.delivery_mode === "fixed") {
+    } else if (assignedBranch.delivery_mode === "fixed") {
       deliveryCost = tenant.delivery_cost ?? 0;
     }
     // delivery_mode === 'none': deliveryCost se queda en 0 aunque el
@@ -406,6 +464,7 @@ export async function POST(req: NextRequest) {
     .from("orders")
     .insert({
       tenant_id,
+      branch_id: assignment.branchId,
       order_ref: orderRef,
       customer_name: customer_name.trim(),
       customer_phone: body.customer_phone || null,
