@@ -103,6 +103,7 @@ export default async function AdminPage({
       stock_quantity: p.stock_quantity as number,
     }));
   const trialDays = trialDaysLeft(subscription);
+  const planExpired = subscription.status === "expired";
 
   const onboarding = {
     hasLogo: Boolean(tenant.logo_url),
@@ -126,6 +127,7 @@ export default async function AdminPage({
         unavailableProducts={unavailableProducts}
         lowStockProducts={lowStockProducts}
         trialDaysLeft={trialDays}
+        planExpired={planExpired}
         onboarding={onboarding}
       />
     </>

@@ -35,8 +35,9 @@ export async function POST(
 ) {
   const { slug } = await params;
   let tenantId: string;
+  let isSuperAdmin: boolean;
   try {
-    ({ tenantId } = await assertTenantAdmin(slug));
+    ({ tenantId, isSuperAdmin } = await assertTenantAdmin(slug));
   } catch (e) {
     return e as NextResponse;
   }
@@ -65,7 +66,7 @@ export async function POST(
   }
 
   const { allowed, max } = await canAddTeamMember(tenantId);
-  if (!allowed) {
+  if (!allowed && !isSuperAdmin) {
     return NextResponse.json(
       {
         error: `Límite de administradores alcanzado. Tu plan permite hasta ${max}. Actualizá tu plan para agregar más.`,

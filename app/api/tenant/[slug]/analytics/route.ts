@@ -146,9 +146,11 @@ export async function GET(
   const { slug } = await params;
 
   let tenantId: string;
+  let isSuperAdmin: boolean;
   try {
     const result = await assertTenantAdmin(slug);
     tenantId = result.tenantId;
+    isSuperAdmin = result.isSuperAdmin;
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
@@ -167,7 +169,7 @@ export async function GET(
     );
   }
 
-  if (range !== "today") {
+  if (range !== "today" && !isSuperAdmin) {
     const subscription = await getEffectiveSubscription(tenantId);
     const limits = getPlanLimits(subscription.plan as PlanId);
     if (!limits.analyticsEnabled) {

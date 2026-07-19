@@ -172,9 +172,11 @@ export async function POST(req: NextRequest) {
   }
 
   let tenantId: string;
+  let isSuperAdmin: boolean;
   try {
     const result = await assertTenantAdmin(body.slug);
     tenantId = result.tenantId;
+    isSuperAdmin = result.isSuperAdmin;
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
@@ -182,7 +184,7 @@ export async function POST(req: NextRequest) {
 
   // Gating por plan — verificación server-side
   const { allowed, max } = await canAddProduct(tenantId);
-  if (!allowed) {
+  if (!allowed && !isSuperAdmin) {
     const planLabel =
       max === PLANS.free.maxProducts
         ? `Plan Free permite hasta ${PLANS.free.maxProducts} productos`

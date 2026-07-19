@@ -20,6 +20,7 @@ import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
 import { PeakHoursWidget } from "@/components/admin/dashboard/PeakHoursWidget";
 import { LowStockAlert } from "@/components/admin/dashboard/LowStockAlert";
 import { TrialCountdownBanner } from "@/components/admin/dashboard/TrialCountdownBanner";
+import { PlanExpiredBanner } from "@/components/admin/dashboard/PlanExpiredBanner";
 import {
   OnboardingChecklist,
   type OnboardingState,
@@ -94,6 +95,7 @@ interface AdminDashboardProps {
   unavailableProducts: Product[];
   lowStockProducts?: LowStockAlertProduct[];
   trialDaysLeft?: number | null;
+  planExpired?: boolean;
   onboarding?: OnboardingState;
 }
 
@@ -106,6 +108,7 @@ export default function AdminDashboard({
   unavailableProducts: unavailableProductsInitial,
   lowStockProducts: lowStockProductsInitial = [],
   trialDaysLeft,
+  planExpired = false,
   onboarding,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
@@ -137,6 +140,7 @@ export default function AdminDashboard({
   const [analyticsData, setAnalyticsData] = useState<AnalyticsResponse | null>(
     null,
   );
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [kpisData, setKpisData] = useState<TodayKPIsResponse | null>(null);
   const [kpisLoading, setKpisLoading] = useState(false);
@@ -212,14 +216,20 @@ export default function AdminDashboard({
   const fetchAnalytics = useCallback(
     async (r: "week" | "twoWeeks" | "month") => {
       setAnalyticsLoading(true);
+      setAnalyticsError(null);
       try {
         const res = await fetch(`/api/tenant/${slug}/analytics?range=${r}`);
-        if (!res.ok) throw new Error("Error al cargar analytics");
-        const data: AnalyticsResponse = await res.json();
-        setAnalyticsData(data);
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error ?? "Error al cargar analytics");
+        }
+        setAnalyticsData(data as AnalyticsResponse);
         setLastUpdated(new Date());
-      } catch {
+      } catch (err) {
         setAnalyticsData(null);
+        setAnalyticsError(
+          err instanceof Error ? err.message : "Error al cargar analytics",
+        );
       } finally {
         setAnalyticsLoading(false);
       }
@@ -231,6 +241,7 @@ export default function AdminDashboard({
     setRange(r);
     if (r === "today") {
       setAnalyticsData(null);
+      setAnalyticsError(null);
       setLastUpdated(null);
       void fetchKPIs();
     } else {
@@ -320,6 +331,7 @@ export default function AdminDashboard({
       {trialDaysLeft !== null && trialDaysLeft !== undefined && (
         <TrialCountdownBanner daysLeft={trialDaysLeft} />
       )}
+      {planExpired && <PlanExpiredBanner />}
 
       {/* Checklist de activación — solo se ve hasta completar los pasos */}
       {onboarding && <OnboardingChecklist slug={slug} state={onboarding} />}
@@ -1045,6 +1057,22 @@ export default function AdminDashboard({
                 </Link>
               </div>
             )}
+
+          {analyticsError && (
+            <div
+              style={{
+                background: "rgba(248,113,113,0.08)",
+                border: "1px solid rgba(248,113,113,0.25)",
+                borderRadius: 12,
+                padding: "12px 16px",
+                color: "#f87171",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              {analyticsError}
+            </div>
+          )}
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">

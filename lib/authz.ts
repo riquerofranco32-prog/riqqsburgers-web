@@ -65,7 +65,7 @@ export async function assertSuperAdmin(): Promise<User> {
 
 export async function assertTenantAdmin(
   slug: string,
-): Promise<{ user: User; tenantId: string }> {
+): Promise<{ user: User; tenantId: string; isSuperAdmin: boolean }> {
   const user = await getSessionUser();
   if (!user) {
     throw NextResponse.json({ error: "No autenticado" }, { status: 401 });
@@ -105,7 +105,7 @@ export async function assertTenantAdmin(
     throw NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
-  return { user, tenantId: tenant.id };
+  return { user, tenantId: tenant.id, isSuperAdmin: !!superAdmin };
 }
 
 /**

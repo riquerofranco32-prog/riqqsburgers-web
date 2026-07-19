@@ -70,16 +70,18 @@ export async function POST(req: NextRequest) {
   const products = body.products as BulkProductInput[];
 
   let tenantId: string;
+  let isSuperAdmin: boolean;
   try {
     const result = await assertTenantAdmin(body.slug);
     tenantId = result.tenantId;
+    isSuperAdmin = result.isSuperAdmin;
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
   }
 
   const { current, max } = await canAddProduct(tenantId);
-  if (max !== null && current + products.length > max) {
+  if (max !== null && current + products.length > max && !isSuperAdmin) {
     const planLabel =
       max === PLANS.free.maxProducts
         ? `Plan Free permite hasta ${PLANS.free.maxProducts} productos`

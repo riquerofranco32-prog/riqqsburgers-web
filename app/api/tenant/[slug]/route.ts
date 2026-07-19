@@ -50,8 +50,9 @@ export async function PATCH(
   const { slug } = await params;
 
   let tenantId: string;
+  let isSuperAdmin: boolean;
   try {
-    ({ tenantId } = await assertTenantAdmin(slug));
+    ({ tenantId, isSuperAdmin } = await assertTenantAdmin(slug));
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
@@ -66,7 +67,7 @@ export async function PATCH(
     ]),
   );
 
-  if (BRANDING_FIELDS.some((f) => f in patch)) {
+  if (BRANDING_FIELDS.some((f) => f in patch) && !isSuperAdmin) {
     const subscription = await getEffectiveSubscription(tenantId);
     const limits = getPlanLimits(subscription.plan as PlanId);
     if (!limits.customBranding) {
