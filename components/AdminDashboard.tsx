@@ -96,6 +96,7 @@ interface AdminDashboardProps {
   lowStockProducts?: LowStockAlertProduct[];
   trialDaysLeft?: number | null;
   planExpired?: boolean;
+  analyticsEnabled?: boolean;
   onboarding?: OnboardingState;
 }
 
@@ -109,6 +110,7 @@ export default function AdminDashboard({
   lowStockProducts: lowStockProductsInitial = [],
   trialDaysLeft,
   planExpired = false,
+  analyticsEnabled = true,
   onboarding,
 }: AdminDashboardProps) {
   const isMobile = useIsMobile();
@@ -238,6 +240,7 @@ export default function AdminDashboard({
   );
 
   const handleRangeChange = (r: AnalyticsRange) => {
+    if (r !== "today" && !analyticsEnabled) return;
     setRange(r);
     if (r === "today") {
       setAnalyticsData(null);
@@ -462,32 +465,46 @@ export default function AdminDashboard({
                 border: "1px solid var(--dash-border)",
               }}
             >
-              {RANGES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => handleRangeChange(r)}
-                  style={{
-                    padding: "8px 14px",
-                    minHeight: 36,
-                    borderRadius: 7,
-                    border: "none",
-                    fontSize: 12,
-                    fontWeight: range === r ? 700 : 500,
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    background:
-                      range === r
-                        ? "linear-gradient(135deg, var(--accent), var(--accent-hover))"
-                        : "transparent",
-                    color: range === r ? "#fff" : "var(--dash-muted)",
-                    boxShadow:
-                      range === r ? "0 2px 8px rgba(255,107,53,0.3)" : "none",
-                    WebkitTapHighlightColor: "transparent",
-                  }}
-                >
-                  {RANGE_LABELS[r]}
-                </button>
-              ))}
+              {RANGES.map((r) => {
+                const locked = r !== "today" && !analyticsEnabled;
+                return (
+                  <button
+                    key={r}
+                    onClick={() => handleRangeChange(r)}
+                    disabled={locked}
+                    title={
+                      locked
+                        ? "Estadísticas históricas — parte del plan Pro"
+                        : undefined
+                    }
+                    style={{
+                      padding: "8px 14px",
+                      minHeight: 36,
+                      borderRadius: 7,
+                      border: "none",
+                      fontSize: 12,
+                      fontWeight: range === r ? 700 : 500,
+                      cursor: locked ? "not-allowed" : "pointer",
+                      opacity: locked ? 0.45 : 1,
+                      transition: "all 0.15s",
+                      background:
+                        range === r
+                          ? "linear-gradient(135deg, var(--accent), var(--accent-hover))"
+                          : "transparent",
+                      color: range === r ? "#fff" : "var(--dash-muted)",
+                      boxShadow:
+                        range === r ? "0 2px 8px rgba(255,107,53,0.3)" : "none",
+                      WebkitTapHighlightColor: "transparent",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    {locked && <span style={{ fontSize: 10 }}>🔒</span>}
+                    {RANGE_LABELS[r]}
+                  </button>
+                );
+              })}
             </div>
 
             {range !== "today" && lastUpdated && (

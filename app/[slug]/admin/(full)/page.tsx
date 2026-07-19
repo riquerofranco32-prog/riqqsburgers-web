@@ -1,6 +1,7 @@
 import { createServerClient } from "@/lib/supabase";
 import { getTenant } from "@/lib/tenants";
 import { getEffectiveSubscription, trialDaysLeft } from "@/lib/subscriptions";
+import { getPlanLimits, type PlanId } from "@/lib/plans";
 import type { Metadata } from "next";
 import type { Product, Order } from "@/types/supabase";
 import AdminDashboard from "@/components/AdminDashboard";
@@ -96,6 +97,9 @@ export default async function AdminPage({
     }));
   const trialDays = trialDaysLeft(subscription);
   const planExpired = subscription.status === "expired";
+  const analyticsEnabled = getPlanLimits(
+    subscription.plan as PlanId,
+  ).analyticsEnabled;
 
   const onboarding = {
     hasLogo: Boolean(tenant.logo_url),
@@ -120,6 +124,7 @@ export default async function AdminPage({
         lowStockProducts={lowStockProducts}
         trialDaysLeft={trialDays}
         planExpired={planExpired}
+        analyticsEnabled={analyticsEnabled}
         onboarding={onboarding}
       />
     </>
