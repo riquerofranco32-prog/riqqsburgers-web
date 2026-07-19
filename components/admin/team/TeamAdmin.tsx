@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Plus, Trash2, UserCog, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { AdminModal } from "@/components/ui/admin/AdminModal";
 import { AdminField, adminInputStyle } from "@/components/ui/admin/AdminField";
 import { AdminButton } from "@/components/ui/admin/AdminButton";
 import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
+import { Badge } from "@/components/ui/admin/Badge";
 
 interface TeamMember {
   id: string;
@@ -165,10 +167,14 @@ export function TeamAdmin({
   slug,
   initialMembers,
   lastActivityByEmail = {},
+  canAddMore = true,
+  teamLimit = null,
 }: {
   slug: string;
   initialMembers: TeamMember[];
   lastActivityByEmail?: Record<string, string>;
+  canAddMore?: boolean;
+  teamLimit?: number | null;
 }) {
   const [members, setMembers] = useState(initialMembers);
   const [showModal, setShowModal] = useState(false);
@@ -248,21 +254,23 @@ export function TeamAdmin({
 
   return (
     <div className="flex flex-col gap-5 w-full">
-      <div className="flex items-center justify-between gap-3">
-        <span
-          style={{
-            fontSize: 12,
-            padding: "4px 10px",
-            borderRadius: 999,
-            background: "var(--dash-surface-2)",
-            color: "var(--dash-muted)",
-            border: "1px solid var(--dash-border)",
-            fontWeight: 500,
-          }}
-        >
-          {members.length} miembro{members.length !== 1 ? "s" : ""}
-        </span>
-        <AdminButton onClick={() => setShowModal(true)}>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge tone={!canAddMore ? "warning" : "neutral"}>
+            {members.length}
+            {teamLimit !== null ? `/${teamLimit}` : ""} miembro
+            {members.length !== 1 ? "s" : ""}
+          </Badge>
+          {!canAddMore && (
+            <Link
+              href={`/${slug}/admin/plan`}
+              style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600 }}
+            >
+              Límite del plan alcanzado → mejorar
+            </Link>
+          )}
+        </div>
+        <AdminButton onClick={() => setShowModal(true)} disabled={!canAddMore}>
           <Plus className="w-4 h-4" /> Agregar miembro
         </AdminButton>
       </div>

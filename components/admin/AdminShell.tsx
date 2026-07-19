@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createSupabaseBrowser } from "@/lib/supabase";
+import { PLANS, type PlanId } from "@/lib/plans";
 import TakefyyLogo from "@/components/TakefyyLogo";
 import PendingOrdersBadge from "@/components/admin/PendingOrdersBadge";
 import NotificationToggle from "@/components/admin/NotificationToggle";
@@ -47,6 +48,7 @@ interface AdminShellProps {
   userEmail: string;
   isSuperAdmin?: boolean;
   role?: string;
+  tenantPlan?: string | null;
 }
 
 const FULL_NAV_ITEMS: Array<{ href: string; label: string; icon: LucideIcon }> =
@@ -126,6 +128,7 @@ interface DesktopNavLinksProps {
   loggingOut: boolean;
   isSuperAdmin: boolean;
   navItems: ReturnType<typeof getNavItems>;
+  planLabel: string;
 }
 
 function DesktopNavLinks({
@@ -137,6 +140,7 @@ function DesktopNavLinks({
   loggingOut,
   isSuperAdmin,
   navItems,
+  planLabel,
 }: DesktopNavLinksProps) {
   return (
     <>
@@ -212,6 +216,22 @@ function DesktopNavLinks({
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.href === "/pedidos" && (
                     <PendingOrdersBadge tenantId={tenantId} collapsed={false} />
+                  )}
+                  {item.href === "/plan" && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        padding: "2px 7px",
+                        borderRadius: 999,
+                        background: isActive
+                          ? "rgba(255,255,255,0.2)"
+                          : "var(--dash-surface-3)",
+                        color: isActive ? "#fff" : "var(--dash-muted)",
+                      }}
+                    >
+                      {planLabel}
+                    </span>
                   )}
                 </>
               )}
@@ -328,12 +348,14 @@ export default function AdminShell({
   userEmail,
   isSuperAdmin = false,
   role,
+  tenantPlan,
 }: AdminShellProps) {
   const router = useRouter();
   const pathname = usePathname();
   const navItems = getNavItems(role);
   const actionItems = getActionItems(role);
   const isStaff = role === "staff";
+  const planLabel = PLANS[(tenantPlan as PlanId) ?? "free"]?.label ?? "Starter";
   // Ambos estados arrancan con el valor del server y se corrigen recién en un
   // efecto: leerlos en el initializer (localStorage / hora local) hacía que el
   // primer render del cliente no coincidiera con el HTML del server (que corre
@@ -600,6 +622,22 @@ export default function AdminShell({
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {item.href === "/pedidos" && (
                   <PendingOrdersBadge tenantId={tenantId} />
+                )}
+                {item.href === "/plan" && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: "2px 7px",
+                      borderRadius: 999,
+                      background: isActive
+                        ? "rgba(255,255,255,0.2)"
+                        : "var(--dash-surface-3)",
+                      color: isActive ? "#fff" : "var(--dash-muted)",
+                    }}
+                  >
+                    {planLabel}
+                  </span>
                 )}
               </Link>
             );
@@ -930,6 +968,7 @@ export default function AdminShell({
         <DesktopNavLinks
           slug={slug}
           tenantId={tenantId}
+          planLabel={planLabel}
           collapsed={collapsed}
           pathname={pathname}
           onLogout={handleLogout}

@@ -11,9 +11,11 @@ interface TrialCountdownBannerProps {
 
 export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
   const urgent = daysLeft <= 3;
-  const color = urgent ? "#f87171" : "var(--accent)";
-  const bg = urgent ? "rgba(248,113,113,0.08)" : "rgba(255,107,53,0.08)";
-  const border = urgent ? "rgba(248,113,113,0.25)" : "rgba(255,107,53,0.25)";
+  const color = urgent ? "var(--dash-danger)" : "var(--accent)";
+  const bg = urgent ? "var(--dash-danger-bg)" : "var(--dash-accent-subtle)";
+  const border = urgent
+    ? "var(--dash-danger-border)"
+    : "var(--dash-accent-glow)";
 
   return (
     <div
@@ -22,7 +24,7 @@ export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
         border: `1px solid ${border}`,
-        borderRadius: 16,
+        borderRadius: "var(--radius-lg)",
         padding: "14px 20px",
         display: "flex",
         alignItems: "center",
@@ -78,8 +80,8 @@ export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
               lineHeight: 1.3,
             }}
           >
-            Cuando termine volvés al plan Starter: sin analytics ni
-            personalización de marca (productos y categorías siguen ilimitados).
+            Cuando termine volvés al plan Starter: sin analytics, sin
+            personalización de marca y tu menú público se recorta a 5 productos.
           </p>
         </div>
       </div>
@@ -93,7 +95,7 @@ export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
           fontWeight: 700,
           color: "#fff",
           background: urgent
-            ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
+            ? "linear-gradient(135deg, var(--dash-danger) 0%, #dc2626 100%)"
             : "linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%)",
           padding: "8px 16px",
           borderRadius: 8,

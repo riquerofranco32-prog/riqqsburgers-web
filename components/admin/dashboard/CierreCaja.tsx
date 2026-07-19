@@ -244,7 +244,7 @@ export default function CierreCaja({
               style={{
                 fontSize: 12,
                 fontWeight: 700,
-                color: isUp ? "#4ade80" : "#f87171",
+                color: isUp ? "var(--dash-success)" : "var(--dash-danger)",
                 background: isUp
                   ? "rgba(74,222,128,0.1)"
                   : "rgba(248,113,113,0.1)",
@@ -310,7 +310,7 @@ export default function CierreCaja({
             label: "Efectivo",
             value: data.efectivo,
             pctStr: pct(data.efectivo, data.total),
-            color: "#f59e0b",
+            color: "var(--dash-warning)",
             bg: "rgba(245,158,11,0.08)",
             border: "rgba(245,158,11,0.2)",
           },

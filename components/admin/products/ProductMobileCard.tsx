@@ -32,6 +32,7 @@ export function ProductMobileCard({
   onDuplicate,
   duplicatingId,
   onRestock,
+  hiddenByPlan,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -56,6 +57,8 @@ export function ProductMobileCard({
   onDuplicate?: (p: Product) => void;
   duplicatingId?: string | null;
   onRestock?: (p: Product) => void;
+  /** true si el producto quedó afuera del menú público por el límite del plan. */
+  hiddenByPlan?: boolean;
 }) {
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>("idle");
@@ -195,6 +198,14 @@ export function ProductMobileCard({
             {product.is_featured && (
               <span className="text-[9px] bg-orange-500/15 text-orange-400 border border-orange-500/30 px-1.5 py-0.5 rounded-full font-bold inline-block mt-0.5">
                 ⭐ PROMO
+              </span>
+            )}
+            {hiddenByPlan && (
+              <span
+                title="Supera el límite de productos de tu plan actual — no aparece en tu menú público"
+                className="text-[9px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold inline-block mt-0.5"
+              >
+                No visible en el menú
               </span>
             )}
           </div>

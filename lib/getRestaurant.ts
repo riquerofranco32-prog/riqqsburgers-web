@@ -11,6 +11,7 @@ import {
 import { createServerClient } from "./supabase";
 import { computeEffectiveOpen, type BusinessHours } from "./businessHours";
 import { isCategoryVisibleNow } from "./categoryVisibility";
+import { getPlanLimits, type PlanId } from "./plans";
 import type {
   Tenant,
   Category,
@@ -154,6 +155,21 @@ function mapToRestaurant(
   ratingSummary?: { avg: number; count: number } | null,
   deliveryZones: Array<{ id: string; name: string; price: number }> = [],
 ): Restaurant {
+  const limits = getPlanLimits((tenant.plan as PlanId) ?? "free");
+  const DEFAULT_COLOR = "#FF6B35";
+
+  // Downgrade a Starter: se cae el branding personalizado (vuelve al look
+  // default) y el catálogo se recorta a los productos permitidos, aunque
+  // el negocio haya cargado más mientras estaba en un plan pago. El corte
+  // sigue sort_order (mismo orden que el dueño maneja arrastrando productos
+  // en /admin/productos), así lo que ve en el admin es lo que se muestra.
+  const visibleProducts =
+    limits.maxProducts === null
+      ? products
+      : [...products]
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .slice(0, limits.maxProducts);
+
   return {
     id: tenant.id,
     slug: tenant.slug,
@@ -161,11 +177,17 @@ function mapToRestaurant(
     tagline: tenant.tagline ?? "",
     phone: tenant.whatsapp_number,
     instagram: tenant.instagram_handle ?? "",
-    logo: tenant.logo_url ?? "",
-    banner_url: tenant.banner_url ?? "",
-    hero_video_url: tenant.hero_video_url ?? null,
-    accent_color: tenant.primary_color ?? "#FF6B35",
-    primary_color: tenant.primary_color ?? "#FF6B35",
+    logo: limits.customBranding ? (tenant.logo_url ?? "") : "",
+    banner_url: limits.customBranding ? (tenant.banner_url ?? "") : "",
+    hero_video_url: limits.customBranding
+      ? (tenant.hero_video_url ?? null)
+      : null,
+    accent_color: limits.customBranding
+      ? (tenant.primary_color ?? DEFAULT_COLOR)
+      : DEFAULT_COLOR,
+    primary_color: limits.customBranding
+      ? (tenant.primary_color ?? DEFAULT_COLOR)
+      : DEFAULT_COLOR,
     delivery_cost: tenant.delivery_cost ?? 0,
     address: tenant.address ?? "",
     schedule: tenant.schedule ?? "",
@@ -182,7 +204,9 @@ function mapToRestaurant(
     prep_time_minutes: tenant.prep_time_minutes ?? null,
     min_order_amount: tenant.min_order_amount ?? null,
     rating: ratingSummary ?? null,
-    brand: (tenant.brand as RestaurantBrand | null) ?? null,
+    brand: limits.customBranding
+      ? ((tenant.brand as RestaurantBrand | null) ?? null)
+      : null,
     latitude: tenant.latitude ?? null,
     longitude: tenant.longitude ?? null,
     delivery_mode: tenant.delivery_mode ?? "none",
@@ -191,7 +215,7 @@ function mapToRestaurant(
       tenant.delivery_out_of_range_msg ??
       "Consultanos por WhatsApp el costo de envío a tu zona",
     tags: tenant.tags ?? [],
-    plan: tenant.plan ?? "starter",
+    plan: tenant.plan ?? "free",
     deliveryZones,
     menu: {
       categories: (() => {
@@ -207,7 +231,7 @@ function mapToRestaurant(
           name: cat.name,
           emoji: cat.emoji ?? "🍽️",
           allow_half: cat.allow_half,
-          items: products
+          items: visibleProducts
             .filter((p) => p.category_id === cat.id && p.available)
             .sort((a, b) => a.sort_order - b.sort_order)
             .map((p) => ({
@@ -230,7 +254,7 @@ function mapToRestaurant(
               ingredients: p.ingredients ?? [],
             })),
         }));
-        const uncategorized = products
+        const uncategorized = visibleProducts
           .filter(
             (p) =>
               p.available &&

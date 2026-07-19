@@ -122,8 +122,8 @@ export function OperationControls({
               width: 5,
               height: 5,
               borderRadius: "50%",
-              background: "#4ade80",
-              boxShadow: "0 0 5px #4ade80",
+              background: "var(--dash-success)",
+              boxShadow: "0 0 5px var(--dash-success)",
               animation: "pulse-green 1.5s infinite ease-in-out",
             }}
           />
@@ -131,7 +131,7 @@ export function OperationControls({
             style={{
               fontSize: 9,
               fontWeight: 700,
-              color: "#4ade80",
+              color: "var(--dash-success)",
               letterSpacing: "0.02em",
             }}
           >
@@ -170,7 +170,7 @@ export function OperationControls({
               border: isOpen
                 ? "1px solid rgba(34, 197, 94, 0.2)"
                 : "1px solid rgba(239, 68, 68, 0.2)",
-              color: isOpen ? "#4ade80" : "#f87171",
+              color: isOpen ? "var(--dash-success)" : "var(--dash-danger)",
               flexShrink: 0,
             }}
           >
@@ -181,7 +181,7 @@ export function OperationControls({
               style={{
                 fontSize: 12,
                 fontWeight: 700,
-                color: isOpen ? "#4ade80" : "#f87171",
+                color: isOpen ? "var(--dash-success)" : "var(--dash-danger)",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: 1,
@@ -215,8 +215,8 @@ export function OperationControls({
             border: "none",
             color: "#fff",
             background: isOpen
-              ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)"
-              : "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+              ? "linear-gradient(135deg, var(--dash-danger) 0%, #dc2626 100%)"
+              : "linear-gradient(135deg, var(--dash-success) 0%, #16a34a 100%)",
             boxShadow: isOpen
               ? "0 2px 8px rgba(239, 68, 68, 0.2)"
               : "0 2px 8px rgba(34, 197, 94, 0.2)",

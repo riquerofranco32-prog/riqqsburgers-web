@@ -136,7 +136,7 @@ export function OnboardingChecklist({
             >
               <CheckCircle2
                 className="w-4 h-4 flex-shrink-0"
-                style={{ color: "#22c55e" }}
+                style={{ color: "var(--dash-success)" }}
               />
               {step.label}
             </div>

@@ -165,7 +165,7 @@ export function PeakHoursWidget({ orders }: PeakHoursWidgetProps) {
                   fontSize: 9,
                   fontWeight: 800,
                   color:
-                    rank === 1 ? "#fbbf24" : rank === 2 ? "#94a3b8" : "#b45309",
+                    rank === 1 ? "var(--dash-warning)" : rank === 2 ? "#94a3b8" : "#b45309",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                 }}

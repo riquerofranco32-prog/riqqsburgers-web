@@ -24,7 +24,7 @@ export default async function AdminPage({
     return (
       <div
         className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--bg, #0d0d0d)" }}
+        style={{ background: "var(--dash-bg)" }}
       >
         <div
           className="text-center"
@@ -32,26 +32,18 @@ export default async function AdminPage({
         >
           <p
             style={{
-              color: "var(--text-primary, #fff)",
+              color: "var(--dash-text)",
               fontWeight: 600,
               fontSize: 18,
             }}
           >
             Restaurante &quot;{slug}&quot; no encontrado
           </p>
-          <p
-            style={{
-              color: "var(--text-muted, rgba(255,255,255,0.5))",
-              fontSize: 14,
-            }}
-          >
+          <p style={{ color: "var(--dash-muted)", fontSize: 14 }}>
             Verificá que el slug existe en Supabase o en data/restaurants/{slug}
             .json
           </p>
-          <a
-            href="/admin"
-            style={{ color: "var(--accent, #FF6B35)", fontSize: 14 }}
-          >
+          <a href="/admin" style={{ color: "var(--accent)", fontSize: 14 }}>
             → Ir al panel Takefyy
           </a>
         </div>

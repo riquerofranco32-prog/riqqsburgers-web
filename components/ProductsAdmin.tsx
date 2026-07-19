@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
+import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Reorder, useDragControls } from "framer-motion";
 import {
@@ -250,6 +251,19 @@ export default function ProductsAdmin({
       list = [...list].sort((a, b) => b.price - a.price);
     return list;
   }, [products, filterCat, search, sort]);
+
+  // Productos que exceden el límite del plan: lib/getRestaurant.ts corta el
+  // menú público en sort_order tras los primeros `productLimit`. Acá
+  // replicamos ese mismo corte para marcarlos como "no visibles" en el admin.
+  const hiddenByPlanIds = useMemo(() => {
+    if (productLimit === null) return new Set<string>();
+    return new Set(
+      [...products]
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .slice(productLimit)
+        .map((p) => p.id),
+    );
+  }, [products, productLimit]);
 
   // El reordenamiento (drag o flechas) solo tiene sentido cuando la lista
   // visible refleja el sort_order real: orden por defecto, sin búsqueda, y
@@ -673,6 +687,7 @@ export default function ProductsAdmin({
       onInlinePriceSave: saveInlinePrice,
       onInlinePriceValChange: setInlinePriceVal,
       onRestock: restockProduct,
+      hiddenByPlan: hiddenByPlanIds.has(product.id),
     };
   }
 
@@ -696,6 +711,16 @@ export default function ProductsAdmin({
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 flex-shrink-0">
+          {hiddenByPlanIds.size > 0 && (
+            <Link
+              href={`/${tenant.slug}/admin/plan`}
+              className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium hover:bg-amber-500/20 transition-colors"
+            >
+              {hiddenByPlanIds.size} producto
+              {hiddenByPlanIds.size !== 1 ? "s" : ""} sin mostrar por tu plan →
+              mejorar
+            </Link>
+          )}
           <button
             onClick={canAddMore ? openNew : undefined}
             disabled={!canAddMore}
@@ -859,6 +884,7 @@ export default function ProductsAdmin({
                   onDuplicate={canAddMore ? handleDuplicate : undefined}
                   duplicatingId={duplicatingId}
                   onRestock={restockProduct}
+                  hiddenByPlan={hiddenByPlanIds.has(product.id)}
                 />
               );
             })}

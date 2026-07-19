@@ -35,6 +35,7 @@ export function ProductDesktopRow({
   onInlinePriceStart,
   onInlinePriceSave,
   onInlinePriceValChange,
+  hiddenByPlan,
 }: {
   product: Product;
   cat: Category | undefined;
@@ -65,12 +66,14 @@ export function ProductDesktopRow({
   onInlinePriceStart: (p: Product) => void;
   onInlinePriceSave: (p: Product) => void;
   onInlinePriceValChange: (val: string) => void;
+  /** true si el producto quedó afuera del menú público por el límite del plan. */
+  hiddenByPlan?: boolean;
 }) {
   const isEditingPrice = inlinePriceId === product.id;
   return (
     <div
       style={{ padding: "var(--row-py, 12px)" }}
-      className={`bg-[var(--dash-surface)] rounded-2xl border flex items-center gap-3 transition-opacity ${selected ? "border-[var(--accent)]/60" : "border-[var(--dash-border)]"} ${product.available ? "" : "opacity-50"}`}
+      className={`bg-[var(--dash-surface)] rounded-2xl border flex items-center gap-3 transition-opacity ${selected ? "border-[var(--accent)]/60" : hiddenByPlan ? "border-amber-500/30" : "border-[var(--dash-border)]"} ${product.available ? "" : "opacity-50"}`}
     >
       {dragControls && (
         <div
@@ -132,6 +135,14 @@ export function ProductDesktopRow({
           {!product.available && (
             <span className="text-[10px] bg-[var(--dash-surface-3)] text-[var(--dash-muted)] px-1.5 py-0.5 rounded-full font-bold">
               Agotado
+            </span>
+          )}
+          {hiddenByPlan && (
+            <span
+              title="Supera el límite de productos de tu plan actual — no aparece en tu menú público"
+              className="text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full font-bold"
+            >
+              No visible en el menú
             </span>
           )}
         </div>

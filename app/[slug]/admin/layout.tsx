@@ -57,6 +57,7 @@ export default async function AdminLayout({
       userEmail={user.email ?? ""}
       isSuperAdmin={access.superadmin}
       role={role}
+      tenantPlan={tenant.plan}
     >
       {children}
       <Toaster

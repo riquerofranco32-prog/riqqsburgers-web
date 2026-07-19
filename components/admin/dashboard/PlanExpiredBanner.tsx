@@ -9,11 +9,11 @@ export function PlanExpiredBanner() {
   return (
     <div
       style={{
-        background: "rgba(248,113,113,0.08)",
+        background: "var(--dash-danger-bg)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(248,113,113,0.25)",
-        borderRadius: 16,
+        border: "1px solid var(--dash-danger-border)",
+        borderRadius: "var(--radius-lg)",
         padding: "14px 20px",
         display: "flex",
         alignItems: "center",
@@ -36,17 +36,17 @@ export function PlanExpiredBanner() {
             width: 32,
             height: 32,
             borderRadius: "50%",
-            background: "rgba(248,113,113,0.15)",
+            background: "var(--dash-danger-bg)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            border: "1px solid rgba(248,113,113,0.25)",
+            border: "1px solid var(--dash-danger-border)",
             flexShrink: 0,
           }}
         >
           <AlertTriangle
             size={15}
-            style={{ color: "#f87171" }}
+            style={{ color: "var(--dash-danger)" }}
             strokeWidth={2.5}
           />
         </div>
@@ -55,7 +55,7 @@ export function PlanExpiredBanner() {
           <p
             style={{
               fontSize: 13,
-              color: "#f87171",
+              color: "var(--dash-danger)",
               fontWeight: 600,
               lineHeight: 1.2,
             }}
@@ -69,8 +69,8 @@ export function PlanExpiredBanner() {
               lineHeight: 1.3,
             }}
           >
-            Volviste al plan Starter: sin estadísticas históricas ni
-            personalización de marca.
+            Volviste al plan Starter: sin estadísticas históricas, sin
+            personalización de marca y tu menú público se recorta a 5 productos.
           </p>
         </div>
       </div>
@@ -86,7 +86,7 @@ export function PlanExpiredBanner() {
           fontSize: 12,
           fontWeight: 700,
           color: "#fff",
-          background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+          background: "linear-gradient(135deg, var(--dash-danger) 0%, #dc2626 100%)",
           padding: "8px 16px",
           borderRadius: 8,
           textDecoration: "none",

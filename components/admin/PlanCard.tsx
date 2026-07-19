@@ -2,6 +2,8 @@
 
 import type { PlanId, PlanLimits } from "@/lib/plans";
 import { PLANS } from "@/lib/plans";
+import { Card } from "@/components/ui/admin/Card";
+import { Badge } from "@/components/ui/admin/Badge";
 
 interface PlanCardProps {
   currentPlan: PlanId;
@@ -71,10 +73,10 @@ export default function PlanCard({
           style={{
             background:
               trialDaysLeft! <= 3
-                ? "rgba(248, 113, 113, 0.08)"
-                : "rgba(255, 107, 53, 0.08)",
-            border: `1px solid ${trialDaysLeft! <= 3 ? "rgba(248, 113, 113, 0.3)" : "rgba(255, 107, 53, 0.3)"}`,
-            borderRadius: 12,
+                ? "var(--dash-danger-bg)"
+                : "var(--dash-accent-subtle)",
+            border: `1px solid ${trialDaysLeft! <= 3 ? "var(--dash-danger-border)" : "var(--dash-accent-glow)"}`,
+            borderRadius: "var(--radius-md)",
             padding: "14px 16px",
             display: "flex",
             alignItems: "flex-start",
@@ -85,7 +87,8 @@ export default function PlanCard({
           <div>
             <p
               style={{
-                color: trialDaysLeft! <= 3 ? "#f87171" : "var(--accent)",
+                color:
+                  trialDaysLeft! <= 3 ? "var(--dash-danger)" : "var(--accent)",
                 fontWeight: 700,
                 fontSize: 14,
                 marginBottom: 4,
@@ -103,8 +106,8 @@ export default function PlanCard({
               }}
             >
               Cuando termine la prueba volvés automáticamente al plan Starter:
-              perdés analytics y personalización de marca (productos y
-              categorías siguen ilimitados).{" "}
+              perdés analytics, personalización de marca, y tu menú público se
+              recorta a {PLANS.free.maxProducts} productos.{" "}
               <a
                 href={WHATSAPP_SUPPORT}
                 target="_blank"
@@ -122,9 +125,9 @@ export default function PlanCard({
       {currentPlan === "free" && (
         <div
           style={{
-            background: "rgba(255, 107, 53, 0.08)",
-            border: "1px solid rgba(255, 107, 53, 0.3)",
-            borderRadius: 12,
+            background: "var(--dash-accent-subtle)",
+            border: "1px solid var(--dash-accent-glow)",
+            borderRadius: "var(--radius-md)",
             padding: "14px 16px",
             display: "flex",
             alignItems: "flex-start",
@@ -166,14 +169,7 @@ export default function PlanCard({
       )}
 
       {/* Current plan card */}
-      <div
-        style={{
-          background: "var(--dash-surface)",
-          border: `1px solid ${colors.border}`,
-          borderRadius: 16,
-          padding: "20px 20px",
-        }}
-      >
+      <Card accent padding="20px 20px">
         <div
           style={{
             display: "flex",
@@ -284,6 +280,15 @@ export default function PlanCard({
             value={limits.customBranding ? "Incluido" : "No incluido"}
             enabled={limits.customBranding}
           />
+          <Feature
+            label="Miembros de equipo"
+            value={
+              limits.maxTeamMembers === null
+                ? "Ilimitados"
+                : `Hasta ${limits.maxTeamMembers}`
+            }
+            enabled
+          />
         </div>
 
         {/* Usage bar */}
@@ -312,9 +317,9 @@ export default function PlanCard({
                   fontSize: 12,
                   fontWeight: 700,
                   color: isAtLimit
-                    ? "#f87171"
+                    ? "var(--dash-danger)"
                     : nearLimit
-                      ? "#fb923c"
+                      ? "var(--dash-warning)"
                       : "var(--dash-text)",
                 }}
               >
@@ -335,9 +340,9 @@ export default function PlanCard({
                   width: `${usagePercent}%`,
                   borderRadius: 999,
                   background: isAtLimit
-                    ? "#f87171"
+                    ? "var(--dash-danger)"
                     : nearLimit
-                      ? "#fb923c"
+                      ? "var(--dash-warning)"
                       : "var(--accent)",
                   transition: "width 0.4s ease",
                 }}
@@ -346,7 +351,7 @@ export default function PlanCard({
             {isAtLimit && (
               <p
                 style={{
-                  color: "#f87171",
+                  color: "var(--dash-danger)",
                   fontSize: 12,
                   marginTop: 8,
                   fontWeight: 600,
@@ -358,7 +363,9 @@ export default function PlanCard({
             {!isAtLimit && daysToLimit != null && (
               <p
                 style={{
-                  color: nearLimit ? "#fb923c" : "var(--dash-muted)",
+                  color: nearLimit
+                    ? "var(--dash-warning)"
+                    : "var(--dash-muted)",
                   fontSize: 12,
                   marginTop: 8,
                   fontWeight: nearLimit ? 600 : 400,
@@ -370,7 +377,7 @@ export default function PlanCard({
             )}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Plan comparison table */}
       <div>
@@ -489,6 +496,14 @@ export default function PlanCard({
                     label="Branding propio"
                     enabled={plan.customBranding}
                   />
+                  <PlanFeatureRow
+                    label={
+                      plan.maxTeamMembers === null
+                        ? "Equipo ilimitado"
+                        : `Hasta ${plan.maxTeamMembers} del equipo`
+                    }
+                    enabled
+                  />
                 </div>
               </div>
             );
@@ -498,18 +513,9 @@ export default function PlanCard({
 
       {/* CTA footer */}
       {currentPlan !== "premium" && (
-        <div
-          style={{
-            background: "var(--dash-surface)",
-            border: "1px solid var(--dash-border)",
-            borderRadius: 12,
-            padding: "16px 18px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
-          }}
+        <Card
+          padding="16px 18px"
+          className="flex items-center justify-between flex-wrap gap-3"
         >
           <div>
             <p
@@ -549,7 +555,7 @@ export default function PlanCard({
             <span style={{ fontSize: 16 }}>💬</span>
             Contactar soporte
           </a>
-        </div>
+        </Card>
       )}
     </div>
   );
@@ -601,7 +607,7 @@ function PlanFeatureRow({
       <span
         style={{
           fontSize: 11,
-          color: enabled ? "#4ade80" : "var(--dash-border)",
+          color: enabled ? "var(--dash-success)" : "var(--dash-border)",
           flexShrink: 0,
         }}
       >

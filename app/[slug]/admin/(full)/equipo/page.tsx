@@ -3,6 +3,7 @@ import { getTenantId } from "@/lib/tenants";
 import type { Metadata } from "next";
 import { TeamAdmin } from "@/components/admin/team/TeamAdmin";
 import BackButton from "@/components/BackButton";
+import { canAddTeamMember } from "@/lib/subscriptions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Equipo" };
@@ -18,21 +19,24 @@ export default async function EquipoPage({
   const tenantId = await getTenantId(slug);
   if (!tenantId) return null;
 
-  const [{ data: rawMembers }, { data: rawActivity }] = await Promise.all([
-    db
-      .from("tenant_users")
-      .select("id, email, role, display_name")
-      .eq("tenant_id", tenantId)
-      .neq("role", "superadmin")
-      .order("role", { ascending: false }),
-    db
-      .from("activity_log")
-      .select("actor_email, created_at")
-      .eq("tenant_id", tenantId)
-      .order("created_at", { ascending: false }),
-  ]);
+  const [{ data: rawMembers }, { data: rawActivity }, planCheck] =
+    await Promise.all([
+      db
+        .from("tenant_users")
+        .select("id, email, role, display_name")
+        .eq("tenant_id", tenantId)
+        .neq("role", "superadmin")
+        .order("role", { ascending: false }),
+      db
+        .from("activity_log")
+        .select("actor_email, created_at")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false }),
+      canAddTeamMember(tenantId),
+    ]);
 
   const members = rawMembers ?? [];
+  const { allowed: canAddMore, max: teamLimit } = planCheck;
 
   // activity_log no tiene user_id, solo actor_email — se linkea por ahí. Ya
   // viene ordenado desc, así que la primera aparición de cada email es la
@@ -61,6 +65,8 @@ export default async function EquipoPage({
         slug={slug}
         initialMembers={members}
         lastActivityByEmail={lastActivityByEmail}
+        canAddMore={canAddMore}
+        teamLimit={teamLimit}
       />
     </div>
   );

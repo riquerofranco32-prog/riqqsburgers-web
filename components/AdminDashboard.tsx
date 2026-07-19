@@ -382,9 +382,9 @@ export default function AdminDashboard({
               style={{
                 fontSize: 12,
                 fontWeight: 700,
-                color: "#f59e0b",
-                background: "rgba(245,158,11,0.12)",
-                border: "1px solid rgba(245,158,11,0.3)",
+                color: "var(--dash-warning)",
+                background: "var(--dash-warning-bg)",
+                border: "1px solid var(--dash-warning-border)",
                 borderRadius: 8,
                 padding: "4px 10px",
                 display: "inline-flex",
@@ -400,7 +400,7 @@ export default function AdminDashboard({
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
-                  color: "#f59e0b",
+                  color: "var(--dash-warning)",
                   background: "none",
                   border: "none",
                   textDecoration: "underline",
@@ -429,7 +429,7 @@ export default function AdminDashboard({
                   width: 6,
                   height: 6,
                   borderRadius: "50%",
-                  background: "#4ade80",
+                  background: "var(--dash-success)",
                   boxShadow: "0 0 6px #4ade8088",
                   flexShrink: 0,
                 }}
@@ -477,7 +477,7 @@ export default function AdminDashboard({
                     transition: "all 0.15s",
                     background:
                       range === r
-                        ? "linear-gradient(135deg, var(--accent), #ff8c5a)"
+                        ? "linear-gradient(135deg, var(--accent), var(--accent-hover))"
                         : "transparent",
                     color: range === r ? "#fff" : "var(--dash-muted)",
                     boxShadow:
@@ -636,7 +636,7 @@ export default function AdminDashboard({
                     height: 32,
                     borderRadius: "50%",
                     background:
-                      "linear-gradient(135deg, var(--accent), #ff8c5a)",
+                      "linear-gradient(135deg, var(--accent), var(--accent-hover))",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1061,11 +1061,11 @@ export default function AdminDashboard({
           {analyticsError && (
             <div
               style={{
-                background: "rgba(248,113,113,0.08)",
-                border: "1px solid rgba(248,113,113,0.25)",
+                background: "var(--dash-danger-bg)",
+                border: "1px solid var(--dash-danger-border)",
                 borderRadius: 12,
                 padding: "12px 16px",
-                color: "#f87171",
+                color: "var(--dash-danger)",
                 fontSize: 13,
                 fontWeight: 600,
               }}

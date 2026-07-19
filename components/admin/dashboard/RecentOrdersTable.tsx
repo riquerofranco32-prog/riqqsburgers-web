@@ -30,9 +30,9 @@ const STATUS_BADGE: Record<
   pending: {
     label: "Pendiente",
     bg: "rgba(245,158,11,0.12)",
-    color: "#f59e0b",
+    color: "var(--dash-warning)",
   },
-  nuevo: { label: "Nuevo", bg: "rgba(245,158,11,0.12)", color: "#f59e0b" },
+  nuevo: { label: "Nuevo", bg: "rgba(245,158,11,0.12)", color: "var(--dash-warning)" },
   confirmed: {
     label: "Confirmado",
     bg: "rgba(59,130,246,0.12)",
@@ -43,8 +43,8 @@ const STATUS_BADGE: Record<
     bg: "rgba(59,130,246,0.12)",
     color: "#60a5fa",
   },
-  ready: { label: "Listo", bg: "rgba(34,197,94,0.12)", color: "#4ade80" },
-  listo: { label: "Listo", bg: "rgba(34,197,94,0.12)", color: "#4ade80" },
+  ready: { label: "Listo", bg: "rgba(34,197,94,0.12)", color: "var(--dash-success)" },
+  listo: { label: "Listo", bg: "rgba(34,197,94,0.12)", color: "var(--dash-success)" },
   delivered: {
     label: "Entregado",
     bg: "rgba(113,113,122,0.15)",
@@ -58,7 +58,7 @@ const STATUS_BADGE: Record<
   cancelled: {
     label: "Cancelado",
     bg: "rgba(239,68,68,0.12)",
-    color: "#f87171",
+    color: "var(--dash-danger)",
   },
 };
 
@@ -79,7 +79,7 @@ function CopyRef({ orderRef }: { orderRef: string }) {
         background: "none",
         border: "none",
         cursor: "pointer",
-        color: copied ? "#4ade80" : "var(--dash-muted)",
+        color: copied ? "var(--dash-success)" : "var(--dash-muted)",
         padding: "2px 4px",
         borderRadius: 4,
         display: "inline-flex",

@@ -40,7 +40,7 @@ function Sparkline({ data }: { data: number[] }) {
       <polyline
         points={points.join(" ")}
         fill="none"
-        stroke={isUp ? "#4ade80" : "#f87171"}
+        stroke={isUp ? "var(--dash-success)" : "var(--dash-danger)"}
         strokeWidth={1.75}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -206,9 +206,9 @@ export function KPICard({
                     ? "rgba(239,68,68,0.15)"
                     : "var(--dash-surface-2)",
                 color: isPositive
-                  ? "#4ade80"
+                  ? "var(--dash-success)"
                   : isNegative
-                    ? "#f87171"
+                    ? "var(--dash-danger)"
                     : "var(--dash-muted)",
               }}
             >

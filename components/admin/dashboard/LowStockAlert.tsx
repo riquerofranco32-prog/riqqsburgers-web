@@ -131,7 +131,7 @@ export function LowStockAlert({
               >
                 <AlertTriangle
                   size={15}
-                  style={{ color: "#f59e0b" }}
+                  style={{ color: "var(--dash-warning)" }}
                   strokeWidth={2.5}
                 />
               </div>
@@ -141,7 +141,7 @@ export function LowStockAlert({
               <p
                 style={{
                   fontSize: 13,
-                  color: "#fbbf24",
+                  color: "var(--dash-warning)",
                   fontWeight: 600,
                   lineHeight: 1.2,
                 }}
@@ -156,7 +156,7 @@ export function LowStockAlert({
                 }}
               >
                 Los clientes no podrán pedir{" "}
-                <strong style={{ color: "#fbbf24", fontWeight: 600 }}>
+                <strong style={{ color: "var(--dash-warning)", fontWeight: 600 }}>
                   {itemsLabel}
                 </strong>{" "}
                 hasta que los vuelvas a activar.
@@ -182,7 +182,7 @@ export function LowStockAlert({
             >
               <AlertTriangle
                 size={15}
-                style={{ color: "#f59e0b" }}
+                style={{ color: "var(--dash-warning)" }}
                 strokeWidth={2.5}
               />
             </div>
@@ -191,7 +191,7 @@ export function LowStockAlert({
               <p
                 style={{
                   fontSize: 13,
-                  color: "#fbbf24",
+                  color: "var(--dash-warning)",
                   fontWeight: 600,
                   lineHeight: 1.2,
                 }}
@@ -206,7 +206,7 @@ export function LowStockAlert({
                 }}
               >
                 Quedan pocas unidades de{" "}
-                <strong style={{ color: "#fbbf24", fontWeight: 600 }}>
+                <strong style={{ color: "var(--dash-warning)", fontWeight: 600 }}>
                   {lowItemsLabel}
                 </strong>
                 . Actualizá el stock antes de que se agote.
@@ -222,7 +222,7 @@ export function LowStockAlert({
           fontSize: 12,
           fontWeight: 700,
           color: "#fff",
-          background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+          background: "linear-gradient(135deg, var(--dash-warning) 0%, #d97706 100%)",
           padding: "8px 16px",
           borderRadius: 8,
           textDecoration: "none",

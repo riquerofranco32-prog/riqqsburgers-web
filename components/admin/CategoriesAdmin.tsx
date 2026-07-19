@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import EmptyState from "@/components/admin/EmptyState";
 import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 import { ConfirmDialog } from "@/components/ui/admin/ConfirmDialog";
+import { AdminButton } from "@/components/ui/admin/AdminButton";
 import { isCategoryVisibleNow } from "@/lib/categoryVisibility";
 import { useNowMinute } from "@/components/admin/orders/utils";
 import type { Category } from "@/types/supabase";
@@ -302,12 +303,8 @@ export default function CategoriesAdmin({
       >
         <div>
           <h1
-            style={{
-              fontSize: "1.4rem",
-              fontWeight: 700,
-              color: "var(--dash-text)",
-              letterSpacing: "-0.02em",
-            }}
+            className="text-xl font-bold font-[family-name:var(--font-syne)]"
+            style={{ color: "var(--dash-text)", letterSpacing: "-0.02em" }}
           >
             Categorías
           </h1>
@@ -316,31 +313,7 @@ export default function CategoriesAdmin({
             arrastrá o usá las flechas para reordenar
           </p>
         </div>
-        <button
-          onClick={openNew}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            background: "var(--accent)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            padding: "10px 16px",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: "pointer",
-            flexShrink: 0,
-            WebkitTapHighlightColor: "transparent",
-            transition: "filter 0.15s",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.filter = "brightness(1.1)")
-          }
-          onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
-        >
-          + Agregar
-        </button>
+        <AdminButton onClick={openNew}>+ Agregar</AdminButton>
       </div>
 
       {/* Empty state */}
@@ -494,11 +467,19 @@ export default function CategoriesAdmin({
                   placeholder="Ej: Hamburguesas"
                   style={{
                     ...inputStyle,
-                    borderColor: nameError ? "#f87171" : "var(--dash-border)",
+                    borderColor: nameError
+                      ? "var(--dash-danger)"
+                      : "var(--dash-border)",
                   }}
                 />
                 {nameError && (
-                  <p style={{ color: "#f87171", fontSize: 12, marginTop: 4 }}>
+                  <p
+                    style={{
+                      color: "var(--dash-danger)",
+                      fontSize: 12,
+                      marginTop: 4,
+                    }}
+                  >
                     {nameError}
                   </p>
                 )}
@@ -808,7 +789,7 @@ function CategoryRow({
             style={{
               fontSize: 12,
               fontWeight: 700,
-              color: "#f87171",
+              color: "var(--dash-danger)",
               marginTop: 3,
             }}
           >
@@ -821,7 +802,7 @@ function CategoryRow({
             style={{
               fontSize: 12,
               fontWeight: 700,
-              color: "#f59e0b",
+              color: "var(--dash-warning)",
               marginTop: 3,
             }}
           >
@@ -848,7 +829,7 @@ function CategoryRow({
             <button
               onClick={() => onConfirmDelete(cat)}
               style={{
-                background: "#f87171",
+                background: "var(--dash-danger)",
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
@@ -951,7 +932,7 @@ function CategoryRow({
               className="flex items-center justify-center"
               style={{
                 ...iconBtn(false),
-                color: count > 0 ? "var(--dash-muted)" : "#f87171",
+                color: count > 0 ? "var(--dash-muted)" : "var(--dash-danger)",
                 opacity: count > 0 ? 0.5 : 1,
               }}
               {...iconBtnHover(count > 0)}

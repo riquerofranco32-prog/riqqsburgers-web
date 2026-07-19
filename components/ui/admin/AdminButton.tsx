@@ -10,9 +10,9 @@ const VARIANT_STYLE: Record<Variant, React.CSSProperties> = {
     border: "1px solid var(--dash-border)",
   },
   danger: {
-    background: "rgba(239,68,68,0.12)",
-    color: "#f87171",
-    border: "1px solid rgba(239,68,68,0.3)",
+    background: "var(--dash-danger-bg)",
+    color: "var(--dash-danger)",
+    border: "1px solid var(--dash-danger-border)",
   },
 };
 

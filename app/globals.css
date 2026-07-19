@@ -30,6 +30,26 @@
   --dash-muted: #7c8192;
   --dash-accent-subtle: rgba(255, 107, 53, 0.1);
   --dash-accent-glow: rgba(255, 107, 53, 0.25);
+
+  /* Colores semánticos del admin — antes cada componente hardcodeaba su
+     propio hex (#f87171/#ef4444/#dc2626 para error, #4ade80/#22c55e para
+     éxito, etc). Usar estos en vez de un hex suelto. */
+  --dash-danger: #f87171;
+  --dash-danger-bg: rgba(248, 113, 113, 0.08);
+  --dash-danger-border: rgba(248, 113, 113, 0.25);
+  --dash-success: #4ade80;
+  --dash-success-bg: rgba(74, 222, 128, 0.08);
+  --dash-success-border: rgba(74, 222, 128, 0.25);
+  --dash-warning: #fbbf24;
+  --dash-warning-bg: rgba(251, 191, 36, 0.08);
+  --dash-warning-border: rgba(251, 191, 36, 0.25);
+
+  /* Escala de radios — reemplaza los px sueltos (6/8/9/10/12/14/16px) que
+     convivían sin criterio en el admin. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */

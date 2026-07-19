@@ -128,9 +128,9 @@ export function SalesAreaChart({
   const trend = weekTotal > prevTotal ? "↑" : weekTotal < prevTotal ? "↓" : "—";
   const trendColor =
     weekTotal > prevTotal
-      ? "#22c55e"
+      ? "var(--dash-success)"
       : weekTotal < prevTotal
-        ? "#f87171"
+        ? "var(--dash-danger)"
         : "var(--dash-muted)";
 
   return (
