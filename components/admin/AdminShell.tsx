@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -164,62 +165,69 @@ function DesktopNavLinks({
               key={item.href}
               href={href}
               title={collapsed ? item.label : undefined}
+              className={isActive ? undefined : "admin-nav-link"}
               style={{
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
                 gap: 10,
                 padding: collapsed ? "10px 0" : "10px 12px",
-                paddingLeft:
-                  collapsed && isActive ? "calc(0px - 3px)" : undefined,
                 justifyContent: collapsed ? "center" : "flex-start",
                 borderRadius: 10,
                 fontSize: 14,
                 fontWeight: isActive ? 600 : 400,
                 color: isActive ? "#fff" : "var(--dash-muted)",
-                background: isActive
-                  ? `linear-gradient(135deg, var(--accent), var(--accent-hover))`
-                  : "transparent",
                 textDecoration: "none",
-                transition: "all 0.15s",
+                transition: "color 0.15s",
                 whiteSpace: "nowrap",
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
-                boxShadow: isActive
-                  ? `0 4px 12px rgba(255,107,53,0.3)`
-                  : "none",
-                borderLeft: collapsed
-                  ? isActive
-                    ? "3px solid var(--accent)"
-                    : "3px solid transparent"
-                  : "none",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = "var(--dash-surface-2)";
-                  e.currentTarget.style.color = "var(--dash-text)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = "var(--dash-muted)";
-                }
+                overflow: "hidden",
               }}
             >
-              <item.icon size={16} strokeWidth={1.8} />
+              {isActive && (
+                <motion.div
+                  layoutId="nav-active-pill"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: 10,
+                    background:
+                      "linear-gradient(135deg, var(--accent), var(--accent-hover))",
+                    boxShadow: "0 4px 12px rgba(255,107,53,0.3)",
+                    zIndex: 0,
+                  }}
+                />
+              )}
+              <item.icon
+                size={16}
+                strokeWidth={1.8}
+                style={{ position: "relative", zIndex: 1 }}
+              />
               {collapsed && item.href === "/pedidos" && (
-                <PendingOrdersBadge tenantId={tenantId} collapsed={true} />
+                <span style={{ position: "relative", zIndex: 1 }}>
+                  <PendingOrdersBadge tenantId={tenantId} collapsed={true} />
+                </span>
               )}
               {!collapsed && (
                 <>
-                  <span style={{ flex: 1 }}>{item.label}</span>
+                  <span style={{ flex: 1, position: "relative", zIndex: 1 }}>
+                    {item.label}
+                  </span>
                   {item.href === "/pedidos" && (
-                    <PendingOrdersBadge tenantId={tenantId} collapsed={false} />
+                    <span style={{ position: "relative", zIndex: 1 }}>
+                      <PendingOrdersBadge
+                        tenantId={tenantId}
+                        collapsed={false}
+                      />
+                    </span>
                   )}
                   {item.href === "/plan" && (
                     <span
                       style={{
+                        position: "relative",
+                        zIndex: 1,
                         fontSize: 10,
                         fontWeight: 700,
                         padding: "2px 7px",
@@ -1042,12 +1050,14 @@ export default function AdminShell({
                 {item.label}
               </span>
               {isActive && (
-                <span
+                <motion.span
+                  layoutId="mobile-nav-indicator"
+                  transition={{ type: "spring", stiffness: 500, damping: 40 }}
                   style={{
                     position: "absolute",
                     top: 0,
                     left: "50%",
-                    transform: "translateX(-50%)",
+                    x: "-50%",
                     width: 28,
                     height: 2,
                     borderRadius: 999,

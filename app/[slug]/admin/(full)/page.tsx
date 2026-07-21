@@ -1,6 +1,10 @@
 import { createServerClient } from "@/lib/supabase";
 import { getTenant } from "@/lib/tenants";
-import { getEffectiveSubscription, trialDaysLeft } from "@/lib/subscriptions";
+import {
+  getEffectiveSubscription,
+  trialDaysLeft,
+  periodDaysLeft,
+} from "@/lib/subscriptions";
 import { getPlanLimits, type PlanId } from "@/lib/plans";
 import type { Metadata } from "next";
 import type { Product, Order } from "@/types/supabase";
@@ -95,7 +99,11 @@ export default async function AdminPage({
       name: p.name,
       stock_quantity: p.stock_quantity as number,
     }));
-  const trialDays = trialDaysLeft(subscription);
+  const isPaidPlan =
+    subscription.status === "active" && subscription.plan !== "free";
+  const trialDays =
+    trialDaysLeft(subscription) ??
+    (isPaidPlan ? periodDaysLeft(subscription) : null);
   const planExpired = subscription.status === "expired";
   const analyticsEnabled = getPlanLimits(
     subscription.plan as PlanId,
@@ -123,6 +131,7 @@ export default async function AdminPage({
         unavailableProducts={unavailableProducts}
         lowStockProducts={lowStockProducts}
         trialDaysLeft={trialDays}
+        isPaidPlan={isPaidPlan}
         planExpired={planExpired}
         analyticsEnabled={analyticsEnabled}
         onboarding={onboarding}

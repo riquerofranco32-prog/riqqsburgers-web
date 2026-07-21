@@ -7,9 +7,14 @@ const WHATSAPP_SUPPORT =
 
 interface TrialCountdownBannerProps {
   daysLeft: number;
+  /** true cuando es un plan pago con vencimiento fijo (no un trial gratis) */
+  isPaidPlan?: boolean;
 }
 
-export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
+export function TrialCountdownBanner({
+  daysLeft,
+  isPaidPlan = false,
+}: TrialCountdownBannerProps) {
   const urgent = daysLeft <= 3;
   const color = urgent ? "var(--dash-danger)" : "var(--accent)";
   const bg = urgent ? "var(--dash-danger-bg)" : "var(--dash-accent-subtle)";
@@ -69,9 +74,13 @@ export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
               lineHeight: 1.2,
             }}
           >
-            {daysLeft === 1
-              ? "Tu prueba Pro termina mañana"
-              : `Te quedan ${daysLeft} días de prueba Pro`}
+            {isPaidPlan
+              ? daysLeft === 1
+                ? "Tu plan Pro vence mañana"
+                : `Tu plan Pro vence en ${daysLeft} días`
+              : daysLeft === 1
+                ? "Tu prueba Pro termina mañana"
+                : `Te quedan ${daysLeft} días de prueba Pro`}
           </p>
           <p
             style={{
@@ -80,8 +89,9 @@ export function TrialCountdownBanner({ daysLeft }: TrialCountdownBannerProps) {
               lineHeight: 1.3,
             }}
           >
-            Cuando termine volvés al plan Starter: sin analytics, sin
-            personalización de marca y tu menú público se recorta a 5 productos.
+            {isPaidPlan
+              ? "Renová antes del vencimiento para no volver al plan Starter: perderías analytics, personalización de marca y productos ilimitados."
+              : "Cuando termine volvés al plan Starter: sin analytics, sin personalización de marca y tu menú público se recorta a 5 productos."}
           </p>
         </div>
       </div>

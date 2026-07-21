@@ -5,6 +5,7 @@ import {
   getEffectiveSubscription,
   getProductCount,
   trialDaysLeft,
+  periodDaysLeft,
 } from "@/lib/subscriptions";
 import type { Metadata } from "next";
 import type { PlanId } from "@/lib/plans";
@@ -71,7 +72,10 @@ export default async function PlanPage({
 
   const currentPlan = (subscription.plan ?? "free") as PlanId;
   const limits = getPlanLimits(currentPlan);
-  const trialDays = trialDaysLeft(subscription);
+  const isPaidPlan = subscription.status === "active" && currentPlan !== "free";
+  const trialDays =
+    trialDaysLeft(subscription) ??
+    (isPaidPlan ? periodDaysLeft(subscription) : null);
   const daysToLimit = estimateDaysToLimit(
     (rawProducts ?? []).map((p) => p.created_at as string),
     productCount,
@@ -108,6 +112,7 @@ export default async function PlanPage({
         productCount={productCount}
         limits={limits}
         trialDaysLeft={trialDays}
+        isPaidPlan={isPaidPlan}
         daysToLimit={daysToLimit}
       />
     </>

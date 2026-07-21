@@ -51,11 +51,15 @@ export async function getEffectiveSubscription(
 ): Promise<Subscription> {
   const sub = await getOrCreateSubscription(tenantId);
 
-  if (
-    sub.status === "trialing" &&
+  // Vence tanto un trial como un plan pago con fecha de corte manual
+  // (ej: Pro cargado por superadmin con current_period_end fijo).
+  const expired =
+    (sub.status === "trialing" || sub.status === "active") &&
+    sub.plan !== "free" &&
     sub.current_period_end &&
-    new Date(sub.current_period_end) < new Date()
-  ) {
+    new Date(sub.current_period_end) < new Date();
+
+  if (expired) {
     // tenants.plan lo sincroniza el trigger sync_tenant_plan al tocar
     // subscriptions.plan — no se actualiza tenants directo (bloqueado por
     // el trigger enforce_plan_immutability).
@@ -74,6 +78,14 @@ export async function getEffectiveSubscription(
 export function trialDaysLeft(subscription: Subscription): number | null {
   if (subscription.status !== "trialing" || !subscription.current_period_end)
     return null;
+  return periodDaysLeft(subscription);
+}
+
+// Días restantes hasta current_period_end, sin importar el status —
+// sirve tanto para un trial como para un plan pago con vencimiento fijo
+// (null si no hay fecha de corte o si ya venció).
+export function periodDaysLeft(subscription: Subscription): number | null {
+  if (!subscription.current_period_end) return null;
   const msLeft =
     new Date(subscription.current_period_end).getTime() - Date.now();
   if (msLeft <= 0) return null;
@@ -156,21 +168,27 @@ export async function updatePlan(
   plan: PlanId,
   updatedBy: string,
   notes?: string,
+  // ISO string para fijar/cambiar el vencimiento manual, null para borrarlo,
+  // undefined para dejar el valor existente sin tocar.
+  periodEnd?: string | null,
 ): Promise<void> {
   const supabase = createServerClient();
 
   // Asegura que existe la fila en subscriptions antes de actualizar
   await getOrCreateSubscription(tenantId);
 
+  const update: Record<string, unknown> = {
+    plan,
+    status: "active",
+    updated_by: updatedBy,
+    notes: notes ?? null,
+    updated_at: new Date().toISOString(),
+  };
+  if (periodEnd !== undefined) update.current_period_end = periodEnd;
+
   const { error } = await supabase
     .from("subscriptions")
-    .update({
-      plan,
-      status: "active",
-      updated_by: updatedBy,
-      notes: notes ?? null,
-      updated_at: new Date().toISOString(),
-    })
+    .update(update)
     .eq("tenant_id", tenantId);
 
   if (error)

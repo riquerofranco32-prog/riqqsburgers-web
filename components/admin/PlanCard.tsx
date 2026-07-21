@@ -10,6 +10,9 @@ interface PlanCardProps {
   productCount: number;
   limits: PlanLimits;
   trialDaysLeft?: number | null;
+  /** true cuando trialDaysLeft viene de un plan pago con vencimiento fijo,
+   * no de un trial gratis. */
+  isPaidPlan?: boolean;
   /** Días estimados hasta llegar al límite de productos, o null si no hay
    * suficiente historial para proyectar con algo de confianza. */
   daysToLimit?: number | null;
@@ -50,6 +53,7 @@ export default function PlanCard({
   productCount,
   limits,
   trialDaysLeft,
+  isPaidPlan = false,
   daysToLimit,
 }: PlanCardProps) {
   const isTrialing = trialDaysLeft !== null && trialDaysLeft !== undefined;
@@ -94,9 +98,13 @@ export default function PlanCard({
                 marginBottom: 4,
               }}
             >
-              {trialDaysLeft === 1
-                ? "Tu prueba Pro termina mañana"
-                : `Estás probando Pro gratis — te quedan ${trialDaysLeft} días`}
+              {isPaidPlan
+                ? trialDaysLeft === 1
+                  ? "Tu plan Pro vence mañana"
+                  : `Tu plan Pro vence en ${trialDaysLeft} días`
+                : trialDaysLeft === 1
+                  ? "Tu prueba Pro termina mañana"
+                  : `Estás probando Pro gratis — te quedan ${trialDaysLeft} días`}
             </p>
             <p
               style={{
@@ -105,9 +113,9 @@ export default function PlanCard({
                 lineHeight: 1.5,
               }}
             >
-              Cuando termine la prueba volvés automáticamente al plan Starter:
-              perdés analytics, personalización de marca, y tu menú público se
-              recorta a {PLANS.free.maxProducts} productos.{" "}
+              {isPaidPlan
+                ? "Renová antes del vencimiento para no volver automáticamente al plan Starter."
+                : `Cuando termine la prueba volvés automáticamente al plan Starter: perdés analytics, personalización de marca, y tu menú público se recorta a ${PLANS.free.maxProducts} productos.`}{" "}
               <a
                 href={WHATSAPP_SUPPORT}
                 target="_blank"

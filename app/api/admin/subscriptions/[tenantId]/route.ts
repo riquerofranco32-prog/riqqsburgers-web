@@ -18,14 +18,14 @@ export async function PATCH(
 
   const { tenantId } = await params;
 
-  let body: { plan?: unknown; notes?: unknown };
+  let body: { plan?: unknown; notes?: unknown; periodEnd?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Body inválido" }, { status: 400 });
   }
 
-  const { plan, notes } = body;
+  const { plan, notes, periodEnd } = body;
 
   if (!plan || !VALID_PLANS.includes(plan as PlanId)) {
     return NextResponse.json(
@@ -34,12 +34,26 @@ export async function PATCH(
     );
   }
 
+  let parsedPeriodEnd: string | null | undefined;
+  if (periodEnd === null || periodEnd === "") {
+    parsedPeriodEnd = null;
+  } else if (typeof periodEnd === "string") {
+    if (Number.isNaN(new Date(periodEnd).getTime())) {
+      return NextResponse.json(
+        { error: "Fecha de vencimiento inválida" },
+        { status: 400 },
+      );
+    }
+    parsedPeriodEnd = new Date(periodEnd).toISOString();
+  }
+
   try {
     await updatePlan(
       tenantId,
       plan as PlanId,
       user.id,
       typeof notes === "string" ? notes : undefined,
+      parsedPeriodEnd,
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error desconocido";

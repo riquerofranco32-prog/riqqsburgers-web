@@ -76,6 +76,8 @@ export interface TenantWithStats {
   created_at: string;
   plan: string;
   subscriptionStatus: string;
+  // Días restantes hasta current_period_end — cubre tanto un trial
+  // ("trialing") como un plan pago con vencimiento fijo ("active").
   trialDaysLeft: number | null;
   productCount: number;
   orderCount: number;
@@ -133,16 +135,20 @@ export async function getAllTenantsWithStats(): Promise<TenantWithStats[]> {
 
   return tenants.map((t) => {
     const sub = subByTenant.get(t.id);
-    const trialDaysLeft =
-      sub?.status === "trialing" && sub.current_period_end
-        ? Math.max(
-            0,
-            Math.ceil(
-              (new Date(sub.current_period_end).getTime() - Date.now()) /
-                86_400_000,
-            ),
-          )
-        : null;
+    const isCountingDown =
+      (sub?.status === "trialing" || sub?.status === "active") &&
+      sub.plan !== "free" &&
+      sub.current_period_end;
+    const trialDaysLeft = isCountingDown
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(sub.current_period_end as string).getTime() -
+              Date.now()) /
+              86_400_000,
+          ),
+        )
+      : null;
 
     return {
       id: t.id,

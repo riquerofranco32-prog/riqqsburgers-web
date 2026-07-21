@@ -36,8 +36,15 @@ export default function RestaurantCard({ tenant }: RestaurantCardProps) {
     .toUpperCase();
 
   const isTrialing = tenant.subscriptionStatus === "trialing";
+  const isPaidCountdown =
+    tenant.subscriptionStatus === "active" &&
+    tenant.plan !== "free" &&
+    tenant.trialDaysLeft !== null;
+  const showsCountdown = isTrialing || isPaidCountdown;
   const trialUrgent =
-    isTrialing && tenant.trialDaysLeft !== null && tenant.trialDaysLeft <= 3;
+    showsCountdown &&
+    tenant.trialDaysLeft !== null &&
+    tenant.trialDaysLeft <= 3;
   const isExpired = tenant.subscriptionStatus === "expired";
   const clienteDesde = new Date(tenant.created_at).toLocaleDateString("es-AR", {
     month: "short",
@@ -209,7 +216,7 @@ export default function RestaurantCard({ tenant }: RestaurantCardProps) {
           >
             {PLAN_LABELS[tenant.plan] ?? tenant.plan}
           </span>
-          {isTrialing && tenant.trialDaysLeft !== null && (
+          {showsCountdown && tenant.trialDaysLeft !== null && (
             <span
               style={{
                 fontSize: 11,
@@ -224,9 +231,13 @@ export default function RestaurantCard({ tenant }: RestaurantCardProps) {
               }}
             >
               ⏳{" "}
-              {tenant.trialDaysLeft === 0
-                ? "Trial vence hoy"
-                : `${tenant.trialDaysLeft} día${tenant.trialDaysLeft === 1 ? "" : "s"} de trial`}
+              {isPaidCountdown
+                ? tenant.trialDaysLeft === 0
+                  ? "Plan vence hoy"
+                  : `${tenant.trialDaysLeft} día${tenant.trialDaysLeft === 1 ? "" : "s"} de plan`
+                : tenant.trialDaysLeft === 0
+                  ? "Trial vence hoy"
+                  : `${tenant.trialDaysLeft} día${tenant.trialDaysLeft === 1 ? "" : "s"} de trial`}
             </span>
           )}
           {isExpired && (

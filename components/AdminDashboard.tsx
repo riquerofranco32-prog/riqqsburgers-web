@@ -95,6 +95,7 @@ interface AdminDashboardProps {
   unavailableProducts: Product[];
   lowStockProducts?: LowStockAlertProduct[];
   trialDaysLeft?: number | null;
+  isPaidPlan?: boolean;
   planExpired?: boolean;
   analyticsEnabled?: boolean;
   onboarding?: OnboardingState;
@@ -109,6 +110,7 @@ export default function AdminDashboard({
   unavailableProducts: unavailableProductsInitial,
   lowStockProducts: lowStockProductsInitial = [],
   trialDaysLeft,
+  isPaidPlan = false,
   planExpired = false,
   analyticsEnabled = true,
   onboarding,
@@ -332,7 +334,10 @@ export default function AdminDashboard({
 
       {/* Countdown de prueba Pro */}
       {trialDaysLeft !== null && trialDaysLeft !== undefined && (
-        <TrialCountdownBanner daysLeft={trialDaysLeft} />
+        <TrialCountdownBanner
+          daysLeft={trialDaysLeft}
+          isPaidPlan={isPaidPlan}
+        />
       )}
       {planExpired && <PlanExpiredBanner />}
 

@@ -9,7 +9,14 @@ import { PLANS } from "@/lib/plans";
 
 const PLAN_BADGE: Record<
   PlanId,
-  { label: string; bg: string; color: string; border: string; glow: string; icon: string }
+  {
+    label: string;
+    bg: string;
+    color: string;
+    border: string;
+    glow: string;
+    icon: string;
+  }
 > = {
   free: {
     label: "Starter",
@@ -43,8 +50,15 @@ type RowState = "idle" | "saving" | "saved" | "error";
 
 interface RowData {
   plan: PlanId;
+  periodEnd: string; // yyyy-mm-dd para <input type="date">, "" = sin vencimiento
   status: RowState;
   errorMsg: string;
+}
+
+// current_period_end (ISO con hora) -> yyyy-mm-dd para el input date
+function toDateInputValue(iso: string | null): string {
+  if (!iso) return "";
+  return iso.slice(0, 10);
 }
 
 function isPlanId(value: string): value is PlanId {
@@ -118,7 +132,12 @@ export default function SubscriptionsTable({
     const init: Record<string, RowData> = {};
     for (const t of tenants) {
       const plan = isPlanId(t.plan) ? t.plan : "free";
-      init[t.id] = { plan, status: "idle", errorMsg: "" };
+      init[t.id] = {
+        plan,
+        periodEnd: toDateInputValue(t.currentPeriodEnd),
+        status: "idle",
+        errorMsg: "",
+      };
     }
     return init;
   });
@@ -127,6 +146,18 @@ export default function SubscriptionsTable({
     setRows((prev) => ({
       ...prev,
       [tenantId]: { ...prev[tenantId], plan, status: "idle", errorMsg: "" },
+    }));
+  }
+
+  function setPeriodEnd(tenantId: string, periodEnd: string) {
+    setRows((prev) => ({
+      ...prev,
+      [tenantId]: {
+        ...prev[tenantId],
+        periodEnd,
+        status: "idle",
+        errorMsg: "",
+      },
     }));
   }
 
@@ -143,7 +174,10 @@ export default function SubscriptionsTable({
       const res = await fetch(`/api/admin/subscriptions/${tenantId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: row.plan }),
+        body: JSON.stringify({
+          plan: row.plan,
+          periodEnd: row.periodEnd || null,
+        }),
       });
 
       if (!res.ok) {
@@ -183,27 +217,29 @@ export default function SubscriptionsTable({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 130px 170px 200px",
+          gridTemplateColumns: "1fr 130px 170px 150px 200px",
           padding: "12px 24px",
           borderBottom: "1px solid var(--dash-border)",
           background: "var(--dash-surface-2)",
           gap: 8,
         }}
       >
-        {["Restaurante", "Slug", "Plan actual", "Acciones"].map((h) => (
-          <span
-            key={h}
-            style={{
-              color: "var(--dash-muted)",
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            {h}
-          </span>
-        ))}
+        {["Restaurante", "Slug", "Plan actual", "Vencimiento", "Acciones"].map(
+          (h) => (
+            <span
+              key={h}
+              style={{
+                color: "var(--dash-muted)",
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
+              {h}
+            </span>
+          ),
+        )}
       </div>
 
       {/* Empty state */}
@@ -237,7 +273,7 @@ export default function SubscriptionsTable({
               key={tenant.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 130px 170px 200px",
+                gridTemplateColumns: "1fr 130px 170px 150px 200px",
                 alignItems: "center",
                 padding: "16px 24px",
                 gap: 8,
@@ -288,7 +324,14 @@ export default function SubscriptionsTable({
               </span>
 
               {/* Selector de plan */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  flexWrap: "wrap",
+                }}
+              >
                 <PlanBadge plan={row.plan} />
                 <select
                   value={row.plan}
@@ -320,6 +363,27 @@ export default function SubscriptionsTable({
                   ))}
                 </select>
               </div>
+
+              {/* Vencimiento manual (opcional, ej: plan pago fuera de MP) */}
+              <input
+                type="date"
+                value={row.periodEnd}
+                disabled={isSaving}
+                onChange={(e) => setPeriodEnd(tenant.id, e.target.value)}
+                title="Fecha de vencimiento del plan (vacío = sin vencimiento)"
+                style={{
+                  fontSize: 12,
+                  padding: "5px 8px",
+                  borderRadius: 8,
+                  border: "1px solid var(--dash-border)",
+                  background: "var(--dash-surface-2)",
+                  color: "var(--dash-text)",
+                  cursor: isSaving ? "not-allowed" : "text",
+                  opacity: isSaving ? 0.5 : 1,
+                  outline: "none",
+                  width: "100%",
+                }}
+              />
 
               {/* Acciones */}
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -358,7 +422,9 @@ export default function SubscriptionsTable({
                   }}
                 >
                   {isSaving ? (
-                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 6 }}
+                    >
                       <svg
                         width="12"
                         height="12"
@@ -389,7 +455,14 @@ export default function SubscriptionsTable({
                       animation: "fade-in 0.3s ease",
                     }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                    >
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                     Guardado
@@ -409,8 +482,17 @@ export default function SubscriptionsTable({
                       cursor: "help",
                     }}
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
                     </svg>
                     Error
                   </span>

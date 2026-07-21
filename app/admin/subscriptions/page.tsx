@@ -10,16 +10,29 @@ export type TenantWithPlan = {
   name: string;
   plan: string;
   active: boolean;
+  currentPeriodEnd: string | null;
 };
 
 async function getTenantsWithPlan(): Promise<TenantWithPlan[]> {
   const supabase = createServerClient();
-  const { data, error } = await supabase
-    .from("tenants")
-    .select("id, slug, name, plan, active")
-    .order("name", { ascending: true });
+  const [{ data, error }, { data: subs }] = await Promise.all([
+    supabase
+      .from("tenants")
+      .select("id, slug, name, plan, active")
+      .order("name", { ascending: true }),
+    supabase.from("subscriptions").select("tenant_id, current_period_end"),
+  ]);
   if (error || !data) return [];
-  return data as TenantWithPlan[];
+  const periodEndByTenant = new Map(
+    (subs ?? []).map((s) => [
+      s.tenant_id,
+      s.current_period_end as string | null,
+    ]),
+  );
+  return data.map((t) => ({
+    ...t,
+    currentPeriodEnd: periodEndByTenant.get(t.id) ?? null,
+  })) as TenantWithPlan[];
 }
 
 export default async function SubscriptionsPage() {
