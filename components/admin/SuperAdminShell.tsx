@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Store,
   CreditCard,
+  Users,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +27,12 @@ const NAV_ITEMS = [
     href: "/admin/subscriptions",
     label: "Suscripciones",
     icon: CreditCard,
+    exact: false,
+  },
+  {
+    href: "/admin/team",
+    label: "Equipo",
+    icon: Users,
     exact: false,
   },
 ];

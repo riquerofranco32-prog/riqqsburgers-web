@@ -171,6 +171,51 @@ export async function getAllTenantsWithStats(): Promise<TenantWithStats[]> {
   });
 }
 
+export interface TenantTeamMember {
+  id: string;
+  email: string | null;
+  role: string;
+  display_name: string | null;
+  tenantId: string;
+  tenantSlug: string;
+  tenantName: string;
+}
+
+// Admin use: todos los miembros de equipo de todos los tenants, para el
+// panel /admin/team — deja ver y quitar accesos sin entrar tenant por tenant.
+export async function getAllTeamMembersAcrossTenants(): Promise<
+  TenantTeamMember[]
+> {
+  noStore();
+  const supabase = createServerClient();
+
+  const [{ data: members }, { data: tenants }] = await Promise.all([
+    supabase
+      .from("tenant_users")
+      .select("id, email, role, display_name, tenant_id")
+      .neq("role", "superadmin"),
+    supabase.from("tenants").select("id, slug, name"),
+  ]);
+
+  const tenantById = new Map((tenants ?? []).map((t) => [t.id, t]));
+
+  return (members ?? []).flatMap((m) => {
+    const tenant = tenantById.get(m.tenant_id);
+    if (!tenant) return [];
+    return [
+      {
+        id: m.id,
+        email: m.email,
+        role: m.role,
+        display_name: m.display_name,
+        tenantId: tenant.id,
+        tenantSlug: tenant.slug,
+        tenantName: tenant.name,
+      },
+    ];
+  });
+}
+
 export async function getTenantProducts(tenantId: string): Promise<Product[]> {
   noStore();
   const supabase = createServerClient();
