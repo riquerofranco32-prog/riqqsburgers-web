@@ -8,6 +8,7 @@ import TakefyyLogo from "@/components/TakefyyLogo";
 import {
   LayoutDashboard,
   Store,
+  CreditCard,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -19,6 +20,12 @@ const NAV_ITEMS = [
     href: "/admin/restaurants",
     label: "Restaurantes",
     icon: Store,
+    exact: false,
+  },
+  {
+    href: "/admin/subscriptions",
+    label: "Suscripciones",
+    icon: CreditCard,
     exact: false,
   },
 ];
