@@ -1296,6 +1296,21 @@ a {
   animation: promoBadgePulse 1.6s ease-in-out infinite;
 }
 
+/* Latido sutil — usado en el trigger de modo inmersivo para que se note
+   en medio de los pills de categoría (antes pasaba desapercibido) */
+@keyframes exploreTriggerPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+.explore-trigger-glow {
+  animation: exploreTriggerPulse 1.8s ease-in-out infinite;
+}
+
 /* ── Product card vertical grid ─────────────────────────────────────────── */
 .product-grid-vertical {
   display: grid;

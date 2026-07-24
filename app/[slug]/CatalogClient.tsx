@@ -1828,8 +1828,9 @@ export default function CatalogClient({
                         </button>
                       );
                     })}
-                    {/* Immersive mode trigger — pill con label + glow para que
-                        se note (antes era un ícono gris más, casi invisible) */}
+                    {/* Immersive mode trigger — pill sólido + latido mientras
+                        dura el hint de primera visita, para que se note (antes
+                        era un ícono gris más, casi invisible) */}
                     {allProducts.length > 0 && (
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <button
@@ -1844,29 +1845,35 @@ export default function CatalogClient({
                               );
                             }
                           }}
+                          className={
+                            showImmersiveHint ? "explore-trigger-glow" : ""
+                          }
                           style={{
                             flexShrink: 0,
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 5,
                             height: 36,
-                            padding: "0 12px",
+                            padding: "0 14px",
                             borderRadius: 999,
-                            border: `1px solid ${accent}40`,
-                            background: `${accent}18`,
-                            color: accent,
+                            border: "none",
+                            background: accent,
+                            color: onAccent,
                             fontSize: 12,
-                            fontWeight: 700,
+                            fontWeight: 800,
                             cursor: "pointer",
                             whiteSpace: "nowrap",
+                            boxShadow: `0 2px 10px ${accent}66`,
                             WebkitTapHighlightColor: "transparent",
-                            transition: "background 0.15s, border-color 0.15s",
+                            transition: "transform 0.15s, box-shadow 0.15s",
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.background = `${accent}28`;
+                            e.currentTarget.style.transform = "scale(1.04)";
+                            e.currentTarget.style.boxShadow = `0 3px 14px ${accent}88`;
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.background = `${accent}18`;
+                            e.currentTarget.style.transform = "scale(1)";
+                            e.currentTarget.style.boxShadow = `0 2px 10px ${accent}66`;
                           }}
                         >
                           <Sparkles size={14} strokeWidth={2.5} />
