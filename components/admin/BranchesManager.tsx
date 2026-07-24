@@ -7,6 +7,7 @@ import { Trash2, Plus, MapPin, ChevronDown, ChevronUp } from "lucide-react";
 import type { Branch } from "@/types/supabase";
 import type { DeliveryPosition } from "@/components/AddressGeocodePicker";
 import { AdminButton } from "@/components/ui/admin/AdminButton";
+import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 import DeliveryZonesEditor from "@/components/admin/DeliveryZonesEditor";
 import DeliveryRangesEditor from "@/components/admin/DeliveryRangesEditor";
 
@@ -184,44 +185,55 @@ export default function BranchesManager({ slug }: { slug: string }) {
                   <ChevronDown size={16} />
                 )}
               </button>
-              {branches.length > 1 && confirmDeleteId !== b.id && (
-                <button
-                  type="button"
-                  onClick={() => setConfirmDeleteId(b.id)}
-                  aria-label={`Eliminar sucursal ${b.name}`}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#ef4444",
-                    cursor: "pointer",
-                    padding: 4,
-                    display: "flex",
-                  }}
-                >
-                  <Trash2 size={15} />
-                </button>
+              {branches.length > 1 && (
+                <InlineConfirm
+                  active={confirmDeleteId === b.id}
+                  itemKey={b.id}
+                  trigger={
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteId(b.id)}
+                      aria-label={`Eliminar sucursal ${b.name}`}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--dash-danger)",
+                        cursor: "pointer",
+                        padding: 4,
+                        display: "flex",
+                      }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  }
+                  confirm={
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <AdminButton
+                        variant="danger"
+                        onClick={() => void deleteBranch(b.id)}
+                      >
+                        Sí, eliminar sucursal
+                      </AdminButton>
+                      <AdminButton
+                        variant="secondary"
+                        onClick={() => setConfirmDeleteId(null)}
+                      >
+                        Cancelar
+                      </AdminButton>
+                    </div>
+                  }
+                />
               )}
             </div>
 
-            {confirmDeleteId === b.id && (
-              <div style={{ display: "flex", gap: 6 }}>
-                <AdminButton
-                  variant="danger"
-                  onClick={() => void deleteBranch(b.id)}
-                >
-                  Sí, eliminar sucursal
-                </AdminButton>
-                <AdminButton
-                  variant="secondary"
-                  onClick={() => setConfirmDeleteId(null)}
-                >
-                  Cancelar
-                </AdminButton>
-              </div>
-            )}
-
             {b.latitude === null && (
-              <p style={{ fontSize: 11, color: "#d97706", margin: 0 }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--dash-warning)",
+                  margin: 0,
+                }}
+              >
                 ⚠️ Sin ubicación configurada — no se puede calcular envío por
                 distancia ni asignar pedidos por cercanía hasta que la cargues.
               </p>
@@ -295,7 +307,7 @@ export default function BranchesManager({ slug }: { slug: string }) {
                           }`,
                           background:
                             b.delivery_mode === opt.value
-                              ? "rgba(255,107,53,0.12)"
+                              ? "var(--dash-accent-subtle)"
                               : "var(--dash-surface)",
                           color:
                             b.delivery_mode === opt.value

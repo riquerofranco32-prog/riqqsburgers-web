@@ -89,7 +89,7 @@ function ColorField({
               borderRadius: "50%",
               background: /^#[0-9A-Fa-f]{6}$/.test(hex) ? hex : "#000000",
               border: "2px solid var(--dash-border)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+              boxShadow: "var(--shadow-sm)",
               cursor: disabled ? "not-allowed" : "pointer",
               pointerEvents: "none",
             }}
@@ -453,6 +453,9 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
               <button
                 type="button"
                 onClick={() => set("is_open", !form.is_open)}
+                role="switch"
+                aria-checked={form.is_open}
+                aria-label="Restaurante abierto"
                 style={{
                   width: 48,
                   height: 26,
@@ -542,7 +545,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                           ? "1px solid var(--accent)"
                           : "1px solid var(--dash-border)",
                         background: active
-                          ? "rgba(255,107,53,0.12)"
+                          ? "var(--dash-accent-subtle)"
                           : "var(--dash-surface-2)",
                         color: active ? "var(--accent)" : "var(--dash-muted)",
                         cursor: "pointer",
@@ -659,7 +662,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     fontSize: 11,
                     fontWeight: 700,
                     color: "var(--accent)",
-                    background: "rgba(255,107,53,0.12)",
+                    background: "var(--dash-accent-subtle)",
                     borderRadius: 999,
                     padding: "3px 10px",
                   }}
@@ -799,7 +802,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     fontSize: 11,
                     fontWeight: 700,
                     color: "var(--accent)",
-                    background: "rgba(255,107,53,0.12)",
+                    background: "var(--dash-accent-subtle)",
                     borderRadius: 999,
                     padding: "3px 10px",
                   }}
@@ -821,6 +824,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                   onClick={() => logoInputRef.current?.click()}
                   disabled={!canBrand || uploadingField === "logo_url"}
                   title="Clic para subir logo"
+                  aria-label="Subir logo"
                   style={{
                     width: 64,
                     height: 64,
@@ -1117,7 +1121,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 }`,
                 background:
                   form.delivery_mode === opt.value
-                    ? "rgba(255,107,53,0.12)"
+                    ? "var(--dash-accent-subtle)"
                     : "var(--dash-surface-2)",
                 color: "var(--dash-text)",
                 cursor: "pointer",
@@ -1125,7 +1129,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                 transition: "all 0.15s",
                 boxShadow:
                   form.delivery_mode === opt.value
-                    ? "0 0 0 2px rgba(255,107,53,0.2)"
+                    ? "0 0 0 2px var(--dash-accent-glow)"
                     : "none",
               }}
             >
@@ -1162,11 +1166,11 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
             <p
               style={{
                 fontSize: 12,
-                color: "#d97706",
+                color: "var(--dash-warning)",
                 margin: 0,
                 padding: "8px 12px",
-                background: "rgba(217,119,6,0.08)",
-                border: "1px solid rgba(217,119,6,0.25)",
+                background: "var(--dash-warning-bg)",
+                border: "1px solid var(--dash-warning-border)",
                 borderRadius: 8,
               }}
             >
@@ -1181,8 +1185,8 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
         {form.delivery_mode === "fixed" && (
           <div
             style={{
-              background: "rgba(255,107,53,0.05)",
-              border: "1px solid rgba(255,107,53,0.2)",
+              background: "var(--dash-accent-subtle)",
+              border: "1px solid var(--dash-accent-glow)",
               borderRadius: 12,
               padding: "16px",
               display: "flex",
@@ -1285,8 +1289,8 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
           <>
             <div
               style={{
-                background: "rgba(255,107,53,0.05)",
-                border: "1px solid rgba(255,107,53,0.2)",
+                background: "var(--dash-accent-subtle)",
+                border: "1px solid var(--dash-accent-glow)",
                 borderRadius: 12,
                 padding: "16px",
                 display: "flex",
@@ -1332,7 +1336,7 @@ export default function RestaurantSettingsForm({ tenant }: Props) {
                     <p
                       style={{
                         fontSize: 11,
-                        color: "#d97706",
+                        color: "var(--dash-warning)",
                         marginTop: 6,
                         display: "flex",
                         alignItems: "center",

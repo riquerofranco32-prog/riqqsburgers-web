@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Percent, Eye, EyeOff } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Percent,
+  Eye,
+  EyeOff,
+  Search,
+  SearchX,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Coupon } from "@/types/supabase";
 import EmptyState from "@/components/admin/EmptyState";
@@ -221,6 +229,11 @@ export function CouponsAdmin({
   const [coupons, setCoupons] = useState(initialCoupons);
   const [showModal, setShowModal] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+
+  const filteredCoupons = coupons.filter((c) =>
+    c.code.toLowerCase().includes(search.trim().toLowerCase()),
+  );
 
   async function handleSave(form: CouponForm) {
     try {
@@ -322,7 +335,7 @@ export function CouponsAdmin({
 
   return (
     <div className="flex flex-col gap-5 w-full">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <span
           style={{
             fontSize: 12,
@@ -336,6 +349,27 @@ export function CouponsAdmin({
         >
           {coupons.length} cupón{coupons.length !== 1 ? "es" : ""}
         </span>
+        {coupons.length > 0 && (
+          <div style={{ position: "relative", flex: 1, minWidth: 160 }}>
+            <Search
+              style={{
+                position: "absolute",
+                left: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: 14,
+                height: 14,
+                color: "var(--dash-muted)",
+              }}
+            />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por código..."
+              style={{ ...adminInputStyle, paddingLeft: 30 }}
+            />
+          </div>
+        )}
         <AdminButton onClick={() => setShowModal(true)}>
           <Plus className="w-4 h-4" /> Nuevo cupón
         </AdminButton>
@@ -349,9 +383,16 @@ export function CouponsAdmin({
           action={{ label: "Crear cupón", onClick: () => setShowModal(true) }}
           variant="dashed"
         />
+      ) : filteredCoupons.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="Sin resultados"
+          description={`No encontramos cupones para "${search}".`}
+          action={{ label: "Limpiar búsqueda", onClick: () => setSearch("") }}
+        />
       ) : (
         <div className="flex flex-col gap-2.5">
-          {coupons.map((c) => {
+          {filteredCoupons.map((c) => {
             const isExhausted = c.max_uses !== null && c.uses >= c.max_uses;
             const isExpired = c.expires_at
               ? new Date(c.expires_at) < new Date()
@@ -391,9 +432,9 @@ export function CouponsAdmin({
                         fontSize: 12,
                         padding: "2px 8px",
                         borderRadius: 999,
-                        background: "rgba(255,107,53,0.1)",
+                        background: "var(--dash-accent-subtle)",
                         color: "var(--accent)",
-                        border: "1px solid rgba(255,107,53,0.3)",
+                        border: "1px solid var(--dash-accent-glow)",
                         fontWeight: 600,
                       }}
                     >
@@ -420,8 +461,8 @@ export function CouponsAdmin({
                           fontSize: 12,
                           padding: "2px 8px",
                           borderRadius: 999,
-                          background: "rgba(239,68,68,0.1)",
-                          color: "#f87171",
+                          background: "var(--dash-danger-bg)",
+                          color: "var(--dash-danger)",
                         }}
                       >
                         Vencido
@@ -433,8 +474,8 @@ export function CouponsAdmin({
                           fontSize: 12,
                           padding: "2px 8px",
                           borderRadius: 999,
-                          background: "rgba(59,130,246,0.1)",
-                          color: "#3b82f6",
+                          background: "var(--dash-info-bg)",
+                          color: "var(--dash-info)",
                         }}
                       >
                         Programado
@@ -538,7 +579,7 @@ export function CouponsAdmin({
                         borderRadius: "50%",
                         background: "#fff",
                         transition: "left 0.15s",
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                        boxShadow: "var(--shadow-sm)",
                       }}
                     />
                   </div>

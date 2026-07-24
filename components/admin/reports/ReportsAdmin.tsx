@@ -11,11 +11,14 @@ import {
   Minus,
   AlertTriangle,
   Info,
+  WifiOff,
+  BarChart3,
 } from "lucide-react";
 import { KPICard } from "@/components/admin/dashboard/KPICard";
 import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
 import { TopProductsList } from "@/components/admin/dashboard/TopProductsList";
 import ExportReportButton from "@/components/admin/ExportReportButton";
+import EmptyState from "@/components/admin/EmptyState";
 import type { AnalyticsResponse, AnalyticsRange } from "@/types/dashboard";
 
 function fmtARS(n: number) {
@@ -44,17 +47,23 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
   const [range, setRange] = useState<AnalyticsRange>("week");
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setFailed(false);
     fetch(`/api/tenant/${slug}/analytics?range=${range}`)
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((json: AnalyticsResponse) => {
         if (!cancelled) setData(json);
       })
       .catch(() => {
-        if (!cancelled) setData(null);
+        if (!cancelled) {
+          setData(null);
+          setFailed(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -62,7 +71,7 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
     return () => {
       cancelled = true;
     };
-  }, [slug, range]);
+  }, [slug, range, reloadToken]);
 
   return (
     <div className="p-5 md:p-8 flex flex-col gap-5 w-full">
@@ -112,285 +121,333 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
 
       <ExportReportButton slug={slug} />
 
-      {!loading && !!data?.insights.length && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {data.insights.map((insight, i) => {
-            const isWarn = insight.severity === "warn";
-            const Icon = isWarn ? AlertTriangle : Info;
-            const color = isWarn ? "#f59e0b" : "var(--accent)";
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  background: isWarn
-                    ? "rgba(245,158,11,0.1)"
-                    : "rgba(255,107,53,0.08)",
-                  border: `1px solid ${isWarn ? "rgba(245,158,11,0.25)" : "rgba(255,107,53,0.2)"}`,
-                }}
-              >
-                <Icon size={16} color={color} strokeWidth={2} />
-                <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
-                  {insight.message}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KPICard
-          loading={loading}
-          label="Ingresos"
-          value={fmtARS(data?.revenue ?? 0)}
-          change={data?.revenueChange ?? null}
-          changeLabel={RANGE_LABEL[range]}
-          icon={DollarSign}
-          sparkline={data?.dailyRevenue.map((d) => d.total)}
-        />
-        <KPICard
-          loading={loading}
-          label="Pedidos"
-          value={String(data?.orderCount ?? 0)}
-          change={data?.orderCountChange ?? null}
-          changeLabel={RANGE_LABEL[range]}
-          icon={ShoppingCart}
-        />
-        <KPICard
-          loading={loading}
-          label="Ticket promedio"
-          value={data && data.avgTicket > 0 ? fmtARS(data.avgTicket) : "—"}
-          change={data?.avgTicketChange ?? null}
-          changeLabel={RANGE_LABEL[range]}
-          icon={TrendingUp}
-        />
-      </div>
-
-      {/* Tasa de cancelación — subtexto discreto, no un KPI aparte */}
-      {!!data?.cancelledCount && (
-        <p style={{ fontSize: 12, color: "var(--dash-muted)", marginTop: -12 }}>
-          ⚠️ {data.cancelledCount} pedido{data.cancelledCount !== 1 ? "s" : ""}{" "}
-          cancelado{data.cancelledCount !== 1 ? "s" : ""} (
-          {data.cancelledRate.toFixed(0)}% del total en este período)
-        </p>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
-        <SalesAreaChart
-          data={data?.dailyRevenue ?? []}
-          loading={loading}
-          title="Ventas por día"
-        />
-        <div
-          style={{
-            background: "var(--dash-surface)",
-            border: "1px solid var(--dash-border)",
-            borderRadius: 16,
-            padding: 20,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            justifyContent: "center",
-            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+      {!loading && failed && (
+        <EmptyState
+          icon={WifiOff}
+          title="No pudimos cargar los reportes"
+          description="Revisá tu conexión e intentá de nuevo."
+          action={{
+            label: "Reintentar",
+            onClick: () => setReloadToken((t) => t + 1),
           }}
-        >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              background: "rgba(255,107,53,0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 4,
-            }}
-          >
-            <Clock size={18} color="var(--accent)" strokeWidth={1.8} />
-          </div>
-          <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-            Horario pico de pedidos
-          </p>
-          {loading ? (
-            <div
-              style={{
-                height: 24,
-                width: 140,
-                borderRadius: 6,
-                background: "var(--dash-surface-2)",
-              }}
+        />
+      )}
+
+      {!loading && !failed && data?.orderCount === 0 && (
+        <EmptyState
+          icon={BarChart3}
+          title="Sin pedidos en este período"
+          description="Los reportes van a aparecer acá apenas entren pedidos en el rango seleccionado."
+        />
+      )}
+
+      {!failed && (loading || (data?.orderCount ?? 0) > 0) && (
+        <>
+          {!loading && !!data?.insights.length && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {data.insights.map((insight, i) => {
+                const isWarn = insight.severity === "warn";
+                const Icon = isWarn ? AlertTriangle : Info;
+                const color = isWarn ? "var(--dash-warning)" : "var(--accent)";
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      background: isWarn
+                        ? "var(--dash-warning-bg)"
+                        : "var(--dash-accent-subtle)",
+                      border: `1px solid ${isWarn ? "var(--dash-warning-border)" : "var(--dash-accent-glow)"}`,
+                    }}
+                  >
+                    <Icon size={16} color={color} strokeWidth={2} />
+                    <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
+                      {insight.message}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <KPICard
+              loading={loading}
+              label="Ingresos"
+              value={fmtARS(data?.revenue ?? 0)}
+              change={data?.revenueChange ?? null}
+              changeLabel={RANGE_LABEL[range]}
+              icon={DollarSign}
+              sparkline={data?.dailyRevenue.map((d) => d.total)}
             />
-          ) : data?.peakHour ? (
-            <>
-              <p
-                style={{
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color: "var(--dash-text)",
-                }}
-              >
-                {fmtHourRange(data.peakHour.hour)}
-              </p>
-              <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-                {data.peakHour.count}{" "}
-                {data.peakHour.count === 1 ? "pedido" : "pedidos"}
-              </p>
-            </>
-          ) : (
-            <p style={{ fontSize: 13, color: "var(--dash-muted)" }}>
-              Sin pedidos en este período
+            <KPICard
+              loading={loading}
+              label="Pedidos"
+              value={String(data?.orderCount ?? 0)}
+              change={data?.orderCountChange ?? null}
+              changeLabel={RANGE_LABEL[range]}
+              icon={ShoppingCart}
+            />
+            <KPICard
+              loading={loading}
+              label="Ticket promedio"
+              value={data && data.avgTicket > 0 ? fmtARS(data.avgTicket) : "—"}
+              change={data?.avgTicketChange ?? null}
+              changeLabel={RANGE_LABEL[range]}
+              icon={TrendingUp}
+            />
+          </div>
+
+          {/* Tasa de cancelación — subtexto discreto, no un KPI aparte */}
+          {!!data?.cancelledCount && (
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--dash-muted)",
+                marginTop: -12,
+              }}
+            >
+              ⚠️ {data.cancelledCount} pedido
+              {data.cancelledCount !== 1 ? "s" : ""} cancelado
+              {data.cancelledCount !== 1 ? "s" : ""} (
+              {data.cancelledRate.toFixed(0)}% del total en este período)
             </p>
           )}
-        </div>
-      </div>
 
-      {!loading && (data?.categoryRevenueChange.length ?? 0) > 0 && (
-        <div
-          style={{
-            background: "var(--dash-surface)",
-            border: "1px solid var(--dash-border)",
-            borderRadius: 16,
-            padding: 20,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-          }}
-        >
-          <p
-            style={{
-              fontSize: 12,
-              color: "var(--dash-muted)",
-              marginBottom: 12,
-            }}
-          >
-            Categorías — variación vs. período anterior
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {data!.categoryRevenueChange.map((c) => {
-              const isUp = c.changePct !== null && c.changePct > 0;
-              const isDown = c.changePct !== null && c.changePct < 0;
-              const Icon = isUp ? ArrowUp : isDown ? ArrowDown : Minus;
-              const color = isUp
-                ? "#4ade80"
-                : isDown
-                  ? "#f87171"
-                  : "var(--dash-muted)";
-              return (
+          <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-4">
+            <SalesAreaChart
+              data={data?.dailyRevenue ?? []}
+              loading={loading}
+              title="Ventas por día"
+            />
+            <div
+              style={{
+                background: "var(--dash-surface)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 16,
+                padding: 20,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                justifyContent: "center",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+              }}
+            >
+              <div
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  background: "var(--dash-accent-subtle)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 4,
+                }}
+              >
+                <Clock size={18} color="var(--accent)" strokeWidth={1.8} />
+              </div>
+              <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+                Horario pico de pedidos
+              </p>
+              {loading ? (
                 <div
-                  key={c.name}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
+                    height: 24,
+                    width: 140,
+                    borderRadius: 6,
+                    background: "var(--dash-surface-2)",
                   }}
-                >
-                  <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
-                    {c.name}
-                  </span>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
+                />
+              ) : data?.peakHour ? (
+                <>
+                  <p
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 700,
+                      color: "var(--dash-text)",
+                    }}
                   >
-                    <span
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: "var(--dash-text)",
-                        fontVariantNumeric: "tabular-nums",
-                      }}
-                    >
-                      {fmtARS(c.value)}
-                    </span>
-                    <span
+                    {fmtHourRange(data.peakHour.hour)}
+                  </p>
+                  <p style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+                    {data.peakHour.count}{" "}
+                    {data.peakHour.count === 1 ? "pedido" : "pedidos"}
+                  </p>
+                </>
+              ) : (
+                <p style={{ fontSize: 13, color: "var(--dash-muted)" }}>
+                  Sin pedidos en este período
+                </p>
+              )}
+            </div>
+          </div>
+
+          {!loading && (data?.categoryRevenueChange.length ?? 0) > 0 && (
+            <div
+              style={{
+                background: "var(--dash-surface)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 16,
+                padding: 20,
+                boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "var(--dash-muted)",
+                  marginBottom: 12,
+                }}
+              >
+                Categorías — variación vs. período anterior
+              </p>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
+                {data!.categoryRevenueChange.map((c) => {
+                  const isUp = c.changePct !== null && c.changePct > 0;
+                  const isDown = c.changePct !== null && c.changePct < 0;
+                  const Icon = isUp ? ArrowUp : isDown ? ArrowDown : Minus;
+                  const color = isUp
+                    ? "var(--dash-success)"
+                    : isDown
+                      ? "var(--dash-danger)"
+                      : "var(--dash-muted)";
+                  return (
+                    <div
+                      key={c.name}
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 3,
-                        fontSize: 12,
-                        fontWeight: 700,
-                        color,
-                        minWidth: 56,
-                        justifyContent: "flex-end",
+                        justifyContent: "space-between",
+                        gap: 12,
                       }}
                     >
-                      <Icon size={12} />
-                      {c.changePct !== null
-                        ? `${Math.abs(c.changePct).toFixed(0)}%`
-                        : "nuevo"}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+                      <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
+                        {c.name}
+                      </span>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "var(--dash-text)",
+                            fontVariantNumeric: "tabular-nums",
+                          }}
+                        >
+                          {fmtARS(c.value)}
+                        </span>
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 3,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color,
+                            minWidth: 56,
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          <Icon size={12} />
+                          {c.changePct !== null
+                            ? `${Math.abs(c.changePct).toFixed(0)}%`
+                            : "nuevo"}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-      {!loading && !!data?.branchRevenue?.length && (
-        <div
-          style={{
-            background: "var(--dash-surface)",
-            border: "1px solid var(--dash-border)",
-            borderRadius: 16,
-            padding: 20,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
-          }}
-        >
-          <p
-            style={{
-              fontSize: 12,
-              color: "var(--dash-muted)",
-              marginBottom: 12,
-            }}
-          >
-            Sucursales — comparación en este período
-          </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {data.branchRevenue.map((b) => (
-              <div
-                key={b.branch_id}
+          {!loading && !!data?.branchRevenue?.length && (
+            <div
+              style={{
+                background: "var(--dash-surface)",
+                border: "1px solid var(--dash-border)",
+                borderRadius: 16,
+                padding: 20,
+                boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+              }}
+            >
+              <p
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 12,
+                  fontSize: 12,
+                  color: "var(--dash-muted)",
+                  marginBottom: 12,
                 }}
               >
-                <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
-                  {b.name}
-                </span>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
-                    {b.orderCount} pedido{b.orderCount !== 1 ? "s" : ""}
-                  </span>
-                  {b.cancelledRate > 0 && (
-                    <span style={{ fontSize: 12, color: "#f87171" }}>
-                      {b.cancelledRate.toFixed(0)}% cancelados
-                    </span>
-                  )}
-                  <span
+                Sucursales — comparación en este período
+              </p>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              >
+                {data.branchRevenue.map((b) => (
+                  <div
+                    key={b.branch_id}
                     style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "var(--dash-text)",
-                      fontVariantNumeric: "tabular-nums",
-                      minWidth: 90,
-                      textAlign: "right",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 12,
                     }}
                   >
-                    {fmtARS(b.revenue)}
-                  </span>
-                </div>
+                    <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
+                      {b.name}
+                    </span>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 16 }}
+                    >
+                      <span
+                        style={{ fontSize: 12, color: "var(--dash-muted)" }}
+                      >
+                        {b.orderCount} pedido{b.orderCount !== 1 ? "s" : ""}
+                      </span>
+                      {b.cancelledRate > 0 && (
+                        <span
+                          style={{ fontSize: 12, color: "var(--dash-danger)" }}
+                        >
+                          {b.cancelledRate.toFixed(0)}% cancelados
+                        </span>
+                      )}
+                      <span
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: "var(--dash-text)",
+                          fontVariantNumeric: "tabular-nums",
+                          minWidth: 90,
+                          textAlign: "right",
+                        }}
+                      >
+                        {fmtARS(b.revenue)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+          )}
 
-      <TopProductsList products={data?.topProducts ?? []} loading={loading} />
+          <TopProductsList
+            products={data?.topProducts ?? []}
+            loading={loading}
+          />
+        </>
+      )}
     </div>
   );
 }

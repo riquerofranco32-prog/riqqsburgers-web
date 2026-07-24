@@ -162,10 +162,10 @@ export function OrderDetailView({
         <div
           style={{
             background: order.notes
-              ? "rgba(251,146,60,0.05)"
+              ? "var(--dash-warning-bg)"
               : "var(--dash-surface)",
             border: order.notes
-              ? "1px solid rgba(251,146,60,0.2)"
+              ? "1px solid var(--dash-warning-border)"
               : "1px solid var(--dash-border)",
             borderRadius: 12,
             padding: 14,
@@ -178,7 +178,7 @@ export function OrderDetailView({
             style={{
               fontSize: 11,
               fontWeight: 700,
-              color: order.notes ? "#fb923c" : "var(--dash-muted)",
+              color: order.notes ? "var(--dash-warning)" : "var(--dash-muted)",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               margin: 0,
@@ -204,8 +204,8 @@ export function OrderDetailView({
               <div
                 style={{
                   padding: 8,
-                  background: "rgba(251,146,60,0.1)",
-                  borderLeft: "3px solid #fb923c",
+                  background: "var(--dash-warning-bg)",
+                  borderLeft: "3px solid var(--dash-warning)",
                   borderRadius: 4,
                   color: "var(--dash-text)",
                   fontSize: 12,
@@ -302,7 +302,7 @@ export function OrderDetailView({
                   >
                     <span
                       style={{
-                        background: "rgba(255,107,53,0.15)",
+                        background: "var(--dash-accent-glow)",
                         color: "var(--accent)",
                         fontWeight: 700,
                         fontSize: 11,
@@ -364,7 +364,7 @@ export function OrderDetailView({
                       <span
                         style={{
                           fontSize: 12,
-                          color: "#d97706",
+                          color: "var(--dash-warning)",
                           marginLeft: 28,
                           fontWeight: 800,
                         }}
@@ -471,7 +471,7 @@ export function OrderDetailView({
               margin: 0,
               fontSize: 12,
               fontWeight: 600,
-              color: "#f87171",
+              color: "var(--dash-danger)",
             }}
           >
             Este pedido fue cancelado.
@@ -501,6 +501,7 @@ export function OrderDetailView({
                         onUpdateStatus(order.id, key);
                       }}
                       title={label}
+                      aria-label={`Marcar como ${label}`}
                       style={{
                         width: 26,
                         height: 26,
@@ -591,18 +592,18 @@ export function OrderDetailView({
                 cursor: "pointer",
                 transition:
                   "background-color 0.15s, color 0.15s, border-color 0.15s",
-                border: "1px solid rgba(239,68,68,0.4)",
-                background: "rgba(239,68,68,0.08)",
-                color: "#f87171",
+                border: "1px solid var(--dash-danger-border)",
+                background: "var(--dash-danger-bg)",
+                color: "var(--dash-danger)",
                 minHeight: 32,
                 WebkitTapHighlightColor: "transparent",
                 userSelect: "none",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+                e.currentTarget.style.background = "var(--dash-danger-border)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+                e.currentTarget.style.background = "var(--dash-danger-bg)";
               }}
             >
               ✕ Cancelar pedido
@@ -683,7 +684,7 @@ export function OrderDetailView({
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = "var(--accent)";
-              e.currentTarget.style.background = "rgba(255,107,53,0.05)";
+              e.currentTarget.style.background = "var(--dash-accent-subtle)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = "var(--dash-border)";
@@ -700,7 +701,11 @@ export function OrderDetailView({
             (confirmingDelete ? (
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <span
-                  style={{ fontSize: 12, color: "#f87171", fontWeight: 600 }}
+                  style={{
+                    fontSize: 12,
+                    color: "var(--dash-danger)",
+                    fontWeight: 600,
+                  }}
                 >
                   ¿Eliminar?
                 </span>
@@ -711,9 +716,9 @@ export function OrderDetailView({
                   }}
                   style={{
                     padding: "7px 12px",
-                    background: "rgba(239,68,68,0.15)",
-                    border: "1px solid #ef4444",
-                    color: "#f87171",
+                    background: "var(--dash-danger-border)",
+                    border: "1px solid var(--dash-danger)",
+                    color: "var(--dash-danger)",
                     borderRadius: 8,
                     fontSize: 12,
                     fontWeight: 700,
@@ -746,9 +751,9 @@ export function OrderDetailView({
                   alignItems: "center",
                   gap: 6,
                   padding: "7px 12px",
-                  background: "rgba(239,68,68,0.08)",
-                  border: "1px solid rgba(239,68,68,0.3)",
-                  color: "#f87171",
+                  background: "var(--dash-danger-bg)",
+                  border: "1px solid var(--dash-danger-border)",
+                  color: "var(--dash-danger)",
                   borderRadius: 8,
                   fontSize: 12,
                   fontWeight: 600,
@@ -756,12 +761,14 @@ export function OrderDetailView({
                   transition: "border-color 0.15s, background 0.15s",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#ef4444";
-                  e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+                  e.currentTarget.style.borderColor = "var(--dash-danger)";
+                  e.currentTarget.style.background =
+                    "var(--dash-danger-border)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)";
-                  e.currentTarget.style.background = "rgba(239,68,68,0.08)";
+                  e.currentTarget.style.borderColor =
+                    "var(--dash-danger-border)";
+                  e.currentTarget.style.background = "var(--dash-danger-bg)";
                 }}
               >
                 <Trash2 style={{ width: 14, height: 14 }} />
