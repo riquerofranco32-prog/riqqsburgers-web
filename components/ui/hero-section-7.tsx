@@ -82,9 +82,9 @@ export function FloatingFoodHero({
       </div>
 
       <div className="relative z-20 container mx-auto px-4 text-center max-w-2xl">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+        <h2 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
           {title}
-        </h1>
+        </h2>
         <p className="mt-6 text-lg leading-8 text-gray-600">{description}</p>
       </div>
     </section>

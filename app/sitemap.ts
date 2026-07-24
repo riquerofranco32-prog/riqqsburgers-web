@@ -42,6 +42,8 @@ const VS_PAGES: MetadataRoute.Sitemap = [
   { url: `${SITE}/vs/olaclick`, changeFrequency: "monthly", priority: 0.8 },
   { url: `${SITE}/vs/pedix`, changeFrequency: "monthly", priority: 0.8 },
   { url: `${SITE}/vs/fudo`, changeFrequency: "monthly", priority: 0.8 },
+  { url: `${SITE}/vs/wabox`, changeFrequency: "monthly", priority: 0.8 },
+  { url: `${SITE}/vs/todomenu`, changeFrequency: "monthly", priority: 0.8 },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
