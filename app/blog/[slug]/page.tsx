@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  getAllPosts,
-  getPostBySlug,
-  getRelatedPosts,
-} from "@/lib/blog";
+import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/blog";
+import { competitors } from "@/app/vs/data";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -346,7 +343,10 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Related articles */}
           {relatedPosts.length > 0 && (
-            <aside style={{ marginTop: 64 }} aria-label="Artículos relacionados">
+            <aside
+              style={{ marginTop: 64 }}
+              aria-label="Artículos relacionados"
+            >
               <p
                 style={{
                   fontSize: 12,
@@ -400,6 +400,45 @@ export default async function BlogPostPage({ params }: Props) {
               </div>
             </aside>
           )}
+
+          {/* Comparativas */}
+          <aside
+            style={{ marginTop: 40 }}
+            aria-label="Comparativas con otras plataformas"
+          >
+            <p
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: "var(--text-muted)",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                marginBottom: 20,
+              }}
+            >
+              Comparativas con otras plataformas
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {Object.values(competitors).map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/vs/${c.slug}`}
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 99,
+                    background: "#fff",
+                    border: "1px solid var(--border)",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "var(--text-primary)",
+                    textDecoration: "none",
+                  }}
+                >
+                  Takefyy vs {c.name}
+                </Link>
+              ))}
+            </div>
+          </aside>
         </div>
       </div>
     </>
