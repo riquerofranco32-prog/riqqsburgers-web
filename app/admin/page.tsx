@@ -11,6 +11,12 @@ const PLAN_LABELS: Record<string, string> = {
   premium: "Growth",
 };
 
+const PLAN_COLOR: Record<PlanId, string> = {
+  free: "#a1a1aa",
+  pro: "#63b3ed",
+  premium: "#fbbf24",
+};
+
 const RENEWAL_WINDOW_DAYS = 7;
 
 export default async function SuperAdminDashboardPage() {
@@ -88,22 +94,49 @@ export default async function SuperAdminDashboardPage() {
             Planes
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {(["free", "pro", "premium"] as PlanId[]).map((plan) => (
-              <div
-                key={plan}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: 13,
-                  color: "var(--dash-muted)",
-                }}
-              >
-                <span>{PLAN_LABELS[plan]}</span>
-                <span style={{ color: "var(--dash-text)", fontWeight: 600 }}>
-                  {planCounts[plan] ?? 0}
-                </span>
-              </div>
-            ))}
+            {(["premium", "pro", "free"] as PlanId[]).map((plan) => {
+              const count = planCounts[plan] ?? 0;
+              const pct = activeTenants.length
+                ? (count / activeTenants.length) * 100
+                : 0;
+              return (
+                <div key={plan}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: 13,
+                      color: "var(--dash-muted)",
+                      marginBottom: 4,
+                    }}
+                  >
+                    <span>{PLAN_LABELS[plan]}</span>
+                    <span
+                      style={{ color: "var(--dash-text)", fontWeight: 600 }}
+                    >
+                      {count}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      height: 6,
+                      borderRadius: 99,
+                      background: "var(--dash-surface-2)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${pct}%`,
+                        height: "100%",
+                        background: PLAN_COLOR[plan],
+                        borderRadius: 99,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -139,6 +172,12 @@ export default async function SuperAdminDashboardPage() {
                     justifyContent: "space-between",
                     alignItems: "center",
                     fontSize: 13,
+                    paddingLeft: 10,
+                    borderLeft: `3px solid ${
+                      (t.trialDaysLeft ?? 0) <= 3
+                        ? "var(--dash-danger)"
+                        : "#fbbf24"
+                    }`,
                   }}
                 >
                   <span style={{ color: "var(--dash-text)" }}>{t.name}</span>

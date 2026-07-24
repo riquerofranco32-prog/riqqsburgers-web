@@ -1,6 +1,6 @@
 import { getAllTenantsWithStats } from "@/lib/tenants";
 import Link from "next/link";
-import RestaurantCard from "@/components/admin/RestaurantCard";
+import RestaurantsGrid from "@/components/admin/RestaurantsGrid";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Restaurantes — Takefyy Admin" };
@@ -83,17 +83,7 @@ export default async function RestaurantsPage() {
           </Link>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {tenants.map((tenant) => (
-            <RestaurantCard key={tenant.id} tenant={tenant} />
-          ))}
-        </div>
+        <RestaurantsGrid tenants={tenants} />
       )}
     </div>
   );
