@@ -3,13 +3,15 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase";
 import { assertSuperAdmin } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
+import { logActivity } from "@/lib/activityLog";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  let user;
   try {
-    await assertSuperAdmin();
+    user = await assertSuperAdmin();
   } catch (res) {
     if (res instanceof NextResponse) return res;
     throw res;
@@ -32,6 +34,14 @@ export async function PATCH(
 
   if (error)
     return NextResponse.json({ error: safeDbError(error) }, { status: 500 });
+
+  void logActivity({
+    tenantId: id,
+    actorEmail: user.email ?? "superadmin",
+    action: body.active ? "tenant.reactivated" : "tenant.deactivated",
+    entityType: "tenant",
+    entityId: tenant?.slug ?? id,
+  });
 
   if (tenant?.slug) revalidatePath(`/${tenant.slug}`, "layout");
   return NextResponse.json({ ok: true });

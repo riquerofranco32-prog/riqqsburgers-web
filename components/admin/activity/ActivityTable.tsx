@@ -22,6 +22,8 @@ const ACTION_LABELS: Record<string, string> = {
   "product.availability_toggled": "Cambió disponibilidad de producto",
   "product.stock_updated": "Actualizó el stock",
   "product.category_changed": "Cambió la categoría del producto",
+  "tenant.deactivated": "Dio de baja el negocio",
+  "tenant.reactivated": "Reactivó el negocio",
 };
 
 function fmtFecha(iso: string) {
@@ -37,9 +39,9 @@ function fmtFecha(iso: string) {
 
 function describeEntity(entityType: string, entityId: string | null): string {
   if (!entityId) return entityType;
-  return entityType === "order"
-    ? `Pedido #${entityId}`
-    : `Producto ${entityId}`;
+  if (entityType === "order") return `Pedido #${entityId}`;
+  if (entityType === "tenant") return `Negocio ${entityId}`;
+  return `Producto ${entityId}`;
 }
 
 function actionLabel(action: string): string {
