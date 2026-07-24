@@ -1,5 +1,6 @@
 import { createServerClient } from "@/lib/supabase";
 import SubscriptionsTable from "@/components/admin/SubscriptionsTable";
+import SubscriptionStats from "@/components/admin/SubscriptionStats";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Suscripciones — Takefyy Admin" };
@@ -11,6 +12,7 @@ export type TenantWithPlan = {
   plan: string;
   active: boolean;
   currentPeriodEnd: string | null;
+  createdAt: string;
 };
 
 async function getTenantsWithPlan(): Promise<TenantWithPlan[]> {
@@ -18,7 +20,7 @@ async function getTenantsWithPlan(): Promise<TenantWithPlan[]> {
   const [{ data, error }, { data: subs }] = await Promise.all([
     supabase
       .from("tenants")
-      .select("id, slug, name, plan, active")
+      .select("id, slug, name, plan, active, created_at")
       .order("name", { ascending: true }),
     supabase.from("subscriptions").select("tenant_id, current_period_end"),
   ]);
@@ -30,7 +32,12 @@ async function getTenantsWithPlan(): Promise<TenantWithPlan[]> {
     ]),
   );
   return data.map((t) => ({
-    ...t,
+    id: t.id,
+    slug: t.slug,
+    name: t.name,
+    plan: t.plan,
+    active: t.active,
+    createdAt: t.created_at,
     currentPeriodEnd: periodEndByTenant.get(t.id) ?? null,
   })) as TenantWithPlan[];
 }
@@ -57,6 +64,7 @@ export default async function SubscriptionsPage() {
         </p>
       </div>
 
+      <SubscriptionStats tenants={tenants} />
       <SubscriptionsTable tenants={tenants} />
     </div>
   );

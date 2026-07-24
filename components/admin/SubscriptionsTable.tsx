@@ -71,6 +71,23 @@ function isPlanId(value: string): value is PlanId {
   return VALID_PLANS.includes(value as PlanId);
 }
 
+// Días hasta el vencimiento (negativo = ya venció, null = sin fecha)
+function daysLeft(iso: string | null): number | null {
+  if (!iso) return null;
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000);
+}
+
+type FilterId = "all" | PlanId | "expiring" | "inactive";
+
+const FILTERS: { id: FilterId; label: string }[] = [
+  { id: "all", label: "Todos" },
+  { id: "free", label: "Starter" },
+  { id: "pro", label: "Pro" },
+  { id: "premium", label: "Growth" },
+  { id: "expiring", label: "Vencen ≤7 días" },
+  { id: "inactive", label: "Inactivos" },
+];
+
 function initials(name: string): string {
   const parts = name.trim().split(/\s+/);
   const first = parts[0]?.[0] ?? "";
@@ -168,6 +185,7 @@ export default function SubscriptionsTable({
   tenants: TenantWithPlan[];
 }) {
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterId>("all");
   const [rows, setRows] = useState<Record<string, RowData>>(() => {
     const init: Record<string, RowData> = {};
     for (const t of tenants) {
@@ -186,12 +204,21 @@ export default function SubscriptionsTable({
   });
 
   const q = search.trim().toLowerCase();
-  const filtered = tenants.filter(
-    (t) =>
-      !q ||
-      t.name.toLowerCase().includes(q) ||
-      t.slug.toLowerCase().includes(q),
-  );
+  const filtered = tenants.filter((t) => {
+    if (
+      q &&
+      !t.name.toLowerCase().includes(q) &&
+      !t.slug.toLowerCase().includes(q)
+    )
+      return false;
+    if (filter === "all") return true;
+    if (filter === "inactive") return !t.active;
+    if (filter === "expiring") {
+      const d = daysLeft(t.currentPeriodEnd);
+      return t.active && d !== null && d <= 7;
+    }
+    return t.plan === filter;
+  });
 
   function setPlan(tenantId: string, plan: PlanId) {
     setRows((prev) => ({
@@ -356,6 +383,41 @@ export default function SubscriptionsTable({
             </button>
           )}
         </div>
+
+        {/* Chips de filtro */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 6,
+            marginTop: 10,
+          }}
+        >
+          {FILTERS.map((f) => {
+            const isActive = filter === f.id;
+            return (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 99,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  border: `1px solid ${isActive ? "var(--dash-accent-glow)" : "var(--dash-border)"}`,
+                  background: isActive
+                    ? "linear-gradient(135deg, var(--accent), #ff8c5a)"
+                    : "var(--dash-surface)",
+                  color: isActive ? "#fff" : "var(--dash-muted)",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Header */}
@@ -398,8 +460,18 @@ export default function SubscriptionsTable({
         <EmptyState
           icon={SearchX}
           title="Sin resultados"
-          description={`No encontramos restaurantes para "${search}".`}
-          action={{ label: "Limpiar búsqueda", onClick: () => setSearch("") }}
+          description={
+            q
+              ? `No encontramos restaurantes para "${search}".`
+              : "Ningún restaurante coincide con este filtro."
+          }
+          action={{
+            label: "Limpiar filtros",
+            onClick: () => {
+              setSearch("");
+              setFilter("all");
+            },
+          }}
         />
       ) : (
         filtered.map((tenant, i) => {
@@ -409,6 +481,14 @@ export default function SubscriptionsTable({
           const isSaving = row.status === "saving";
           const isSaved = row.status === "saved";
           const isError = row.status === "error";
+          const daysUntilExpiry = row.active
+            ? daysLeft(tenant.currentPeriodEnd)
+            : null;
+          const isExpired = daysUntilExpiry !== null && daysUntilExpiry < 0;
+          const isExpiringSoon =
+            daysUntilExpiry !== null &&
+            daysUntilExpiry >= 0 &&
+            daysUntilExpiry <= 7;
 
           return (
             <div
@@ -421,6 +501,11 @@ export default function SubscriptionsTable({
                 padding: "16px 24px",
                 gap: 8,
                 borderBottom: isLast ? "none" : "1px solid var(--dash-border)",
+                borderLeft: isExpired
+                  ? "3px solid var(--dash-danger)"
+                  : isExpiringSoon
+                    ? "3px solid #fbbf24"
+                    : "3px solid transparent",
                 opacity: row.active ? 1 : 0.7,
               }}
             >
