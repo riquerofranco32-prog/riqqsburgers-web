@@ -36,13 +36,21 @@ const nextConfig = {
     return [
       // Security headers for all routes
       { source: "/(.*)", headers: securityHeaders },
-      // Aggressive cache for hashed static assets (JS, CSS, fonts)
-      {
-        source: "/_next/static/(.*)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-        ],
-      },
+      // Aggressive cache for hashed static assets (JS, CSS, fonts) — solo en
+      // producción. En dev, los chunks de imports dinámicos (next/dynamic)
+      // no llevan hash de contenido en el nombre de archivo, así que este
+      // header inmutable de 1 año quedaba cacheado en el browser entre
+      // ediciones y reinicios del server, sirviendo JS viejo indefinidamente.
+      ...(process.env.NODE_ENV === "production"
+        ? [
+            {
+              source: "/_next/static/(.*)",
+              headers: [
+                { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+              ],
+            },
+          ]
+        : []),
       // Cache images for 30 days
       {
         source: "/(.*)\\.(png|jpg|jpeg|gif|webp|svg|ico)",
