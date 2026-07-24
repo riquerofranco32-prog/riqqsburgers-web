@@ -1071,7 +1071,8 @@ export default function CatalogClient({
                 style={{
                   position: "absolute",
                   inset: 0,
-                  background: "rgba(0,0,0,0.50)",
+                  background:
+                    "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.72) 100%)",
                   zIndex: 1,
                 }}
               />
@@ -1080,7 +1081,7 @@ export default function CatalogClient({
             <>
               <Image
                 src={restaurant.banner_url}
-                alt=""
+                alt={restaurant.name}
                 fill
                 priority
                 sizes="100vw"
@@ -1089,11 +1090,13 @@ export default function CatalogClient({
                   zIndex: 0,
                 }}
               />
+              {/* Scrim: deja ver la foto real, oscurece arriba (badges) y abajo (texto) */}
               <div
                 style={{
                   position: "absolute",
                   inset: 0,
-                  background: `linear-gradient(160deg, ${accent}cc 0%, rgba(0,0,0,0.55) 100%)`,
+                  background:
+                    "linear-gradient(180deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.06) 38%, rgba(0,0,0,0.74) 100%)",
                   zIndex: 1,
                 }}
               />
@@ -1105,75 +1108,21 @@ export default function CatalogClient({
             </>
           )}
 
-          {/* Mouse-tracking glow — DOM directo, sin re-render */}
+          {/* Mouse-tracking glow — DOM directo, sin re-render. Único glow: sutil, sin animación perpetua. */}
           <div
             ref={glowRef}
             style={{
               position: "absolute",
-              width: 600,
-              height: 600,
+              width: 560,
+              height: 560,
               borderRadius: "50%",
               pointerEvents: "none",
               zIndex: 3,
-              left: "calc(50% - 300px)",
-              top: "calc(50% - 300px)",
+              left: "calc(50% - 280px)",
+              top: "calc(50% - 280px)",
               background:
-                "radial-gradient(circle, rgba(255,255,255,0.16) 0%, transparent 65%)",
+                "radial-gradient(circle, rgba(255,255,255,0.10) 0%, transparent 65%)",
               transition: "left 0.55s ease, top 0.55s ease",
-            }}
-          />
-          {/* Static ambient glow — visible on mobile */}
-          <div
-            style={{
-              position: "absolute",
-              width: 460,
-              height: 460,
-              borderRadius: "50%",
-              pointerEvents: "none",
-              zIndex: 3,
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              background:
-                "radial-gradient(circle, rgba(255,255,255,0.13) 0%, transparent 60%)",
-            }}
-          />
-
-          {/* Orbiting glow A — primary white */}
-          <div
-            style={{
-              position: "absolute",
-              width: 360,
-              height: 360,
-              borderRadius: "50%",
-              pointerEvents: "none",
-              zIndex: 4,
-              left: "50%",
-              top: "50%",
-              marginLeft: -180,
-              marginTop: -180,
-              background:
-                "radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 60%)",
-              animation: "glowOrbit 7s ease-in-out infinite",
-            }}
-          />
-
-          {/* Orbiting glow B — offset phase, accent-tinted */}
-          <div
-            style={{
-              position: "absolute",
-              width: 280,
-              height: 280,
-              borderRadius: "50%",
-              pointerEvents: "none",
-              zIndex: 4,
-              left: "50%",
-              top: "50%",
-              marginLeft: -140,
-              marginTop: -140,
-              background:
-                "radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 60%)",
-              animation: "glowOrbit 11s ease-in-out infinite reverse",
             }}
           />
 
@@ -1281,15 +1230,14 @@ export default function CatalogClient({
                   "heroFadeUp 0.5s cubic-bezier(0.22,1,0.36,1) 0.05s both",
               }}
             >
-              {/* Halo pulsante detrás del logo */}
+              {/* Halo estático detrás del logo */}
               <div
                 style={{
                   position: "absolute",
                   inset: -14,
                   borderRadius: 42,
-                  background: "rgba(255,255,255,0.15)",
+                  background: "rgba(255,255,255,0.14)",
                   filter: "blur(18px)",
-                  animation: "logoPulse 3s ease-in-out infinite",
                   pointerEvents: "none",
                 }}
               />
@@ -1299,11 +1247,10 @@ export default function CatalogClient({
                   height: 110,
                   borderRadius: 28,
                   overflow: "hidden",
-                  border: "3px solid rgba(255,255,255,0.5)",
+                  border: "3px solid rgba(255,255,255,0.55)",
                   boxShadow:
                     "0 16px 56px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.12)",
                   flexShrink: 0,
-                  animation: "logoFloat 4.5s ease-in-out infinite",
                   position: "relative",
                   background: restaurant.logo ? undefined : accent,
                   display: "flex",
@@ -1314,7 +1261,7 @@ export default function CatalogClient({
                 {restaurant.logo ? (
                   <Image
                     src={restaurant.logo}
-                    alt=""
+                    alt={`Logo de ${restaurant.name}`}
                     width={110}
                     height={110}
                     style={{
