@@ -10,6 +10,8 @@ import {
   ClipboardList,
   Download,
   SearchX,
+  Rows3,
+  LayoutGrid,
 } from "lucide-react";
 import { toast } from "sonner";
 import EmptyState from "@/components/admin/EmptyState";
@@ -20,6 +22,7 @@ import { playSound } from "@/lib/sounds";
 import type { Order } from "@/types/supabase";
 import { MobileOrderCard } from "@/components/admin/orders/MobileOrderCard";
 import { OrderDesktopRow } from "@/components/admin/orders/OrderDesktopRow";
+import { OrdersBoard } from "@/components/admin/orders/OrdersBoard";
 import { OrdersKpiGrid } from "@/components/admin/orders/OrdersKpiGrid";
 import { InlineConfirm } from "@/components/ui/admin/InlineConfirm";
 import { DensityToggle } from "@/components/ui/admin/DensityToggle";
@@ -66,6 +69,25 @@ export function OrdersTable({
   const isMobile = useIsMobile();
   useNowMinute();
   const { density, toggleDensity } = useTableDensity();
+
+  // Vista lista/tablero — preferencia de UI personal del navegador, mismo
+  // patrón que useTableDensity (no va a Supabase, YAGNI).
+  const [view, setView] = useState<"list" | "board">("list");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("takefyy_admin_orders_view");
+      if (saved === "list" || saved === "board") setView(saved);
+    } catch {}
+  }, []);
+  function toggleView() {
+    setView((prev) => {
+      const next = prev === "list" ? "board" : "list";
+      try {
+        localStorage.setItem("takefyy_admin_orders_view", next);
+      } catch {}
+      return next;
+    });
+  }
 
   // Selección bulk — solo tiene UI en desktop (ver nota junto a la barra de
   // acciones más abajo). Se resetea al cambiar filtro/período/búsqueda: no
@@ -645,6 +667,39 @@ export function OrdersTable({
             <Download size={14} strokeWidth={2} />
             CSV
           </button>
+          {!isMobile && (
+            <button
+              onClick={toggleView}
+              title={view === "list" ? "Ver como tablero" : "Ver como lista"}
+              aria-label={
+                view === "list" ? "Ver como tablero" : "Ver como lista"
+              }
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 34,
+                height: 34,
+                borderRadius: 8,
+                background: "var(--dash-surface-2)",
+                border: "1px solid var(--dash-border)",
+                color: "var(--dash-muted)",
+                cursor: "pointer",
+                flexShrink: 0,
+                transition: "border-color 0.15s, color 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--accent)";
+                e.currentTarget.style.color = "var(--accent)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--dash-border)";
+                e.currentTarget.style.color = "var(--dash-muted)";
+              }}
+            >
+              {view === "list" ? <LayoutGrid size={16} /> : <Rows3 size={16} />}
+            </button>
+          )}
           <DensityToggle density={density} onToggle={toggleDensity} />
         </div>
 
@@ -896,6 +951,20 @@ export function OrdersTable({
               />
             ))}
           </div>
+        ) : view === "board" ? (
+          // ── Desktop: tablero por estado ──
+          <OrdersBoard
+            orders={filtered}
+            slug={slug}
+            newOrderIds={newOrderIds}
+            expanded={expanded}
+            onToggleOpen={(id) =>
+              setExpanded((prev) => (prev === id ? null : id))
+            }
+            onUpdateStatus={updateStatus}
+            onDeleteOrder={deleteOrder}
+            canDelete={canDelete}
+          />
         ) : (
           // ── Desktop: accordion rows ──
           <div>
