@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Store, DollarSign, ShoppingBag, Clock } from "lucide-react";
 import { getAllTenantsWithStats } from "@/lib/tenants";
 import { getPlanLimits, type PlanId } from "@/lib/plans";
-import { KPICard } from "@/components/admin/dashboard/KPICard";
+import SuperAdminKPIGrid from "@/components/admin/SuperAdminKPIGrid";
 
 export const dynamic = "force-dynamic";
 
@@ -55,40 +54,13 @@ export default async function SuperAdminDashboardPage() {
         Vista global de todos los restaurantes
       </p>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 16,
-          marginBottom: 32,
-        }}
-      >
-        <KPICard
-          label="Restaurantes activos"
-          value={String(activeTenants.length)}
-          icon={Store}
-          href="/admin/restaurants"
-        />
-        <KPICard
-          label="MRR estimado"
-          value={`$${mrr.toLocaleString("es-AR")}`}
-          sub="Planes pagos activos"
-          icon={DollarSign}
-          href="/admin/subscriptions"
-        />
-        <KPICard
-          label="Pedidos totales"
-          value={String(totalOrders)}
-          sub="Histórico, todos los negocios"
-          icon={ShoppingBag}
-        />
-        <KPICard
-          label={`Vencen en ${RENEWAL_WINDOW_DAYS} días`}
-          value={String(renewingSoon.length)}
-          icon={Clock}
-          href="/admin/subscriptions"
-        />
-      </div>
+      <SuperAdminKPIGrid
+        activeTenantsCount={activeTenants.length}
+        mrr={mrr}
+        totalOrders={totalOrders}
+        renewingSoonCount={renewingSoon.length}
+        renewalWindowDays={RENEWAL_WINDOW_DAYS}
+      />
 
       <div
         style={{
