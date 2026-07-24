@@ -385,8 +385,11 @@ html {
 }
 
 /* ── prefers-reduced-motion ─────────────────────────────────────────────── */
+/* .animate-float queda afuera a propósito: es puramente decorativo (fotos
+   flotando en la landing), no hay contenido esencial ni parallax agresivo
+   detrás, así que se deja flotar siempre aunque el SO pida menos movimiento. */
 @media (prefers-reduced-motion: reduce) {
-  *,
+  *:not(.animate-float),
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
