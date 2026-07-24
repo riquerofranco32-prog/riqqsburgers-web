@@ -9,6 +9,8 @@ import {
   ArrowUp,
   ArrowDown,
   Minus,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { KPICard } from "@/components/admin/dashboard/KPICard";
 import { SalesAreaChart } from "@/components/admin/dashboard/SalesAreaChart";
@@ -109,6 +111,37 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
       </div>
 
       <ExportReportButton slug={slug} />
+
+      {!loading && !!data?.insights.length && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {data.insights.map((insight, i) => {
+            const isWarn = insight.severity === "warn";
+            const Icon = isWarn ? AlertTriangle : Info;
+            const color = isWarn ? "#f59e0b" : "var(--accent)";
+            return (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: isWarn
+                    ? "rgba(245,158,11,0.1)"
+                    : "rgba(255,107,53,0.08)",
+                  border: `1px solid ${isWarn ? "rgba(245,158,11,0.25)" : "rgba(255,107,53,0.2)"}`,
+                }}
+              >
+                <Icon size={16} color={color} strokeWidth={2} />
+                <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
+                  {insight.message}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KPICard
@@ -292,6 +325,67 @@ export default function ReportsAdmin({ slug }: { slug: string }) {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {!loading && !!data?.branchRevenue?.length && (
+        <div
+          style={{
+            background: "var(--dash-surface)",
+            border: "1px solid var(--dash-border)",
+            borderRadius: 16,
+            padding: 20,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.15)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--dash-muted)",
+              marginBottom: 12,
+            }}
+          >
+            Sucursales — comparación en este período
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {data.branchRevenue.map((b) => (
+              <div
+                key={b.branch_id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <span style={{ fontSize: 13, color: "var(--dash-text)" }}>
+                  {b.name}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <span style={{ fontSize: 12, color: "var(--dash-muted)" }}>
+                    {b.orderCount} pedido{b.orderCount !== 1 ? "s" : ""}
+                  </span>
+                  {b.cancelledRate > 0 && (
+                    <span style={{ fontSize: 12, color: "#f87171" }}>
+                      {b.cancelledRate.toFixed(0)}% cancelados
+                    </span>
+                  )}
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: "var(--dash-text)",
+                      fontVariantNumeric: "tabular-nums",
+                      minWidth: 90,
+                      textAlign: "right",
+                    }}
+                  >
+                    {fmtARS(b.revenue)}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

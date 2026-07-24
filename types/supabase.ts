@@ -145,6 +145,7 @@ export interface Order {
   delivery_lng: number | null;
   delivery_zone_name: string | null;
   delivery_distance_km: number | null;
+  branch_id: string | null;
 }
 
 export interface Review {

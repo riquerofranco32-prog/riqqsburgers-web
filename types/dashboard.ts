@@ -54,6 +54,20 @@ export type CategoryRevenueTrend = {
   changePct: number | null;
 };
 
+export type BranchRevenue = {
+  branch_id: string;
+  name: string;
+  revenue: number;
+  orderCount: number;
+  cancelledRate: number;
+};
+
+/** Alerta calculada sobre datos ya agregados — sin queries extra */
+export type Insight = {
+  severity: "warn" | "info";
+  message: string;
+};
+
 export type AnalyticsResponse = {
   revenue: number;
   orderCount: number;
@@ -69,4 +83,7 @@ export type AnalyticsResponse = {
   /** Pedidos cancelados en el período y su % sobre el total (incl. cancelados) */
   cancelledCount: number;
   cancelledRate: number;
+  /** Solo presente si el tenant tiene más de 1 sucursal activa */
+  branchRevenue: BranchRevenue[] | null;
+  insights: Insight[];
 };

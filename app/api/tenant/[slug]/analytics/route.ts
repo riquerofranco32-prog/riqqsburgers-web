@@ -10,8 +10,16 @@ import type {
   DailyRevenue,
   CategoryRevenue,
   TopProduct,
+  BranchRevenue,
+  Insight,
 } from "@/types/dashboard";
-import type { Order, OrderItem, Product, Category } from "@/types/supabase";
+import type {
+  Order,
+  OrderItem,
+  Product,
+  Category,
+  Branch,
+} from "@/types/supabase";
 
 const CATEGORY_PALETTE = [
   "#f97316",
@@ -139,6 +147,88 @@ function buildPeakHour(
   return top ? { hour: Number(top[0]), count: top[1] } : null;
 }
 
+function buildBranchRevenue(
+  orders: Order[],
+  allOrdersInPeriodIncludingCancelled: Order[],
+  branches: Branch[],
+): BranchRevenue[] | null {
+  const activeBranches = branches.filter((b) => b.active);
+  if (activeBranches.length < 2) return null;
+
+  return activeBranches
+    .map((b) => {
+      const branchOrders = orders.filter((o) => o.branch_id === b.id);
+      const branchAll = allOrdersInPeriodIncludingCancelled.filter(
+        (o) => o.branch_id === b.id,
+      );
+      const cancelled = branchAll.length - branchOrders.length;
+      return {
+        branch_id: b.id,
+        name: b.name,
+        revenue: branchOrders.reduce((s, o) => s + o.total, 0),
+        orderCount: branchOrders.length,
+        cancelledRate:
+          branchAll.length > 0 ? (cancelled / branchAll.length) * 100 : 0,
+      };
+    })
+    .sort((a, b) => b.revenue - a.revenue);
+}
+
+// Umbrales elegidos a ojo para no generar ruido — ajustar si se vuelven
+// molestos o poco accionables en uso real.
+const REVENUE_DROP_THRESHOLD = -15;
+const CANCELLED_RATE_THRESHOLD = 15;
+const CATEGORY_SWING_THRESHOLD = 30;
+
+function buildInsights(
+  revenueChange: number | null,
+  cancelledRate: number,
+  cancelledCount: number,
+  categoryRevenueChange: Array<{ name: string; changePct: number | null }>,
+  branchRevenue: BranchRevenue[] | null,
+  rangeLabel: string,
+): Insight[] {
+  const insights: Insight[] = [];
+
+  if (revenueChange !== null && revenueChange <= REVENUE_DROP_THRESHOLD) {
+    insights.push({
+      severity: "warn",
+      message: `Los ingresos bajaron ${Math.abs(revenueChange).toFixed(0)}% ${rangeLabel}.`,
+    });
+  }
+
+  if (cancelledCount > 0 && cancelledRate >= CANCELLED_RATE_THRESHOLD) {
+    insights.push({
+      severity: "warn",
+      message: `${cancelledRate.toFixed(0)}% de los pedidos se cancelaron en este período.`,
+    });
+  }
+
+  for (const c of categoryRevenueChange) {
+    if (c.changePct !== null && c.changePct <= -CATEGORY_SWING_THRESHOLD) {
+      insights.push({
+        severity: "info",
+        message: `"${c.name}" cayó ${Math.abs(c.changePct).toFixed(0)}% ${rangeLabel}.`,
+      });
+    }
+  }
+
+  if (branchRevenue && branchRevenue.length >= 2) {
+    const [best, worst] = [
+      branchRevenue[0],
+      branchRevenue[branchRevenue.length - 1],
+    ];
+    if (best.revenue > 0 && worst.revenue < best.revenue * 0.4) {
+      insights.push({
+        severity: "info",
+        message: `${worst.name} facturó ${Math.round((worst.revenue / best.revenue) * 100)}% de lo que facturó ${best.name} en este período.`,
+      });
+    }
+  }
+
+  return insights;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
@@ -205,6 +295,7 @@ export async function GET(
     { data: rawOrders, error },
     { data: rawProducts },
     { data: rawCategories },
+    { data: rawBranches },
   ] = await Promise.all([
     db
       .from("orders")
@@ -221,6 +312,7 @@ export async function GET(
       .select("id, name, emoji")
       .eq("tenant_id", tenantId)
       .eq("active", true),
+    db.from("branches").select("*").eq("tenant_id", tenantId),
   ]);
 
   if (error)
@@ -235,6 +327,7 @@ export async function GET(
   });
   const products = (rawProducts ?? []) as Product[];
   const categories = (rawCategories ?? []) as Category[];
+  const branches = (rawBranches ?? []) as Branch[];
 
   // Incluye cancelados (a diferencia de `orders` arriba) para medir qué % del
   // total de pedidos del período se cancelaron.
@@ -282,11 +375,34 @@ export async function GET(
     changePct: pctChange(c.value, prevCategoryMap.get(c.name) ?? 0),
   }));
 
+  const branchRevenue = buildBranchRevenue(
+    orders,
+    allOrdersInPeriodIncludingCancelled,
+    branches,
+  );
+  const revenueChange = pctChange(revenue, prevRevenue);
+  const rangeLabel =
+    range === "today"
+      ? "respecto a ayer"
+      : range === "week"
+        ? "respecto a la semana anterior"
+        : range === "twoWeeks"
+          ? "respecto a la quincena anterior"
+          : "respecto al mes anterior";
+  const insights = buildInsights(
+    revenueChange,
+    cancelledRate,
+    cancelledCount,
+    categoryRevenueChange,
+    branchRevenue,
+    rangeLabel,
+  );
+
   const body: AnalyticsResponse = {
     revenue,
     orderCount,
     avgTicket,
-    revenueChange: pctChange(revenue, prevRevenue),
+    revenueChange,
     orderCountChange: pctChange(orderCount, prevOrderCount),
     avgTicketChange: pctChange(avgTicket, prevAvgTicket),
     topProducts,
@@ -296,6 +412,8 @@ export async function GET(
     peakHour,
     cancelledCount,
     cancelledRate,
+    branchRevenue,
+    insights,
   };
   return NextResponse.json(body);
 }
