@@ -3967,6 +3967,12 @@ export default function CatalogClient({
             onOpenDetail={(item) => {
               setSelectedItem(item);
             }}
+            restaurantHero={{
+              name: restaurant.name,
+              tagline: restaurant.tagline,
+              logo: restaurant.logo,
+              banner: restaurant.banner_url,
+            }}
           />
         )}
         {/* ── Checkout ─────────────────────────────────────────────────────────── */}

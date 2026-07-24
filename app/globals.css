@@ -1628,12 +1628,15 @@ a {
 .immersive-img {
   width: 100%;
   height: 100%;
-  /* contain, no cover: las fotos de producto varían mucho de relación de
-     aspecto (banners promo horizontales, latas cuadradas, fotos verticales)
-     — cover las recorta mal. El contenedor ya es full-bleed sin el padding
-     de antes, así que igual queda notablemente más grande. */
-  object-fit: contain;
+  /* cover por default — llena la pantalla como TikTok/Reels. Las imágenes
+     panorámicas (banners de promo con texto) rompen con un recorte así,
+     por eso ImmersiveProductImage mide el aspect ratio al cargar y suma
+     .immersive-img-contain para esos casos puntuales. */
+  object-fit: cover;
   animation: immersiveImgIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.immersive-img-contain {
+  object-fit: contain;
 }
 .immersive-emoji-wrap {
   font-size: 96px;
@@ -1717,6 +1720,65 @@ a {
   100% {
     opacity: 0;
     transform: translateX(-50%) scale(0.95);
+  }
+}
+
+/* Portada del negocio — primera slide antes del feed de productos */
+.immersive-hero-slide {
+  align-items: center;
+  justify-content: center;
+}
+.immersive-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 0 32px;
+  animation: immersiveCardIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.immersive-hero-logo {
+  width: 84px;
+  height: 84px;
+  border-radius: 22px;
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  margin-bottom: 6px;
+}
+.immersive-hero-name {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+.immersive-hero-tagline {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.5;
+}
+.immersive-hero-scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: 28px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  animation: heroCueBounce 1.6s ease-in-out infinite;
+}
+@keyframes heroCueBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
   }
 }
 
