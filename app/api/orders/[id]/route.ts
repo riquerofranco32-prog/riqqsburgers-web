@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
-import { getSessionUser } from "@/lib/authz";
+import { getSessionUser, getTenantRole } from "@/lib/authz";
 import { safeDbError } from "@/lib/db-error";
 import { sendPushToOrder } from "@/lib/push";
 import { logActivity } from "@/lib/activityLog";
@@ -84,26 +84,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
   }
 
-  const [{ data: membership }, { data: globalSuperAdmin }] = await Promise.all([
-    supabase
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("tenant_id", order.tenant_id)
-      .maybeSingle(),
-    supabase
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "superadmin")
-      .limit(1)
-      .maybeSingle(),
-  ]);
-
+  const { direct, superadmin } = await getTenantRole(user.id, order.tenant_id);
   const isAuthorized =
-    (membership &&
-      ["admin", "staff", "superadmin"].includes(membership.role)) ||
-    !!globalSuperAdmin;
+    (direct && ["admin", "staff", "superadmin"].includes(direct)) || superadmin;
 
   if (!isAuthorized) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
@@ -169,25 +152,9 @@ export async function DELETE(
     return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
   }
 
-  const [{ data: membership }, { data: globalSuperAdmin }] = await Promise.all([
-    supabase
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("tenant_id", order.tenant_id)
-      .maybeSingle(),
-    supabase
-      .from("tenant_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "superadmin")
-      .limit(1)
-      .maybeSingle(),
-  ]);
-
+  const { direct, superadmin } = await getTenantRole(user.id, order.tenant_id);
   const isAuthorized =
-    (membership && ["admin", "superadmin"].includes(membership.role)) ||
-    !!globalSuperAdmin;
+    (direct && ["admin", "superadmin"].includes(direct)) || superadmin;
 
   if (!isAuthorized) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });

@@ -43,6 +43,12 @@
   --dash-warning: #fbbf24;
   --dash-warning-bg: rgba(251, 191, 36, 0.08);
   --dash-warning-border: rgba(251, 191, 36, 0.25);
+  --dash-info: #60a5fa;
+  --dash-info-bg: rgba(96, 165, 250, 0.08);
+  --dash-info-border: rgba(96, 165, 250, 0.25);
+  --dash-neutral: #a1a1aa;
+  --dash-neutral-bg: rgba(161, 161, 170, 0.08);
+  --dash-neutral-border: rgba(161, 161, 170, 0.25);
 
   /* Escala de radios — reemplaza los px sueltos (6/8/9/10/12/14/16px) que
      convivían sin criterio en el admin. */
@@ -50,6 +56,12 @@
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-pill: 999px;
+
+  /* Sombras del admin — reemplaza los rgba(0,0,0,...) sueltos repetidos
+     en tarjetas/KPIs. */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.25);
 }
 
 /* ── Admin sidebar nav ───────────────────────────────────────────────────── */
@@ -889,6 +901,39 @@ a {
 .admin-card:hover {
   border-color: rgba(201, 168, 76, 0.2);
   box-shadow: 0 0 0 1px rgba(201, 168, 76, 0.08);
+}
+
+/* ── Pedidos: fila/tarjeta ──────────────────────────────────────────────── */
+.order-row-trigger {
+  transition: background 0.15s ease;
+}
+.order-row-trigger:hover {
+  background: var(--dash-surface-2);
+}
+.order-ref-badge {
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.order-ref-badge:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.order-advance-btn {
+  transition: opacity 0.15s ease;
+}
+.order-advance-btn:hover {
+  opacity: 0.7;
+}
+.order-kpi-card {
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: var(--shadow-md);
+}
+.order-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 /* ── Admin table ────────────────────────────────────────────────────────── */

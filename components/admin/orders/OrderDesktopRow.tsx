@@ -50,7 +50,7 @@ export function OrderDesktopRow({
       style={{
         background: isNew ? "rgba(255,107,53,0.06)" : undefined,
         borderBottom: "1px solid var(--dash-border)",
-        borderLeft: isUrgent ? "3px solid #f87171" : undefined,
+        borderLeft: isUrgent ? "3px solid var(--dash-danger)" : undefined,
         transition: "background 1s ease",
         animation: isUrgent ? "urgentBlink 2s ease-in-out infinite" : undefined,
       }}
@@ -58,6 +58,7 @@ export function OrderDesktopRow({
       <div
         role="button"
         tabIndex={0}
+        className="order-row-trigger"
         onClick={onToggleOpen}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -75,13 +76,8 @@ export function OrderDesktopRow({
           border: "none",
           cursor: "pointer",
           textAlign: "left",
-          transition: "background 0.15s",
           WebkitTapHighlightColor: "transparent",
         }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.background = "var(--dash-surface-2)")
-        }
-        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
       >
         {onToggleSelect && (
           <input
@@ -118,6 +114,7 @@ export function OrderDesktopRow({
             </span>
             <Link
               href={`/${slug}/admin/pedidos/${order.order_ref ?? order.id}`}
+              className="order-ref-badge"
               style={{
                 color: "var(--dash-muted)",
                 fontWeight: 600,
@@ -128,15 +125,6 @@ export function OrderDesktopRow({
                 border: "1px solid var(--dash-border)",
                 borderRadius: 999,
                 padding: "2px 8px",
-                transition: "color 0.15s, border-color 0.15s",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--accent)";
-                e.currentTarget.style.borderColor = "var(--accent)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--dash-muted)";
-                e.currentTarget.style.borderColor = "var(--dash-border)";
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -150,9 +138,9 @@ export function OrderDesktopRow({
                   padding: "2px 6px",
                   borderRadius: 999,
                   fontWeight: 700,
-                  background: "rgba(255,107,53,0.2)",
-                  color: "#ff6b35",
-                  border: "1px solid rgba(255,107,53,0.4)",
+                  background: "var(--dash-accent-glow)",
+                  color: "var(--accent)",
+                  border: "1px solid var(--dash-accent-glow)",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
@@ -211,6 +199,7 @@ export function OrderDesktopRow({
                   void onUpdateStatus(order.id, next);
                 }}
                 title={`Marcar como ${m.label}`}
+                className="order-advance-btn"
                 style={{
                   padding: "4px 10px",
                   borderRadius: 999,
@@ -221,11 +210,8 @@ export function OrderDesktopRow({
                   color: m.color,
                   cursor: "pointer",
                   flexShrink: 0,
-                  transition: "opacity 0.15s",
                   whiteSpace: "nowrap",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
               >
                 {m.label}
               </button>

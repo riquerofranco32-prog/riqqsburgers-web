@@ -46,70 +46,46 @@ export function useIsMobile() {
   return isMobile;
 }
 
+const WARNING = {
+  bg: "var(--dash-warning-bg)",
+  color: "var(--dash-warning)",
+  border: "var(--dash-warning-border)",
+};
+const INFO = {
+  bg: "var(--dash-info-bg)",
+  color: "var(--dash-info)",
+  border: "var(--dash-info-border)",
+};
+const SUCCESS = {
+  bg: "var(--dash-success-bg)",
+  color: "var(--dash-success)",
+  border: "var(--dash-success-border)",
+};
+const NEUTRAL = {
+  bg: "var(--dash-neutral-bg)",
+  color: "var(--dash-neutral)",
+  border: "var(--dash-neutral-border)",
+};
+const DANGER = {
+  bg: "var(--dash-danger-bg)",
+  color: "var(--dash-danger)",
+  border: "var(--dash-danger-border)",
+};
+
 export const STATUS_META: Record<
   string,
   { label: string; bg: string; color: string; border: string }
 > = {
-  pending: {
-    label: "Pendiente",
-    bg: "rgba(245,158,11,0.12)",
-    color: "#f59e0b",
-    border: "rgba(245,158,11,0.3)",
-  },
-  nuevo: {
-    label: "Nuevo",
-    bg: "rgba(245,158,11,0.12)",
-    color: "#f59e0b",
-    border: "rgba(245,158,11,0.3)",
-  },
-  confirmed: {
-    label: "Confirmado",
-    bg: "rgba(59,130,246,0.12)",
-    color: "#60a5fa",
-    border: "rgba(59,130,246,0.3)",
-  },
-  preparando: {
-    label: "Preparando",
-    bg: "rgba(59,130,246,0.12)",
-    color: "#60a5fa",
-    border: "rgba(59,130,246,0.3)",
-  },
-  ready: {
-    label: "Listo",
-    bg: "rgba(34,197,94,0.12)",
-    color: "#4ade80",
-    border: "rgba(34,197,94,0.3)",
-  },
-  listo: {
-    label: "Listo",
-    bg: "rgba(34,197,94,0.12)",
-    color: "#4ade80",
-    border: "rgba(34,197,94,0.3)",
-  },
-  delivered: {
-    label: "Entregado",
-    bg: "rgba(113,113,122,0.12)",
-    color: "#a1a1aa",
-    border: "rgba(113,113,122,0.3)",
-  },
-  entregado: {
-    label: "Entregado",
-    bg: "rgba(113,113,122,0.12)",
-    color: "#a1a1aa",
-    border: "rgba(113,113,122,0.3)",
-  },
-  preparing: {
-    label: "Preparando",
-    bg: "rgba(59,130,246,0.12)",
-    color: "#60a5fa",
-    border: "rgba(59,130,246,0.3)",
-  },
-  cancelled: {
-    label: "Cancelado",
-    bg: "rgba(239,68,68,0.12)",
-    color: "#f87171",
-    border: "rgba(239,68,68,0.3)",
-  },
+  pending: { label: "Pendiente", ...WARNING },
+  nuevo: { label: "Nuevo", ...WARNING },
+  confirmed: { label: "Confirmado", ...INFO },
+  preparando: { label: "Preparando", ...INFO },
+  preparing: { label: "Preparando", ...INFO },
+  ready: { label: "Listo", ...SUCCESS },
+  listo: { label: "Listo", ...SUCCESS },
+  delivered: { label: "Entregado", ...NEUTRAL },
+  entregado: { label: "Entregado", ...NEUTRAL },
+  cancelled: { label: "Cancelado", ...DANGER },
 };
 
 export const STATUS_FLOW = [
@@ -132,14 +108,7 @@ export const FILTER_PILLS = [
 export type FilterKey = (typeof FILTER_PILLS)[number]["key"];
 
 export function getStatusMeta(status: string) {
-  return (
-    STATUS_META[status] ?? {
-      label: status,
-      bg: "rgba(113,113,122,0.12)",
-      color: "#a1a1aa",
-      border: "rgba(113,113,122,0.3)",
-    }
-  );
+  return STATUS_META[status] ?? { label: status, ...NEUTRAL };
 }
 
 export function normalizeStatus(status: string): string {

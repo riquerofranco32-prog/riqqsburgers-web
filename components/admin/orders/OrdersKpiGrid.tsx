@@ -18,29 +18,29 @@ export function OrdersKpiGrid({
       label: "Pendientes",
       value: pending,
       icon: Clock,
-      color: "#f59e0b",
-      bg: "rgba(245,158,11,0.1)",
+      color: "var(--dash-warning)",
+      bg: "var(--dash-warning-bg)",
     },
     {
       label: "En Cocina",
       value: active,
       icon: ChefHat,
-      color: "#60a5fa",
-      bg: "rgba(59,130,246,0.1)",
+      color: "var(--dash-info)",
+      bg: "var(--dash-info-bg)",
     },
     {
       label: "Listos",
       value: ready,
       icon: CheckCircle,
-      color: "#4ade80",
-      bg: "rgba(34,197,94,0.1)",
+      color: "var(--dash-success)",
+      bg: "var(--dash-success-bg)",
     },
     {
       label: "Ventas Hoy",
       value: "$ " + todaySales.toLocaleString("es-AR"),
       icon: DollarSign,
       color: "var(--accent, #ff6b35)",
-      bg: "rgba(255,107,53,0.1)",
+      bg: "var(--dash-accent-subtle)",
     },
   ];
 
@@ -49,6 +49,7 @@ export function OrdersKpiGrid({
       {cards.map(({ label, value, icon: Icon, color, bg }) => (
         <div
           key={label}
+          className="order-kpi-card"
           style={{
             position: "relative",
             overflow: "hidden",
@@ -61,12 +62,8 @@ export function OrdersKpiGrid({
             display: "flex",
             alignItems: "center",
             gap: 12,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
-            transition: "transform 0.15s ease, box-shadow 0.15s ease",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 8px 20px rgba(0,0,0,0.25)";
             e.currentTarget.style.setProperty("--spot-o", "1");
           }}
           onMouseMove={(e) => {
@@ -81,8 +78,6 @@ export function OrdersKpiGrid({
             );
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.18)";
             e.currentTarget.style.setProperty("--spot-o", "0");
           }}
         >

@@ -716,7 +716,7 @@ function CategoryRow({
       dragListener={false}
       dragControls={dragControls}
       whileDrag={{
-        boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+        boxShadow: "var(--shadow-lg)",
         scale: 1.01,
         zIndex: 1,
       }}
@@ -729,7 +729,7 @@ function CategoryRow({
         borderRadius: 14,
         padding: "12px 14px",
         opacity: cat.active ? 1 : 0.5,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+        boxShadow: "var(--shadow-sm)",
         position: "relative",
       }}
     >
