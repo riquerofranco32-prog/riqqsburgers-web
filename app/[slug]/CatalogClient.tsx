@@ -135,6 +135,7 @@ export default function CatalogClient({
   const [favoritesOpen, setFavoritesOpen] = useState(false);
   const prevTotal = useRef(0);
   const [immersiveMode, setImmersiveMode] = useState(false);
+  const [showImmersiveHint, setShowImmersiveHint] = useState(false);
   const [manualIsOpen, setManualIsOpen] = useState(restaurant.manual_is_open);
   // Recalcula cada minuto para reflejar el horario sin recargar la página
   // (la única forma en que cambia sin un evento de realtime del toggle manual).
@@ -784,6 +785,23 @@ export default function CatalogClient({
       ),
     [restaurant.menu.categories],
   );
+
+  // Hint de "Explorar" — una sola vez por navegador, la primera vez que hay
+  // productos para mostrar en modo inmersivo.
+  useEffect(() => {
+    if (allProducts.length === 0) return;
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem("takefyy_immersive_hint_seen")) return;
+    const t = setTimeout(() => setShowImmersiveHint(true), 1200);
+    const hide = setTimeout(() => {
+      setShowImmersiveHint(false);
+      window.localStorage.setItem("takefyy_immersive_hint_seen", "1");
+    }, 6000);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(hide);
+    };
+  }, [allProducts.length]);
 
   // ── Flying cart animation ────────────────────────────────────────────────
   function flyToCart(imgSrc: string, emoji: string, sourceEl: HTMLElement) {
@@ -1810,37 +1828,75 @@ export default function CatalogClient({
                         </button>
                       );
                     })}
-                    {/* Immersive mode trigger */}
+                    {/* Immersive mode trigger — pill con label + glow para que
+                        se note (antes era un ícono gris más, casi invisible) */}
                     {allProducts.length > 0 && (
-                      <button
-                        aria-label="Vista inmersiva"
-                        onClick={() => setImmersiveMode(true)}
-                        style={{
-                          flexShrink: 0,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: 36,
-                          height: 36,
-                          borderRadius: "50%",
-                          border: `1px solid ${BORDER}`,
-                          background: SURFACE2,
-                          color: TEXT2,
-                          cursor: "pointer",
-                          WebkitTapHighlightColor: "transparent",
-                          transition: "background 0.15s, border-color 0.15s",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = accent;
-                          e.currentTarget.style.background = `${accent}14`;
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = BORDER;
-                          e.currentTarget.style.background = SURFACE2;
-                        }}
-                      >
-                        <Sparkles size={15} strokeWidth={2.5} />
-                      </button>
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <button
+                          aria-label="Explorar menú en modo vista completa"
+                          onClick={() => {
+                            setImmersiveMode(true);
+                            setShowImmersiveHint(false);
+                            if (typeof window !== "undefined") {
+                              window.localStorage.setItem(
+                                "takefyy_immersive_hint_seen",
+                                "1",
+                              );
+                            }
+                          }}
+                          style={{
+                            flexShrink: 0,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            height: 36,
+                            padding: "0 12px",
+                            borderRadius: 999,
+                            border: `1px solid ${accent}40`,
+                            background: `${accent}18`,
+                            color: accent,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            whiteSpace: "nowrap",
+                            WebkitTapHighlightColor: "transparent",
+                            transition: "background 0.15s, border-color 0.15s",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = `${accent}28`;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = `${accent}18`;
+                          }}
+                        >
+                          <Sparkles size={14} strokeWidth={2.5} />
+                          Explorar
+                        </button>
+                        {showImmersiveHint && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: "100%",
+                              left: "50%",
+                              transform: "translateX(-50%)",
+                              marginTop: 8,
+                              background: accent,
+                              color: onAccent,
+                              borderRadius: 12,
+                              padding: "6px 12px",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              pointerEvents: "none",
+                              zIndex: 10,
+                              animation: "explorePill 1.5s ease both",
+                              boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+                            }}
+                          >
+                            Nuevo: mirá el menú a pantalla completa 👆
+                          </div>
+                        )}
+                      </div>
                     )}
                     {/* Search trigger — siempre visible en mobile */}
                     <button
