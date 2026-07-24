@@ -21,6 +21,11 @@
       "date": "2026-07-14",
       "angle": "como-funciona-v2",
       "title": "Carrusel 4 — Pedí tu comida en 3 pasos"
+    },
+    {
+      "date": "2026-07-16",
+      "angle": "comparacion-costos",
+      "title": "Le regalás un tercio a Rappi"
     }
   ],
   "manual_posts": [],
@@ -41,8 +46,8 @@
     },
     {
       "generate_date": "2026-07-22",
-      "publish_date": "2026-07-23",
-      "publish_time": "12:00",
+      "publish_date": "2026-07-24",
+      "publish_time": "14:00",
       "angle": "objecion-app",
       "brief": "Responder la objeción 'no quiero que mis clientes bajen una app'. Takefyy no es una app — es un link que abre el catálogo y manda el pedido por WhatsApp directo."
     },
