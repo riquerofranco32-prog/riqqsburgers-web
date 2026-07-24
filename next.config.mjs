@@ -13,7 +13,7 @@ const securityHeaders = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://vercel.live https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://i.postimg.cc https://postimg.cc https://api.qrserver.com https://tile.openstreetmap.org",
+      "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://i.postimg.cc https://postimg.cc https://api.qrserver.com https://tile.openstreetmap.org https://b.zmtcdn.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://prod.spline.design https://*.spline.design https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://*.ingest.us.sentry.io",
       "worker-src 'self' blob:",
       "font-src 'self' data:",
