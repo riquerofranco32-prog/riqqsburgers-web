@@ -3957,7 +3957,6 @@ export default function CatalogClient({
             products={allProducts}
             accent={accent}
             onAccent={onAccent}
-            SURFACE={SURFACE}
             TEXTM={TEXTM}
             onClose={() => setImmersiveMode(false)}
             onAdd={(item) => {

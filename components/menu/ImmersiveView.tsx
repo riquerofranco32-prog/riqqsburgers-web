@@ -21,21 +21,12 @@ function vibrate(ms = 40) {
   }
 }
 
-function hexToRgba(hex: string, alpha: number) {
-  const c = hex.replace("#", "").padEnd(6, "0");
-  const r = parseInt(c.slice(0, 2), 16) || 0;
-  const g = parseInt(c.slice(2, 4), 16) || 0;
-  const b = parseInt(c.slice(4, 6), 16) || 0;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 export interface ImmersiveViewProps {
   products: (MenuItem & { catEmoji: string })[];
   accent: string;
   onAccent: string;
-  SURFACE: string;
   TEXTM: string;
   onClose: () => void;
   onAdd: (item: MenuItem) => void;
@@ -49,7 +40,6 @@ export default function ImmersiveView({
   products,
   accent,
   onAccent,
-  SURFACE,
   TEXTM,
   onClose,
   onAdd,
@@ -88,11 +78,12 @@ export default function ImmersiveView({
   }, [onClose]);
 
   if (products.length === 0) return null;
-  const progress =
-    products.length > 1 ? (currentIdx / (products.length - 1)) * 100 : 100;
 
   return createPortal(
     <div className="immersive-container">
+      {/* Scrim superior — legibilidad sobre la foto full-bleed */}
+      <div className="immersive-top-scrim" />
+
       {/* Close button */}
       <button
         className="immersive-close-btn"
@@ -102,16 +93,20 @@ export default function ImmersiveView({
         <X size={17} strokeWidth={2.5} />
       </button>
 
-      {/* Top bar: counter + progress */}
+      {/* Top bar: counter + progreso segmentado (uno por producto) */}
       <div className="immersive-top-bar">
+        <div className="immersive-progress-segments">
+          {products.map((p, i) => (
+            <div key={p.id} className="immersive-progress-segment">
+              <div
+                className="immersive-progress-segment-fill"
+                style={i <= currentIdx ? { width: "100%" } : undefined}
+              />
+            </div>
+          ))}
+        </div>
         <div className="immersive-counter">
           {currentIdx + 1} / {products.length}
-        </div>
-        <div className="immersive-progress-track">
-          <div
-            className="immersive-progress-fill"
-            style={{ width: `${progress}%` }}
-          />
         </div>
       </div>
 
@@ -170,11 +165,8 @@ export default function ImmersiveView({
                 )}
               </div>
 
-              {/* Info card — glassmorphism */}
-              <div
-                className="immersive-info-card"
-                style={{ background: hexToRgba(SURFACE, 0.12) }}
-              >
+              {/* Info — flota sobre un scrim degradado, la foto queda a pantalla completa */}
+              <div className="immersive-info-card">
                 {product.badge && product.badge !== "Agotado" && (
                   <div className="immersive-badge-pill">{product.badge}</div>
                 )}
